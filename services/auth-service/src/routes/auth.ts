@@ -17,10 +17,11 @@ router.post(
     const user = await UserService.singup(email, password);
     // TODO: publish a user.registered event to rabbitmq
 
-    res.status(StatusCodes.CREATED).json({
-      message: "User registered successfully",
-      user,
-    });
+    sendTokenResponse(
+      res,
+      { id: user.id!, email: user.email },
+      StatusCodes.CREATED
+    );
   }
 );
 
