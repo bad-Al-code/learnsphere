@@ -5,6 +5,8 @@ import { loginSchema, signupSchema } from "../schemas/auth-schema";
 import { StatusCodes } from "http-status-codes";
 import { UserService } from "../services/user-service";
 import { sendTokenResponse } from "../utils/token";
+import { UserRegisteredPublisher } from "../events/publisher";
+import logger from "../config/logger";
 
 const router = Router();
 
@@ -15,7 +17,16 @@ router.post(
     const { email, password } = req.body;
 
     const user = await UserService.singup(email, password);
-    // TODO: publish a user.registered event to rabbitmq
+
+    try {
+      const publisher = new UserRegisteredPublisher();
+      await publisher.publish({ id: user.id!, email: user.email });
+    } catch (error) {
+      logger.error("Failed tp publish user.registered event", {
+        userId: user.id,
+        error,
+      });
+    }
 
     sendTokenResponse(
       res,

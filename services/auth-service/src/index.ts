@@ -1,15 +1,30 @@
 import { app } from "./app";
 import logger from "./config/logger";
-import { users } from "./db/schema";
+import { rabbitMQConnection } from "./events/connection";
 
 const startServer = async () => {
-  const PORT = process.env.PORT || 8000;
+  try {
+    await rabbitMQConnection.connect();
 
-  app.listen(PORT, () => {
-    logger.info(
-      `Auth service listening at port ${PORT} in ${process.env.NODE_ENV} mode`
-    );
-  });
+    const PORT = process.env.PORT || 8000;
+    app.listen(PORT, () => {
+      logger.info(
+        `Auth service listening at port ${PORT} in ${process.env.NODE_ENV} mode`
+      );
+    });
+
+    process.on("SIGINT", async () => {
+      await rabbitMQConnection.close();
+      process.exit(0);
+    });
+    process.on("SIGTERM", async () => {
+      await rabbitMQConnection.close();
+      process.exit(0);
+    });
+  } catch (error) {
+    logger.error("Failed to start the server", { error });
+    process.exit(1);
+  }
 };
 
 startServer();
