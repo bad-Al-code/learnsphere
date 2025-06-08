@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import { app } from "./app";
 import logger from "./config/logger";
 import { rabbitMQConnection } from "./events/connection";
