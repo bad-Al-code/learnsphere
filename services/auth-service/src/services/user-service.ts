@@ -62,23 +62,25 @@ export class UserService {
       throw new BadRequestError("Invalid credentials");
     }
 
-    const userJwt = jwt.sign(
-      {
-        id: existingUser.id,
-        email: existingUser.email,
-      },
-      process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"] }
-    );
+    // const userJwt = jwt.sign(
+    //   {
+    //     id: existingUser.id,
+    //     email: existingUser.email,
+    //   },
+    //   process.env.JWT_SECRET!,
+    //   { expiresIn: process.env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"] }
+    // );
 
-    logger.info(
-      `User logged in successfully: ${email} (ID: ${existingUser.id})`
-    );
+    // logger.info(
+    //   `User logged in successfully: ${email} (ID: ${existingUser.id})`
+    // );
 
-    return {
-      id: existingUser.id,
-      email: existingUser.email,
-      token: userJwt,
-    };
+    // return {
+    //   id: existingUser.id,
+    //   email: existingUser.email,
+    //   token: userJwt,
+    // };
+
+    return existingUser;
   }
 }
