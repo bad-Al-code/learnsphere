@@ -9,7 +9,7 @@ build:
     useBuildkit: true
     push: false
   artifacts:
-    - image: badal1/learnsphere-auth-service
+    - image: learnsphere/auth-service
       context: services/auth-service
       docker:
         dockerfile: Dockerfile
@@ -17,8 +17,17 @@ build:
         manual:
           - src: "src/**/*.js" # use .js here as TS is compiled to JS
             dest: .
-# manifests:
-#   rawYaml: ["kubernetes/kind-cluster-config.yaml"]
-#   - manifest:
-#       kubeContext: kind-learnsphere-dev
-#   helm:
+manifests:
+  helm:
+    releases:
+      - name: auth-service
+        chartPath: services/auth-service/helm-chart
+        setValueTemplates:
+          image.repository: "{{ .IMAGE_REPO_learnsphere_auth_service}}"
+          image.tag: "{{.IMAGE_TAG_learnsphere_auth_service}}"
+
+deploy:
+  kubectl: {}
+
+profiles:
+  - name: dev
