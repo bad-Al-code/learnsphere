@@ -28,7 +28,7 @@ export const sendTokenResponse = (
     signed: true,
   };
 
-  logger.info(`Attempting JWT for user id ${user.id}  to a secure cookie`);
+  logger.info(`Attaching JWT for user id ${user.id}  to a secure cookie`);
 
   res
     .status(statusCode)
