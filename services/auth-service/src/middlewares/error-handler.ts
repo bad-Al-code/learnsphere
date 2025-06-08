@@ -18,4 +18,6 @@ export const errorHandler = (
   res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
     errors: [{ message: "Something went wrong, please try again later" }],
   });
+
+  return;
 };
