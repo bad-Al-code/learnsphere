@@ -1,14 +1,11 @@
-import express, { Request, Response, json } from "express";
-import { StatusCodes } from "http-status-codes";
+import { app } from "./app";
 
-const PORT = 3000;
-const app = express();
+const startServer = () => {
+  const PORT = process.env.PORT || 8000;
 
-app.use(json());
-app.get("/health", (req: Request, res: Response) => {
-  res.status(StatusCodes.OK).json({ status: "UP" });
-});
+  app.listen(PORT, () => {
+    console.log(`Auth service listening at port ${PORT}`);
+  });
+};
 
-app.listen(PORT, () => {
-  console.log(`Auth service is running at port ${PORT}`);
-});
+startServer();
