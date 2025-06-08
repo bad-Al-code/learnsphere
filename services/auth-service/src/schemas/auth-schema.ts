@@ -11,3 +11,12 @@ export const signupSchema = z.object({
       .max(50, "Password must be at most 50 characters long"),
   }),
 });
+
+export const loginSchema = z.object({
+  body: z.object({
+    email: z
+      .string({ required_error: "Email is required" })
+      .email("Not a valid email"),
+    password: z.string({ required_error: "Password is required" }),
+  }),
+});

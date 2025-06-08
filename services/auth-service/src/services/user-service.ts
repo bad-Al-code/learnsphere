@@ -1,4 +1,6 @@
 import { eq } from "drizzle-orm";
+import jwt from "jsonwebtoken";
+
 import logger from "../config/logger";
 import { db } from "../db";
 import { users } from "../db/schema";
@@ -34,5 +36,49 @@ export class UserService {
     logger.info(`User created successfully with ID: ${newUser[0].id}`);
 
     return newUser[0];
+  }
+
+  public static async login(email: string, password: string) {
+    logger.debug(`Login attempt for email: ${email}`);
+
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.email, email),
+    });
+
+    if (!existingUser) {
+      logger.warn(`Login failed: User not found for email ${email}`);
+
+      throw new BadRequestError("Invalid credentials");
+    }
+
+    const passwordMatch = await Password.compare(
+      existingUser.passwordHash,
+      password
+    );
+
+    if (!passwordMatch) {
+      logger.warn(`Login failed: Invalid password for ${email}`);
+
+      throw new BadRequestError("Invalid credentials");
+    }
+
+    const userJwt = jwt.sign(
+      {
+        id: existingUser.id,
+        email: existingUser.email,
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: process.env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"] }
+    );
+
+    logger.info(
+      `User logged in successfully: ${email} (ID: ${existingUser.id})`
+    );
+
+    return {
+      id: existingUser.id,
+      email: existingUser.email,
+      token: userJwt,
+    };
   }
 }
