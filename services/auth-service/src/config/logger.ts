@@ -3,7 +3,7 @@ import winston from "winston";
 const { combine, colorize, timestamp, printf, json } = winston.format;
 
 const logger = winston.createLogger({
-  level: process.env.NODE_ENV === "production" ? "debug" : "info",
+  level: process.env.NODE_ENV === "development" ? "debug" : "info",
   format:
     process.env.NODE_ENV === "development"
       ? combine(
