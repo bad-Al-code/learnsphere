@@ -63,11 +63,8 @@ interface UserRegisteredEvent extends Event {
 export class UserRegisteredListener extends Listener<UserRegisteredEvent> {
   topic: "user.registered" = "user.registered";
   queueGroupName: string = "user-service";
-  onMessage(data: { id: string; email: string }, msg: ConsumeMessage): void {
-    logger.info(`Event data received!`, {
-      topic: this.topic,
-      data,
-    });
+  onMessage(data: UserRegisteredEvent["data"], msg: ConsumeMessage): void {
+    logger.info(`Event data received for topic [${this.topic}]: %o`, data);
 
     // TODO: save to the database
   }
