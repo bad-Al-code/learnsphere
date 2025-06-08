@@ -1,0 +1,24 @@
+apiVersion: skaffold/v4beta12
+kind: Config
+metadata:
+  name: learnsphere
+  labels: { "app": "learnsphere" }
+
+build:
+  local:
+    useBuildkit: true
+    push: false
+  artifacts:
+    - image: badal1/learnsphere-auth-service
+      context: services/auth-service
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "src/**/*.js" # use .js here as TS is compiled to JS
+            dest: .
+# manifests:
+#   rawYaml: ["kubernetes/kind-cluster-config.yaml"]
+#   - manifest:
+#       kubeContext: kind-learnsphere-dev
+#   helm:
