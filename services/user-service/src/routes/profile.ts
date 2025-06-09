@@ -2,6 +2,8 @@ import { Request, Response, Router } from "express";
 import { requireAuth } from "../middlewares/require-auth";
 import { ProfileService } from "../services/profile-service";
 import { StatusCodes } from "http-status-codes";
+import { validateRequest } from "../middlewares/validate-request";
+import { updateProfileSchema } from "../schemas/profile-schema";
 
 const router = Router();
 
@@ -19,5 +21,29 @@ router.get("/me", requireAuth, async (req: Request, res: Response) => {
 
   res.status(StatusCodes.OK).json(profile);
 });
+
+router.put(
+  "/me",
+  requireAuth,
+  validateRequest(updateProfileSchema),
+  async (req: Request, res: Response) => {
+    const userId = req.currentUser!.id;
+    const updateData = req.body;
+
+    const updatedProfile = await ProfileService.updateProfile(
+      userId,
+      updateData
+    );
+    if (!updatedProfile) {
+      res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ error: [{ message: "Profile not found" }] });
+
+      return;
+    }
+
+    res.status(StatusCodes.OK).json(updatedProfile);
+  }
+);
 
 export { router as profileRouter };

@@ -7,6 +7,12 @@ interface NewProfileData {
   userId: string;
 }
 
+interface UpdateProfileData {
+  firrtName?: string;
+  lastName?: string;
+  bio?: string;
+}
+
 export class ProfileService {
   public static async createProfile(data: NewProfileData) {
     logger.info(`Creating a new profile for user ID: ${data.userId}`);
@@ -45,5 +51,24 @@ export class ProfileService {
     }
 
     return profile;
+  }
+
+  public static async updateProfile(userId: string, data: UpdateProfileData) {
+    logger.info(`Updating profile for user ID: ${userId}`, { data });
+
+    const updatedProfile = await db
+      .update(profiles)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(profiles.userId, userId))
+      .returning();
+
+    if (updatedProfile.length === 0) {
+      logger.warn(
+        `Attempted to update a profile that does not exist: ${userId}`
+      );
+      return null;
+    }
+
+    return updatedProfile[0];
   }
 }
