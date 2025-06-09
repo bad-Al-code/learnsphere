@@ -1,0 +1,108 @@
+services:
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: learnsphere-auth-service
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-auth:5432/auth_db
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN="1h"
+      - COOKIE_PARSER_SECRET=${COOKIE_PARSER_SECRET}
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      - postgres-auth
+      - rabbitmq
+
+  auth-service-cmd:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-auth:5432/auth_db
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: learnsphere-user-service
+    ports:
+      - "8001:8000"
+    environment:
+      - PORT=8000
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-user:5432/user_db
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN="1h"
+      - COOKIE_PARSER_SECRET=${COOKIE_PARSER_SECRET}
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      - postgres-user
+      - rabbitmq
+
+  user-service-cmd:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-user:5432/user_db
+    depends_on:
+      postgres-user:
+        condition: service_healthy
+
+  postgres-auth:
+    image: postgres:17.5
+    container_name: learnsphere-postgres-auth
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: auth_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d auth_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-user:
+    image: postgres:17.5
+    container_name: learnsphere-postgres-user
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: user_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d user_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:4.1.0-beta.5-management-alpine
+    container_name: learnsphere-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+volumes:
+  auth-db-data:
+  user-db-data:
