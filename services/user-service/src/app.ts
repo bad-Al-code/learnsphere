@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import logger from "./config/logger";
 import { healthRouter, profileRouter } from "./routes";
 import { currentUser } from "./middlewares/current-user";
+import { errorHandler } from "./middlewares/error-handler";
 
 const app = express();
 app.use(json());
@@ -21,5 +22,7 @@ app.use((req, res, next) => {
 
 app.use("/api/users", healthRouter);
 app.use("/api/users", profileRouter);
+
+app.use(errorHandler);
 
 export { app };

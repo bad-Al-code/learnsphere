@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
 import { AnyZodObject, ZodError } from "zod";
+import { BadRequestError } from "../errors";
 
 export const validateRequest =
   (schema: AnyZodObject) =>
@@ -16,8 +16,7 @@ export const validateRequest =
           field: err.path.slice(1).join("."),
         }));
 
-        res.status(StatusCodes.BAD_REQUEST).json({ errors });
-        return;
+        throw new BadRequestError(errors);
       }
 
       next(e);

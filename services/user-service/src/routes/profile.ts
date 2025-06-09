@@ -4,6 +4,7 @@ import { ProfileService } from "../services/profile-service";
 import { StatusCodes } from "http-status-codes";
 import { validateRequest } from "../middlewares/validate-request";
 import { updateProfileSchema } from "../schemas/profile-schema";
+import { NotFoundError } from "../errors";
 
 const router = Router();
 
@@ -35,11 +36,7 @@ router.put(
       updateData
     );
     if (!updatedProfile) {
-      res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ error: [{ message: "Profile not found" }] });
-
-      return;
+      throw new NotFoundError("Profile");
     }
 
     res.status(StatusCodes.OK).json(updatedProfile);

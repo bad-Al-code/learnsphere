@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
+import { NotAuthorizedError } from "../errors";
 
 export const requireAuth = (
   req: Request,
@@ -7,11 +7,7 @@ export const requireAuth = (
   next: NextFunction
 ) => {
   if (!req.currentUser) {
-    res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ errors: [{ message: "Not Authorized" }] });
-
-    return;
+    throw new NotAuthorizedError();
   }
 
   next();
