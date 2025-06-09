@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import logger from "../config/logger";
 import { db } from "../db";
 import { profiles } from "../db/schema";
+import { NotFoundError } from "../errors";
 
 interface NewProfileData {
   userId: string;
@@ -70,5 +71,27 @@ export class ProfileService {
     }
 
     return updatedProfile[0];
+  }
+
+  public static async getPublicProfileById(userId: string) {
+    logger.debug(`Fetching public profile for user ID: ${userId}`);
+
+    const publicProfile = await db
+      .select({
+        userId: profiles.userId,
+        firstName: profiles.firstName,
+        lastName: profiles.lastName,
+        bio: profiles.bio,
+        createdAt: profiles.createdAt,
+      })
+      .from(profiles)
+      .where(eq(profiles.userId, userId))
+      .limit(1);
+
+    if (publicProfile.length === 0) {
+      throw new NotFoundError("User Profile");
+    }
+
+    return publicProfile[0];
   }
 }

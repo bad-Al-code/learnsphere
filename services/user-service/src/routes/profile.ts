@@ -43,4 +43,12 @@ router.put(
   }
 );
 
+router.get("/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const profile = await ProfileService.getPublicProfileById(id);
+
+  res.status(StatusCodes.OK).json(profile);
+});
+
 export { router as profileRouter };
