@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import logger from "../config/logger";
 import { db } from "../db";
 import { profiles } from "../db/schema";
@@ -29,5 +30,20 @@ export class ProfileService {
 
       throw error;
     }
+  }
+
+  public static async getProfileById(userId: string) {
+    logger.debug(`Fetching profile for user ID: ${userId}`);
+
+    const profile = await db.query.profiles.findFirst({
+      where: eq(profiles.userId, userId),
+    });
+
+    if (!profile) {
+      logger.warn(`Profile not found for user ID: ${userId}`);
+      return null;
+    }
+
+    return profile;
   }
 }

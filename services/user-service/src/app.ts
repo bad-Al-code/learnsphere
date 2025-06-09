@@ -1,9 +1,14 @@
 import express, { json } from "express";
+import cookieParser from "cookie-parser";
+
 import logger from "./config/logger";
-import { healthRouter } from "./config/routes";
+import { healthRouter, profileRouter } from "./routes";
+import { currentUser } from "./middlewares/current-user";
 
 const app = express();
 app.use(json());
+app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
+app.use(currentUser);
 
 app.use((req, res, next) => {
   res.on("finish", () => {
@@ -15,5 +20,6 @@ app.use((req, res, next) => {
 });
 
 app.use("/api/users", healthRouter);
+app.use("/api/users", profileRouter);
 
 export { app };
