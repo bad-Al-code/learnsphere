@@ -11,7 +11,7 @@ const startServer = async () => {
     const PORT = process.env.PORT || 8000;
     app.listen(PORT, () => {
       logger.info(
-        `Auth service listening at port ${PORT} in ${process.env.NODE_ENV} mode`
+        `Auth sservice listening at port ${PORT} in ${process.env.NODE_ENV} mode`
       );
     });
 
