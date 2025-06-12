@@ -32,6 +32,9 @@ export class UserService {
       .update(verificationToken)
       .digest("hex");
 
+    const twoHours = 2 * 60 * 60 * 1000;
+    const verificationTokenExpiresAt = new Date(Date.now() + twoHours);
+
     const passwordHash = await Password.toHash(password);
 
     const newUser = await db
@@ -40,12 +43,53 @@ export class UserService {
         email,
         passwordHash,
         verificationToken: hashedVerificationToken,
+        verificationTokenExpiresAt,
       })
       .returning({ id: users.id, email: users.email });
 
     logger.info(`User created successfully with ID: ${newUser[0].id}`);
 
     return { user: newUser[0], verificationToken };
+  }
+
+  public static async verifyEmail(email: string, verificationToken: string) {
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(verificationToken)
+      .digest("hex");
+    const user = await db.query.users.findFirst({
+      where: (users, { and, eq }) =>
+        and(eq(users.email, email), eq(users.verificationToken, hashedToken)),
+    });
+
+    if (!user) {
+      throw new UnauthenticatedError("Verification failed: Invalid token");
+    }
+
+    const now = Date.now();
+
+    if (
+      !user.verificationTokenExpiresAt ||
+      now > user.verificationTokenExpiresAt.getTime()
+    ) {
+      logger.warn(
+        `Attempt to use expired or missing verification token for user: ${user.id}`
+      );
+      throw new UnauthenticatedError("Verification failed: Token has expired.");
+    }
+
+    logger.info(`Verifying email for user ID: ${user.id}`);
+
+    await db
+      .update(users)
+      .set({
+        isVerified: true,
+        verificationToken: null,
+        verificationTokenExpiresAt: null,
+      })
+      .where(eq(users.id, user.id!));
+
+    logger.info(`Email successfully verified for user ID: ${user.id}`);
   }
 
   public static async login(email: string, password: string) {
@@ -73,32 +117,5 @@ export class UserService {
     }
 
     return existingUser;
-  }
-
-  public static async verifyEmail(email: string, verificationToken: string) {
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(verificationToken)
-      .digest("hex");
-    const user = await db.query.users.findFirst({
-      where: (users, { and, eq }) =>
-        and(eq(users.email, email), eq(users.verificationToken, hashedToken)),
-    });
-
-    if (!user) {
-      throw new UnauthenticatedError("Verification failed: Invalid token");
-    }
-
-    logger.info(`Verifying email for user ID: ${user.id}`);
-
-    await db
-      .update(users)
-      .set({
-        isVerified: true,
-        verificationToken: null, // Invalidate the token by clearing it
-      })
-      .where(eq(users.id, user.id!));
-
-    logger.info(`Email successfully verified for user ID: ${user.id}`);
   }
 }
