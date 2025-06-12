@@ -64,3 +64,19 @@ export const sendTokenResponse = (
     .status(statusCode)
     .json({ message: "Success", user: { id: user.id, email: user.email } });
 };
+
+export const attachAccessTokenCookie = (res: Response, user: UserPayload) => {
+  const accessToken = jwt.sign(
+    { id: user.id, email: user.email },
+    process.env.JWT_SECRET!,
+    { expiresIn: process.env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"] }
+  );
+  const accessTokenCookieOptions = {
+    httpOnly: true,
+    expires: new Date(Date.now() + 15 * 60 * 1000),
+    secure: process.env.NODE_ENV === "production",
+    signed: true,
+  };
+
+  res.cookie("token", accessToken, accessTokenCookieOptions);
+};

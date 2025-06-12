@@ -1,12 +1,14 @@
 import { Request, Response, Router } from "express";
+import { StatusCodes } from "http-status-codes";
+import jwt from "jsonwebtoken";
 
 import { validateRequest } from "../middlewares/validate-request";
 import { loginSchema, signupSchema } from "../schemas/auth-schema";
-import { StatusCodes } from "http-status-codes";
 import { UserService } from "../services/user-service";
-import { sendTokenResponse } from "../utils/token";
+import { attachAccessTokenCookie, sendTokenResponse } from "../utils/token";
 import { UserRegisteredPublisher } from "../events/publisher";
 import logger from "../config/logger";
+import { UnauthenticatedError } from "../errors";
 
 const router = Router();
 
@@ -47,5 +49,31 @@ router.post(
     sendTokenResponse(res, { id: user.id!, email: user.email }, StatusCodes.OK);
   }
 );
+
+router.post("/refresh", (req: Request, res: Response) => {
+  const refreshToken = req.signedCookies.refreshToken;
+
+  if (!refreshToken) {
+    throw new UnauthenticatedError("Authentication invalid: No refresh token");
+  }
+
+  try {
+    const payload = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET!
+    ) as { id: string; email: string };
+
+    attachAccessTokenCookie(res, { id: payload.id, email: payload.email });
+
+    res.status(StatusCodes.OK).json({
+      message: "Token refreshed",
+      user: { id: payload.id, email: payload.email },
+    });
+  } catch (error) {
+    throw new UnauthenticatedError(
+      "Authentication Invalid: Refresh Token is invalid"
+    );
+  }
+});
 
 export { router as authRouter };
