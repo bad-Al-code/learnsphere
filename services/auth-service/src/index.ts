@@ -3,10 +3,12 @@ import "dotenv/config";
 import { app } from "./app";
 import logger from "./config/logger";
 import { rabbitMQConnection } from "./events/connection";
+import { redisConnection } from "./config/redis";
 
 const startServer = async () => {
   try {
     await rabbitMQConnection.connect();
+    await redisConnection.connect();
 
     const PORT = process.env.PORT || 8000;
     app.listen(PORT, () => {
@@ -15,14 +17,14 @@ const startServer = async () => {
       );
     });
 
-    process.on("SIGINT", async () => {
+    const shutdown = async () => {
       await rabbitMQConnection.close();
+      await redisConnection.disconnect();
       process.exit(0);
-    });
-    process.on("SIGTERM", async () => {
-      await rabbitMQConnection.close();
-      process.exit(0);
-    });
+    };
+
+    process.on("SIGINT", shutdown);
+    process.on("SIGTERM", shutdown);
   } catch (error) {
     logger.error("Failed to start the server", { error });
     process.exit(1);
