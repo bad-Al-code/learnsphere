@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import logger from "../config/logger";
 import { db } from "../db";
 import { users } from "../db/schema";
-import { BadRequestError } from "../errors";
+import { BadRequestError, UnauthenticatedError } from "../errors";
 import { Password } from "../utils/password";
 import crypto from "node:crypto";
 
@@ -72,25 +72,33 @@ export class UserService {
       throw new BadRequestError("Invalid credentials");
     }
 
-    // const userJwt = jwt.sign(
-    //   {
-    //     id: existingUser.id,
-    //     email: existingUser.email,
-    //   },
-    //   process.env.JWT_SECRET!,
-    //   { expiresIn: process.env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"] }
-    // );
-
-    // logger.info(
-    //   `User logged in successfully: ${email} (ID: ${existingUser.id})`
-    // );
-
-    // return {
-    //   id: existingUser.id,
-    //   email: existingUser.email,
-    //   token: userJwt,
-    // };
-
     return existingUser;
+  }
+
+  public static async verifyEmail(email: string, verificationToken: string) {
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(verificationToken)
+      .digest("hex");
+    const user = await db.query.users.findFirst({
+      where: (users, { and, eq }) =>
+        and(eq(users.email, email), eq(users.verificationToken, hashedToken)),
+    });
+
+    if (!user) {
+      throw new UnauthenticatedError("Verification failed: Invalid token");
+    }
+
+    logger.info(`Verifying email for user ID: ${user.id}`);
+
+    await db
+      .update(users)
+      .set({
+        isVerified: true,
+        verificationToken: null, // Invalidate the token by clearing it
+      })
+      .where(eq(users.id, user.id!));
+
+    logger.info(`Email successfully verified for user ID: ${user.id}`);
   }
 }

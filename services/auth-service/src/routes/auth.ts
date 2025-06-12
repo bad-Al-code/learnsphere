@@ -3,7 +3,11 @@ import { StatusCodes } from "http-status-codes";
 import jwt from "jsonwebtoken";
 
 import { validateRequest } from "../middlewares/validate-request";
-import { loginSchema, signupSchema } from "../schemas/auth-schema";
+import {
+  loginSchema,
+  signupSchema,
+  verifyEmailSchema,
+} from "../schemas/auth-schema";
 import { UserService } from "../services/user-service";
 import {
   UserRegisteredPublisher,
@@ -122,4 +126,17 @@ router.post("/logout", (req: Request, res: Response) => {
   res.status(StatusCodes.OK).json({ message: "User logged out successfully" });
 });
 
+router.post(
+  "/verify-email",
+  validateRequest(verifyEmailSchema),
+  async (req: Request, res: Response) => {
+    const { email, token } = req.body;
+
+    await UserService.verifyEmail(email, token);
+
+    res
+      .status(StatusCodes.OK)
+      .json({ message: "Email verification successfully." });
+  }
+);
 export { router as authRouter };

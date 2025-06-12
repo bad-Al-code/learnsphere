@@ -20,3 +20,12 @@ export const loginSchema = z.object({
     password: z.string({ required_error: "Password is required" }),
   }),
 });
+
+export const verifyEmailSchema = z.object({
+  body: z.object({
+    email: z
+      .string({ required_error: "Email is required" })
+      .email("Not a valid email"),
+    token: z.string({ required_error: "Token is required" }),
+  }),
+});
