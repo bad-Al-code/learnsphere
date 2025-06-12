@@ -6,6 +6,7 @@ import { validateRequest } from "../middlewares/validate-request";
 import {
   forgotPasswordSchema,
   loginSchema,
+  resetPasswordSchema,
   signupSchema,
   verifyEmailSchema,
 } from "../schemas/auth-schema";
@@ -154,12 +155,23 @@ router.post(
       await publisher.publish({ email, resetToken: result.resetToken });
     }
 
+    res.status(StatusCodes.OK).json({
+      message:
+        "If an account with that email exists, a password reset link has been sent.",
+    });
+  }
+);
+
+router.post(
+  "/reset-password",
+  validateRequest(resetPasswordSchema),
+  async (req: Request, res: Response) => {
+    const { email, token, password } = req.body;
+
+    await UserService.resetPassword(email, token, password);
     res
       .status(StatusCodes.OK)
-      .json({
-        message:
-          "If an account with that email exists, a password reset link has been sent.",
-      });
+      .json({ message: "Password has been reset successfully." });
   }
 );
 

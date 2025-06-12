@@ -35,3 +35,16 @@ export const forgotPasswordSchema = z.object({
     email: z.string({ required_error: "Email is required" }).email(),
   }),
 });
+
+export const resetPasswordSchema = z.object({
+  body: z.object({
+    email: z
+      .string({ required_error: "Email is required" })
+      .email("Not a valid email"),
+    token: z.string({ required_error: "Token is required" }),
+    password: z
+      .string({ required_error: "Password is required" })
+      .min(8, "Password must at least 8 characters long")
+      .max(50, "Password must be at most 50 characters long"),
+  }),
+});

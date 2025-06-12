@@ -148,4 +148,49 @@ export class UserService {
 
     return { resetToken };
   }
+
+  public static async resetPassword(
+    email: string,
+    resetToken: string,
+    newPassword: string
+  ) {
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    const user = await db.query.users.findFirst({
+      where: (users, { and, eq }) =>
+        and(eq(users.email, email), eq(users.passwordResetToken, hashedToken)),
+    });
+
+    if (!user) {
+      throw new UnauthenticatedError("Password reset failed: Invalid token.");
+    }
+
+    const now = Date.now();
+
+    if (
+      !user.passwordResetTokenExpiresAt ||
+      now > user.passwordResetTokenExpiresAt.getTime()
+    ) {
+      throw new UnauthenticatedError("Password reset faild: Token has expired");
+    }
+
+    const newPasswordHash = await Password.toHash(newPassword);
+
+    await db
+      .update(users)
+      .set({
+        passwordHash: newPasswordHash,
+        passwordResetToken: null,
+        passwordResetTokenExpiresAt: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, user.id!));
+
+    logger.info(`Password succesfully reset for user ID: ${user.id}`);
+
+    // TODO: Invalidate all active session for this user by blacklisting token
+  }
 }
