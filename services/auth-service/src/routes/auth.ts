@@ -5,10 +5,10 @@ import jwt from "jsonwebtoken";
 import { validateRequest } from "../middlewares/validate-request";
 import { loginSchema, signupSchema } from "../schemas/auth-schema";
 import { UserService } from "../services/user-service";
-import { attachAccessTokenCookie, sendTokenResponse } from "../utils/token";
 import { UserRegisteredPublisher } from "../events/publisher";
 import logger from "../config/logger";
 import { UnauthenticatedError } from "../errors";
+import { attachCookiesToResponse, sendTokenResponse } from "../utils/token";
 
 const router = Router();
 
@@ -63,11 +63,15 @@ router.post("/refresh", (req: Request, res: Response) => {
       process.env.JWT_REFRESH_SECRET!
     ) as { id: string; email: string };
 
-    attachAccessTokenCookie(res, { id: payload.id, email: payload.email });
+    const userPayload = { id: payload.id, email: payload.email };
+    attachCookiesToResponse(res, userPayload, {
+      accessToken: true,
+      refreshToken: true,
+    });
 
     res.status(StatusCodes.OK).json({
       message: "Token refreshed",
-      user: { id: payload.id, email: payload.email },
+      user: userPayload,
     });
   } catch (error) {
     throw new UnauthenticatedError(
