@@ -6,6 +6,7 @@ import { validateRequest } from "../middlewares/validate-request";
 import {
   forgotPasswordSchema,
   loginSchema,
+  resendVerificationSchema,
   resetPasswordSchema,
   signupSchema,
   verifyEmailSchema,
@@ -177,13 +178,33 @@ router.post(
 );
 
 router.get("/test-auth", requireAuth, (req, res) => {
-  res
-    .status(StatusCodes.OK)
-    .json({
-      message: "yuo are authenticated",
-      user: req.currentUser!.dbUser,
-      tokenInfo: req.currentUser!.tokenPayload,
-    });
+  res.status(StatusCodes.OK).json({
+    message: "yuo are authenticated",
+    user: req.currentUser!.dbUser,
+    tokenInfo: req.currentUser!.tokenPayload,
+  });
 });
+
+router.post(
+  "/resend-verification",
+  validateRequest(resendVerificationSchema),
+  async (req: Request, res: Response) => {
+    const { email } = req.body;
+    const result = await UserService.resendVerificationEmail(email);
+
+    if (result) {
+      const publisher = new UserVerificationRequiredPublisher();
+      await publisher.publish({
+        email: result.user.email,
+        verificationToken: result.verificationToken,
+      });
+    }
+
+    res.status(StatusCodes.OK).json({
+      message:
+        "If your email registed and unverified, a new verification link has been sent.",
+    });
+  }
+);
 
 export { router as authRouter };

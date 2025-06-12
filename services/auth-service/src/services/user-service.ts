@@ -191,7 +191,39 @@ export class UserService {
       .where(eq(users.id, user.id!));
 
     logger.info(`Password succesfully reset for user ID: ${user.id}`);
+  }
 
-    // TODO: Invalidate all active session for this user by blacklisting token
+  public static async resendVerificationEmail(email: string) {
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, email),
+    });
+    if (!user || user.isVerified) {
+      if (user?.isVerified)
+        logger.info(
+          `Verification resend requested for already verified user: ${email}`
+        );
+
+      return null;
+    }
+
+    const verificationToken = crypto.randomBytes(40).toString("hex");
+    const hashedVerificationToken = crypto
+      .createHash("sha256")
+      .update(verificationToken)
+      .digest("hex");
+    const twoHours = 2 * 60 * 60 * 1000;
+    const verificationTokenExpiresAt = new Date(Date.now() + twoHours);
+
+    await db
+      .update(users)
+      .set({
+        verificationToken: hashedVerificationToken,
+        verificationTokenExpiresAt,
+      })
+      .where(eq(users.id, user.id!));
+
+    logger.info(`New verifiation token generated for user: ${user.id}`);
+
+    return { user, verificationToken };
   }
 }
