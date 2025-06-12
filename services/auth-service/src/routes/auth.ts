@@ -80,4 +80,17 @@ router.post("/refresh", (req: Request, res: Response) => {
   }
 });
 
+router.post("/logout", (req: Request, res: Response) => {
+  res.cookie("token", "logout", {
+    httpOnly: true,
+    expires: new Date(Date.now()),
+  });
+
+  res.cookie("refreshToken", "logout", {
+    httpOnly: true,
+    expires: new Date(Date.now()),
+  });
+
+  res.status(StatusCodes.OK).json({ message: "User logged out successfully" });
+});
 export { router as authRouter };
