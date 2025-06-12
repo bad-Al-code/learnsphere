@@ -17,8 +17,8 @@ export abstract class Publisher<T extends { topic: string; data: any }> {
     channel.publish(this.exchange, this.topic, Buffer.from(message));
 
     logger.info(
-      `Event published to exchange '${this.exchange}' with topic '${this.topic}'`,
-      { data }
+      `Event published to exchange '${this.exchange}' with topic '${this.topic}': %o`,
+      data
     );
   }
 }
