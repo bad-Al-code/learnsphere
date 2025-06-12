@@ -9,6 +9,8 @@ import { UserRegisteredPublisher } from "../events/publisher";
 import logger from "../config/logger";
 import { UnauthenticatedError } from "../errors";
 import { attachCookiesToResponse, sendTokenResponse } from "../utils/token";
+import { decode } from "punycode";
+import { BlacklistService } from "../services/blacklist-service";
 
 const router = Router();
 
@@ -91,6 +93,22 @@ router.post("/logout", (req: Request, res: Response) => {
     expires: new Date(Date.now()),
   });
 
+  try {
+    const accessToken = req.signedCookies.token;
+    if (accessToken) {
+      const decoded = jwt.decode(accessToken) as { jti: string; exp: number };
+
+      if (decoded && decoded.exp && decoded.jti) {
+        BlacklistService.addToBlacklist(decoded.jti, decoded.exp);
+      }
+    }
+  } catch (error) {
+    logger.warn("Could not decode access token on logout for blacklisting.", {
+      error,
+    });
+  }
+
   res.status(StatusCodes.OK).json({ message: "User logged out successfully" });
 });
+
 export { router as authRouter };

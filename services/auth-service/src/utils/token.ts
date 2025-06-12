@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
 import logger from "../config/logger";
 
@@ -22,6 +23,7 @@ export const attachCookiesToResponse = (
       {
         id: user.id,
         email: user.email,
+        jti: uuidv4(),
       },
       process.env.JWT_SECRET!,
       { expiresIn: process.env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"] }
