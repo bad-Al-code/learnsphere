@@ -5,7 +5,10 @@ import jwt from "jsonwebtoken";
 import { validateRequest } from "../middlewares/validate-request";
 import { loginSchema, signupSchema } from "../schemas/auth-schema";
 import { UserService } from "../services/user-service";
-import { UserRegisteredPublisher } from "../events/publisher";
+import {
+  UserRegisteredPublisher,
+  UserVerificationRequiredPublisher,
+} from "../events/publisher";
 import logger from "../config/logger";
 import { UnauthenticatedError } from "../errors";
 import { attachCookiesToResponse, sendTokenResponse } from "../utils/token";
@@ -19,11 +22,20 @@ router.post(
   async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
-    const user = await UserService.singup(email, password);
+    const { user, verificationToken } = await UserService.singup(
+      email,
+      password
+    );
 
     try {
-      const publisher = new UserRegisteredPublisher();
-      await publisher.publish({ id: user.id!, email: user.email });
+      const registeredPublisher = new UserRegisteredPublisher();
+      await registeredPublisher.publish({ id: user.id!, email: user.email });
+
+      const verificationPublisher = new UserVerificationRequiredPublisher();
+      await verificationPublisher.publish({
+        email: user.email,
+        verificationToken,
+      });
     } catch (error) {
       logger.error("Failed tp publish user.registered event", {
         userId: user.id,

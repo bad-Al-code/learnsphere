@@ -34,3 +34,15 @@ interface UserRegisteredEvent {
 export class UserRegisteredPublisher extends Publisher<UserRegisteredEvent> {
   topic: "user.registered" = "user.registered";
 }
+
+interface UserVerificationRequiredEvent {
+  topic: "user.verification.required";
+  data: {
+    email: string;
+    verificationToken: string;
+  };
+}
+
+export class UserVerificationRequiredPublisher extends Publisher<UserVerificationRequiredEvent> {
+  topic: "user.verification.required" = "user.verification.required";
+}

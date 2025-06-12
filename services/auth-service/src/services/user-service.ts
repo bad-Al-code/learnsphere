@@ -1,11 +1,11 @@
 import { eq } from "drizzle-orm";
-import jwt from "jsonwebtoken";
 
 import logger from "../config/logger";
 import { db } from "../db";
 import { users } from "../db/schema";
 import { BadRequestError } from "../errors";
 import { Password } from "../utils/password";
+import crypto from "node:crypto";
 
 interface UserData {
   email: string;
@@ -26,16 +26,26 @@ export class UserService {
       throw new BadRequestError("Email is already in use.");
     }
 
+    const verificationToken = crypto.randomBytes(40).toString("hex");
+    const hashedVerificationToken = crypto
+      .createHash("sha256")
+      .update(verificationToken)
+      .digest("hex");
+
     const passwordHash = await Password.toHash(password);
 
     const newUser = await db
       .insert(users)
-      .values({ email, passwordHash })
+      .values({
+        email,
+        passwordHash,
+        verificationToken: hashedVerificationToken,
+      })
       .returning({ id: users.id, email: users.email });
 
     logger.info(`User created successfully with ID: ${newUser[0].id}`);
 
-    return newUser[0];
+    return { user: newUser[0], verificationToken };
   }
 
   public static async login(email: string, password: string) {
