@@ -21,4 +21,13 @@ export class BlacklistService {
       }
     }
   }
+
+  public static async isBlacklisted(jti: string): Promise<boolean> {
+    const redisClient = redisConnection.getClient();
+    const key = `blacklist:${jti}`;
+
+    const result = redisClient.get(key);
+
+    return result !== null;
+  }
 }

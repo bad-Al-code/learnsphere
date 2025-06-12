@@ -9,8 +9,8 @@ import { UserRegisteredPublisher } from "../events/publisher";
 import logger from "../config/logger";
 import { UnauthenticatedError } from "../errors";
 import { attachCookiesToResponse, sendTokenResponse } from "../utils/token";
-import { decode } from "punycode";
 import { BlacklistService } from "../services/blacklist-service";
+import { requireAuth } from "../middlewares/require-auth";
 
 const router = Router();
 
