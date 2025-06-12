@@ -19,9 +19,9 @@ import {
 } from "../events/publisher";
 import logger from "../config/logger";
 import { UnauthenticatedError } from "../errors";
-import { attachCookiesToResponse, sendTokenResponse } from "../utils/token";
 import { BlacklistService } from "../services/blacklist-service";
 import { requireAuth } from "../middlewares/require-auth";
+import { attachCookiesToResponse, sendTokenResponse } from "../utils/token";
 
 const router = Router();
 

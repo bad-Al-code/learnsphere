@@ -1,9 +1,10 @@
-import { sql } from "drizzle-orm";
+import { InferInsertModel, InferSelectModel, sql } from "drizzle-orm";
 import { text, timestamp, uuid, pgTable, boolean } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").default(sql`gen_random_uuid()`),
   email: text("email").notNull().unique(),
+  // TODO: remove unique frm passwordHash
   passwordHash: text("password_hash").notNull().unique(),
   isVerified: boolean("is_verified").default(false).notNull(),
   verificationToken: text("verification_token"),
@@ -14,3 +15,6 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export type User = InferSelectModel<typeof users>;
+export type NewUser = InferInsertModel<typeof users>;

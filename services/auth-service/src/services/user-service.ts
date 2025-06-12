@@ -2,17 +2,21 @@ import { eq } from "drizzle-orm";
 
 import logger from "../config/logger";
 import { db } from "../db";
-import { users } from "../db/schema";
+import { users, User } from "../db/schema";
 import { BadRequestError, UnauthenticatedError } from "../errors";
 import { Password } from "../utils/password";
-import crypto from "node:crypto";
+import { TokenUtil } from "../utils/jwt-token-genration-hashing";
 
-interface UserData {
-  email: string;
-  passwordHash: string;
-}
+const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
+const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
 
 export class UserService {
+  private static async _findUserByEmail(
+    email: string
+  ): Promise<User | undefined> {
+    return db.query.users.findFirst({ where: eq(users.email, email) });
+  }
+
   public static async singup(email: string, password: string) {
     logger.debug(`Checking if user exists with email: ${email}`);
 
@@ -26,14 +30,10 @@ export class UserService {
       throw new BadRequestError("Email is already in use.");
     }
 
-    const verificationToken = crypto.randomBytes(40).toString("hex");
-    const hashedVerificationToken = crypto
-      .createHash("sha256")
-      .update(verificationToken)
-      .digest("hex");
-
-    const twoHours = 2 * 60 * 60 * 1000;
-    const verificationTokenExpiresAt = new Date(Date.now() + twoHours);
+    const { rawToken: verificationToken, hashedToken } =
+      TokenUtil.generateHashedToken();
+    const verificationTokenExpiresAt =
+      TokenUtil.getExpirationDate(TWO_HOURS_IN_MS);
 
     const passwordHash = await Password.toHash(password);
 
@@ -42,7 +42,7 @@ export class UserService {
       .values({
         email,
         passwordHash,
-        verificationToken: hashedVerificationToken,
+        verificationToken: hashedToken,
         verificationTokenExpiresAt,
       })
       .returning({ id: users.id, email: users.email });
@@ -53,10 +53,8 @@ export class UserService {
   }
 
   public static async verifyEmail(email: string, verificationToken: string) {
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(verificationToken)
-      .digest("hex");
+    const hashedToken = TokenUtil.hashToken(verificationToken);
+
     const user = await db.query.users.findFirst({
       where: (users, { and, eq }) =>
         and(eq(users.email, email), eq(users.verificationToken, hashedToken)),
@@ -66,11 +64,9 @@ export class UserService {
       throw new UnauthenticatedError("Verification failed: Invalid token");
     }
 
-    const now = Date.now();
-
     if (
       !user.verificationTokenExpiresAt ||
-      now > user.verificationTokenExpiresAt.getTime()
+      Date.now() > user.verificationTokenExpiresAt.getTime()
     ) {
       logger.warn(
         `Attempt to use expired or missing verification token for user: ${user.id}`
@@ -128,18 +124,16 @@ export class UserService {
       return null;
     }
 
-    const resetToken = crypto.randomBytes(40).toString("hex");
-    const hashedResetToken = crypto
-      .createHash("sha256")
-      .update(resetToken)
-      .digest("hex");
-    const fifteenMinutes = 15 * 60 * 1000;
-    const passwordResetTokenExpiresAt = new Date(Date.now() + fifteenMinutes);
+    const { rawToken: resetToken, hashedToken } =
+      TokenUtil.generateHashedToken();
+    const passwordResetTokenExpiresAt = TokenUtil.getExpirationDate(
+      FIFTEEN_MINUTES_IN_MS
+    );
 
     await db
       .update(users)
       .set({
-        passwordResetToken: hashedResetToken,
+        passwordResetToken: hashedToken,
         passwordResetTokenExpiresAt,
       })
       .where(eq(users.id, user.id!));
@@ -154,10 +148,7 @@ export class UserService {
     resetToken: string,
     newPassword: string
   ) {
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(resetToken)
-      .digest("hex");
+    const hashedToken = TokenUtil.hashToken(resetToken);
 
     const user = await db.query.users.findFirst({
       where: (users, { and, eq }) =>
@@ -168,13 +159,13 @@ export class UserService {
       throw new UnauthenticatedError("Password reset failed: Invalid token.");
     }
 
-    const now = Date.now();
-
     if (
       !user.passwordResetTokenExpiresAt ||
-      now > user.passwordResetTokenExpiresAt.getTime()
+      Date.now() > user.passwordResetTokenExpiresAt.getTime()
     ) {
-      throw new UnauthenticatedError("Password reset faild: Token has expired");
+      throw new UnauthenticatedError(
+        "Password reset failed: Token has expired"
+      );
     }
 
     const newPasswordHash = await Password.toHash(newPassword);
@@ -206,18 +197,15 @@ export class UserService {
       return null;
     }
 
-    const verificationToken = crypto.randomBytes(40).toString("hex");
-    const hashedVerificationToken = crypto
-      .createHash("sha256")
-      .update(verificationToken)
-      .digest("hex");
-    const twoHours = 2 * 60 * 60 * 1000;
-    const verificationTokenExpiresAt = new Date(Date.now() + twoHours);
+    const { rawToken: verificationToken, hashedToken } =
+      TokenUtil.generateHashedToken();
+    const verificationTokenExpiresAt =
+      TokenUtil.getExpirationDate(TWO_HOURS_IN_MS);
 
     await db
       .update(users)
       .set({
-        verificationToken: hashedVerificationToken,
+        verificationToken: hashedToken,
         verificationTokenExpiresAt,
       })
       .where(eq(users.id, user.id!));
