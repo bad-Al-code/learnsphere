@@ -29,3 +29,9 @@ export const verifyEmailSchema = z.object({
     token: z.string({ required_error: "Token is required" }),
   }),
 });
+
+export const forgotPasswordSchema = z.object({
+  body: z.object({
+    email: z.string({ required_error: "Email is required" }).email(),
+  }),
+});

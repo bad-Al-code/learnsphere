@@ -4,12 +4,14 @@ import jwt from "jsonwebtoken";
 
 import { validateRequest } from "../middlewares/validate-request";
 import {
+  forgotPasswordSchema,
   loginSchema,
   signupSchema,
   verifyEmailSchema,
 } from "../schemas/auth-schema";
 import { UserService } from "../services/user-service";
 import {
+  USerPasswordResetRequiredPublisher,
   UserRegisteredPublisher,
   UserVerificationRequiredPublisher,
 } from "../events/publisher";
@@ -139,4 +141,26 @@ router.post(
       .json({ message: "Email verification successfully." });
   }
 );
+
+router.post(
+  "/forgot-password",
+  validateRequest(forgotPasswordSchema),
+  async (req: Request, res: Response) => {
+    const { email } = req.body;
+    const result = await UserService.forgotPassword(email);
+
+    if (result) {
+      const publisher = new USerPasswordResetRequiredPublisher();
+      await publisher.publish({ email, resetToken: result.resetToken });
+    }
+
+    res
+      .status(StatusCodes.OK)
+      .json({
+        message:
+          "If an account with that email exists, a password reset link has been sent.",
+      });
+  }
+);
+
 export { router as authRouter };

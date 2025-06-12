@@ -118,4 +118,34 @@ export class UserService {
 
     return existingUser;
   }
+
+  public static async forgotPassword(email: string) {
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, email),
+    });
+    if (!user) {
+      logger.warn(`Password reset requested for non-existent email: ${email}`);
+      return null;
+    }
+
+    const resetToken = crypto.randomBytes(40).toString("hex");
+    const hashedResetToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+    const fifteenMinutes = 15 * 60 * 1000;
+    const passwordResetTokenExpiresAt = new Date(Date.now() + fifteenMinutes);
+
+    await db
+      .update(users)
+      .set({
+        passwordResetToken: hashedResetToken,
+        passwordResetTokenExpiresAt,
+      })
+      .where(eq(users.id, user.id!));
+
+    logger.info(`Password reset token generated for user: ${user.id}`);
+
+    return { resetToken };
+  }
 }

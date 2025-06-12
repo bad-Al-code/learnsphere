@@ -46,3 +46,15 @@ interface UserVerificationRequiredEvent {
 export class UserVerificationRequiredPublisher extends Publisher<UserVerificationRequiredEvent> {
   topic: "user.verification.required" = "user.verification.required";
 }
+
+interface UserPasswordResetRequiredEvent {
+  topic: "user.password_reset.required";
+  data: {
+    email: string;
+    resetToken: string;
+  };
+}
+
+export class USerPasswordResetRequiredPublisher extends Publisher<UserPasswordResetRequiredEvent> {
+  topic: "user.password_reset.required" = "user.password_reset.required";
+}
