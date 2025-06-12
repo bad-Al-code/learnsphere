@@ -1,24 +1,25 @@
-FROM node:lts-alpine3.21 AS dependencies
-RUN npm install -g pnpm@10.11.1
+FROM node:lts-alpine3.21 AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 WORKDIR /app
+
+FROM base AS dependencies
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-FROM dependencies AS builder
+FROM dependencies AS build
 COPY . .
-RUN pnpm run build
+RUN pnpm build
 
-FROM node:lts-alpine3.21 AS production
+FROM base AS production
 ENV NODE_ENV=production
-WORKDIR /app
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-RUN npm install -g pnpm@10.11.1
-COPY --chown=appuser:appgroup package.json pnpm-lock.yaml ./
-RUN pnpm install --prod --frozen-lockfile
-COPY --chown=appuser:appgroup --from=builder /app/dist ./dist
-
+RUN chown -R appuser:appgroup /app
 USER appuser
 
-EXPOSE 3000
+EXPOSE 8000
 
-CMD [ "node", "./dist/index.js" ]
+CMD [ "node", "dist/index.js" ]
