@@ -20,6 +20,7 @@ import logger from "../config/logger";
 import { UnauthenticatedError } from "../errors";
 import { attachCookiesToResponse, sendTokenResponse } from "../utils/token";
 import { BlacklistService } from "../services/blacklist-service";
+import { requireAuth } from "../middlewares/require-auth";
 
 const router = Router();
 
@@ -174,5 +175,15 @@ router.post(
       .json({ message: "Password has been reset successfully." });
   }
 );
+
+router.get("/test-auth", requireAuth, (req, res) => {
+  res
+    .status(StatusCodes.OK)
+    .json({
+      message: "yuo are authenticated",
+      user: req.currentUser!.dbUser,
+      tokenInfo: req.currentUser!.tokenPayload,
+    });
+});
 
 export { router as authRouter };

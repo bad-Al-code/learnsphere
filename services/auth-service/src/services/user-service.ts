@@ -185,6 +185,7 @@ export class UserService {
         passwordHash: newPasswordHash,
         passwordResetToken: null,
         passwordResetTokenExpiresAt: null,
+        passwordChangedAt: new Date(),
         updatedAt: new Date(),
       })
       .where(eq(users.id, user.id!));
