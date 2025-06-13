@@ -12,6 +12,7 @@ import {
 import sharp from "sharp";
 
 import logger from "../config/logger";
+import { UserAvatarProcessedPublisher } from "../events/publisher";
 
 const sqsClient = new SQSClient({ region: process.env.AWS_REGION! });
 const s3Client = new S3Client({ region: process.env.AWS_REGION! });
@@ -99,7 +100,8 @@ export class SqsWorker {
         `Successfully processed and uploaded image. URL: ${finalUrl}`
       );
 
-      // 5. TODO: Publish 'user.avatar.processed' event to RabbitMQ with { userId, finalUrl }
+      const publisher = new UserAvatarProcessedPublisher();
+      await publisher.publish({ userId: userId, avatarUrl: finalUrl });
 
       const deleteCommand = new DeleteMessageCommand({
         QueueUrl: this.queueUrl,
