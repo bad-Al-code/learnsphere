@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { app } from "./app";
 import logger from "./config/logger";
+import { SqsWorker } from "./workers/sqs-worker";
 
 const start = async () => {
   try {
@@ -10,6 +11,8 @@ const start = async () => {
     });
 
     // TODO: start the SQS worker here
+    const worker = new SqsWorker();
+    worker.start();
   } catch (error) {
     logger.error("Failed to start the media-service", { error });
     process.exit(1);
