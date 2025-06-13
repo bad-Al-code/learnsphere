@@ -15,19 +15,31 @@ build:
         dockerfile: Dockerfile
       sync:
         manual:
-          - src: "src/**/*.js" # use .js here as TS is compiled to JS
-            dest: .
+          - src: "src/**/*.ts"
+            dest: "src"
+    - image: learnsphere/user-service
+      context: services/user-service
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "src/**/*.ts"
+            dest: "src"
 manifests:
-  helm:
-    releases:
-      - name: auth-service
-        chartPath: services/auth-service/helm-chart
-        setValueTemplates:
-          image.repository: "{{ .IMAGE_REPO_learnsphere_auth_service}}"
-          image.tag: "{{.IMAGE_TAG_learnsphere_auth_service}}"
+  rawYaml:
+    - kubernetes/infrastructure/*.yaml
+    - kubernetes/services/*.yaml
+    - kubernetes/ingress-service.yaml
 
 deploy:
   kubectl: {}
+
+portForward:
+  - resourceType: service
+    resourceName: ingress-nginx-controller
+    namespace: ingress-nginx
+    port: 80
+    localPort: 8080
 
 profiles:
   - name: dev
