@@ -13,7 +13,7 @@ import {
 } from "../schemas/auth-schema";
 import { UserService } from "../services/user-service";
 import {
-  USerPasswordResetRequiredPublisher,
+  UserPasswordResetRequiredPublisher,
   UserRegisteredPublisher,
   UserVerificationRequiredPublisher,
 } from "../events/publisher";
@@ -153,7 +153,7 @@ router.post(
     const result = await UserService.forgotPassword(email);
 
     if (result) {
-      const publisher = new USerPasswordResetRequiredPublisher();
+      const publisher = new UserPasswordResetRequiredPublisher();
       await publisher.publish({ email, resetToken: result.resetToken });
     }
 

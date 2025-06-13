@@ -55,6 +55,6 @@ interface UserPasswordResetRequiredEvent {
   };
 }
 
-export class USerPasswordResetRequiredPublisher extends Publisher<UserPasswordResetRequiredEvent> {
+export class UserPasswordResetRequiredPublisher extends Publisher<UserPasswordResetRequiredEvent> {
   topic: "user.password_reset.required" = "user.password_reset.required";
 }
