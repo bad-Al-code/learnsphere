@@ -67,8 +67,17 @@ resource "aws_s3_bucket_policy" "processed_media_policy" {
   depends_on = [aws_s3_bucket_public_access_block.processed_media_access_block]
 }
 
+resource "aws_sqs_queue" "s3_events_dlq" {
+  name = "${var.sqs_queue_name}-dlq"
+}
+
 resource "aws_sqs_queue" "s3_events_queue" {
   name = var.sqs_queue_name
+
+  redrive_policy = jsonencode({
+    deadLetterTargetArn = aws_sqs_queue.s3_events_dlq.arn
+    maxReceiveCount     = 3
+  })
 }
 
 resource "aws_sqs_queue_policy" "s3_events_queue_policy" {
@@ -102,3 +111,6 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
     filter_prefix = "uploads/"
   }
 }
+
+
+
