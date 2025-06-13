@@ -33,6 +33,14 @@ build:
         manual:
           - src: "src/**/*.ts"
             dest: "src"
+    - image: learnsphere/notification-service
+      context: services/notification-service
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "src/**/*.ts"
+            dest: "src"
 manifests:
   rawYaml:
     - infrastructure/kubernetes/base/*.yaml
