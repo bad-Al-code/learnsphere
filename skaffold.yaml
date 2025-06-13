@@ -27,9 +27,10 @@ build:
             dest: "src"
 manifests:
   rawYaml:
-    - kubernetes/infrastructure/*.yaml
-    - kubernetes/services/*.yaml
-    - kubernetes/ingress-service.yaml
+    - infrastructure/kubernetes/base/*.yaml
+    - infrastructure/kubernetes/services/*.yaml
+    - infrastructure/kubernetes/ingress-service.yaml
+    - infrastructure/kubernetes/kind-cluster-config.yaml
 
 deploy:
   kubectl: {}
