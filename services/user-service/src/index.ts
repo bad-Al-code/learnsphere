@@ -3,13 +3,16 @@ import "dotenv/config";
 import { app } from "./app";
 import logger from "./config/logger";
 import { rabbitMQConnection } from "./events/connection";
-import { UserRegisteredListener } from "./events/listener";
+import {
+  UserAvatarProcessedListener,
+  UserRegisteredListener,
+} from "./events/listener";
 
 const startServer = async () => {
   try {
     await rabbitMQConnection.connect();
-
     new UserRegisteredListener().listen();
+    new UserAvatarProcessedListener().listen();
 
     const PORT = process.env.PORT || 8001;
     app.listen(PORT, () => {

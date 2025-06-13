@@ -12,6 +12,7 @@ interface UpdateProfileData {
   firrtName?: string;
   lastName?: string;
   bio?: string;
+  avatarUrl?: string;
 }
 
 export class ProfileService {

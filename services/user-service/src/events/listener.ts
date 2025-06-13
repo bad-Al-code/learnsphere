@@ -78,3 +78,27 @@ export class UserRegisteredListener extends Listener<UserRegisteredEvent> {
     }
   }
 }
+
+interface UserAvatarProcessedEvent extends Event {
+  topic: "user.avatar.processed";
+  data: {
+    userId: string;
+    avatarUrl: string;
+  };
+}
+
+export class UserAvatarProcessedListener extends Listener<UserAvatarProcessedEvent> {
+  topic: "user.avatar.processed" = "user.avatar.processed";
+  queueGroupName: string = "user-service-avatar";
+
+  async onMessage(
+    data: { userId: string; avatarUrl: string },
+    msg: ConsumeMessage
+  ): Promise<void> {
+    logger.info(`Avatar processed event received for user: ${data.userId}`);
+
+    await ProfileService.updateProfile(data.userId, {
+      avatarUrl: data.avatarUrl,
+    });
+  }
+}

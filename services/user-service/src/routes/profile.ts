@@ -3,8 +3,14 @@ import { requireAuth } from "../middlewares/require-auth";
 import { ProfileService } from "../services/profile-service";
 import { StatusCodes } from "http-status-codes";
 import { validateRequest } from "../middlewares/validate-request";
-import { updateProfileSchema } from "../schemas/profile-schema";
+import {
+  avatarUploadUrlSchema,
+  updateProfileSchema,
+} from "../schemas/profile-schema";
 import { NotFoundError } from "../errors";
+import { z } from "zod";
+import logger from "../config/logger";
+import axios from "axios";
 
 const router = Router();
 
@@ -40,6 +46,36 @@ router.put(
     }
 
     res.status(StatusCodes.OK).json(updatedProfile);
+  }
+);
+
+router.post(
+  "/me/avatar-upload-url",
+  requireAuth,
+  validateRequest(avatarUploadUrlSchema),
+  async (req: Request, res: Response) => {
+    const { filename } = req.body;
+
+    const userId = req.currentUser!.id;
+    const mediaServiceUrl =
+      process.env.MEDIA_SERVICE_URL || "http://localhost:8002";
+
+    try {
+      logger.info(
+        `Requesting upload URL from media-service for user: ${userId}`
+      );
+
+      const response = await axios.post(
+        `${mediaServiceUrl}/api/media/upload-url`,
+        { filename, userId }
+      );
+
+      res.status(StatusCodes.OK).json(response.data);
+    } catch (error) {
+      logger.error(`ERror contracting media-service`, { error });
+
+      throw new Error(`Could not create upload URL.`);
+    }
   }
 );
 
