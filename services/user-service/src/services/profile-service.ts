@@ -9,7 +9,7 @@ interface NewProfileData {
 }
 
 interface UpdateProfileData {
-  firrtName?: string;
+  firstName?: string;
   lastName?: string;
   bio?: string;
   avatarUrl?: string;
