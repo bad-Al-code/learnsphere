@@ -6,6 +6,7 @@ import logger from "../config/logger";
 interface UserPayload {
   id: string;
   email: string;
+  role: "student" | "instructor" | "admin";
 }
 
 interface AttachCookiesOptions {
@@ -23,6 +24,7 @@ export const attachCookiesToResponse = (
       {
         id: user.id,
         email: user.email,
+        role: user.role,
         jti: uuidv4(),
       },
       process.env.JWT_SECRET!,
@@ -44,6 +46,7 @@ export const attachCookiesToResponse = (
       {
         id: user.id,
         email: user.email,
+        role: user.role,
       },
       process.env.JWT_REFRESH_SECRET!,
       {
@@ -78,5 +81,8 @@ export const sendTokenResponse = (
 
   res
     .status(statusCode)
-    .json({ message: "Success", user: { id: user.id, email: user.email } });
+    .json({
+      message: "Success",
+      user: { id: user.id, email: user.email, role: user.role },
+    });
 };

@@ -45,7 +45,7 @@ export class UserService {
         verificationToken: hashedToken,
         verificationTokenExpiresAt,
       })
-      .returning({ id: users.id, email: users.email });
+      .returning({ id: users.id, email: users.email, role: users.role });
 
     logger.info(`User created successfully with ID: ${newUser[0].id}`);
 

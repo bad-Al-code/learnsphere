@@ -55,7 +55,7 @@ router.post(
 
     sendTokenResponse(
       res,
-      { id: user.id!, email: user.email },
+      { id: user.id!, email: user.email, role: user.role },
       StatusCodes.CREATED
     );
   }
@@ -70,7 +70,11 @@ router.post(
 
     const user = await UserService.login(email, password);
 
-    sendTokenResponse(res, { id: user.id!, email: user.email }, StatusCodes.OK);
+    sendTokenResponse(
+      res,
+      { id: user.id!, email: user.email, role: user.role },
+      StatusCodes.OK
+    );
   }
 );
 
@@ -85,9 +89,17 @@ router.post("/refresh", (req: Request, res: Response) => {
     const payload = jwt.verify(
       refreshToken,
       process.env.JWT_REFRESH_SECRET!
-    ) as { id: string; email: string };
+    ) as {
+      id: string;
+      email: string;
+      role: "student" | "instructor" | "admin";
+    };
 
-    const userPayload = { id: payload.id, email: payload.email };
+    const userPayload = {
+      id: payload.id,
+      email: payload.email,
+      role: payload.role,
+    };
     attachCookiesToResponse(res, userPayload, {
       accessToken: true,
       refreshToken: true,
