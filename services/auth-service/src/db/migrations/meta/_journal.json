@@ -43,6 +43,13 @@
       "when": 1749743052406,
       "tag": "0005_early_thunderball",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1749796600096,
+      "tag": "0006_silly_gauntlet",
+      "breakpoints": true
     }
   ]
 }
