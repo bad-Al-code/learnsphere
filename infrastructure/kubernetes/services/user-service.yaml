@@ -9,6 +9,7 @@ data:
   DATABASE_URL: "postgresql://postgres:postgres@postgres-user-service:5432/user_db"
   JWT_SECRET: "kr/RrzjQ31+vfKl0JQxlLHFq4JCraTP8MraNHw"
   COOKIE_PARSER_SECRET: "8DPz5ooMmG0d8zWMxYnmS2nlf4wOa0hGF77oUri2pMk="
+  MEDIA_SERVICE_URL: "http://media-service-clusterip:8002"
 ---
 apiVersion: batch/v1
 kind: Job

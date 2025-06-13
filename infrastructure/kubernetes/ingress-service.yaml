@@ -24,3 +24,10 @@ spec:
                 name: user-service-clusterip
                 port:
                   number: 8001
+          - path: /api/media/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: media-service-clusterip
+                port:
+                  number: 8002

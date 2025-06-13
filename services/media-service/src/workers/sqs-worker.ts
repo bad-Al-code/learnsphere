@@ -30,7 +30,7 @@ export class SqsWorker {
       const receiveCommand = new ReceiveMessageCommand({
         QueueUrl: this.queueUrl,
         MaxNumberOfMessages: 10,
-        WaitTimeSeconds: 20, // Use long polling
+        WaitTimeSeconds: 20, // long polling
       });
 
       const { Messages } = await sqsClient.send(receiveCommand);
@@ -117,7 +117,6 @@ export class SqsWorker {
         errName: err.name,
         errStack: err.stack,
       });
-      // FIX: use a Dead-Letter Queue instead of just dropping it.
     }
   }
 }
