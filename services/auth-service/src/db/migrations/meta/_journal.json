@@ -50,6 +50,13 @@
       "when": 1749796600096,
       "tag": "0006_silly_gauntlet",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1749842981835,
+      "tag": "0007_stormy_ultragirl",
+      "breakpoints": true
     }
   ]
 }
