@@ -3,6 +3,7 @@ import { redisConnection } from "../config/redis";
 import { rateLimit, RateLimitRequestHandler } from "express-rate-limit";
 import { BadRequestError } from "../errors";
 import { Request, Response, NextFunction } from "express";
+import { StatusCodes } from "http-status-codes";
 
 let limiterInstance: RateLimitRequestHandler | null = null;
 
@@ -24,11 +25,13 @@ function createLimiter(): RateLimitRequestHandler {
     legacyHeaders: false,
     store: store,
     handler: (req, res, next, options) => {
-      throw new BadRequestError(
-        `Too many requests, please try again after ${
-          options.windowMs / 60000
-        } minutes`
-      );
+      const retryAfterSeconds = Math.ceil(options.windowMs / 1000);
+
+      res.setHeader("Retry-After", retryAfterSeconds);
+
+      res.status(StatusCodes.TOO_MANY_REQUESTS).json({
+        message: `Too many requests. You may try again after ${retryAfterSeconds} seconds.`,
+      });
     },
   });
 
