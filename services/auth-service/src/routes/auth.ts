@@ -22,6 +22,7 @@ import { UnauthenticatedError } from "../errors";
 import { BlacklistService } from "../services/blacklist-service";
 import { requireAuth } from "../middlewares/require-auth";
 import { attachCookiesToResponse, sendTokenResponse } from "../utils/token";
+import { apiLimiter } from "../middlewares/rate-limiter";
 
 const router = Router();
 
@@ -62,6 +63,7 @@ router.post(
 
 router.post(
   "/login",
+  apiLimiter,
   validateRequest(loginSchema),
   async (req: Request, res: Response) => {
     const { email, password } = req.body;
@@ -147,6 +149,7 @@ router.post(
 
 router.post(
   "/forgot-password",
+  apiLimiter,
   validateRequest(forgotPasswordSchema),
   async (req: Request, res: Response) => {
     const { email } = req.body;
@@ -187,6 +190,7 @@ router.get("/test-auth", requireAuth, (req, res) => {
 
 router.post(
   "/resend-verification",
+  apiLimiter,
   validateRequest(resendVerificationSchema),
   async (req: Request, res: Response) => {
     const { email } = req.body;
