@@ -1,9 +1,11 @@
 import express, { json } from "express";
 import { healthRouter, mediaRouter } from "./routes";
 import logger from "./config/logger";
+import helmet from "helmet";
 
 const app = express();
 app.use(json());
+app.use(helmet());
 
 app.use((req, res, next) => {
   res.on("finish", () => {
