@@ -26,7 +26,7 @@ export class BlacklistService {
     const redisClient = redisConnection.getClient();
     const key = `blacklist:${jti}`;
 
-    const result = redisClient.get(key);
+    const result = await redisClient.get(key);
 
     return result !== null;
   }
