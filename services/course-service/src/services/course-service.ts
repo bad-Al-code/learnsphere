@@ -3,6 +3,7 @@ import logger from "../config/logger";
 import { db } from "../db";
 import { courses, lessons, modules } from "../db/schema";
 import { ForbiddenError, NotFoundError } from "../errors";
+import { isGelSchema } from "drizzle-orm/gel-core";
 
 interface CreateCourseData {
   title: string;
@@ -248,5 +249,55 @@ export class CourseService {
       .returning();
 
     return updatedLesson[0];
+  }
+
+  public static async deleteCourse(courseId: string, requesterId: string) {
+    const course = await db.query.courses.findFirst({
+      where: eq(courses.id, courseId),
+    });
+    if (!course) {
+      throw new NotFoundError("Course");
+    }
+    if (course.instructorId !== requesterId) {
+      throw new ForbiddenError();
+    }
+
+    logger.info(`Deleting course ${courseId} by user ${requesterId}`);
+
+    await db.delete(courses).where(eq(courses.id, courseId));
+  }
+
+  public static async deleteModule(moduleId: string, requesterId: string) {
+    const parentModule = await db.query.modules.findFirst({
+      where: eq(modules.id, moduleId),
+      with: { course: true },
+    });
+    if (!parentModule) {
+      throw new NotFoundError("Module");
+    }
+    if (parentModule.course.instructorId !== requesterId) {
+      throw new ForbiddenError();
+    }
+
+    logger.info(`Deleting module ${moduleId} by user ${requesterId}`);
+
+    await db.delete(modules).where(eq(modules.id, moduleId));
+  }
+
+  public static async deleteLesson(lessonId: string, requesterId: string) {
+    const lesson = await db.query.lessons.findFirst({
+      where: eq(lessons.id, lessonId),
+      with: { module: { with: { course: true } } },
+    });
+    if (!lesson) {
+      throw new NotFoundError("Parent Module");
+    }
+    if (lesson.module.course.instructorId !== requesterId) {
+      throw new ForbiddenError();
+    }
+
+    logger.info(`Deleting lesson ${lessonId} by user ${requesterId}`);
+
+    await db.delete(lessons).where(eq(lessons.id, lessonId));
   }
 }

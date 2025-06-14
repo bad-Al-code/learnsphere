@@ -28,4 +28,18 @@ router.put(
   }
 );
 
+router.delete(
+  "/:lessonId",
+  requireAuth,
+  requireRole(["instructor", "admin"]),
+  async (req: Request, res: Response) => {
+    const { lessonId } = req.params;
+    const requesterId = req.currentUser!.id;
+
+    await CourseService.deleteLesson(lessonId, requesterId);
+
+    res.status(StatusCodes.OK).json({ message: "Lesson deleted successfully" });
+  }
+);
+
 export { router as lessonRouter };

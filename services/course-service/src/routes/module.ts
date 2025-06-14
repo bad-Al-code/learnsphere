@@ -50,4 +50,18 @@ router.put(
   }
 );
 
+router.delete(
+  "/:moduleId",
+  requireAuth,
+  requireRole(["instructor", "admin"]),
+  async (req: Request, res: Response) => {
+    const { moduleId } = req.params;
+    const requesterId = req.currentUser!.id;
+
+    await CourseService.deleteModule(moduleId, requesterId);
+
+    res.status(StatusCodes.OK).json({ message: "Module deleted successfully" });
+  }
+);
+
 export { router as moduleRouter };
