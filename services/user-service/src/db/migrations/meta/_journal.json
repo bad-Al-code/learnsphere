@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1749426236277,
-      "tag": "0000_parallel_purple_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1749804840291,
-      "tag": "0001_early_slyde",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1749876946803,
-      "tag": "0002_legal_shape",
+      "when": 1749881469590,
+      "tag": "0000_strong_blue_shield",
       "breakpoints": true
     }
   ]

@@ -12,7 +12,11 @@ interface UpdateProfileData {
   firstName?: string;
   lastName?: string;
   bio?: string;
-  avatarUrl?: string;
+  avatarUrls: {
+    small?: string;
+    medium?: string;
+    large?: string;
+  };
 }
 
 export class ProfileService {
@@ -62,7 +66,7 @@ export class ProfileService {
         firstName: profiles.firstName,
         lastName: profiles.lastName,
         bio: profiles.bio,
-        avatarUrl: profiles.avatarUrl,
+        avatarUrls: profiles.avatarUrls,
         createdAt: profiles.createdAt,
       })
       .from(profiles)
@@ -105,6 +109,7 @@ export class ProfileService {
         lastName: profiles.lastName,
         bio: profiles.bio,
         createdAt: profiles.createdAt,
+        avatarUrls: profiles.avatarUrls,
       })
       .from(profiles)
       .where(eq(profiles.userId, userId))
@@ -141,7 +146,7 @@ export class ProfileService {
         userId: profiles.userId,
         firstName: profiles.firstName,
         lastName: profiles.lastName,
-        avatarUrl: profiles.avatarUrl,
+        avatarUrls: profiles.avatarUrls,
         headline: profiles.headline,
       })
       .from(profiles)

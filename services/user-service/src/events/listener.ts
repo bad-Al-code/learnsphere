@@ -83,7 +83,11 @@ interface UserAvatarProcessedEvent extends Event {
   topic: "user.avatar.processed";
   data: {
     userId: string;
-    avatarUrl: string;
+    avatarUrls: {
+      small?: string;
+      medium?: string;
+      large?: string;
+    };
   };
 }
 
@@ -92,13 +96,16 @@ export class UserAvatarProcessedListener extends Listener<UserAvatarProcessedEve
   queueGroupName: string = "user-service-avatar";
 
   async onMessage(
-    data: { userId: string; avatarUrl: string },
+    data: {
+      userId: string;
+      avatarUrls: { small?: string; medium?: string; large?: string };
+    },
     msg: ConsumeMessage
   ): Promise<void> {
     logger.info(`Avatar processed event received for user: ${data.userId}`);
 
     await ProfileService.updateProfile(data.userId, {
-      avatarUrl: data.avatarUrl,
+      avatarUrls: data.avatarUrls,
     });
   }
 }
