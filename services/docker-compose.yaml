@@ -26,6 +26,7 @@ services:
     container_name: learnsphere-redis
     ports:
       - "6379:6379"
+
   postgres-user:
     image: postgres:17.5
     container_name: learnsphere-user-postgres
@@ -38,6 +39,19 @@ services:
     volumes:
       - user-db-data:/var/lib/postgresql/data
 
+  postgres-course:
+    image: postgres:17.5
+    container_name: learnsphere-user-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: course_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - course-db-data:/var/lib/postgresql/data
+
 volumes:
   auth-db-data:
   user-db-data:
+  course-db-data:
