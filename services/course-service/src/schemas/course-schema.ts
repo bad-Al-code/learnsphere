@@ -8,3 +8,9 @@ export const createCourseSchema = z.object({
     description: z.string().optional(),
   }),
 });
+
+export const createModuleSchema = z.object({
+  body: z.object({
+    title: z.string({ required_error: "Title is required" }).min(3),
+  }),
+});
