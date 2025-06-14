@@ -19,7 +19,7 @@ export const courses = pgTable("courses", {
 });
 
 export const modules = pgTable("modules", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   title: varchar("title", { length: 255 }).notNull(),
   courseId: uuid("course_id")
     .references(() => courses.id, { onDelete: "cascade" })
@@ -30,7 +30,7 @@ export const modules = pgTable("modules", {
 export const lessonTypeEnum = pgEnum("lesson_type", ["video", "text", "quiz"]);
 
 export const lessons = pgTable("lessons", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   title: varchar("title", { length: 255 }).notNull(),
   moduleId: uuid("module_id")
     .references(() => modules.id, { onDelete: "cascade" })

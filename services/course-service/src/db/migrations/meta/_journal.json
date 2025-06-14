@@ -8,6 +8,13 @@
       "when": 1749889165656,
       "tag": "0000_watery_thunderball",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1749921353910,
+      "tag": "0001_bitter_rick_jones",
+      "breakpoints": true
     }
   ]
 }
