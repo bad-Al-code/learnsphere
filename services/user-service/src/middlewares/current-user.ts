@@ -6,6 +6,7 @@ import logger from "../config/logger";
 interface UserPayload {
   id: string;
   email: string;
+  role: "student" | "instructor" | "admin";
 }
 
 declare global {
