@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import logger from "../config/logger";
 import { db } from "../db";
 import { courses, lessons, modules } from "../db/schema";
@@ -94,5 +94,35 @@ export class CourseService {
       .returning();
 
     return newLesson[0];
+  }
+
+  public static async listCourses(page: number, limit: number) {
+    logger.info(`Fetching courses list for page: ${page}, limit: ${limit}`);
+
+    const offset = (page - 1) * limit;
+
+    const totalCourseQuery = db.select({ value: count() }).from(courses);
+
+    const courseQuery = db.query.courses.findMany({
+      limit,
+      offset,
+    });
+
+    const [total, courseList] = await Promise.all([
+      totalCourseQuery,
+      courseQuery,
+    ]);
+
+    const totalResult = total[0].value;
+    const totalPages = Math.ceil(totalResult / limit);
+
+    return {
+      results: courseList,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalResult,
+      },
+    };
   }
 }

@@ -4,13 +4,28 @@ import { requireRole } from "../middlewares/require-role";
 import { validateRequest } from "../middlewares/validate-request";
 import {
   createCourseSchema,
-  createLessonSchema,
   createModuleSchema,
+  listCoursesSchema,
 } from "../schemas/course-schema";
 import { CourseService } from "../services/course-service";
 import { StatusCodes } from "http-status-codes";
+import { z } from "zod";
 
 const router = Router();
+
+router.get(
+  "/",
+  validateRequest(listCoursesSchema),
+  async (req: Request, res: Response) => {
+    const { limit, page } = req.query as unknown as z.infer<
+      typeof listCoursesSchema
+    >["query"];
+
+    const result = await CourseService.listCourses(page, limit);
+
+    res.status(StatusCodes.OK).json(result);
+  }
+);
 
 router.post(
   "/",
