@@ -12,7 +12,10 @@ import {
 import sharp from "sharp";
 
 import logger from "../config/logger";
-import { UserAvatarProcessedPublisher } from "../events/publisher";
+import {
+  UserAvatarFailedPublisher,
+  UserAvatarProcessedPublisher,
+} from "../events/publisher";
 import path from "node:path";
 
 const sqsClient = new SQSClient({ region: process.env.AWS_REGION! });
@@ -57,6 +60,7 @@ export class SqsWorker {
 
   private async processMessage(message: Message) {
     let s3Info: { bucket?: string; key?: string } = {};
+    let userId: string | undefined;
 
     try {
       const body = JSON.parse(message.Body!);
@@ -68,7 +72,7 @@ export class SqsWorker {
         s3Info,
       });
 
-      const userId = s3Info.key.split("/")[2];
+      userId = s3Info.key.split("/")[2];
       if (!userId) throw new Error("Could not parse userId from S3 key");
 
       const getCommand = new GetObjectCommand({
@@ -162,6 +166,23 @@ export class SqsWorker {
         errName: err.name,
         errStack: err.stack,
       });
+
+      if (userId) {
+        try {
+          const failurePublisher = new UserAvatarFailedPublisher();
+          await failurePublisher.publish({
+            userId,
+            reason: err.message || "An unknown processing error occurred.",
+          });
+
+          logger.info(`Publisher user.avatar.failed event for user: ${userId}`);
+        } catch (publishError) {
+          logger.error(
+            "CRITICAL: Failed to publish the failure event to RabbitMQ",
+            { publishError }
+          );
+        }
+      }
     }
   }
 }

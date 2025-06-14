@@ -38,3 +38,15 @@ interface UserAvatarProcessedEvent {
 export class UserAvatarProcessedPublisher extends Publisher<UserAvatarProcessedEvent> {
   topic: "user.avatar.processed" = "user.avatar.processed";
 }
+
+interface UserAvatarFailedEvent {
+  topic: "user.avatar.failed";
+  data: {
+    userId: string;
+    reason: string;
+  };
+}
+
+export class UserAvatarFailedPublisher extends Publisher<UserAvatarFailedEvent> {
+  topic: "user.avatar.failed" = "user.avatar.failed";
+}
