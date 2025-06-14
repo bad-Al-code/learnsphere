@@ -13,6 +13,7 @@ import sharp from "sharp";
 
 import logger from "../config/logger";
 import { UserAvatarProcessedPublisher } from "../events/publisher";
+import path from "node:path";
 
 const sqsClient = new SQSClient({ region: process.env.AWS_REGION! });
 const s3Client = new S3Client({ region: process.env.AWS_REGION! });
@@ -79,29 +80,49 @@ export class SqsWorker {
         await response.Body!.transformToByteArray()
       );
 
-      const sizes = {
-        small: { width: 50, height: 50 },
-        medium: { width: 200, height: 200 },
-        large: { width: 800, height: 800 },
-      };
+      const fileExtension = path.extname(s3Info.key).toLowerCase();
+      let processedBuffer: Buffer;
+      let contentType: string;
+      const newExention = ".jpeg";
 
+      const sharpInstance = sharp(imageBuffer);
+
+      switch (fileExtension) {
+        case ".jpg":
+        case ".jpeg":
+          processedBuffer = await sharpInstance
+            .jpeg({ quality: 90 })
+            .toBuffer();
+          contentType = "image/jpeg";
+          break;
+        case ".png":
+          processedBuffer = await sharpInstance
+            .jpeg({ quality: 90 })
+            .toBuffer();
+          contentType = "image/jpeg";
+          break;
+        default:
+          throw new Error(`Unsupported file type: ${fileExtension}`);
+      }
+
+      const sizes = { small: 50, medium: 200, large: 800 };
       const processedBucket = process.env.AWS_PROCESSED_MEDIA_BUCKET!;
       const processedUrls: { [key: string]: string } = {};
 
       const uploadPromises = Object.entries(sizes).map(
-        async ([sizeName, dimensions]) => {
-          const processedKey = `avatars/${userId}-${sizeName}.jpeg`; // Standardized filename
-
-          const processedImageBuffer = await sharp(imageBuffer)
-            .resize(dimensions.width, dimensions.height, { fit: "cover" })
+        async ([sizeName, size]) => {
+          const finalBuffer = await sharp(imageBuffer)
+            .resize(size, size, { fit: "cover" })
             .jpeg({ quality: 90 })
             .toBuffer();
+
+          const processedKey = `avatars/${userId}-${sizeName}${newExention}`;
 
           const putCommand = new PutObjectCommand({
             Bucket: processedBucket,
             Key: processedKey,
-            Body: processedImageBuffer,
-            ContentType: "image/jpeg",
+            Body: finalBuffer,
+            ContentType: contentType,
           });
 
           await s3Client.send(putCommand);
