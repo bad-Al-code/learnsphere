@@ -25,7 +25,7 @@ app.use((req, res, next) => {
 
 app.use("/api/courses", healthRouter);
 app.use("/api/courses", courseRouter);
-app.use("/api/courses", moduleRouter);
+app.use("/api/modules", moduleRouter);
 
 app.use(errorHandler);
 
