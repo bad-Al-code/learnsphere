@@ -41,7 +41,7 @@ services:
 
   postgres-course:
     image: postgres:17.5
-    container_name: learnsphere-user-postgres
+    container_name: learnsphere-course-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
