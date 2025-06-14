@@ -1,11 +1,11 @@
 import express, { json } from "express";
 import cookieParser from "cookie-parser";
+import helmet from "helmet";
 
 import logger from "./config/logger";
-import { healthRouter } from "./routes";
+import { courseRouter, healthRouter } from "./routes";
 import { currentUser } from "./middlewares/current-user";
 import { errorHandler } from "./middlewares/error-handler";
-import helmet from "helmet";
 
 const app = express();
 app.use(json());
@@ -22,7 +22,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api/course", healthRouter);
+app.use("/api/courses", healthRouter);
+app.use("/api/courses", courseRouter);
 
 app.use(errorHandler);
 
