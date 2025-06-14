@@ -29,3 +29,9 @@ export const listCoursesSchema = z.object({
     limit: z.coerce.number().int().min(1).max(50).default(12),
   }),
 });
+
+export const reorderSchema = z.object({
+  body: z.object({
+    ids: z.array(z.string().uuid()),
+  }),
+});

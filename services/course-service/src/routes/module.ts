@@ -8,6 +8,7 @@ import {
   createModuleSchema,
 } from "../schemas/course-schema";
 import { CourseService } from "../services/course-service";
+import { courseRelations } from "../db/schema";
 
 const router = Router();
 
@@ -68,6 +69,22 @@ router.delete(
     await CourseService.deleteModule(moduleId, requesterId);
 
     res.status(StatusCodes.OK).json({ message: "Module deleted successfully" });
+  }
+);
+
+router.post(
+  "/reorder",
+  requireAuth,
+  requireRole(["instructor", "admin"]),
+  async (req: Request, res: Response) => {
+    const { ids } = req.body;
+    const requesterId = req.currentUser!.id;
+
+    await CourseService.reorderModules(ids, requesterId);
+
+    res
+      .status(StatusCodes.OK)
+      .json({ message: "Modules reorderd successfully" });
   }
 );
 
