@@ -8,6 +8,13 @@ import { StatusCodes } from "http-status-codes";
 
 const router = Router();
 
+router.get("/:lessonId", async (req: Request, res: Response) => {
+  const { lessonId } = req.params;
+  const lessonDetails = await CourseService.getLessonDetails(lessonId);
+
+  res.status(StatusCodes.OK).json(lessonDetails);
+});
+
 router.put(
   "/:lessonId",
   requireAuth,

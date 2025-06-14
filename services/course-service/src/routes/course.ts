@@ -35,6 +35,13 @@ router.get("/:courseId", async (req: Request, res: Response) => {
   res.status(StatusCodes.OK).json(course);
 });
 
+router.get("/:courseId/modules", async (req: Request, res: Response) => {
+  const { courseId } = req.params;
+  const courseModules = await CourseService.getModuleForCourse(courseId);
+
+  res.status(StatusCodes.OK).json(courseModules);
+});
+
 router.post(
   "/",
   requireAuth,

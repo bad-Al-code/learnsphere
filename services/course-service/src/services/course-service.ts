@@ -179,6 +179,54 @@ export class CourseService {
     return courseDetails;
   }
 
+  public static async getModuleForCourse(courseId: string) {
+    logger.info(`Fetching all modules for course: ${courseId}`);
+
+    const courseExists = await db.query.courses.findFirst({
+      where: eq(courses.id, courseId),
+      columns: { id: true },
+    });
+    if (!courseExists) {
+      throw new NotFoundError("Course");
+    }
+
+    return db.query.modules.findMany({
+      where: eq(modules.courseId, courseId),
+      orderBy: [asc(modules.order)],
+    });
+  }
+
+  public static async getModuleDetails(moduleId: string) {
+    logger.info(`Fetching details for module: ${moduleId}`);
+
+    const moduleDetails = await db.query.modules.findFirst({
+      where: eq(modules.id, moduleId),
+      with: {
+        lessons: {
+          orderBy: [asc(lessons.order)],
+        },
+      },
+    });
+
+    if (!moduleDetails) {
+      throw new NotFoundError("Module");
+    }
+    return moduleDetails;
+  }
+
+  public static async getLessonDetails(lessonId: string) {
+    logger.info(`Fetching details for lesson: ${lessonId}`);
+
+    const lessonDetails = await db.query.lessons.findFirst({
+      where: eq(lessons.id, lessonId),
+    });
+
+    if (!lessonDetails) {
+      throw new NotFoundError("Lesson");
+    }
+    return lessonDetails;
+  }
+
   public static async updateCourse(
     courseId: string,
     data: UpdateCourseData,

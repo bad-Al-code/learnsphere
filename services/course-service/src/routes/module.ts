@@ -11,6 +11,13 @@ import { CourseService } from "../services/course-service";
 
 const router = Router();
 
+router.get("/:moduleId", async (req: Request, res: Response) => {
+  const { moduleId } = req.params;
+  const moduleDetails = await CourseService.getModuleDetails(moduleId);
+
+  res.status(StatusCodes.OK).json(moduleDetails);
+});
+
 router.post(
   "/:moduleId/lessons",
   requireAuth,
