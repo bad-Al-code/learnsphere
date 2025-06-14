@@ -74,4 +74,24 @@ router.post(
   }
 );
 
+router.put(
+  "/:courseId",
+  requireAuth,
+  requireRole(["instructor", "admin"]),
+  validateRequest(createCourseSchema),
+  async (req: Request, res: Response) => {
+    const { courseId } = req.params;
+    const updatedData = req.body;
+    const requesterId = req.currentUser!.id;
+
+    const course = await CourseService.updateCourse(
+      courseId,
+      updatedData,
+      requesterId
+    );
+
+    res.status(StatusCodes.OK).json(course);
+  }
+);
+
 export { router as courseRouter };

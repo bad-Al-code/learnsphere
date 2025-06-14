@@ -21,6 +21,11 @@ interface LessonData {
   lessonType: "video" | "text" | "quiz";
 }
 
+interface UpdateCourseData {
+  title?: string;
+  description?: string;
+}
+
 export class CourseService {
   public static async createCourse(data: CreateCourseData) {
     logger.info(`Creating a new course`, {
@@ -162,5 +167,27 @@ export class CourseService {
     }
 
     return courseDetails;
+  }
+
+  public static async updateCourse(
+    courseId: string,
+    data: UpdateCourseData,
+    requesterId: string
+  ) {
+    const course = await db.query.courses.findFirst({
+      where: eq(courses.id, courseId),
+    });
+    if (!course) throw new NotFoundError("Course");
+    if (course.instructorId !== requesterId) throw new ForbiddenError();
+
+    const updatedCourse = await db
+      .update(courses)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(courses.id, courseId))
+      .returning();
+
+    logger.info(`Updated Course ${courseId} by user ${requesterId}`);
+
+    return updatedCourse[0];
   }
 }
