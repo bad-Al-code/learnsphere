@@ -1,4 +1,4 @@
-import { count, eq } from "drizzle-orm";
+import { asc, count, eq } from "drizzle-orm";
 import logger from "../config/logger";
 import { db } from "../db";
 import { courses, lessons, modules } from "../db/schema";
@@ -124,5 +124,29 @@ export class CourseService {
         totalResult,
       },
     };
+  }
+
+  public static async getCourseDetails(courseId: string) {
+    logger.info(`Fetching full details for course: ${courseId}`);
+
+    const courseDetails = await db.query.courses.findFirst({
+      where: eq(courses.id, courseId),
+      with: {
+        modules: {
+          orderBy: [asc(modules.order)],
+          with: {
+            lessons: {
+              orderBy: [asc(lessons.order)],
+            },
+          },
+        },
+      },
+    });
+
+    if (!courseDetails) {
+      throw new NotFoundError("Course");
+    }
+
+    return courseDetails;
   }
 }

@@ -27,6 +27,14 @@ router.get(
   }
 );
 
+router.get("/:courseId", async (req: Request, res: Response) => {
+  const { courseId } = req.params;
+
+  const course = await CourseService.getCourseDetails(courseId);
+
+  res.status(StatusCodes.OK).json(course);
+});
+
 router.post(
   "/",
   requireAuth,
