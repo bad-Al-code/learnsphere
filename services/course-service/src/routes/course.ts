@@ -4,6 +4,7 @@ import { requireRole } from "../middlewares/require-role";
 import { validateRequest } from "../middlewares/validate-request";
 import {
   createCourseSchema,
+  createLessonSchema,
   createModuleSchema,
 } from "../schemas/course-schema";
 import { CourseService } from "../services/course-service";

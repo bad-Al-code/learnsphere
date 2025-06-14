@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { lessonTypeEnum } from "../db/schema";
 
 export const createCourseSchema = z.object({
   body: z.object({
@@ -12,5 +13,12 @@ export const createCourseSchema = z.object({
 export const createModuleSchema = z.object({
   body: z.object({
     title: z.string({ required_error: "Title is required" }).min(3),
+  }),
+});
+
+export const createLessonSchema = z.object({
+  body: z.object({
+    title: z.string({ required_error: "Title is required" }).min(3),
+    lessonType: z.enum(lessonTypeEnum.enumValues),
   }),
 });

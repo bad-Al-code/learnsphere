@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import logger from "../config/logger";
 import { db } from "../db";
-import { courses, modules } from "../db/schema";
+import { courses, lessons, modules } from "../db/schema";
 import { ForbiddenError, NotFoundError } from "../errors";
 
 interface CreateCourseData {
@@ -13,6 +13,12 @@ interface CreateCourseData {
 interface ModuleData {
   title: string;
   courseId: string;
+}
+
+interface LessonData {
+  title: string;
+  moduleId: string;
+  lessonType: "video" | "text" | "quiz";
 }
 
 export class CourseService {
@@ -58,5 +64,35 @@ export class CourseService {
       .returning();
 
     return newModule[0];
+  }
+
+  public static async addLessonToModule(data: LessonData, requesterId: string) {
+    logger.info(`Adding lesson "${data.title}" to moduke ${data.moduleId}`);
+
+    const parentModule = await db.query.modules.findFirst({
+      where: eq(modules.id, data.moduleId),
+      with: {
+        course: true,
+      },
+    });
+
+    if (!parentModule) {
+      throw new NotFoundError("Module");
+    }
+
+    if (parentModule.course.instructorId !== requesterId) {
+      throw new ForbiddenError();
+    }
+
+    const newLesson = await db
+      .insert(lessons)
+      .values({
+        title: data.title,
+        moduleId: data.moduleId,
+        lessonType: data.lessonType,
+      })
+      .returning();
+
+    return newLesson[0];
   }
 }
