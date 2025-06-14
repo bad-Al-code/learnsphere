@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: course-service-config
+data:
+  NODE_END: "production"
+  PORT: "8003"
+  DATABASE_URL: "postgresql://postgres:postgres@postgres-course-service:5434/course_db"
+  JWT_SECRET: "kr/RrzjQ31+vfKl0JQxlLHFq4JCraTP8MraNHw"
+  COOKIE_PARSER_SECRET: "8DPz5ooMmG0d8zWMxYnmS2nlf4wOa0hGF77oUri2pMk="
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: course-service-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: course-service
+  template:
+    metadata:
+      labels:
+        app: course-service
+    spec:
+      containers:
+        - name: course-service
+          image: learnsphere/course-service
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8003
+          envFrom:
+            - configMapRef:
+                name: course-service-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: course-service-clusterip
+spec:
+  type: ClusterIP
+  selector:
+    app: course-service
+  ports:
+    - name: course-service
+      protocol: TCP
+      port: 8003
+      targetPort: 8003
