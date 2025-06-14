@@ -5,10 +5,11 @@ import { StatusCodes } from "http-status-codes";
 import { validateRequest } from "../middlewares/validate-request";
 import {
   avatarUploadUrlSchema,
+  searchProfileSchema,
   updateProfileSchema,
 } from "../schemas/profile-schema";
 import { NotFoundError } from "../errors";
-import { z } from "zod";
+import { TypeOf, z } from "zod";
 import logger from "../config/logger";
 import axios from "axios";
 import { requireRole } from "../middlewares/require-role";
@@ -92,6 +93,20 @@ router.post(
 
       throw new Error(`Could not create upload URL.`);
     }
+  }
+);
+
+router.get(
+  "/search",
+  validateRequest(searchProfileSchema),
+  async (req: Request, res: Response) => {
+    const { q, page, limit } = req.query as unknown as z.infer<
+      typeof searchProfileSchema
+    >["query"];
+
+    const searchResult = await ProfileService.searchProfiles(q, page, limit);
+
+    res.status(StatusCodes.OK).json(searchResult);
   }
 );
 

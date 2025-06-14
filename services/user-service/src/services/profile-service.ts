@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, ilike, or, count } from "drizzle-orm";
 import logger from "../config/logger";
 import { db } from "../db";
 import { profiles } from "../db/schema";
@@ -115,5 +115,51 @@ export class ProfileService {
     }
 
     return publicProfile[0];
+  }
+
+  public static async searchProfiles(
+    query: string = "",
+    page: number,
+    limit: number
+  ) {
+    const offset = (page - 1) * limit;
+
+    const whereClause = query
+      ? or(
+          ilike(profiles.firstName, `%${query}%`),
+          ilike(profiles.lastName, `%${query}%`)
+        )
+      : undefined;
+
+    const totalResultQuery = db
+      .select({ value: count() })
+      .from(profiles)
+      .where(whereClause);
+
+    const resultQuery = db
+      .select({
+        userId: profiles.userId,
+        firstName: profiles.firstName,
+        lastName: profiles.lastName,
+        avatarUrl: profiles.avatarUrl,
+        headline: profiles.headline,
+      })
+      .from(profiles)
+      .where(whereClause)
+      .offset(offset);
+
+    const [total, results] = await Promise.all([totalResultQuery, resultQuery]);
+    const totalResults = total[0].value;
+    const totalPages = Math.ceil(totalResults / limit);
+
+    return {
+      results,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalResults,
+        limit,
+      },
+    };
   }
 }
