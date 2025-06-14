@@ -40,19 +40,40 @@ export class ProfileService {
     }
   }
 
-  public static async getProfileById(userId: string) {
-    logger.debug(`Fetching profile for user ID: ${userId}`);
-
+  public static async getPrivateProfileById(userId: string) {
+    logger.debug(`Fetching private profile for user ID: ${userId}`);
     const profile = await db.query.profiles.findFirst({
       where: eq(profiles.userId, userId),
     });
 
     if (!profile) {
-      logger.warn(`Profile not found for user ID: ${userId}`);
-      return null;
+      throw new NotFoundError("Profile");
     }
 
     return profile;
+  }
+
+  public static async getProfileById(userId: string) {
+    logger.debug(`Fetching public profile for user ID: ${userId}`);
+
+    const publicProfile = await db
+      .select({
+        userId: profiles.userId,
+        firstName: profiles.firstName,
+        lastName: profiles.lastName,
+        bio: profiles.bio,
+        avatarUrl: profiles.avatarUrl,
+        createdAt: profiles.createdAt,
+      })
+      .from(profiles)
+      .where(eq(profiles.userId, userId))
+      .limit(1);
+
+    if (publicProfile.length === 0) {
+      throw new NotFoundError("User Profile");
+    }
+
+    return publicProfile[0];
   }
 
   public static async updateProfile(userId: string, data: UpdateProfileData) {

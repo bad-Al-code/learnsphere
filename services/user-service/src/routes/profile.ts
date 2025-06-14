@@ -11,12 +11,13 @@ import { NotFoundError } from "../errors";
 import { z } from "zod";
 import logger from "../config/logger";
 import axios from "axios";
+import { requireRole } from "../middlewares/require-role";
 
 const router = Router();
 
 router.get("/me", requireAuth, async (req: Request, res: Response) => {
   const userId = req.currentUser!.id;
-  const profile = await ProfileService.getProfileById(userId);
+  const profile = await ProfileService.getPrivateProfileById(userId);
 
   if (!profile) {
     res
@@ -44,6 +45,21 @@ router.put(
     if (!updatedProfile) {
       throw new NotFoundError("Profile");
     }
+
+    res.status(StatusCodes.OK).json(updatedProfile);
+  }
+);
+
+router.put(
+  "/:id",
+  requireAuth,
+  requireRole(["admin"]),
+  validateRequest(updateProfileSchema),
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const updatedProfile = await ProfileService.updateProfile(id, updateData);
 
     res.status(StatusCodes.OK).json(updatedProfile);
   }
@@ -81,6 +97,13 @@ router.post(
 
 router.get("/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
+  const requester = req.currentUser;
+
+  if (requester && requester.role === "admin") {
+    const profile = await ProfileService.getPrivateProfileById(id);
+
+    res.status(StatusCodes.OK).json(profile);
+  }
 
   const profile = await ProfileService.getPublicProfileById(id);
 

@@ -5,7 +5,7 @@ type UserRole = "student" | "instructor" | "admin";
 
 export const requireRole = (allowRoles: UserRole[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const userRole = req.currentUser?.tokenPayload.role;
+    const userRole = req.currentUser?.role;
 
     if (!userRole || !allowRoles.includes(userRole)) {
       throw new ForbiddenError();
