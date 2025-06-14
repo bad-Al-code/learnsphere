@@ -31,3 +31,24 @@ spec:
                 name: media-service-clusterip
                 port:
                   number: 8002
+          - path: /api/courses/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: course-service-clusterip
+                port:
+                  number: 8003
+          - path: /api/modules/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: course-service-clusterip
+                port:
+                  number: 8003
+          - path: /api/lessons/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: course-service-clusterip
+                port:
+                  number: 8003
