@@ -90,7 +90,7 @@ export class SqsWorker {
 
       const uploadPromises = Object.entries(sizes).map(
         async ([sizeName, dimensions]) => {
-          const processedKey = `avatars/${userId}.jpeg`; // Standardized filename
+          const processedKey = `avatars/${userId}-${sizeName}.jpeg`; // Standardized filename
 
           const processedImageBuffer = await sharp(imageBuffer)
             .resize(dimensions.width, dimensions.height, { fit: "cover" })
