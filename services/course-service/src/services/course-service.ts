@@ -55,11 +55,18 @@ export class CourseService {
       throw new ForbiddenError();
     }
 
+    const moduleCountResult = await db
+      .select({ value: count() })
+      .from(modules)
+      .where(eq(modules.courseId, data.courseId));
+    const nextOrder = moduleCountResult[0].value;
+
     const newModule = await db
       .insert(modules)
       .values({
         title: data.title,
         courseId: data.courseId,
+        order: nextOrder,
       })
       .returning();
 
@@ -84,12 +91,19 @@ export class CourseService {
       throw new ForbiddenError();
     }
 
+    const lessonCountResult = await db
+      .select({ value: count() })
+      .from(lessons)
+      .where(eq(lessons.moduleId, data.moduleId));
+    const nextOrder = lessonCountResult[0].value;
+
     const newLesson = await db
       .insert(lessons)
       .values({
         title: data.title,
         moduleId: data.moduleId,
         lessonType: data.lessonType,
+        order: nextOrder,
       })
       .returning();
 
