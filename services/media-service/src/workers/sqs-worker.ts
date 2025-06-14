@@ -79,34 +79,58 @@ export class SqsWorker {
         await response.Body!.transformToByteArray()
       );
 
-      const processedImageBuffer = await sharp(imageBuffer)
-        .resize(200, 200, { fit: "cover" })
-        .jpeg({ quality: 90 })
-        .toBuffer();
+      const sizes = {
+        small: { width: 50, height: 50 },
+        medium: { width: 200, height: 200 },
+        large: { width: 800, height: 800 },
+      };
 
       const processedBucket = process.env.AWS_PROCESSED_MEDIA_BUCKET!;
-      const processedKey = `avatars/${userId}.jpeg`; // Standardized filename
+      const processedUrls: { [key: string]: string } = {};
 
-      const putCommand = new PutObjectCommand({
-        Bucket: processedBucket,
-        Key: processedKey,
-        Body: processedImageBuffer,
-        ContentType: "image/jpeg",
-      });
-      await s3Client.send(putCommand);
+      const uploadPromises = Object.entries(sizes).map(
+        async ([sizeName, dimensions]) => {
+          const processedKey = `avatars/${userId}.jpeg`; // Standardized filename
 
-      const finalUrl = `https://${processedBucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${processedKey}`;
+          const processedImageBuffer = await sharp(imageBuffer)
+            .resize(dimensions.width, dimensions.height, { fit: "cover" })
+            .jpeg({ quality: 90 })
+            .toBuffer();
+
+          const putCommand = new PutObjectCommand({
+            Bucket: processedBucket,
+            Key: processedKey,
+            Body: processedImageBuffer,
+            ContentType: "image/jpeg",
+          });
+
+          await s3Client.send(putCommand);
+
+          const finalUrl = `https://${processedBucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${processedKey}`;
+
+          processedUrls[sizeName] = finalUrl;
+
+          logger.info(
+            `Successfully processed and uploaded '${sizeName}' avatar for user ${userId}`
+          );
+        }
+      );
+
+      await Promise.all(uploadPromises);
+
       logger.info(
-        `Successfully processed and uploaded image. URL: ${finalUrl}`
+        `All avatar sizes successfully processed for user ${userId}`,
+        { urls: processedUrls }
       );
 
       const publisher = new UserAvatarProcessedPublisher();
-      await publisher.publish({ userId: userId, avatarUrl: finalUrl });
+      await publisher.publish({ userId: userId, avatarUrls: processedUrls });
 
       const deleteCommand = new DeleteMessageCommand({
         QueueUrl: this.queueUrl,
         ReceiptHandle: message.ReceiptHandle!,
       });
+
       await sqsClient.send(deleteCommand);
     } catch (error) {
       const err = error as Error;

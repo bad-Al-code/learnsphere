@@ -27,7 +27,11 @@ interface UserAvatarProcessedEvent {
   topic: "user.avatar.processed";
   data: {
     userId: string;
-    avatarUrl: string;
+    avatarUrls: {
+      small?: string;
+      medium?: string;
+      large?: string;
+    };
   };
 }
 
