@@ -23,6 +23,7 @@ import { BlacklistService } from "../services/blacklist-service";
 import { requireAuth } from "../middlewares/require-auth";
 import { attachCookiesToResponse, sendTokenResponse } from "../utils/token";
 import { apiLimiter } from "../middlewares/rate-limiter";
+import { requireRole } from "../middlewares/require-role";
 
 const router = Router();
 
@@ -192,11 +193,11 @@ router.post(
   }
 );
 
-router.get("/test-auth", requireAuth, (req, res) => {
+router.get("/test-auth", requireAuth, requireRole(["admin"]), (req, res) => {
   res.status(StatusCodes.OK).json({
-    message: "yuo are authenticated",
-    user: req.currentUser!.dbUser,
-    tokenInfo: req.currentUser!.tokenPayload,
+    message: "Welcome, Admin! You have accessed a protected admin route.",
+    user: req.currentUser?.dbUser,
+    tokenInfo: req.currentUser?.tokenPayload,
   });
 });
 

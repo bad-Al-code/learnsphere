@@ -14,7 +14,7 @@ export const errorHandler = (
     return;
   }
 
-  logger.error("An unexpected error occurred", {
+  logger.error("An unexpected error occurred: %o", {
     error: err,
     // error: err.message,
     stack: err.stack,

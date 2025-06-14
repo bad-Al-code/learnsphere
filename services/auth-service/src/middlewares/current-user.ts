@@ -4,12 +4,14 @@ import { BlacklistService } from "../services/blacklist-service";
 import logger from "../config/logger";
 import { db } from "../db";
 import { eq } from "drizzle-orm";
-import { users } from "../db/schema";
+import { userRoleEnum, users } from "../db/schema";
+
 type UserRecord = typeof users.$inferSelect;
 
 interface TokenPayload {
   id: string;
   email: string;
+  role: (typeof userRoleEnum.enumValues)[number];
   jti: string;
   iat: number;
   exp: number;
