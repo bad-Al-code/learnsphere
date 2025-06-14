@@ -26,6 +26,15 @@ interface UpdateCourseData {
   description?: string;
 }
 
+interface UpdateModuleData {
+  title?: string;
+}
+
+interface UpdateLessonData {
+  title?: string;
+  lessonType: "video" | "text" | "quiz";
+}
+
 export class CourseService {
   public static async createCourse(data: CreateCourseData) {
     logger.info(`Creating a new course`, {
@@ -189,5 +198,55 @@ export class CourseService {
     logger.info(`Updated Course ${courseId} by user ${requesterId}`);
 
     return updatedCourse[0];
+  }
+
+  public static async updateModule(
+    moduleId: string,
+    data: UpdateModuleData,
+    requesterId: string
+  ) {
+    const parentModule = await db.query.modules.findFirst({
+      where: eq(modules.id, moduleId),
+      with: { course: true },
+    });
+    if (!parentModule) {
+      throw new NotFoundError("Module");
+    }
+    if (parentModule.course.instructorId !== requesterId) {
+      throw new ForbiddenError();
+    }
+
+    const updatedModule = await db
+      .update(modules)
+      .set(data)
+      .where(eq(modules.id, moduleId))
+      .returning();
+
+    return updatedModule[0];
+  }
+
+  public static async updateLesson(
+    lessonId: string,
+    data: UpdateLessonData,
+    requesterId: string
+  ) {
+    const lesson = await db.query.lessons.findFirst({
+      where: eq(lessons.id, lessonId),
+      with: { module: { with: { course: true } } },
+    });
+    if (!lesson) {
+      throw new NotFoundError("Lesson");
+    }
+    if (lesson.module.course.instructorId !== requesterId) {
+      throw new ForbiddenError();
+    }
+
+    const updatedLesson = await db
+      .update(lessons)
+      .set(data)
+      .where(eq(lessons.id, lessonId))
+      .returning();
+
+    return updatedLesson[0];
   }
 }

@@ -1,9 +1,12 @@
-import { Request, Response, Router } from "express";
+import e, { Request, Response, Router } from "express";
 import { StatusCodes } from "http-status-codes";
 import { requireAuth } from "../middlewares/require-auth";
 import { requireRole } from "../middlewares/require-role";
 import { validateRequest } from "../middlewares/validate-request";
-import { createLessonSchema } from "../schemas/course-schema";
+import {
+  createLessonSchema,
+  createModuleSchema,
+} from "../schemas/course-schema";
 import { CourseService } from "../services/course-service";
 
 const router = Router();
@@ -24,6 +27,26 @@ router.post(
     );
 
     res.status(StatusCodes.CREATED).json(lesson);
+  }
+);
+
+router.put(
+  "/:moduleId",
+  requireAuth,
+  requireRole(["instructor", "admin"]),
+  validateRequest(createModuleSchema),
+  async (req: Request, res: Response) => {
+    const { moduleId } = req.params;
+    const { title } = req.body;
+    const requesterId = req.currentUser!.id;
+
+    const updatedModule = await CourseService.updateModule(
+      moduleId,
+      { title },
+      requesterId
+    );
+
+    res.status(StatusCodes.OK).json(updatedModule);
   }
 );
 

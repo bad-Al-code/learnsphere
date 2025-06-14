@@ -3,10 +3,14 @@ import cookieParser from "cookie-parser";
 import helmet from "helmet";
 
 import logger from "./config/logger";
-import { courseRouter, healthRouter } from "./routes";
+import {
+  courseRouter,
+  healthRouter,
+  lessonRouter,
+  moduleRouter,
+} from "./routes";
 import { currentUser } from "./middlewares/current-user";
 import { errorHandler } from "./middlewares/error-handler";
-import { moduleRouter } from "./routes/module";
 
 const app = express();
 app.use(json());
@@ -26,6 +30,7 @@ app.use((req, res, next) => {
 app.use("/api/courses", healthRouter);
 app.use("/api/courses", courseRouter);
 app.use("/api/modules", moduleRouter);
+app.use("/api/lessons", lessonRouter);
 
 app.use(errorHandler);
 
