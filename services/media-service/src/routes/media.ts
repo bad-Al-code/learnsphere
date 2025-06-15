@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import { validateRequest } from "../middlewares/validate-request";
 import { getUploadUrlSchema } from "../schemas/media-schema";
-import { MediaService } from "../services/media-service";
+import { MediaService, UploadUrlParams } from "../services/media-service";
 import { StatusCodes } from "http-status-codes";
 
 const router = Router();
@@ -10,8 +10,8 @@ router.post(
   "/upload-url",
   validateRequest(getUploadUrlSchema),
   async (req: Request, res: Response) => {
-    const { filename, userId } = req.body;
-    const result = await MediaService.getUploadUrl(userId, filename);
+    const uploadUrlParams: UploadUrlParams = req.body;
+    const result = await MediaService.getUploadUrl(uploadUrlParams);
 
     res.status(StatusCodes.OK).json(result);
   }

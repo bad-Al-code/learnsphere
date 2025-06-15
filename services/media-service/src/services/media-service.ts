@@ -10,19 +10,30 @@ const s3Client = new S3Client({
   },
 });
 
-export class MediaService {
-  public static async getUploadUrl(userId: string, filename: string) {
-    const rawBucket = process.env.AWS_RAW_UPLOADS_BUCKET!;
-    const key = `uploads/avatars/${userId}/${Date.now()}-${filename}`;
+export interface UploadUrlParams {
+  userId: string;
+  filename: string;
+  context?: { [key: string]: string };
+}
 
+export class MediaService {
+  public static async getUploadUrl({
+    userId,
+    filename,
+    context,
+  }: UploadUrlParams) {
+    const rawBucket = process.env.AWS_RAW_UPLOADS_BUCKET!;
+
+    const key = `uploads/avatars/${userId}/${Date.now()}-${filename}`;
     logger.info(`Generating pre-signed URL for key: ${key}`);
 
     const command = new PutObjectCommand({
       Bucket: rawBucket,
       Key: key,
+      Metadata: context ? { context: JSON.stringify(context) } : undefined,
     });
 
-    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 600 });
 
     return { signedUrl, key };
   }
