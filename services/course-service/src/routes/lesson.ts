@@ -2,7 +2,7 @@ import { Request, Response, Router } from "express";
 import { requireAuth } from "../middlewares/require-auth";
 import { requireRole } from "../middlewares/require-role";
 import { validateRequest } from "../middlewares/validate-request";
-import { createLessonSchema } from "../schemas/course-schema";
+import { createLessonSchema, reorderSchema } from "../schemas/course-schema";
 import { CourseService } from "../services/course-service";
 import { StatusCodes } from "http-status-codes";
 
@@ -46,6 +46,23 @@ router.delete(
     await CourseService.deleteLesson(lessonId, requesterId);
 
     res.status(StatusCodes.OK).json({ message: "Lesson deleted successfully" });
+  }
+);
+
+router.post(
+  "/reorder",
+  requireAuth,
+  requireRole(["instructor", "admin"]),
+  validateRequest(reorderSchema),
+  async (req: Request, res: Response) => {
+    const { ids } = req.body;
+    const requesterId = req.currentUser!.id;
+
+    await CourseService.reorderLessons(ids, requesterId);
+
+    res
+      .status(StatusCodes.OK)
+      .json({ message: "Lessons reordered successfully." });
   }
 );
 

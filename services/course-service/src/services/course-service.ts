@@ -1,10 +1,9 @@
-import { asc, count, eq } from "drizzle-orm";
+import { asc, count, eq, inArray } from "drizzle-orm";
 import logger from "../config/logger";
 import { db } from "../db";
 import { courses, lessons, modules, textLessonContent } from "../db/schema";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../errors";
 import axios from "axios";
-import { response } from "express";
 
 interface CreateCourseData {
   title: string;
@@ -496,6 +495,49 @@ export class CourseService {
     logger.info(`Deleting lesson ${lessonId} by user ${requesterId}`);
 
     await db.delete(lessons).where(eq(lessons.id, lessonId));
+  }
+
+  public static async reorderLessons(
+    orderedLessonIds: string[],
+    requesterId: string
+  ) {
+    if (orderedLessonIds.length === 0) {
+      return;
+    }
+
+    await db.transaction(async (tx) => {
+      const allLessons = await tx.query.lessons.findMany({
+        where: (lessons, { inArray }) => inArray(lessons.id, orderedLessonIds),
+        with: { module: { with: { course: true } } },
+      });
+
+      if (allLessons.length !== orderedLessonIds.length) {
+        throw new BadRequestError("One or more lessons IDs are invalid");
+      }
+
+      const parentModuleId = allLessons[0].moduleId;
+      const ownerId = allLessons[0].module.course.instructorId;
+      const allLessonsFromSameModule = allLessons.every(
+        (l) => l.moduleId === parentModuleId
+      );
+
+      if (!allLessonsFromSameModule || ownerId !== requesterId) {
+        throw new ForbiddenError();
+      }
+
+      logger.info(
+        `Reordering ${allLessons.length} lessons from whole ${parentModuleId}`
+      );
+
+      const updatePromises = orderedLessonIds.map((id, index) => {
+        return tx
+          .update(lessons)
+          .set({ order: index })
+          .where(eq(lessons.id, id));
+      });
+
+      await Promise.all(updatePromises);
+    });
   }
 
   public static async publishCourse(courseId: string, requesterId: string) {
