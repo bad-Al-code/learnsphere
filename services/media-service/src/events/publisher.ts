@@ -50,3 +50,8 @@ interface UserAvatarFailedEvent {
 export class UserAvatarFailedPublisher extends Publisher<UserAvatarFailedEvent> {
   topic: "user.avatar.failed" = "user.avatar.failed";
 }
+
+interface VideoProcessedEvent {
+  topic: "video.processed";
+  data: {};
+}
