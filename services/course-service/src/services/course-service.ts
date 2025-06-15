@@ -3,6 +3,8 @@ import logger from "../config/logger";
 import { db } from "../db";
 import { courses, lessons, modules, textLessonContent } from "../db/schema";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../errors";
+import axios from "axios";
+import { response } from "express";
 
 interface CreateCourseData {
   title: string;
@@ -37,7 +39,50 @@ interface UpdateLessonData {
   content?: string;
 }
 
+interface InstructorProfile {
+  userId: string;
+  firstName?: string;
+  lastName?: string;
+  avatarUrls?: { small?: string; medium?: string; large?: string };
+}
+
+type BaseCourse = typeof courses.$inferSelect;
+type CourseWithInstructor = BaseCourse & { instructor?: InstructorProfile };
+
 export class CourseService {
+  private static async getInstructorProfiles(
+    instructorIds: string[]
+  ): Promise<Map<string, InstructorProfile>> {
+    const userServiceUrl = process.env.USER_SERVICE_URL;
+    if (!userServiceUrl || instructorIds.length === 0) {
+      return new Map();
+    }
+
+    try {
+      const profilePromises = instructorIds.map((id) =>
+        axios.get<InstructorProfile>(`${userServiceUrl}/api/users/${id}`)
+      );
+
+      const responses = await Promise.all(
+        profilePromises.map((p) => p.catch((e) => e))
+      );
+
+      const profilesMap = new Map<string, InstructorProfile>();
+      responses.forEach((response) => {
+        if (response?.status === 200 && response.data) {
+          profilesMap.set(response.data.userId, response.data);
+        }
+      });
+
+      return profilesMap;
+    } catch (error) {
+      logger.error("Failed to fetch instructor profiles from user-service", {
+        error,
+      });
+      return new Map();
+    }
+  }
+
   public static async createCourse(data: CreateCourseData) {
     logger.info(`Creating a new course`, {
       title: data.title,
@@ -80,7 +125,15 @@ export class CourseService {
       throw new NotFoundError("Course");
     }
 
-    return courseDetails;
+    const instructorProfiles = await this.getInstructorProfiles([
+      courseDetails.instructorId,
+    ]);
+    const resultWithInstructors = {
+      ...courseDetails,
+      instructor: instructorProfiles.get(courseDetails.instructorId),
+    };
+
+    return resultWithInstructors;
   }
 
   public static async listCourses(page: number, limit: number) {
@@ -105,11 +158,20 @@ export class CourseService {
       courseQuery,
     ]);
 
+    const instructorIds = [...new Set(courseList.map((c) => c.instructorId))];
+    const instructorProfile = await this.getInstructorProfiles(instructorIds);
+    const resultWithInstructors: CourseWithInstructor[] = courseList.map(
+      (course) => ({
+        ...course,
+        instructor: instructorProfile.get(course.instructorId),
+      })
+    );
+
     const totalResult = total[0].value;
     const totalPages = Math.ceil(totalResult / limit);
 
     return {
-      results: courseList,
+      results: resultWithInstructors,
       pagination: {
         currentPage: page,
         totalPages,
