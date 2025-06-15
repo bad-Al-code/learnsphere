@@ -78,7 +78,7 @@ export const lessonRelations = relations(lessons, ({ one }) => ({
 export const textLessonContentRelations = relations(
   textLessonContent,
   ({ one }) => ({
-    lessons: one(lessons, {
+    lesson: one(lessons, {
       fields: [textLessonContent.lessonId],
       references: [lessons.id],
     }),

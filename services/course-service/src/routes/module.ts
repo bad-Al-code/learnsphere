@@ -8,7 +8,6 @@ import {
   createModuleSchema,
 } from "../schemas/course-schema";
 import { CourseService } from "../services/course-service";
-import { courseRelations } from "../db/schema";
 
 const router = Router();
 
@@ -26,11 +25,11 @@ router.post(
   validateRequest(createLessonSchema),
   async (req: Request, res: Response) => {
     const { moduleId } = req.params;
-    const { title, lessonType } = req.body;
+    const lessonData = req.body;
     const requesterId = req.currentUser!.id;
 
     const lesson = await CourseService.addLessonToModule(
-      { title, moduleId, lessonType },
+      { ...lessonData, moduleId },
       requesterId
     );
 

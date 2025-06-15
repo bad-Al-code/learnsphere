@@ -10,7 +10,6 @@ import {
 import { CourseService } from "../services/course-service";
 import { StatusCodes } from "http-status-codes";
 import { z } from "zod";
-import logger from "../config/logger";
 
 const router = Router();
 
