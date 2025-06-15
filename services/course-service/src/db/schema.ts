@@ -9,11 +9,14 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
+export const courseStatusEnum = pgEnum("course_status", ["draft", "published"]);
+
 export const courses = pgTable("courses", {
   id: uuid("id").primaryKey().defaultRandom(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   instructorId: uuid("instructor_id").notNull(),
+  status: courseStatusEnum("status").default("draft").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
