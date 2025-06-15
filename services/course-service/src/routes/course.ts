@@ -10,6 +10,7 @@ import {
 import { CourseService } from "../services/course-service";
 import { StatusCodes } from "http-status-codes";
 import { z } from "zod";
+import logger from "../config/logger";
 
 const router = Router();
 
@@ -123,7 +124,7 @@ router.post(
     const { courseId } = req.params;
     const requesterId = req.currentUser!.id;
 
-    const course = CourseService.publishCourse(courseId, requesterId);
+    const course = await CourseService.publishCourse(courseId, requesterId);
 
     res.status(StatusCodes.OK).json(course);
   }
@@ -137,7 +138,7 @@ router.post(
     const { courseId } = req.params;
     const requesterId = req.currentUser!.id;
 
-    const course = CourseService.unPublishCourse(courseId, requesterId);
+    const course = await CourseService.unPublishCourse(courseId, requesterId);
 
     res.status(StatusCodes.OK).json(course);
   }

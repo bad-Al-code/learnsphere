@@ -409,6 +409,11 @@ export class CourseService {
       throw new ForbiddenError();
     }
 
+    if (course.status === "published") {
+      logger.warn(`Course ${courseId} is laready published. No action needed`);
+      return course;
+    }
+
     logger.info(`Publishing course ${courseId} by user ${requesterId}`);
 
     const updatedCourse = await db
@@ -429,6 +434,11 @@ export class CourseService {
     }
     if (course.instructorId !== requesterId) {
       throw new ForbiddenError();
+    }
+
+    if (course.status === "draft") {
+      logger.warn(`Course ${courseId} is already in draft. No action needed`);
+      return course;
     }
 
     logger.info(`Unpulishing course ${courseId} by user ${requesterId}`);
