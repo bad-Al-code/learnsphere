@@ -43,6 +43,15 @@ export const lessons = pgTable("lessons", {
   contentId: text("content_id"),
 });
 
+export const textLessonContent = pgTable("text_lesson_content", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  lessonId: uuid("lesson_id")
+    .references(() => lessons.id, { onDelete: "cascade" })
+    .notNull()
+    .unique(),
+  content: text("content").notNull(),
+});
+
 export const courseRelations = relations(courses, ({ many }) => ({
   modules: many(modules),
 }));
@@ -60,4 +69,18 @@ export const lessonRelations = relations(lessons, ({ one }) => ({
     fields: [lessons.moduleId],
     references: [modules.id],
   }),
+  textContent: one(textLessonContent, {
+    fields: [lessons.id],
+    references: [textLessonContent.lessonId],
+  }),
 }));
+
+export const textLessonContentRelations = relations(
+  textLessonContent,
+  ({ one }) => ({
+    lessons: one(lessons, {
+      fields: [textLessonContent.lessonId],
+      references: [lessons.id],
+    }),
+  })
+);
