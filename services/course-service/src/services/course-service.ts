@@ -1,9 +1,10 @@
 import { asc, count, eq } from "drizzle-orm";
 import logger from "../config/logger";
 import { db } from "../db";
-import { courses, lessons, modules } from "../db/schema";
+import { courses, courseStatusEnum, lessons, modules } from "../db/schema";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../errors";
 import { isGelSchema } from "drizzle-orm/gel-core";
+import { currentUser } from "../middlewares/current-user";
 
 interface CreateCourseData {
   title: string;
@@ -130,9 +131,14 @@ export class CourseService {
 
     const offset = (page - 1) * limit;
 
-    const totalCourseQuery = db.select({ value: count() }).from(courses);
+    const whereClause = eq(courses.status, "published");
+    const totalCourseQuery = db
+      .select({ value: count() })
+      .from(courses)
+      .where(whereClause);
 
     const courseQuery = db.query.courses.findMany({
+      where: whereClause,
       limit,
       offset,
     });
@@ -390,5 +396,49 @@ export class CourseService {
 
       await Promise.all(updatePromises);
     });
+  }
+
+  public static async publishCourse(courseId: string, requesterId: string) {
+    const course = await db.query.courses.findFirst({
+      where: eq(courses.id, courseId),
+    });
+    if (!course) {
+      throw new NotFoundError("Course");
+    }
+    if (course.instructorId !== requesterId) {
+      throw new ForbiddenError();
+    }
+
+    logger.info(`Publishing course ${courseId} by user ${requesterId}`);
+
+    const updatedCourse = await db
+      .update(courses)
+      .set({ status: "published", updatedAt: new Date() })
+      .where(eq(courses.id, courseId))
+      .returning();
+
+    return updatedCourse[0];
+  }
+
+  public static async unPublishCourse(courseId: string, requesterId: string) {
+    const course = await db.query.courses.findFirst({
+      where: eq(courses.id, courseId),
+    });
+    if (!course) {
+      throw new NotFoundError("Course");
+    }
+    if (course.instructorId !== requesterId) {
+      throw new ForbiddenError();
+    }
+
+    logger.info(`Unpulishing course ${courseId} by user ${requesterId}`);
+
+    const updatedCourse = await db
+      .update(courses)
+      .set({ status: "draft", updatedAt: new Date() })
+      .where(eq(courses.id, courseId))
+      .returning();
+
+    return updatedCourse[0];
   }
 }

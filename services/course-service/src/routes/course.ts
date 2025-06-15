@@ -115,4 +115,32 @@ router.delete(
   }
 );
 
+router.post(
+  "/:courseId/publish",
+  requireAuth,
+  requireRole(["instructor", "admin"]),
+  async (req: Request, res: Response) => {
+    const { courseId } = req.params;
+    const requesterId = req.currentUser!.id;
+
+    const course = CourseService.publishCourse(courseId, requesterId);
+
+    res.status(StatusCodes.OK).json(course);
+  }
+);
+
+router.post(
+  "/:courseId/unpublish",
+  requireAuth,
+  requireRole(["instructor", "admin"]),
+  async (req: Request, res: Response) => {
+    const { courseId } = req.params;
+    const requesterId = req.currentUser!.id;
+
+    const course = CourseService.unPublishCourse(courseId, requesterId);
+
+    res.status(StatusCodes.OK).json(course);
+  }
+);
+
 export { router as courseRouter };
