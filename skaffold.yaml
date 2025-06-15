@@ -55,7 +55,7 @@ manifests:
     - infrastructure/kubernetes/base/*.yaml
     - infrastructure/kubernetes/services/*.yaml
     - infrastructure/kubernetes/ingress-service.yaml
-    - infrastructure/kubernetes/kind-cluster-config.yaml
+    # - infrastructure/kubernetes/kind-cluster-config.yaml
 
 deploy:
   kubectl: {}
