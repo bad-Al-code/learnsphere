@@ -2,10 +2,17 @@ import "dotenv/config";
 
 import { app } from "./app";
 import logger from "./config/logger";
+import { rabbitMQConnection } from "./events/connection";
+import { VideoProcessedListener } from "./events/listener";
 
 const startServer = async () => {
   try {
+    await rabbitMQConnection.connect();
+
+    new VideoProcessedListener().listen();
+
     const PORT = process.env.PORT || 8001;
+
     app.listen(PORT, () => {
       logger.info(
         `Course service listening on port ${PORT} in ${process.env.NODE_ENV} mode`
