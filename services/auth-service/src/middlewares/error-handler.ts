@@ -14,6 +14,8 @@ export const errorHandler = (
     return;
   }
 
+  console.error("Unexpected error: ", err);
+
   logger.error("An unexpected error occurred: %o", {
     error: err,
     // error: err.message,
