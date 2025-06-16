@@ -9,6 +9,8 @@ data:
   REDIS_URL: "redis://redis-course-service:6379"
   USER_SERVICE_URL: "http://user-service-clusterip:8001"
   MEDIA_SERVICE_URL: "http://media-service-clusterip:8002"
+  RABBITMQ_URL: "amqp://guest:guest@rabbitmq-service:5672"
+
   # JWT_SECRET: "kr/RrzjQ31+vfKl0JQxlLHFq4JCraTP8MraNHw"
   # COOKIE_PARSER_SECRET: "8DPz5ooMmG0d8zWMxYnmS2nlf4wOa0hGF77oUri2pMk="
 ---
