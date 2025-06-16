@@ -6,8 +6,11 @@ data:
   NODE_END: "production"
   PORT: "8003"
   DATABASE_URL: "postgresql://postgres:postgres@postgres-course-service:5434/course_db"
-  JWT_SECRET: "kr/RrzjQ31+vfKl0JQxlLHFq4JCraTP8MraNHw"
-  COOKIE_PARSER_SECRET: "8DPz5ooMmG0d8zWMxYnmS2nlf4wOa0hGF77oUri2pMk="
+  REDIS_URL: "redis://redis-course-service:6379"
+  USER_SERVICE_URL: "http://user-service-clusterip:8001"
+  MEDIA_SERVICE_URL: "http://media-service-clusterip:8002"
+  # JWT_SECRET: "kr/RrzjQ31+vfKl0JQxlLHFq4JCraTP8MraNHw"
+  # COOKIE_PARSER_SECRET: "8DPz5ooMmG0d8zWMxYnmS2nlf4wOa0hGF77oUri2pMk="
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -32,6 +35,9 @@ spec:
           envFrom:
             - configMapRef:
                 name: course-service-config
+            - secretRef:
+                name: auth-secrets
+
 ---
 apiVersion: v1
 kind: Service

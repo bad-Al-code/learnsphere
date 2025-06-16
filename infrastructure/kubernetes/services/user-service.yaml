@@ -7,9 +7,10 @@ data:
   PORT: "8001"
   RABBITMQ_URL: "amqp://guest:guest@rabbitmq-service:5672"
   DATABASE_URL: "postgresql://postgres:postgres@postgres-user-service:5432/user_db"
-  JWT_SECRET: "kr/RrzjQ31+vfKl0JQxlLHFq4JCraTP8MraNHw"
-  COOKIE_PARSER_SECRET: "8DPz5ooMmG0d8zWMxYnmS2nlf4wOa0hGF77oUri2pMk="
   MEDIA_SERVICE_URL: "http://media-service-clusterip:8002"
+
+  # JWT_SECRET: "kr/RrzjQ31+vfKl0JQxlLHFq4JCraTP8MraNHw"
+  # COOKIE_PARSER_SECRET: "8DPz5ooMmG0d8zWMxYnmS2nlf4wOa0hGF77oUri2pMk="
 ---
 apiVersion: batch/v1
 kind: Job
@@ -26,6 +27,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: user-service-config
+            - secretRef:
+                name: auth-secrets
       restartPolicy: Never
   backoffLimit: 2 # retries
 ---
