@@ -11,26 +11,41 @@ const s3Client = new S3Client({
 });
 
 export interface UploadUrlParams {
-  userId: string;
   filename: string;
-  context?: { [key: string]: string };
+  uploadType: "avatar" | "video";
+  metadata: Record<string, string>;
 }
 
 export class MediaService {
   public static async getUploadUrl({
-    userId,
+    uploadType,
     filename,
-    context,
+    metadata,
   }: UploadUrlParams) {
     const rawBucket = process.env.AWS_RAW_UPLOADS_BUCKET!;
 
-    const key = `uploads/avatars/${userId}/${Date.now()}-${filename}`;
-    logger.info(`Generating pre-signed URL for key: ${key}`);
+    let key: string;
+    switch (uploadType) {
+      case "avatar":
+        if (!metadata.userId)
+          throw new Error("userId is required for avatar uploads");
+        key = `uploads/avatars/${metadata.userId}/${Date.now()}-${filename}`;
+        break;
+      case "video":
+        if (!metadata.lessonId)
+          throw new Error("lessonId is required for video uploads");
+        key = `uploads/videos/${metadata.lessonId}/${Date.now()}-${filename}`;
+        break;
+      default:
+        throw new Error("Invalid upload type");
+    }
+
+    logger.info(`Generain pre-signed URL for key: ${key}`);
 
     const command = new PutObjectCommand({
       Bucket: rawBucket,
       Key: key,
-      Metadata: context ? { context: JSON.stringify(context) } : undefined,
+      Tagging: new URLSearchParams(metadata).toString(),
     });
 
     const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 600 });

@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-export const getUploadUrlSchema = z.object({
+export const requestUploadUrlSchema = z.object({
   body: z.object({
     filename: z.string({ required_error: "Filename is required" }),
-    userId: z.string({ required_error: "User ID is required" }),
-    context: z.record(z.string()).optional(),
+    uploadType: z.enum(["avatar", "video"]),
+    metadata: z.record(z.string()),
   }),
 });
