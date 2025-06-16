@@ -11,17 +11,17 @@ module "eks" {
 
   eks_managed_node_groups = {
     learnsphere_nodes = {
-      min_size = 1
-      max_size = 3
+      min_size     = 1
+      max_size     = 3
       desired_size = 2
-    
-    instance_type = ["t3.medium"]
-    capacity_type = "ON_DEMAND"
+
+      instance_type = ["t3.medium"]
+      capacity_type = "ON_DEMAND"
     }
   }
   tags = {
     Environment = "dev"
     Terraform   = "true"
-    Project = var.project_name
+    Project     = var.project_name
   }
 }
