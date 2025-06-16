@@ -11,7 +11,7 @@ import {
 import { NotFoundError } from "../errors";
 import { TypeOf, z } from "zod";
 import logger from "../config/logger";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { requireRole } from "../middlewares/require-role";
 
 const router = Router();
@@ -83,13 +83,15 @@ router.post(
       );
 
       const response = await axios.post(
-        `${mediaServiceUrl}/api/media/upload-url`,
-        { filename, userId }
+        `${mediaServiceUrl}/api/media/request-upload-url`,
+        { filename, uploadType: "avatar", metadata: { userId: userId } }
       );
 
       res.status(StatusCodes.OK).json(response.data);
     } catch (error) {
-      logger.error(`ERror contracting media-service`, { error });
+      logger.error(`ERror contracting media-service for avatar upload URL`, {
+        error: error instanceof AxiosError ? error.response?.data : error,
+      });
 
       throw new Error(`Could not create upload URL.`);
     }
