@@ -46,4 +46,19 @@ export class CacheService {
       logger.error(`Errpr deleting data from Redis cache`, { key, error });
     }
   }
+
+  public static async delByPattern(pattern: string): Promise<void> {
+    try {
+      const keys = await this.client.keys(pattern);
+
+      logger.info(
+        `Cache DELETED for pattern: ${pattern}. Key removed: ${keys.length}`
+      );
+    } catch (error) {
+      logger.error(`Error deleting data from Redis cache by pattern`, {
+        pattern,
+        error,
+      });
+    }
+  }
 }

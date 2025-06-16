@@ -98,6 +98,8 @@ export class CourseService {
       })
       .returning();
 
+    await CacheService.delByPattern("course:list:*");
+
     return newCourse[0];
   }
 
@@ -148,6 +150,9 @@ export class CourseService {
   }
 
   public static async listCourses(page: number, limit: number) {
+    if (page <= 0 || limit <= 0) {
+      throw new BadRequestError("Page and limit must be positive integers");
+    }
     const cacheKey = `courses:list:page:${page}:limit:${limit}`;
 
     const cachedCourses = await CacheService.get<any>(cacheKey);
@@ -221,6 +226,9 @@ export class CourseService {
 
     logger.info(`Updated Course ${courseId} by user ${requesterId}`);
 
+    await CacheService.del(`course:details:${courseId}`);
+    await CacheService.delByPattern(`course:list:*`);
+
     return updatedCourse[0];
   }
 
@@ -238,6 +246,9 @@ export class CourseService {
     logger.info(`Deleting course ${courseId} by user ${requesterId}`);
 
     await db.delete(courses).where(eq(courses.id, courseId));
+
+    await CacheService.del(`course:details:${courseId}`);
+    await CacheService.delByPattern(`course:list:*`);
   }
 
   public static async addModuleToCourse(data: ModuleData, requesterId: string) {
@@ -269,6 +280,8 @@ export class CourseService {
         order: nextOrder,
       })
       .returning();
+
+    await CacheService.del(`course:details:${data.courseId}`);
 
     return newModule[0];
   }
@@ -330,6 +343,8 @@ export class CourseService {
       .where(eq(modules.id, moduleId))
       .returning();
 
+    await CacheService.del(`course:details:${parentModule.courseId}`);
+
     return updatedModule[0];
   }
 
@@ -348,6 +363,8 @@ export class CourseService {
     logger.info(`Deleting module ${moduleId} by user ${requesterId}`);
 
     await db.delete(modules).where(eq(modules.id, moduleId));
+
+    await CacheService.del(`course:details:${parentModule.courseId}`);
   }
 
   public static async reorderModules(
@@ -390,6 +407,7 @@ export class CourseService {
       });
 
       await Promise.all(updatePromises);
+      await CacheService.del(`course:details:${parentCourseId}`);
     });
   }
 
@@ -445,6 +463,9 @@ export class CourseService {
     });
 
     const finalLessonDetails = await this.getLessonDetails(newLessonData.id);
+
+    await CacheService.del(`course:details:${parentModule.courseId}`);
+
     return finalLessonDetails;
   }
 
@@ -499,6 +520,9 @@ export class CourseService {
       }
 
       const finalLessonDetails = await this.getLessonDetails(lessonId);
+
+      await CacheService.del(`course:details:${lesson.module.courseId}`);
+
       return finalLessonDetails;
     });
   }
@@ -518,6 +542,8 @@ export class CourseService {
     logger.info(`Deleting lesson ${lessonId} by user ${requesterId}`);
 
     await db.delete(lessons).where(eq(lessons.id, lessonId));
+
+    await CacheService.del(`course:details:${lesson.module.courseId}`);
   }
 
   public static async reorderLessons(
@@ -560,6 +586,8 @@ export class CourseService {
       });
 
       await Promise.all(updatePromises);
+
+      await CacheService.del(`course:details:${allLessons[0].module.courseId}`);
     });
   }
 
@@ -580,6 +608,9 @@ export class CourseService {
     }
 
     logger.info(`Publishing course ${courseId} by user ${requesterId}`);
+
+    await CacheService.del(`course:details:${courseId}`);
+    await CacheService.delByPattern("courses:list:*");
 
     const updatedCourse = await db
       .update(courses)
@@ -613,6 +644,9 @@ export class CourseService {
       .set({ status: "draft", updatedAt: new Date() })
       .where(eq(courses.id, courseId))
       .returning();
+
+    await CacheService.del(`course:details:${courseId}`);
+    await CacheService.delByPattern("courses:list:*");
 
     return updatedCourse[0];
   }
