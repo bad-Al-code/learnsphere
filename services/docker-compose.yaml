@@ -27,6 +27,12 @@ services:
     ports:
       - "6379:6379"
 
+  redis-course:
+    image: redis:alpine3.20
+    container_name: learnsphere-course-redis
+    ports:
+      - "6380:6379"
+
   postgres-user:
     image: postgres:17.5
     container_name: learnsphere-user-postgres

@@ -3,11 +3,13 @@ import "dotenv/config";
 import { app } from "./app";
 import logger from "./config/logger";
 import { rabbitMQConnection } from "./events/connection";
+import { redisConnection } from "./config/redis";
 import { VideoProcessedListener } from "./events/listener";
 
 const startServer = async () => {
   try {
     await rabbitMQConnection.connect();
+    await redisConnection.connect();
 
     new VideoProcessedListener().listen();
 
@@ -19,12 +21,13 @@ const startServer = async () => {
       );
     });
 
-    process.on("SIGINT", async () => {
-      process.exit(0);
-    });
-    process.on("SIGTERM", async () => {
-      process.exit(0);
-    });
+    const shutdown = async () => {
+      await rabbitMQConnection.close();
+      await redisConnection.disconnect();
+    };
+
+    process.on("SIGINT", shutdown);
+    process.on("SIGTERM", shutdown);
   } catch (error) {
     const err = error as Error;
     logger.error("Failed to start the server: %o", { errMessage: err.message });
