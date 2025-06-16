@@ -4,6 +4,7 @@ import { db } from "../db";
 import { courses, lessons, modules, textLessonContent } from "../db/schema";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../errors";
 import axios from "axios";
+import { CacheService } from "./cache-service";
 
 interface CreateCourseData {
   title: string;
@@ -101,6 +102,13 @@ export class CourseService {
   }
 
   public static async getCourseDetails(courseId: string) {
+    const cacheKey = `course:details:${courseId}`;
+
+    const cachedCourse = await CacheService.get<any>(cacheKey);
+    if (cachedCourse) {
+      return cachedCourse;
+    }
+
     logger.info(`Fetching full details for course: ${courseId}`);
 
     const courseDetails = await db.query.courses.findFirst({
@@ -132,11 +140,24 @@ export class CourseService {
       instructor: instructorProfiles.get(courseDetails.instructorId),
     };
 
-    return resultWithInstructors;
+    const result = resultWithInstructors;
+
+    await CacheService.set(cacheKey, result);
+
+    return result;
   }
 
   public static async listCourses(page: number, limit: number) {
-    logger.info(`Fetching courses list for page: ${page}, limit: ${limit}`);
+    const cacheKey = `courses:list:page:${page}:limit:${limit}`;
+
+    const cachedCourses = await CacheService.get<any>(cacheKey);
+    if (cachedCourses) {
+      return cachedCourses;
+    }
+
+    logger.info(
+      `Fetching courses list from DB for page: ${page}, limit: ${limit}`
+    );
 
     const offset = (page - 1) * limit;
 
@@ -168,8 +189,7 @@ export class CourseService {
 
     const totalResult = total[0].value;
     const totalPages = Math.ceil(totalResult / limit);
-
-    return {
+    const result = {
       results: resultWithInstructors,
       pagination: {
         currentPage: page,
@@ -177,6 +197,9 @@ export class CourseService {
         totalResult,
       },
     };
+    await CacheService.set(cacheKey, result);
+
+    return result;
   }
 
   public static async updateCourse(
