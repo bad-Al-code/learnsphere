@@ -4,6 +4,12 @@ variable "aws_region" {
   default     = "ap-south-1"
 }
 
+variable "project_name" {
+  description = "The name of the project, used for tagging resources."
+  type        = string
+  default     = "learnsphere"
+}
+
 variable "raw_bucket_name" {
   description = "The unique name for the raw media uploads S3 bucket"
   type        = string
@@ -21,3 +27,4 @@ variable "sqs_queue_name" {
   type        = string
   default     = "s3-media-events-queue"
 }
+
