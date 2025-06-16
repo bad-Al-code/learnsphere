@@ -1,5 +1,7 @@
 import { Message } from "@aws-sdk/client-sqs";
 import { IProcessor, S3EventInfo } from "./ip-processor";
+import logger from "../../config/logger";
+import { VideoProcessedPublisher } from "../../events/publisher";
 
 export class VideoProcessor implements IProcessor {
   public canProcess(metadata: Record<string, string | undefined>): boolean {
@@ -17,8 +19,16 @@ export class VideoProcessor implements IProcessor {
     }
 
     //TODO: Implement video transcoding logic
-    // TODO: publish a 'video.processed' event with { lessonId, videoUrl }
+    // simulation
+    const fakeVideoUrl = `https://learnsphere-processed-media-xt9tcab6.s3.ap-south-1.amazonaws.com/videos/${lessonId}/playlist.m3u8`;
+    logger.info(
+      `[SIMULATED] Video transcoding complete for lesson: ${lessonId}`
+    );
 
-    return Promise.resolve();
+    const publisher = new VideoProcessedPublisher();
+    await publisher.publish({
+      lessonId: lessonId,
+      videoUrl: fakeVideoUrl,
+    });
   }
 }

@@ -54,7 +54,7 @@ export class UserAvatarFailedPublisher extends Publisher<UserAvatarFailedEvent> 
 interface VideoProcessedEvent {
   topic: "video.processed";
   data: {
-    context: { [key: string]: string };
+    lessonId: string;
     videoUrl: string;
   };
 }
