@@ -2,9 +2,13 @@ import { Request, Response, Router } from "express";
 import { requireAuth } from "../middlewares/require-auth";
 import { requireRole } from "../middlewares/require-role";
 import { validateRequest } from "../middlewares/validate-request";
-import { createLessonSchema, reorderSchema } from "../schemas/course-schema";
 import { CourseService } from "../services/course-service";
 import { StatusCodes } from "http-status-codes";
+import {
+  videoUploadUrlSchema,
+  createLessonSchema,
+  reorderSchema,
+} from "../schemas";
 
 const router = Router();
 
@@ -63,6 +67,26 @@ router.post(
     res
       .status(StatusCodes.OK)
       .json({ message: "Lessons reordered successfully." });
+  }
+);
+
+router.post(
+  "/:lessonId/request-video-upload",
+  requireAuth,
+  requireRole(["instructor", "admin"]),
+  validateRequest(videoUploadUrlSchema),
+  async (req: Request, res: Response) => {
+    const { lessonId } = req.params;
+    const { filename } = req.body;
+    const requesterId = req.currentUser!.id;
+
+    const uploadData = await CourseService.requestVideoUploadUrl(
+      lessonId,
+      filename,
+      requesterId
+    );
+
+    res.status(StatusCodes.OK).json(uploadData);
   }
 );
 
