@@ -19,7 +19,7 @@ const logger = winston.createLogger({
               }`
           )
         )
-      : combine(timestamp(), errors({ stack: true }), json()),
+      : combine(timestamp(), splat(), errors({ stack: true }), json()),
   transports: [new winston.transports.Console()],
 });
 
