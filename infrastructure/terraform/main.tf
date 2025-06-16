@@ -11,6 +11,11 @@ provider "aws" {
   region = var.aws_region
 }
 
+module "vpc" {
+  source     = "./modules/vpc"
+  aws_region = var.aws_region
+}
+
 resource "aws_s3_bucket" "raw_uploads" {
   bucket = var.raw_bucket_name
 }
