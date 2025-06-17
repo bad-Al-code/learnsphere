@@ -57,7 +57,20 @@ services:
     volumes:
       - course-db-data:/var/lib/postgresql/data
 
+  postgres-enrollment:
+    image: postgres:17.5
+    container_name: learnsphere-enrollment-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: enrollment_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - enrollment-db-data:/var/lib/postgresql/data
+
 volumes:
   auth-db-data:
   user-db-data:
   course-db-data:
+  enrollment-db-data:
