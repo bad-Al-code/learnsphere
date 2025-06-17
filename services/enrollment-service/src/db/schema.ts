@@ -1,6 +1,6 @@
 import { uuid, timestamp, unique, pgTable, jsonb } from "drizzle-orm/pg-core";
 
-export const enrollment = pgTable(
+export const enrollments = pgTable(
   "enrollments",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -11,11 +11,6 @@ export const enrollment = pgTable(
     progress: jsonb("progress").default({}).notNull(),
   },
   (table) => {
-    return {
-      uniqueEnrollment: unique("unique_enrollment").on(
-        table.userId,
-        table.courseId
-      ),
-    };
+    return [unique("unique_enrollment").on(table.userId, table.courseId)];
   }
 );

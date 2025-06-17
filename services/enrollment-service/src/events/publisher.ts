@@ -23,38 +23,15 @@ export abstract class Publisher<T extends { topic: string; data: any }> {
   }
 }
 
-interface UserRegisteredEvent {
-  topic: "user.registered";
+interface UserEnrollmentEvent {
+  topic: "user.enrolled";
   data: {
-    id: string;
+    userId: string;
     email: string;
+    courseId: string;
   };
 }
 
-export class UserRegisteredPublisher extends Publisher<UserRegisteredEvent> {
-  topic: "user.registered" = "user.registered";
-}
-
-interface UserVerificationRequiredEvent {
-  topic: "user.verification.required";
-  data: {
-    email: string;
-    verificationToken: string;
-  };
-}
-
-export class UserVerificationRequiredPublisher extends Publisher<UserVerificationRequiredEvent> {
-  topic: "user.verification.required" = "user.verification.required";
-}
-
-interface UserPasswordResetRequiredEvent {
-  topic: "user.password_reset.required";
-  data: {
-    email: string;
-    resetToken: string;
-  };
-}
-
-export class UserPasswordResetRequiredPublisher extends Publisher<UserPasswordResetRequiredEvent> {
-  topic: "user.password_reset.required" = "user.password_reset.required";
+export class UserEnrollmentPublisher extends Publisher<UserEnrollmentEvent> {
+  topic: "user.enrolled" = "user.enrolled";
 }
