@@ -61,10 +61,13 @@ jobs:
       - name: Set u Kubeconfig for EKS
         run: |
           aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name learnsphere-eks-cluster
+      - name: Test Kubernetes API Access
+        run: |
+          kubectl cluster-info
 
       - name: Deploy Infrastructure to EKS
         run: |
-          kubectl apply -f infrastructure/kubernetes/base/
+          kubectl apply -f infrastructure/kubernetes/base/ --validate=false --request-timeout=60s
           kubectl create secret generic auth-secrets --from-literal=JWT_SECRET='${{ secrets.JWT_SECRET }}' --from-literal=COOKIE_PARSER_SECRET='${{ secrets.COOKIE_PARSER_SECRET}}' --from-literal=JWT_REFRESH_SECRET='${{ secrets.JWT_REFRESH_SECRET}}' --dry-run=client -o yaml | kubectl apply -f -
           kubectl create secret generic media-service-secrets --from-literal=AWS_SECRET_ACCESS_KEY='${{ secrets.AWS_SECRET_ACCESS_KEY}}' --from-literal=AWS_ACCESS_KEY_ID='${{ secrets.AWS_ACCESS_KEY_ID}}' --dry-run=client -o yaml | kubectl apply -f -
 
