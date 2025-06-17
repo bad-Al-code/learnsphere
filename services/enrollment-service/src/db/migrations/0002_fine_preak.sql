@@ -1,1 +1,0 @@
-ALTER TABLE "users" RENAME COLUMN "verification_tokne" TO "verification_token";
