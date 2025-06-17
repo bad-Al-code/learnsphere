@@ -30,3 +30,18 @@ output "ecr_repo_urls" {
     course_service       = module.ecr_course_service.repository_url
   }
 }
+
+output "eks_cluster_name" {
+  description = "The name of the provisioned EKS cluster."
+  value       = module.eks.cluster_name
+}
+
+output "cicd_user_access_key_id" {
+  value     = aws_iam_access_key.cicd_user_keys.id
+  sensitive = true
+}
+
+output "cicd_user_secret_access_key" {
+  value     = aws_iam_access_key.cicd_user_keys.secret
+  sensitive = true
+}

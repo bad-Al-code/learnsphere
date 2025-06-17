@@ -12,3 +12,8 @@ output "cluster_security_group_id" {
   description = "Security group ID attached to the EKS cluster"
   value       = module.eks.cluster_security_group_id
 }
+
+output "cluster_arn" {
+  description = "The ARN of the EKS cluster."
+  value       = module.eks.cluster_arn
+}
