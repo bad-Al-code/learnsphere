@@ -55,6 +55,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: user-service-config
+            - secretRef:
+                name: auth-secrets
 ---
 apiVersion: v1
 kind: Service
