@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:17.5
+    container_name: learnsphere-enrollment-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: enrollment_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - enrollment-db-data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:4.1.0-beta.5-management-alpine
+    container_name: learnsphere-rabbitmq
+    ports:
+      - "5672:5672" # AMQP
+      - "15672:15672" # Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+  redis:
+    image: redis:alpine3.20
+    container_name: learnsphere-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  enrollment-db-data:
