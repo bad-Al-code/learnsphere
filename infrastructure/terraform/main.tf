@@ -7,12 +7,13 @@ terraform {
   }
 }
 
-locals {
-  github_actions_ipv4_cidrs = [
-    for cidr in var.github_actions_cidrs : cidr if !strcontains(cidr, ":")
-  ]
-}
 
+
+locals {
+  github_actions_ipv4_cidrs = slice([
+    for cidr in var.github_actions_cidrs : cidr if !strcontains(cidr, ":")
+  ], 0, 39)
+}
 data "http" "my_ip" {
   url = "http://ipv4.icanhazip.com"
 }
@@ -63,6 +64,4 @@ module "eks" {
     local.github_actions_ipv4_cidrs,
     ["${chomp(data.http.my_ip.response_body)}/32"] 
   )
-
-
 }
