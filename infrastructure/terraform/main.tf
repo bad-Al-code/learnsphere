@@ -11,6 +11,13 @@ provider "aws" {
   region = var.aws_region
 }
 
+data "http" "github_actions_ips" {
+url = "https://api.github.com/meta"
+  request_headers = {
+    Accept = "application/json"
+  }
+}
+
 module "vpc" {
   source     = "./modules/vpc"
   aws_region = var.aws_region
@@ -41,10 +48,23 @@ module "ecr_course_service" {
   repository_name = "learnsphere/course-service"
 }
 
+
+locals {
+  github_actions_ips = try(
+    tolist(jsondecode(data.http.github_actions_ips.response_body).actions),
+    []
+  )
+}
+
+
 module "eks" {
   source = "./modules/eks"
 
   project_name       = var.project_name
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnets
+  cluster_version    = "1.32"
+  cluster_endpoint_public_access_cidrs = local.github_actions_ips
+
+
 }

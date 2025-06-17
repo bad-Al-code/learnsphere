@@ -18,3 +18,9 @@ variable "cluster_version" {
   type        = string
   default     = "1.32"
 }
+
+variable "cluster_endpoint_public_access_cidrs" {
+  description = "List of CIDR blocks that can access the EKS public endpoint"
+  type        = list(string)
+  default     = []
+}
