@@ -10,6 +10,8 @@ data:
   REDIS_URL: "redis://redis-service:6379"
   JWT_EXPIRES_IN: "15m"
   JWT_REFRESH_EXPIRES_IN: "7d"
+  COOKIE_SECURE: "false"
+  COOKIE_DOMAIN: "learnsphere.dev"
   # JWT_SECRET: "kr/RrzjQ31+vfKl0JQxlLHFq4JCraTP8MraNHw"
   # COOKIE_PARSER_SECRET: "8DPz5ooMmG0d8zWMxYnmS2nlf4wOa0hGF77oUri2pMk="
 ---

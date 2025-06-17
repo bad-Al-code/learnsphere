@@ -19,6 +19,7 @@ export const attachCookiesToResponse = (
   user: UserPayload,
   options: AttachCookiesOptions
 ) => {
+  const isSecure = process.env.COOKIE_SECURE === "true";
   if (options.accessToken) {
     const accessToken = jwt.sign(
       {
@@ -35,7 +36,8 @@ export const attachCookiesToResponse = (
       httpOnly: true,
       expires: new Date(Date.now() + 15 * 60 * 1000),
       secure: process.env.NODE_ENV === "production",
-      signed: true,
+      signed: isSecure,
+      domain: process.env.COOKIE_DOMAIN || "localhost",
     };
 
     res.cookie("token", accessToken, accessTokenCookieOptions);
@@ -61,7 +63,8 @@ export const attachCookiesToResponse = (
       httpOnly: true,
       expires: new Date(Date.now() + oneDay * 7),
       secure: process.env.NODE_ENV === "production",
-      signed: true,
+      signed: isSecure,
+      domain: process.env.COOKIE_DOMAIN || "localhost",
     };
 
     res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
@@ -79,10 +82,8 @@ export const sendTokenResponse = (
 
   attachCookiesToResponse(res, user, { accessToken: true, refreshToken: true });
 
-  res
-    .status(statusCode)
-    .json({
-      message: "Success",
-      user: { id: user.id, email: user.email, role: user.role },
-    });
+  res.status(statusCode).json({
+    message: "Success",
+    user: { id: user.id, email: user.email, role: user.role },
+  });
 };
