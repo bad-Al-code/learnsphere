@@ -30,6 +30,8 @@ jobs:
       - name: Login to Amazon ECR
         id: logic-ecr
         uses: aws-actions/amazon-ecr-login@v2
+        with:
+          aws-region: ${{ secrets.AWS_REGION}}
 
       - name: Build, tag, and push image to Amazon ECR
         env:
