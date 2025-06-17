@@ -2,9 +2,10 @@ import express, { json } from "express";
 import cookieParser from "cookie-parser";
 
 import { errorHandler } from "./middlewares/error-handler";
-import { httpLogger } from "./middlewares/http-logger";
 import { currentUser } from "./middlewares/current-user";
 import helmet from "helmet";
+import { healthRouter } from "./routes/health";
+import { httpLogger } from "./middlewares/http-logger";
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(httpLogger);
 app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
 app.use(currentUser);
 
+app.use("/api/enrollments", healthRouter);
 app.use(errorHandler);
 
 export { app };
