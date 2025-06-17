@@ -31,7 +31,7 @@ jobs:
         id: logic-ecr
         uses: aws-actions/amazon-ecr-login@v2
         with:
-          registry: ${{ secret.ECR_REGISTRY}}
+          registry: ${{ secrets.ECR_REGISTRY}}
 
       - name: Build, tag, and push image to Amazon ECR
         env:
