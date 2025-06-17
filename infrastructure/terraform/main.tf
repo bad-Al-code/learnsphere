@@ -7,15 +7,18 @@ terraform {
   }
 }
 
-provider "aws" {
-  region = var.aws_region
+locals {
+  github_actions_ipv4_cidrs = [
+    for cidr in var.github_actions_cidrs : cidr if !strcontains(cidr, ":")
+  ]
 }
 
-data "http" "github_actions_ips" {
-url = "https://api.github.com/meta"
-  request_headers = {
-    Accept = "application/json"
-  }
+data "http" "my_ip" {
+  url = "http://ipv4.icanhazip.com"
+}
+
+provider "aws" {
+  region = var.aws_region
 }
 
 module "vpc" {
@@ -49,14 +52,6 @@ module "ecr_course_service" {
 }
 
 
-locals {
-  github_actions_ips = try(
-    tolist(jsondecode(data.http.github_actions_ips.response_body).actions),
-    []
-  )
-}
-
-
 module "eks" {
   source = "./modules/eks"
 
@@ -64,7 +59,10 @@ module "eks" {
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnets
   cluster_version    = "1.32"
-  cluster_endpoint_public_access_cidrs = local.github_actions_ips
+ cluster_endpoint_public_access_cidrs = concat(
+    local.github_actions_ipv4_cidrs,
+    ["${chomp(data.http.my_ip.response_body)}/32"] 
+  )
 
 
 }

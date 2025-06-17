@@ -28,3 +28,8 @@ variable "sqs_queue_name" {
   default     = "s3-media-events-queue"
 }
 
+variable "github_actions_cidrs" {
+  description = "A list of CIDR blocks for GitHub Actions runners to allow access to the EKS public endpoint."
+  type        = list(string)
+  default     = [] 
+}
