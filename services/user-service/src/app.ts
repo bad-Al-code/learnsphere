@@ -8,6 +8,8 @@ import { errorHandler } from "./middlewares/error-handler";
 import helmet from "helmet";
 
 const app = express();
+
+app.set("trust proxy", true);
 app.use(json());
 app.use(helmet());
 app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
