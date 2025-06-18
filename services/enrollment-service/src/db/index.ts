@@ -2,7 +2,7 @@ import "dotenv/config";
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 
-// import * as schema from "./schema";
+import * as schema from "./schema";
 import logger from "../config/logger";
 
 if (!process.env.DATABASE_URL) {
@@ -23,6 +23,6 @@ pool.on("error", (err) => {
 });
 
 export const db = drizzle(pool, {
-  // schema,
+  schema,
   logger: process.env.NODE_ENV === "development",
 });
