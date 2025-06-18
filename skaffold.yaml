@@ -66,6 +66,11 @@ portForward:
     namespace: ingress-nginx
     port: 80
     localPort: 8080
+  - resourceType: service
+    resourceName: ingress-nginx-controller
+    namespace: ingress-nginx
+    port: 443
+    localPort: 8443
 
 profiles:
   - name: dev
