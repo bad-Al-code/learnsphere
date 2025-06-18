@@ -4,8 +4,14 @@ metadata:
   name: ingress-service
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true" # for path-based routing with NGINX
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - learnsphere.dev
+      secretName: learnsphere-tls
   rules:
     - host: learnsphere.dev
       http:
