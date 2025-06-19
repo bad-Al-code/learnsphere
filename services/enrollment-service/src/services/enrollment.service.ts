@@ -2,10 +2,15 @@ import axios, { isAxiosError } from "axios";
 import { and, eq } from "drizzle-orm";
 
 import logger from "../config/logger";
-import { BadRequestError, NotFoundError } from "../errors";
+import { BadRequestError, ForbiddenError, NotFoundError } from "../errors";
 import { db } from "../db";
 import { enrollments } from "../db/schema";
-import { CourseDetails, PublicCourseData, UserEnrollmentData } from "../types";
+import {
+  CourseDetails,
+  MarkProgressData,
+  PublicCourseData,
+  UserEnrollmentData,
+} from "../types";
 
 export class EnrollmentService {
   private static async getValidCourseEnrollment(
@@ -167,5 +172,84 @@ export class EnrollmentService {
     });
 
     return richEnrollments;
+  }
+
+  private static calculateProgressPercentage(
+    completedCount: number,
+    totalCount: number
+  ): string {
+    if (totalCount === 0) {
+      return "0.00";
+    }
+
+    const percentage = (completedCount / totalCount) * 100;
+
+    return percentage.toFixed(2);
+  }
+
+  public static async markLessonAsComplete({
+    userId,
+    courseId,
+    lessonId,
+  }: MarkProgressData) {
+    logger.info(
+      `Marking lesson ${lessonId} as complete for uses ${userId} in course ${courseId}`
+    );
+
+    const enrollment = await db.query.enrollments.findFirst({
+      where: and(
+        eq(enrollments.userId, userId),
+        eq(enrollments.courseId, courseId)
+      ),
+    });
+    if (!enrollment) {
+      throw new ForbiddenError();
+    }
+
+    const isLessonInCourse = enrollment.courseStructure.modules.some((module) =>
+      module.lessonIds.includes(lessonId)
+    );
+    if (!isLessonInCourse) {
+      throw new BadRequestError(
+        `The specified lesson does not belong to this course. `
+      );
+    }
+
+    const completedLessonsSet = new Set(enrollment.progress.completedLessons);
+    if (completedLessonsSet.has(lessonId)) {
+      logger.warn(
+        `Lesson ${lessonId} is already complete for user ${userId}. No updated needed.`
+      );
+
+      return enrollment;
+    }
+    completedLessonsSet.add(lessonId);
+
+    const newCompletedLessons = Array.from(completedLessonsSet);
+    const newProgressPercentage = this.calculateProgressPercentage(
+      newCompletedLessons.length,
+      enrollment.courseStructure.totalLessons
+    );
+
+    const updatedEnrollments = await db
+      .update(enrollments)
+      .set({
+        progress: { completedLessons: newCompletedLessons },
+        progressPercentage: newProgressPercentage,
+        lastAccessedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(enrollments.id, enrollment.id))
+      .returning();
+
+    const updatedEnrollment = updatedEnrollments[0];
+
+    logger.info(
+      `Progress updated for user ${userId}. New percentage: ${updatedEnrollment.progressPercentage}`
+    );
+
+    // TODO: publish `student.progress.updated` and `student.course.completed` event
+
+    return updatedEnrollment;
   }
 }

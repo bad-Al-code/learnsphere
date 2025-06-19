@@ -7,3 +7,10 @@ export const createEnrollmentSchema = z.object({
       .uuid("Invalid course ID format"),
   }),
 });
+
+export const markProgressSchema = z.object({
+  body: z.object({
+    courseId: z.string().uuid("Invalid course ID format"),
+    lessonId: z.string().uuid("Invalid lesson ID format"),
+  }),
+});

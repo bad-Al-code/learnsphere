@@ -24,3 +24,9 @@ export interface UserEnrollmentData {
   userId: string;
   courseId: string;
 }
+
+export interface MarkProgressData {
+  userId: string;
+  courseId: string;
+  lessonId: string;
+}
