@@ -5,6 +5,7 @@ import { requireAuth } from "../middlewares/require-auth";
 import { validateRequest } from "../middlewares/validate-request";
 import {
   createEnrollmentSchema,
+  enrollmentIdParamSchema,
   manualEnrollmentSchema,
   markProgressSchema,
 } from "../schema/enrollment.schema";
@@ -75,6 +76,40 @@ router.post(
     });
 
     res.status(StatusCodes.CREATED).json(enrollment);
+  }
+);
+
+router.post(
+  "/:enrollmentId/suspend",
+  requireAuth,
+  requireRole(["instructor", "admin"]),
+  validateRequest(enrollmentIdParamSchema),
+  async (req: Request, res: Response) => {
+    const { enrollmentId } = req.params;
+    const requester = req.currentUser!;
+
+    await EnrollmentService.suspendEnrollment({ enrollmentId, requester });
+
+    res
+      .status(StatusCodes.OK)
+      .json({ message: "Enrollment suspended succesfully" });
+  }
+);
+
+router.post(
+  "/:enrollmentId/reinstate",
+  requireAuth,
+  requireRole(["instructor", "admin"]),
+  validateRequest(enrollmentIdParamSchema),
+  async (req: Request, res: Response) => {
+    const { enrollmentId } = req.params;
+    const requester = req.currentUser!;
+
+    await EnrollmentService.reinstateEnrollment({ enrollmentId, requester });
+
+    res
+      .status(StatusCodes.OK)
+      .json({ message: "Enrollment reinstated succesfully" });
   }
 );
 

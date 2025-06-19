@@ -21,3 +21,9 @@ export const manualEnrollmentSchema = z.object({
     courseId: z.string().uuid("Invalid course ID format"),
   }),
 });
+
+export const enrollmentIdParamSchema = z.object({
+  params: z.object({
+    enrollmentId: z.string().uuid("Invalid enrollment ID format"),
+  }),
+});

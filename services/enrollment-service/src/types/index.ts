@@ -1,3 +1,5 @@
+import { enrollmentStatusEnum } from "../db/schema";
+
 export interface CourseDetails {
   id: string;
   status: "draft" | "published";
@@ -39,5 +41,18 @@ export interface Requester {
 export interface ManualEnrollmentData {
   userId: string;
   courseId: string;
+  requester: Requester;
+}
+
+export type EnrollmentStatus = (typeof enrollmentStatusEnum.enumValues)[number];
+
+export interface ChangeEnrollmentStatus {
+  enrollmentId: string;
+  newStatus: EnrollmentStatus;
+  requester: Requester;
+}
+
+export interface UserEnrollmentStatus {
+  enrollmentId: string;
   requester: Requester;
 }

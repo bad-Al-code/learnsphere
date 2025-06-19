@@ -6,11 +6,13 @@ import { BadRequestError, ForbiddenError, NotFoundError } from "../errors";
 import { db } from "../db";
 import { enrollments } from "../db/schema";
 import {
+  ChangeEnrollmentStatus,
   CourseDetails,
   ManualEnrollmentData,
   MarkProgressData,
   PublicCourseData,
   UserEnrollmentData,
+  UserEnrollmentStatus,
 } from "../types";
 import {
   Publisher,
@@ -356,5 +358,68 @@ export class EnrollmentService {
     });
 
     return newEnrollment;
+  }
+
+  private static async changeEnrollmentStatus({
+    enrollmentId,
+    newStatus,
+    requester,
+  }: ChangeEnrollmentStatus) {
+    logger.info(
+      `Request by ${requester.id} to change enrollment ${enrollmentId} to status ${newStatus}`
+    );
+
+    const enrollment = await db.query.enrollments.findFirst({
+      where: eq(enrollments.id, enrollmentId),
+    });
+    if (!enrollment) {
+      throw new NotFoundError("Enrollment");
+    }
+
+    const course = await this.getCourseManualEnrollment(enrollment.courseId);
+    if (
+      requester.role === "instructor" &&
+      course.instructorId !== requester.id
+    ) {
+      throw new ForbiddenError();
+    }
+
+    const updated = (
+      await db
+        .update(enrollments)
+        .set({ status: newStatus, updatedAt: new Date() })
+        .where(eq(enrollments.id, enrollmentId))
+        .returning()
+    )[0];
+
+    logger.info(
+      `Enrollmen ${enrollmentId} status successfully changed to '${newStatus}' by ${requester.id}`
+    );
+
+    // TODO: publish user.enrollment.suspended or user.enrollment.reactivated event
+
+    return updated;
+  }
+
+  public static async suspendEnrollment({
+    enrollmentId,
+    requester,
+  }: UserEnrollmentStatus) {
+    return this.changeEnrollmentStatus({
+      enrollmentId,
+      newStatus: "suspended",
+      requester,
+    });
+  }
+
+  public static async reinstateEnrollment({
+    enrollmentId,
+    requester,
+  }: UserEnrollmentStatus) {
+    return this.changeEnrollmentStatus({
+      enrollmentId,
+      newStatus: "active",
+      requester,
+    });
   }
 }
