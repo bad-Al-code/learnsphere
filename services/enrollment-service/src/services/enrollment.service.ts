@@ -1,5 +1,5 @@
 import axios, { isAxiosError } from "axios";
-import { inArray as drizzleArray, and, eq } from "drizzle-orm";
+import { inArray as drizzleArray, and, eq, count } from "drizzle-orm";
 
 import logger from "../config/logger";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../errors";
@@ -8,9 +8,11 @@ import { enrollments } from "../db/schema";
 import {
   ChangeEnrollmentStatus,
   CourseDetails,
+  GetEnrollmentsOptions,
   ManualEnrollmentData,
   MarkProgressData,
   PublicCourseData,
+  PublicUserData,
   UserEnrollmentData,
   UserEnrollmentStatus,
 } from "../types";
@@ -424,5 +426,117 @@ export class EnrollmentService {
       newStatus: "active",
       requester,
     });
+  }
+
+  private static async getUserInBatch(
+    userIds: string[]
+  ): Promise<Map<string, PublicUserData>> {
+    if (userIds.length === 0) {
+      return new Map();
+    }
+
+    const userServiceUrl = process.env.USER_SERVICE_URL!;
+    if (!userServiceUrl) {
+      throw new Error(`USER_SERVICE_URL is not defined`);
+    }
+
+    try {
+      const response = await axios.post<PublicUserData[]>(
+        `${userServiceUrl}/api/users/bulk`,
+        { userIds }
+      );
+
+      const userMap = new Map<string, PublicUserData>();
+      for (const user of response.data) {
+        userMap.set(user.userId, user);
+      }
+
+      return userMap;
+    } catch (error) {
+      let errorDetails: any = { message: (error as Error).message };
+      if (isAxiosError(error)) {
+        errorDetails = {
+          message: error.message,
+          url: error.config?.url,
+          method: error.config?.method,
+          status: error.response?.status,
+          responseData: error.response?.data,
+        };
+      }
+
+      logger.error("Failed to batch fetch users from user-service: %o", {
+        error: errorDetails,
+      });
+
+      return new Map();
+    }
+  }
+
+  public static async getEnrollmentsByCourseId({
+    courseId,
+    requester,
+    page,
+    limit,
+  }: GetEnrollmentsOptions) {
+    logger.debug(
+      `Fetching enrollments for course ${courseId} for requester ${requester.id}`
+    );
+
+    const course = await this.getCourseManualEnrollment(courseId);
+    if (
+      requester.role === "instructor" &&
+      course.instructorId !== requester.id
+    ) {
+      throw new ForbiddenError();
+    }
+
+    const offset = (page - 1) * limit;
+    const whereClause = eq(enrollments.courseId, courseId);
+    const totalEnrollmentQuery = await db
+      .select({ value: count() })
+      .from(enrollments)
+      .where(whereClause);
+    const paginatedEnrollmentsQuery = await db.query.enrollments.findMany({
+      where: whereClause,
+      limit,
+      offset,
+      orderBy: (enrollments, { desc }) => [desc(enrollments.enrolledAt)],
+    });
+
+    const [totalResult, paginatedEnrollments] = await Promise.all([
+      totalEnrollmentQuery,
+      paginatedEnrollmentsQuery,
+    ]);
+
+    const userIds = paginatedEnrollments.map((e) => e.userId);
+    const userMap = await this.getUserInBatch(userIds);
+
+    const richEnrollments = paginatedEnrollments.map((enrollment) => {
+      const userProfile = userMap.get(enrollment.userId);
+
+      return {
+        enrollmentId: enrollment.id,
+        status: enrollment.status,
+        enrolledAt: enrollment.enrolledAt,
+        progressPercentage: enrollment.progressPercentage,
+        student: userProfile || {
+          userId: enrollment.userId,
+          firstName: "User",
+          lastName: "Not Found",
+        },
+      };
+    });
+
+    const totalPages = Math.ceil(totalResult[0].value / limit);
+
+    return {
+      enrollments: richEnrollments,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalResult: totalResult[0].value,
+        limit,
+      },
+    };
   }
 }

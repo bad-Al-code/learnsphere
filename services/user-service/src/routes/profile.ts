@@ -5,6 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import { validateRequest } from "../middlewares/validate-request";
 import {
   avatarUploadUrlSchema,
+  bulkUsersSchema,
   searchProfileSchema,
   updateProfileSchema,
 } from "../schemas/profile-schema";
@@ -15,6 +16,17 @@ import axios, { AxiosError } from "axios";
 import { requireRole } from "../middlewares/require-role";
 
 const router = Router();
+
+router.post(
+  "/bulk",
+  validateRequest(bulkUsersSchema),
+  async (req: Request, res: Response) => {
+    const { userIds } = req.body;
+    const users = await ProfileService.getPublicProfilesByIds(userIds);
+
+    res.status(StatusCodes.OK).json(users);
+  }
+);
 
 router.get("/me", requireAuth, async (req: Request, res: Response) => {
   const userId = req.currentUser!.id;

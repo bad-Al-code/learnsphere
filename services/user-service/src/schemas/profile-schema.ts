@@ -35,3 +35,9 @@ export const searchProfileSchema = z.object({
     limit: z.coerce.number().int().min(1).max(100).default(10),
   }),
 });
+
+export const bulkUsersSchema = z.object({
+  body: z.object({
+    userIds: z.array(z.string().uuid()).nonempty(),
+  }),
+});

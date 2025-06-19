@@ -1,4 +1,4 @@
-import { eq, ilike, or, count } from "drizzle-orm";
+import { eq, ilike, or, count, inArray } from "drizzle-orm";
 import logger from "../config/logger";
 import { db } from "../db";
 import { profiles } from "../db/schema";
@@ -120,6 +120,25 @@ export class ProfileService {
     }
 
     return publicProfile[0];
+  }
+
+  public static async getPublicProfilesByIds(userIds: string[]) {
+    logger.debug(
+      `Fetching public profiles for ${userIds.length} users in bulk`
+    );
+
+    const publicProfile = await db
+      .select({
+        userId: profiles.userId,
+        firstName: profiles.firstName,
+        lastName: profiles.lastName,
+        avatarUrls: profiles.avatarUrls,
+        headline: profiles.headline,
+      })
+      .from(profiles)
+      .where(inArray(profiles.userId, userIds));
+
+    return publicProfile;
   }
 
   public static async searchProfiles(

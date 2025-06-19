@@ -27,3 +27,13 @@ export const enrollmentIdParamSchema = z.object({
     enrollmentId: z.string().uuid("Invalid enrollment ID format"),
   }),
 });
+
+export const getEnrollmentsSchema = z.object({
+  params: z.object({
+    courseId: z.string().uuid("Invalid course ID format"),
+  }),
+  query: z.object({
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+  }),
+});

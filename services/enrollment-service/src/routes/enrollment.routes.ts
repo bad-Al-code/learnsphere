@@ -6,6 +6,7 @@ import { validateRequest } from "../middlewares/validate-request";
 import {
   createEnrollmentSchema,
   enrollmentIdParamSchema,
+  getEnrollmentsSchema,
   manualEnrollmentSchema,
   markProgressSchema,
 } from "../schema/enrollment.schema";
@@ -110,6 +111,27 @@ router.post(
     res
       .status(StatusCodes.OK)
       .json({ message: "Enrollment reinstated succesfully" });
+  }
+);
+
+router.get(
+  "/course/:courseId",
+  requireAuth,
+  requireRole(["admin", "instructor"]),
+  validateRequest(getEnrollmentsSchema),
+  async (req: Request, res: Response) => {
+    const { courseId } = req.params;
+    const { page, limit } = req.query as any;
+    const requester = req.currentUser!;
+
+    const result = await EnrollmentService.getEnrollmentsByCourseId({
+      courseId,
+      requester,
+      page,
+      limit,
+    });
+
+    res.status(StatusCodes.OK).json(result);
   }
 );
 

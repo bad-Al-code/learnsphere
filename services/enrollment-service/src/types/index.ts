@@ -22,6 +22,20 @@ export interface PublicCourseData {
   };
 }
 
+export interface PublicUserData {
+  userId: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  avatarUrls?: { small?: string };
+}
+
+export interface GetEnrollmentsOptions {
+  courseId: string;
+  requester: Requester;
+  page: number;
+  limit: number;
+}
+
 export interface UserEnrollmentData {
   userId: string;
   courseId: string;
