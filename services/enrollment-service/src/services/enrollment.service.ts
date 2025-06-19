@@ -1,34 +1,46 @@
 import axios, { isAxiosError } from "axios";
+import { and, eq } from "drizzle-orm";
+
+import logger from "../config/logger";
 import { BadRequestError, NotFoundError } from "../errors";
 import { db } from "../db";
 import { enrollments } from "../db/schema";
-import logger from "../config/logger";
-import { UserEnrollmentPublisher } from "../events/publisher";
 
-interface EnrollmentData {
-  courseId: string;
-  userId: string;
-  userEmail: string;
-}
-
-interface Course {
+interface CourseDetails {
   id: string;
   status: "draft" | "published";
+  modules: {
+    id: string;
+    lessons: {
+      id: string;
+    }[];
+  }[];
+}
+
+interface UserEnrollmentData {
+  userId: string;
+  courseId: string;
 }
 
 export class EnrollmentService {
-  public static async createEnrollment(data: EnrollmentData) {
+  private static async getValidCourseEnrollment(
+    courseId: string
+  ): Promise<CourseDetails> {
     const courseServiceUrl = process.env.COURSE_SERVICE_URL!;
-    let course: Course;
+    if (!courseServiceUrl) {
+      throw new Error(`COURSE_SERVICE_URL is not defined`);
+    }
 
     try {
-      const response = await axios.get<Course>(
-        `${courseServiceUrl}/api/courses/${data.courseId}`
+      logger.debug(`Fetching user details for ${courseId} from course-service`);
+      const response = await axios.get<CourseDetails>(
+        `${courseServiceUrl}/api/courses/${courseId}`
       );
-      course = response.data;
-      if (course.status !== "published") {
-        throw new BadRequestError(`You can only enroll in published courses.`);
+      if (response.data.status !== "published") {
+        throw new BadRequestError("Enrollment Failed. Course is not published");
       }
+
+      return response.data;
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 404) {
         throw new NotFoundError("Course");
@@ -36,31 +48,48 @@ export class EnrollmentService {
 
       throw error;
     }
+  }
 
-    try {
-      const newErollment = await db
-        .insert(enrollments)
-        .values({ courseId: data.courseId, userId: data.userId })
-        .returning();
+  private static createCourseStructureSnapshot(course: CourseDetails) {
+    const lessonIds = course.modules.flatMap((module) => {
+      return module.lessons.map((lesson) => lesson.id);
+    });
 
-      logger.info(
-        `User ${data.userId} successfully enrolled in course ${data.courseId}`
-      );
+    return { totalLessons: lessonIds.length, lessonIds: lessonIds };
+  }
 
-      const publisher = new UserEnrollmentPublisher();
-      publisher.publish({
-        userId: data.userId,
-        email: data.userEmail,
-        courseId: data.courseId,
-      });
+  public static async enrollUserInCourse({
+    userId,
+    courseId,
+  }: UserEnrollmentData) {
+    logger.info(`Attempting to enroll user ${userId} in course ${courseId}`);
 
-      return newErollment[0];
-    } catch (error: any) {
-      if (error.code === "23505") {
-        throw new BadRequestError("You are already enrolled in this course.");
-      }
+    const existingEnrollment = await db.query.enrollments.findFirst({
+      where: and(
+        eq(enrollments.userId, userId),
+        eq(enrollments.courseId, courseId)
+      ),
+    });
 
-      throw error;
+    if (existingEnrollment) {
+      throw new BadRequestError(`User is already enrolled in this course`);
     }
+
+    const course = await this.getValidCourseEnrollment(courseId);
+    const courseStructure = this.createCourseStructureSnapshot(course);
+
+    if (courseStructure.totalLessons === 0) {
+      throw new BadRequestError("Cannot enroll in a course with no lessons.");
+    }
+
+    const newEnrollment = await db
+      .insert(enrollments)
+      .values({ userId, courseId, courseStructure })
+      .returning();
+
+    logger.info(`User ${userId} successfully enrolled in course ${courseId}`);
+    // TODO: publish a `user.enrolled` event
+
+    return newEnrollment[0];
   }
 }

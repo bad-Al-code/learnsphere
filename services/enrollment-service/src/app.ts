@@ -12,12 +12,13 @@ const app = express();
 
 app.use(json());
 app.use(helmet());
-app.use(httpLogger);
 app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
+app.use(httpLogger);
 app.use(currentUser);
 
 app.use("/api/enrollments", healthRouter);
 app.use("/api/enrollments", enrollmentRouter);
+
 app.use(errorHandler);
 
 export { app };

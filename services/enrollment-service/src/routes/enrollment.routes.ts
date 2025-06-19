@@ -15,12 +15,10 @@ router.post(
   async (req: Request, res: Response) => {
     const { courseId } = req.body;
     const userId = req.currentUser!.id;
-    const userEmail = req.currentUser!.email;
 
-    const enrollment = await EnrollmentService.createEnrollment({
-      courseId,
+    const enrollment = await EnrollmentService.enrollUserInCourse({
       userId,
-      userEmail,
+      courseId,
     });
 
     res.status(StatusCodes.CREATED).json(enrollment);
