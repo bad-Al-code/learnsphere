@@ -38,5 +38,9 @@ export const reorderSchema = z.object({
 });
 
 export const bulkCoursesSchema = z.object({
-  body: z.object({ courseIds: z.string(z.string().uuid()).nonempty() }),
+  body: z.object({
+    courseIds: z
+      .array(z.string().uuid())
+      .nonempty("At least one course ID is required"),
+  }),
 });

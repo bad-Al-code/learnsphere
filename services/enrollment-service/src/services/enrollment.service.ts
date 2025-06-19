@@ -107,7 +107,7 @@ export class EnrollmentService {
       );
 
       const response = await axios.post<PublicCourseData[]>(
-        `${courseServiceUrl}/api/course/bulk`,
+        `${courseServiceUrl}/api/courses/bulk`,
         { courseIds }
       );
 
@@ -118,8 +118,19 @@ export class EnrollmentService {
 
       return courseMap;
     } catch (error) {
-      logger.error(`Failed to batch fetch course from course-service`, {
-        error,
+      let errorDetails: any = { message: (error as Error).message };
+      if (isAxiosError(error)) {
+        errorDetails = {
+          message: error.message,
+          url: error.config?.url,
+          method: error.config?.method,
+          status: error.response?.status,
+          responseData: error.response?.data,
+        };
+      }
+
+      logger.error("Failed to batch fetch course from course-service: %o", {
+        error: errorDetails,
       });
 
       return new Map();

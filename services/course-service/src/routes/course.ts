@@ -144,4 +144,15 @@ router.post(
   }
 );
 
+router.post(
+  "/bulk",
+  validateRequest(bulkCoursesSchema),
+  async (req: Request, res: Response) => {
+    const { courseIds } = req.body;
+    const courses = await CourseService.getCourseByIds(courseIds);
+
+    res.status(StatusCodes.OK).json(courses);
+  }
+);
+
 export { router as courseRouter };
