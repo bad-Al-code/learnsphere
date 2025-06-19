@@ -17,6 +17,9 @@ export const courses = pgTable("courses", {
   description: text("description"),
   instructorId: uuid("instructor_id").notNull(),
   status: courseStatusEnum("status").default("draft").notNull(),
+  prerequisiteCourseId: uuid("prerequisite_course_id").references(
+    (): any => courses.id
+  ),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
