@@ -11,6 +11,12 @@ import {
   PublicCourseData,
   UserEnrollmentData,
 } from "../types";
+import {
+  Publisher,
+  StudentCourseCompletedPublisher,
+  StudentProgressUpdatePublisher,
+  UserEnrollmentPublisher,
+} from "../events/publisher";
 
 export class EnrollmentService {
   private static async getValidCourseEnrollment(
@@ -83,15 +89,24 @@ export class EnrollmentService {
       throw new BadRequestError("Cannot enroll in a course with no lessons.");
     }
 
-    const newEnrollment = await db
-      .insert(enrollments)
-      .values({ userId, courseId, courseStructure })
-      .returning();
+    const newEnrollment = (
+      await db
+        .insert(enrollments)
+        .values({ userId, courseId, courseStructure })
+        .returning()
+    )[0];
 
     logger.info(`User ${userId} successfully enrolled in course ${courseId}`);
-    // TODO: publish a `user.enrolled` event
 
-    return newEnrollment[0];
+    const publiser = new UserEnrollmentPublisher();
+    await publiser.publish({
+      userId: newEnrollment.userId,
+      courseId: newEnrollment.userId,
+      enrolledAt: newEnrollment.enrolledAt,
+      enrollmentId: newEnrollment.id,
+    });
+
+    return newEnrollment;
   }
 
   private static async getCourseInBatch(
@@ -248,7 +263,23 @@ export class EnrollmentService {
       `Progress updated for user ${userId}. New percentage: ${updatedEnrollment.progressPercentage}`
     );
 
-    // TODO: publish `student.progress.updated` and `student.course.completed` event
+    const publisher = new StudentProgressUpdatePublisher();
+    await publisher.publish({
+      userId: updatedEnrollment.userId,
+      courseId: updatedEnrollment.courseId,
+      lessonId: lessonId,
+      progressPercentage: parseFloat(updatedEnrollment.progressPercentage),
+    });
+
+    if (parseFloat(updatedEnrollment.progressPercentage) >= 100) {
+      const completionPublisher = new StudentCourseCompletedPublisher();
+      await completionPublisher.publish({
+        userId: updatedEnrollment.userId,
+        courseId: updatedEnrollment.courseId,
+        enrollmentId: updatedEnrollment.id,
+        completedAt: new Date(),
+      });
+    }
 
     return updatedEnrollment;
   }
