@@ -5,6 +5,7 @@ import {
   pgTable,
   jsonb,
   decimal,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 
 type ModuleSnapshot = {
@@ -21,10 +22,17 @@ type EnrollmentProgress = {
   completedLessons: string[];
 };
 
+export const enrollmentStatusEnum = pgEnum("enrollment_status", [
+  "active",
+  "suspended",
+  "completed",
+]);
+
 export const enrollments = pgTable(
   "enrollments",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    status: enrollmentStatusEnum("status").notNull().default("active"),
     userId: uuid("user_id").notNull(),
     courseId: uuid("course_id").notNull(),
     courseStructure: jsonb("course_structure")

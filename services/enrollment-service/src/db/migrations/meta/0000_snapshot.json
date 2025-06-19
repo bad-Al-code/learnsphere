@@ -1,5 +1,5 @@
 {
-  "id": "f31e75e6-e854-4515-a4ba-f1f0a76f52f9",
+  "id": "6eb2061d-493b-4d0a-b443-8a4aec7c7fe4",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -15,6 +15,14 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "status": {
+          "name": "status",
+          "type": "enrollment_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
         "user_id": {
           "name": "user_id",
           "type": "uuid",
@@ -27,6 +35,27 @@
           "primaryKey": false,
           "notNull": true
         },
+        "course_structure": {
+          "name": "course_structure",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{\"totalLessons\":0,\"modules\":[]}'::jsonb"
+        },
+        "progress": {
+          "name": "progress",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{\"completedLessons\":[]}'::jsonb"
+        },
+        "progress_percentage": {
+          "name": "progress_percentage",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0.00'"
+        },
         "enrolled_at": {
           "name": "enrolled_at",
           "type": "timestamp",
@@ -34,20 +63,27 @@
           "notNull": true,
           "default": "now()"
         },
-        "progress": {
-          "name": "progress",
-          "type": "jsonb",
+        "last_accessed_at": {
+          "name": "last_accessed_at",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "default": "'{}'::jsonb"
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "unique_enrollment": {
-          "name": "unique_enrollment",
+        "user_course_unique_idx": {
+          "name": "user_course_unique_idx",
           "nullsNotDistinct": false,
           "columns": [
             "user_id",
@@ -60,7 +96,17 @@
       "isRLSEnabled": false
     }
   },
-  "enums": {},
+  "enums": {
+    "public.enrollment_status": {
+      "name": "enrollment_status",
+      "schema": "public",
+      "values": [
+        "active",
+        "suspended",
+        "completed"
+      ]
+    }
+  },
   "schemas": {},
   "sequences": {},
   "roles": {},
