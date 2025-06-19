@@ -1,5 +1,5 @@
 import axios, { isAxiosError } from "axios";
-import { and, eq } from "drizzle-orm";
+import { inArray as drizzleArray, and, eq } from "drizzle-orm";
 
 import logger from "../config/logger";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../errors";
@@ -164,7 +164,10 @@ export class EnrollmentService {
     logger.debug(`Fetching all enrollments for user: ${userId}`);
 
     const userEnrollments = await db.query.enrollments.findMany({
-      where: eq(enrollments.userId, userId),
+      where: and(
+        eq(enrollments.userId, userId),
+        drizzleArray(enrollments.status, ["active", "completed"])
+      ),
       orderBy: (enrollments, { desc }) => [desc(enrollments.lastAccessedAt)],
     });
     if (userEnrollments.length === 0) {
