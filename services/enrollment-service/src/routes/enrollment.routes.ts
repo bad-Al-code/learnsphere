@@ -5,9 +5,11 @@ import { requireAuth } from "../middlewares/require-auth";
 import { validateRequest } from "../middlewares/validate-request";
 import {
   createEnrollmentSchema,
+  manualEnrollmentSchema,
   markProgressSchema,
 } from "../schema/enrollment.schema";
 import { EnrollmentService } from "../services/enrollment.service";
+import { requireRole } from "../middlewares/require-role";
 
 const router = Router();
 
@@ -54,6 +56,25 @@ router.post(
       progress: updatedEnrollment.progress,
       progressPercentage: updatedEnrollment.progressPercentage,
     });
+  }
+);
+
+router.post(
+  "/manual",
+  requireAuth,
+  requireRole(["instructor", "admin"]),
+  validateRequest(manualEnrollmentSchema),
+  async (req: Request, res: Response) => {
+    const { userId, courseId } = req.body;
+    const requester = req.currentUser!;
+
+    const enrollment = await EnrollmentService.enrollUserManually({
+      userId,
+      courseId,
+      requester,
+    });
+
+    res.status(StatusCodes.CREATED).json(enrollment);
   }
 );
 

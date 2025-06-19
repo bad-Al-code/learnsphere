@@ -30,3 +30,14 @@ export interface MarkProgressData {
   courseId: string;
   lessonId: string;
 }
+
+export interface Requester {
+  id: string;
+  role: "student" | "instructor" | "admin";
+}
+
+export interface ManualEnrollmentData {
+  userId: string;
+  courseId: string;
+  requester: Requester;
+}

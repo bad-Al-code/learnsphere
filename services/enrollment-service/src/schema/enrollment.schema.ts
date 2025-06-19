@@ -14,3 +14,10 @@ export const markProgressSchema = z.object({
     lessonId: z.string().uuid("Invalid lesson ID format"),
   }),
 });
+
+export const manualEnrollmentSchema = z.object({
+  body: z.object({
+    userId: z.string().uuid("Invalid user ID format"),
+    courseId: z.string().uuid("Invalid course ID format"),
+  }),
+});

@@ -7,6 +7,7 @@ import { db } from "../db";
 import { enrollments } from "../db/schema";
 import {
   CourseDetails,
+  ManualEnrollmentData,
   MarkProgressData,
   PublicCourseData,
   UserEnrollmentData,
@@ -282,5 +283,78 @@ export class EnrollmentService {
     }
 
     return updatedEnrollment;
+  }
+
+  private static async getCourseManualEnrollment(
+    courseId: string
+  ): Promise<CourseDetails & { instructorId: string }> {
+    const courseServiceUrl = process.env.COURSE_SERVICE_URL;
+    if (!courseServiceUrl) {
+      throw new Error(`COURSE_SERVICE_URL is not defined.`);
+    }
+
+    try {
+      const response = await axios.get<
+        CourseDetails & { instructorId: string }
+      >(`${courseServiceUrl}/api/courses/${courseId}`);
+
+      return response.data;
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 404) {
+        throw new NotFoundError("Course");
+      }
+
+      throw error;
+    }
+  }
+
+  public static async enrollUserManually({
+    userId,
+    courseId,
+    requester,
+  }: ManualEnrollmentData) {
+    logger.info(
+      `Manual enrollment request by ${requester.id} (${requester.role}) for user ${userId} in course ${courseId}`
+    );
+
+    const course = await this.getCourseManualEnrollment(courseId);
+    if (
+      requester.role === "instructor" &&
+      course.instructorId !== requester.id
+    ) {
+      throw new ForbiddenError();
+    }
+
+    const existingEnrollment = await db.query.enrollments.findFirst({
+      where: and(
+        eq(enrollments.userId, userId),
+        eq(enrollments.courseId, courseId)
+      ),
+    });
+    if (existingEnrollment) {
+      throw new BadRequestError(`User is already enrolled in this course`);
+    }
+
+    const courseStructure = this.createCourseStructureSnapshot(course);
+    const newEnrollment = (
+      await db
+        .insert(enrollments)
+        .values({ userId, courseId, courseStructure })
+        .returning()
+    )[0];
+
+    logger.info(
+      `User ${userId} MANUAL enrolled in course ${courseId} by ${requester.id}`
+    );
+
+    const publisher = new UserEnrollmentPublisher();
+    await publisher.publish({
+      userId: newEnrollment.userId,
+      courseId: newEnrollment.courseId,
+      enrolledAt: newEnrollment.enrolledAt,
+      enrollmentId: newEnrollment.id,
+    });
+
+    return newEnrollment;
   }
 }
