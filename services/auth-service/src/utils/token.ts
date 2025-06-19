@@ -35,7 +35,8 @@ export const attachCookiesToResponse = (
     const accessTokenCookieOptions = {
       httpOnly: true,
       expires: new Date(Date.now() + 15 * 60 * 1000),
-      secure: process.env.NODE_ENV === "production",
+      // secure: process.env.NODE_ENV === "production",
+      secure: true,
       signed: isSecure,
       domain: process.env.COOKIE_DOMAIN || "localhost",
     };
@@ -62,7 +63,8 @@ export const attachCookiesToResponse = (
     const refreshTokenCookieOptions = {
       httpOnly: true,
       expires: new Date(Date.now() + oneDay * 7),
-      secure: process.env.NODE_ENV === "production",
+      // secure: process.env.NODE_ENV === "production",
+      secure: true,
       signed: isSecure,
       domain: process.env.COOKIE_DOMAIN || "localhost",
     };

@@ -9,7 +9,7 @@ import helmet from "helmet";
 
 const app = express();
 
-app.set("trust proxy", true);
+// app.set("trust proxy", true);
 app.use(json());
 app.use(helmet());
 app.use(httpLogger);
