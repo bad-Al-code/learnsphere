@@ -52,6 +52,7 @@ export class EnrollmentService {
 
   private static createCourseStructureSnapshot(course: CourseDetails) {
     let totalLessons = 0;
+    let totalModules = course.modules.length;
     const moduleSnapshots = course.modules.map((module) => {
       const lessonIds = module.lessons.map((lesson) => lesson.id);
       totalLessons += lessonIds.length;
@@ -62,6 +63,7 @@ export class EnrollmentService {
     });
 
     return {
+      totalModules: totalModules,
       totalLessons: totalLessons,
       modules: moduleSnapshots,
     };
