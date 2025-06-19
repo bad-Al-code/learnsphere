@@ -7,6 +7,7 @@ export const createCourseSchema = z.object({
       .string({ required_error: "Title is required" })
       .min(3, "Title must be at least 3 characters"),
     description: z.string().optional(),
+    prerequisiteCourseId: z.string().uuid().optional().nullable(),
   }),
 });
 

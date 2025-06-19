@@ -1,5 +1,5 @@
 import axios, { isAxiosError } from "axios";
-import { inArray as drizzleArray, and, eq, count } from "drizzle-orm";
+import { inArray as drizzleArray, and, eq, count, Column } from "drizzle-orm";
 
 import logger from "../config/logger";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../errors";
@@ -22,6 +22,7 @@ import {
   StudentProgressUpdatePublisher,
   UserEnrollmentPublisher,
 } from "../events/publisher";
+import { throws } from "assert";
 
 export class EnrollmentService {
   private static async getValidCourseEnrollment(
@@ -70,6 +71,21 @@ export class EnrollmentService {
     };
   }
 
+  private static async hasCompletedCourse(
+    userId: string,
+    courseId: string
+  ): Promise<boolean> {
+    const prerequisiteEnrollment = await db.query.enrollments.findFirst({
+      where: and(
+        eq(enrollments.userId, userId),
+        eq(enrollments.courseId, courseId)
+      ),
+      columns: { status: true },
+    });
+
+    return prerequisiteEnrollment?.status === "completed";
+  }
+
   public static async enrollUserInCourse({
     userId,
     courseId,
@@ -88,6 +104,27 @@ export class EnrollmentService {
     }
 
     const course = await this.getValidCourseEnrollment(courseId);
+    if (course.prerequisiteCourseId) {
+      logger.debug(
+        `Course ${courseId} has prerequisite ${course.prerequisiteCourseId}. Checking user ${userId}'s status`
+      );
+
+      const hasCompletedPreq = await this.hasCompletedCourse(
+        userId,
+        course.prerequisiteCourseId
+      );
+      if (!hasCompletedPreq) {
+        const prereqCourse = await this.getCourseManualEnrollment(
+          course.prerequisiteCourseId
+        );
+        throw new ForbiddenError();
+      }
+
+      logger.info(
+        `User ${userId} has met the prerequisites for course ${courseId}`
+      );
+    }
+
     const courseStructure = this.createCourseStructureSnapshot(course);
 
     if (courseStructure.totalLessons === 0) {

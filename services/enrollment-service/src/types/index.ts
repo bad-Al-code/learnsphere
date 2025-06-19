@@ -3,6 +3,7 @@ import { enrollmentStatusEnum } from "../db/schema";
 export interface CourseDetails {
   id: string;
   status: "draft" | "published";
+  prerequisiteCourseId?: string | null;
   modules: {
     id: string;
     lessons: {
