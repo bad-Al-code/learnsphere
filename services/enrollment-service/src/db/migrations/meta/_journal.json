@@ -15,6 +15,13 @@
       "when": 1750299862531,
       "tag": "0001_past_the_call",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1750302303068,
+      "tag": "0002_groovy_vapor",
+      "breakpoints": true
     }
   ]
 }

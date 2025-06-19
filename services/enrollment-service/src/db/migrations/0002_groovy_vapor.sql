@@ -1,0 +1,1 @@
+ALTER TABLE "enrollments" ALTER COLUMN "course_structure" SET DEFAULT '{"totalLessons":0,"modules":[]}'::jsonb;

@@ -7,9 +7,14 @@ import {
   decimal,
 } from "drizzle-orm/pg-core";
 
+type ModuleSnapshot = {
+  id: string;
+  lessonIds: string[];
+};
+
 type CourseStructure = {
   totalLessons: number;
-  lessonIds: string[];
+  modules: ModuleSnapshot[];
 };
 
 type EnrollmentProgress = {
@@ -25,7 +30,7 @@ export const enrollments = pgTable(
     courseStructure: jsonb("course_structure")
       .$type<CourseStructure>()
       .notNull()
-      .default({ totalLessons: 0, lessonIds: [] }),
+      .default({ totalLessons: 0, modules: [] }),
     progress: jsonb("progress")
       .$type<EnrollmentProgress>()
       .notNull()

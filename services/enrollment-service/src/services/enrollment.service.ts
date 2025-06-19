@@ -51,11 +51,20 @@ export class EnrollmentService {
   }
 
   private static createCourseStructureSnapshot(course: CourseDetails) {
-    const lessonIds = course.modules.flatMap((module) => {
-      return module.lessons.map((lesson) => lesson.id);
+    let totalLessons = 0;
+    const moduleSnapshots = course.modules.map((module) => {
+      const lessonIds = module.lessons.map((lesson) => lesson.id);
+      totalLessons += lessonIds.length;
+      return {
+        id: module.id,
+        lessonIds: lessonIds,
+      };
     });
 
-    return { totalLessons: lessonIds.length, lessonIds: lessonIds };
+    return {
+      totalLessons: totalLessons,
+      modules: moduleSnapshots,
+    };
   }
 
   public static async enrollUserInCourse({
