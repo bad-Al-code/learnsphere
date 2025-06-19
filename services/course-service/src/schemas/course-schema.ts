@@ -36,3 +36,7 @@ export const reorderSchema = z.object({
     ids: z.array(z.string().uuid()),
   }),
 });
+
+export const bulkCoursesSchema = z.object({
+  body: z.object({ courseIds: z.string(z.string().uuid()).nonempty() }),
+});

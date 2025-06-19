@@ -6,6 +6,7 @@ import {
   createCourseSchema,
   createModuleSchema,
   listCoursesSchema,
+  bulkCoursesSchema,
 } from "../schemas/course-schema";
 import { CourseService } from "../services/course-service";
 import { StatusCodes } from "http-status-codes";
@@ -140,6 +141,17 @@ router.post(
     const course = await CourseService.unPublishCourse(courseId, requesterId);
 
     res.status(StatusCodes.OK).json(course);
+  }
+);
+
+router.post(
+  "/bulk",
+  validateRequest(bulkCoursesSchema),
+  async (req: Request, res: Response) => {
+    const { courseIds } = req.body;
+    const courses = await CourseService.getCourseByIds(courseIds);
+
+    res.status(StatusCodes.OK).json(courses);
   }
 );
 

@@ -5,22 +5,7 @@ import logger from "../config/logger";
 import { BadRequestError, NotFoundError } from "../errors";
 import { db } from "../db";
 import { enrollments } from "../db/schema";
-
-interface CourseDetails {
-  id: string;
-  status: "draft" | "published";
-  modules: {
-    id: string;
-    lessons: {
-      id: string;
-    }[];
-  }[];
-}
-
-interface UserEnrollmentData {
-  userId: string;
-  courseId: string;
-}
+import { CourseDetails, PublicCourseData, UserEnrollmentData } from "../types";
 
 export class EnrollmentService {
   private static async getValidCourseEnrollment(
@@ -102,5 +87,74 @@ export class EnrollmentService {
     // TODO: publish a `user.enrolled` event
 
     return newEnrollment[0];
+  }
+
+  private static async getCourseInBatch(
+    courseIds: string[]
+  ): Promise<Map<string, PublicCourseData>> {
+    if (courseIds.length === 0) {
+      return new Map();
+    }
+
+    const courseServiceUrl = process.env.COURSE_SERVICE_URL;
+    if (!courseServiceUrl) {
+      throw new Error(`COURSE_SERVICE_URL is not defined`);
+    }
+
+    try {
+      logger.debug(
+        `Batch fetching ${courseIds.length} course from course-service`
+      );
+
+      const response = await axios.post<PublicCourseData[]>(
+        `${courseServiceUrl}/api/course/bulk`,
+        { courseIds }
+      );
+
+      const courseMap = new Map<string, PublicCourseData>();
+      for (const course of response.data) {
+        courseMap.set(course.id, course);
+      }
+
+      return courseMap;
+    } catch (error) {
+      logger.error(`Failed to batch fetch course from course-service`, {
+        error,
+      });
+
+      return new Map();
+    }
+  }
+
+  public static async getEnrollmentsByUserId(userId: string) {
+    logger.debug(`Fetching all enrollments for user: ${userId}`);
+
+    const userEnrollments = await db.query.enrollments.findMany({
+      where: eq(enrollments.userId, userId),
+      orderBy: (enrollments, { desc }) => [desc(enrollments.lastAccessedAt)],
+    });
+    if (userEnrollments.length === 0) {
+      return [];
+    }
+
+    const courseIds = userEnrollments.map((e) => e.courseId);
+    const courseMap = await this.getCourseInBatch(courseIds);
+
+    const richEnrollments = userEnrollments.map((enrollment) => {
+      const courseDetails = courseMap.get(enrollment.courseId);
+
+      return {
+        enrollmentId: enrollment.id,
+        enrolledAt: enrollment.enrolledAt,
+        progressPercentage: parseFloat(enrollment.progressPercentage),
+        lastAccessedAt: enrollment.lastAccessedAt,
+        course: courseDetails || {
+          id: enrollment.courseId,
+          title: "Course details not available",
+        },
+      };
+    });
+
+    return richEnrollments;
   }
 }

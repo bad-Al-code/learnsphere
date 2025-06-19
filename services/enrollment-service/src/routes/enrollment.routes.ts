@@ -25,4 +25,11 @@ router.post(
   }
 );
 
+router.get("/my-courses", requireAuth, async (req: Request, res: Response) => {
+  const userId = req.currentUser!.id;
+  const enrollments = await EnrollmentService.getEnrollmentsByUserId(userId);
+
+  res.status(StatusCodes.OK).json(enrollments);
+});
+
 export { router as enrollmentRouter };

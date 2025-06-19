@@ -103,6 +103,24 @@ export class CourseService {
     return newCourse[0];
   }
 
+  public static async getCourseByIds(courseIds: string[]) {
+    logger.info(`Fetching details for ${courseIds.length} courses in bulk`);
+
+    const courseList = await db.query.courses.findMany({
+      where: inArray(courses.id, courseIds),
+    });
+
+    const instructorIds = [...new Set(courseList.map((c) => c.instructorId))];
+    const instructorProfiles = await this.getInstructorProfiles(instructorIds);
+
+    const results = courseList.map((course) => ({
+      ...course,
+      instructor: instructorProfiles.get(course.instructorId) || null,
+    }));
+
+    return results;
+  }
+
   public static async getCourseDetails(courseId: string) {
     const cacheKey = `course:details:${courseId}`;
 
