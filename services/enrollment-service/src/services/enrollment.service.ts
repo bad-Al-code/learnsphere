@@ -20,8 +20,11 @@ import {
 import {
   Publisher,
   StudentCourseCompletedPublisher,
+  StudentProgressResetPublisher,
   StudentProgressUpdatePublisher,
   UserEnrollmentPublisher,
+  UserEnrollmentReactivatedPublisher,
+  UserEnrollmentSuspendedPublisher,
 } from "../events/publisher";
 
 export class EnrollmentService {
@@ -438,7 +441,23 @@ export class EnrollmentService {
       `Enrollmen ${enrollmentId} status successfully changed to '${newStatus}' by ${requester.id}`
     );
 
-    // TODO: publish user.enrollment.suspended or user.enrollment.reactivated event
+    if (newStatus === "suspended") {
+      const publisher = new UserEnrollmentSuspendedPublisher();
+      await publisher.publish({
+        userId: updated.userId,
+        courseId: updated.courseId,
+        enrollmentId: updated.id,
+        suspendedAt: updated.updatedAt,
+      });
+    } else if (newStatus === "active") {
+      const publiser = new UserEnrollmentReactivatedPublisher();
+      await publiser.publish({
+        userId: updated.userId,
+        courseId: updated.courseId,
+        enrollmentId: updated.id,
+        reactivatedAt: updated.updatedAt,
+      });
+    }
 
     return updated;
   }
@@ -598,20 +617,29 @@ export class EnrollmentService {
       throw new ForbiddenError();
     }
 
-    const updatedEnrollments = await db
-      .update(enrollments)
-      .set({
-        progress: { completedLessons: [] },
-        progressPercentage: "0.00",
-        status: "active",
-        updatedAt: new Date(),
-      })
-      .where(whereClause)
-      .returning();
+    const updatedEnrollments = (
+      await db
+        .update(enrollments)
+        .set({
+          progress: { completedLessons: [] },
+          progressPercentage: "0.00",
+          status: "active",
+          updatedAt: new Date(),
+        })
+        .where(whereClause)
+        .returning()
+    )[0];
 
     logger.info(`Successfully reset progress for enrollment ${enrollmentId}`);
 
-    // TODO: publish a 'student.progress.reset' event
-    return updatedEnrollments[0];
+    const publisher = new StudentProgressResetPublisher();
+    await publisher.publish({
+      userId: updatedEnrollments.userId,
+      courseId: updatedEnrollments.courseId,
+      enrollmentId: updatedEnrollments.id,
+      resetAt: updatedEnrollments.updatedAt,
+    });
+
+    return updatedEnrollments;
   }
 }

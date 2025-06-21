@@ -64,3 +64,46 @@ interface StudentCourseCompletedEvent {
 export class StudentCourseCompletedPublisher extends Publisher<StudentCourseCompletedEvent> {
   topic: "student.course.completed" = "student.course.completed";
 }
+
+interface UserEnrollmentSuspendedEvent {
+  topic: "user.enrollment.suspended";
+  data: {
+    userId: string;
+    courseId: string;
+    enrollmentId: string;
+    suspendedAt: Date;
+    reason?: string;
+  };
+}
+
+export class UserEnrollmentSuspendedPublisher extends Publisher<UserEnrollmentSuspendedEvent> {
+  topic: "user.enrollment.suspended" = "user.enrollment.suspended";
+}
+
+interface UserEnrollmentReactivatedEvent {
+  topic: "user.enrollment.reactivated";
+  data: {
+    userId: string;
+    courseId: string;
+    enrollmentId: string;
+    reactivatedAt: Date;
+  };
+}
+
+export class UserEnrollmentReactivatedPublisher extends Publisher<UserEnrollmentReactivatedEvent> {
+  topic: "user.enrollment.reactivated" = "user.enrollment.reactivated";
+}
+
+interface StudentProgressResetEvent {
+  topic: "student.progress.reset";
+  data: {
+    userId: string;
+    courseId: string;
+    enrollmentId: string;
+    resetAt: Date;
+  };
+}
+
+export class StudentProgressResetPublisher extends Publisher<StudentProgressResetEvent> {
+  topic: "student.progress.reset" = "student.progress.reset";
+}
