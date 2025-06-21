@@ -135,4 +135,23 @@ router.get(
   }
 );
 
+router.post(
+  "/:enrollmentId/reset-progress",
+  requireAuth,
+  validateRequest(enrollmentIdParamSchema),
+  async (req: Request, res: Response) => {
+    const { enrollmentId } = req.params;
+    const requesterId = req.currentUser!.id;
+
+    await EnrollmentService.resetEnrollmentProgress({
+      enrollmentId,
+      requesterId,
+    });
+
+    res
+      .status(StatusCodes.OK)
+      .json({ message: "Course progress has been successfully reset" });
+  }
+);
+
 export { router as enrollmentRouter };

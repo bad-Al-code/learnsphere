@@ -13,6 +13,7 @@ import {
   MarkProgressData,
   PublicCourseData,
   PublicUserData,
+  ResetProgressData,
   UserEnrollmentData,
   UserEnrollmentStatus,
 } from "../types";
@@ -22,7 +23,6 @@ import {
   StudentProgressUpdatePublisher,
   UserEnrollmentPublisher,
 } from "../events/publisher";
-import { throws } from "assert";
 
 export class EnrollmentService {
   private static async getValidCourseEnrollment(
@@ -575,5 +575,43 @@ export class EnrollmentService {
         limit,
       },
     };
+  }
+
+  public static async resetEnrollmentProgress({
+    enrollmentId,
+    requesterId,
+  }: ResetProgressData) {
+    logger.info(
+      `User ${requesterId} is requesting to reset progress for enrollment ${enrollmentId}`
+    );
+
+    const whereClause = eq(enrollments.id, enrollmentId);
+    const enrollment = await db.query.enrollments.findFirst({
+      where: whereClause,
+      columns: { userId: true },
+    });
+    if (!enrollment) {
+      throw new NotFoundError("Enrollment");
+    }
+
+    if (enrollment.userId !== requesterId) {
+      throw new ForbiddenError();
+    }
+
+    const updatedEnrollments = await db
+      .update(enrollments)
+      .set({
+        progress: { completedLessons: [] },
+        progressPercentage: "0.00",
+        status: "active",
+        updatedAt: new Date(),
+      })
+      .where(whereClause)
+      .returning();
+
+    logger.info(`Successfully reset progress for enrollment ${enrollmentId}`);
+
+    // TODO: publish a 'student.progress.reset' event
+    return updatedEnrollments[0];
   }
 }

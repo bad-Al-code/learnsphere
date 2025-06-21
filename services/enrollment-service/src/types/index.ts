@@ -71,3 +71,8 @@ export interface UserEnrollmentStatus {
   enrollmentId: string;
   requester: Requester;
 }
+
+export interface ResetProgressData {
+  enrollmentId: string;
+  requesterId: string;
+}
