@@ -16,7 +16,7 @@ const s3Client = new S3Client({ region: process.env.AWS_REGION! });
 
 export class AvatarProcessor implements IProcessor {
   public canProcess(metadata: Record<string, string | undefined>): boolean {
-    return metadata.hasOwnProperty("userId");
+    return metadata.uploadType === "avatar";
   }
 
   public async process(

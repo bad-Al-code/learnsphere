@@ -17,6 +17,8 @@ export class MediaService {
   }: UploadUrlParams) {
     const rawBucket = process.env.AWS_RAW_UPLOADS_BUCKET!;
 
+    const tagsToApply = { ...metadata, uploadType: uploadType };
+
     let key: string;
     switch (uploadType) {
       case "avatar":
@@ -33,12 +35,12 @@ export class MediaService {
         throw new Error("Invalid upload type");
     }
 
-    logger.info(`Generain pre-signed URL for key: ${key}`);
+    logger.info(`Generaiting pre-signed URL for key: ${key}`);
 
     const command = new PutObjectCommand({
       Bucket: rawBucket,
       Key: key,
-      Tagging: new URLSearchParams(metadata).toString(),
+      Tagging: new URLSearchParams(tagsToApply).toString(),
     });
 
     const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 600 });

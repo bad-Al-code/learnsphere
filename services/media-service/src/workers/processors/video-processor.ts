@@ -13,7 +13,7 @@ const processedBucket = process.env.AWS_PROCESSED_MEDIA_BUCKET!;
 
 export class VideoProcessor implements IProcessor {
   public canProcess(metadata: Record<string, string | undefined>): boolean {
-    return metadata.hasOwnProperty("lessonId");
+    return metadata.uploadType === "video";
   }
 
   private async downloadFile(
