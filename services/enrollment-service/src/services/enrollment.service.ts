@@ -26,8 +26,15 @@ import {
   UserEnrollmentReactivatedPublisher,
   UserEnrollmentSuspendedPublisher,
 } from "../events/publisher";
+import { CacheService } from "./cache.service";
 
 export class EnrollmentService {
+  private static async invalidateUserEnrollmentCache(userId: string) {
+    const cacheKey = `enrollments:user:${userId}`;
+
+    await CacheService.del(cacheKey);
+  }
+
   private static async getValidCourseEnrollment(
     courseId: string
   ): Promise<CourseDetails> {
@@ -151,6 +158,8 @@ export class EnrollmentService {
       enrollmentId: newEnrollment.id,
     });
 
+    await this.invalidateUserEnrollmentCache(userId);
+
     return newEnrollment;
   }
 
@@ -203,7 +212,15 @@ export class EnrollmentService {
   }
 
   public static async getEnrollmentsByUserId(userId: string) {
-    logger.debug(`Fetching all enrollments for user: ${userId}`);
+    const cacheKey = `enrollments:user:${userId}`;
+    const cachedEnrollments = await CacheService.get<any[]>(cacheKey);
+    if (cachedEnrollments) {
+      return cachedEnrollments;
+    }
+
+    logger.debug(
+      `Fetching all active and completed enrollments for user ${userId} from db.`
+    );
 
     const userEnrollments = await db.query.enrollments.findMany({
       where: and(
@@ -233,6 +250,8 @@ export class EnrollmentService {
         },
       };
     });
+
+    await CacheService.set(cacheKey, richEnrollments);
 
     return richEnrollments;
   }
@@ -329,6 +348,8 @@ export class EnrollmentService {
       });
     }
 
+    await this.invalidateUserEnrollmentCache(userId);
+
     return updatedEnrollment;
   }
 
@@ -402,6 +423,8 @@ export class EnrollmentService {
       enrollmentId: newEnrollment.id,
     });
 
+    await this.invalidateUserEnrollmentCache(userId);
+
     return newEnrollment;
   }
 
@@ -458,6 +481,8 @@ export class EnrollmentService {
         reactivatedAt: updated.updatedAt,
       });
     }
+
+    await this.invalidateUserEnrollmentCache(updated.userId);
 
     return updated;
   }
@@ -639,6 +664,8 @@ export class EnrollmentService {
       enrollmentId: updatedEnrollments.id,
       resetAt: updatedEnrollments.updatedAt,
     });
+
+    await this.invalidateUserEnrollmentCache(requesterId);
 
     return updatedEnrollments;
   }

@@ -3,10 +3,12 @@ import "dotenv/config";
 import { app } from "./app";
 import logger from "./config/logger";
 import { rabbitMQConnection } from "./events/connection";
+import { redisConnection } from "./config/redis";
 
 const startServer = async () => {
   try {
     await rabbitMQConnection.connect();
+    await redisConnection.connect();
 
     const PORT = process.env.PORT || 8000;
     app.listen(PORT, () => {
@@ -17,6 +19,7 @@ const startServer = async () => {
 
     const shutdown = async () => {
       await rabbitMQConnection.close();
+      await redisConnection.disconnect();
       process.exit(0);
     };
 
