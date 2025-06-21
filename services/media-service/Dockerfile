@@ -2,6 +2,7 @@ FROM node:alpine3.22 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
+RUN apk update && apk add --no-cache ffmpeg
 WORKDIR /app
 
 FROM base AS dependencies
