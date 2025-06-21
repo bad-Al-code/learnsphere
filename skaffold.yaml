@@ -49,6 +49,14 @@ build:
         manual:
           - src: "src/**/*.ts"
             dest: "src"
+    - image: learnsphere/enrollment-service
+      context: services/enrollment-service
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "src/**/*.ts"
+            dest: "src"
 
 manifests:
   rawYaml:

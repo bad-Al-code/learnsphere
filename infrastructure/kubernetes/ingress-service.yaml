@@ -58,3 +58,10 @@ spec:
                 name: course-service-clusterip
                 port:
                   number: 8003
+          - path: /api/enrollments/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: enrollment-service-clusterip
+                port:
+                  number: 8004

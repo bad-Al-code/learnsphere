@@ -14,6 +14,26 @@ data:
   # JWT_SECRET: "kr/RrzjQ31+vfKl0JQxlLHFq4JCraTP8MraNHw"
   # COOKIE_PARSER_SECRET: "8DPz5ooMmG0d8zWMxYnmS2nlf4wOa0hGF77oUri2pMk="
 ---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: course-service-migration-job
+spec:
+  template:
+    spec:
+      containers:
+        - name: migrator
+          image: learnsphere/course-service
+          imagePullPolicy: IfNotPresent
+          command: ["node", "dist/db/migrate.js"]
+          envFrom:
+            - configMapRef:
+                name: course-service-config
+            - secretRef:
+                name: auth-secrets
+      restartPolicy: Never
+  backoffLimit: 2 # retries
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
