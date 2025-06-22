@@ -20,4 +20,17 @@ export const authRouter = router({
         });
       }
     }),
+
+  logout: publicProcedure.mutation(async () => {
+    try {
+      await apiClient.post("/api/auth/logout");
+      return { success: true };
+    } catch (error: any) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to logout",
+        cause: error,
+      });
+    }
+  }),
 });

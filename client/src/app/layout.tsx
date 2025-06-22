@@ -5,6 +5,7 @@ import { Roboto } from "next/font/google";
 import { TRPCProvider } from "@/lib/trpc/provider";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
+import { SessionProvider } from "@/components/layout/session-provider";
 
 const inter = Roboto({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -27,10 +28,12 @@ export default function RootLayout({
         )}
       >
         <TRPCProvider>
-          <div className="relative flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-          </div>
+          <SessionProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+            </div>
+          </SessionProvider>
         </TRPCProvider>
       </body>
     </html>
