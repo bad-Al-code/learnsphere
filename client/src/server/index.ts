@@ -1,3 +1,4 @@
+import { authRouter } from "./routers/auth";
 import { publicProcedure, router } from "./trpc";
 
 export const appRouter = router({
@@ -7,6 +8,8 @@ export const appRouter = router({
       message: "tRPC is running!",
     };
   }),
+
+  auth: authRouter,
 });
 
 export type AppRouter = typeof appRouter;
