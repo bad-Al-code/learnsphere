@@ -22,7 +22,7 @@ services:
       - RABBITMQ_DEFAULT_PASS=guest
 
   redis:
-    image: redis:8.2-m01-alpine3.22
+    image: redis:alpine3.20
     container_name: learnsphere-redis
     ports:
       - "6379:6379"
