@@ -59,12 +59,12 @@ export class TranscoderService {
       "-profile:v",
       "high",
       "-crf",
-      "18", // Visually lossless quality
+      "18",
       "-c:a",
       "aac",
       "-b:a",
       "192k",
-      "-y", // Overwrite output file if it exists
+      "-y",
       mezzaninePath,
     ];
 
@@ -74,7 +74,7 @@ export class TranscoderService {
 
     const hlsArgs = [
       "-i",
-      mezzaninePath, // Use our clean file as the input
+      mezzaninePath,
       "-preset",
       "veryfast",
       "-g",

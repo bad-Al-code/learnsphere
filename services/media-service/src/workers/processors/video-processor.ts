@@ -8,6 +8,7 @@ import { VideoProcessedPublisher } from "../../events/publisher";
 import logger from "../../config/logger";
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../../config/s3Client";
+import { INSPECT_MAX_BYTES } from "node:buffer";
 
 const processedBucket = process.env.AWS_PROCESSED_MEDIA_BUCKET!;
 
@@ -64,23 +65,27 @@ export class VideoProcessor implements IProcessor {
     dirPath: string,
     s3KeyPrefix: string
   ): Promise<void> {
-    const files = await fs.readdir(dirPath);
+    const filesAndFolders = await fs.readdir(dirPath, { withFileTypes: true });
     logger.debug(
-      `Uploading ${files.length} files from ${dirPath} to s3://${processedBucket}/${s3KeyPrefix}`
+      `Uploading ${filesAndFolders.length} files from ${dirPath} to s3://${processedBucket}/${s3KeyPrefix}`
     );
 
-    const uploadPromises = files.map(async (file) => {
-      const localFilePath = path.join(dirPath, file);
-      const s3Key = `${s3KeyPrefix}/${file}`;
+    const uploadPromises = filesAndFolders.map(async (item) => {
+      const localFilePath = path.join(dirPath, item.name);
+      const s3Key = `${s3KeyPrefix}/${item.name}`;
 
-      const putCommand = new PutObjectCommand({
-        Bucket: processedBucket,
-        Key: s3Key,
-        Body: fs.createReadStream(localFilePath),
-        ContentType: this.getMimeType(file),
-      });
+      if (item.isDirectory()) {
+        await this.uploadDirectory(localFilePath, s3Key);
+      } else {
+        const putCommand = new PutObjectCommand({
+          Bucket: processedBucket,
+          Key: s3Key,
+          Body: fs.createReadStream(localFilePath),
+          ContentType: this.getMimeType(item.name),
+        });
 
-      await s3Client.send(putCommand);
+        await s3Client.send(putCommand);
+      }
     });
 
     await Promise.all(uploadPromises);
