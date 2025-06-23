@@ -26,3 +26,23 @@ kubectl wait --namespace ingress-nginx \
   --selector=app.kubernetes.io/component=controller \
   --timeout=90s
 ```
+
+## 3. Create Application Secrets
+
+Before deploying the applications, you must create the necessary Kubernetes secrets manually for the local environment.
+
+**Generate strong random values for your secrets:**
+
+```bash
+openssl rand -base64 32
+```
+
+**Create the auth-secret**
+
+```bash
+kubectl create secret generic auth-secrets \
+  --namespace learnsphere-apps \
+  --from-literal=JWT_SECRET='PASTE_YOUR_GENERATED_VALUE_HERE' \
+  --from-literal=JWT_REFRESH_SECRET='PASTE_YOUR_GENERATED_VALUE_HERE' \
+  --from-literal=COOKIE_PARSER_SECRET='PASTE_YOUR_GENERATED_VALUE_HERE'
+```
