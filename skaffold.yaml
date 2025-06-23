@@ -2,7 +2,6 @@ apiVersion: skaffold/v4beta12
 kind: Config
 metadata:
   name: learnsphere
-  labels: { "app": "learnsphere" }
 
 build:
   local:
@@ -13,57 +12,12 @@ build:
       context: services/auth-service
       docker:
         dockerfile: Dockerfile
-      sync:
-        manual:
-          - src: "src/**/*.ts"
-            dest: "src"
-    - image: learnsphere/user-service
-      context: services/user-service
-      docker:
-        dockerfile: Dockerfile
-      sync:
-        manual:
-          - src: "src/**/*.ts"
-            dest: "src"
-    - image: learnsphere/media-service
-      context: services/media-service
-      docker:
-        dockerfile: Dockerfile
-      sync:
-        manual:
-          - src: "src/**/*.ts"
-            dest: "src"
-    - image: learnsphere/notification-service
-      context: services/notification-service
-      docker:
-        dockerfile: Dockerfile
-      sync:
-        manual:
-          - src: "src/**/*.ts"
-            dest: "src"
-    - image: learnsphere/course-service
-      context: services/course-service
-      docker:
-        dockerfile: Dockerfile
-      sync:
-        manual:
-          - src: "src/**/*.ts"
-            dest: "src"
-    - image: learnsphere/enrollment-service
-      context: services/enrollment-service
-      docker:
-        dockerfile: Dockerfile
-      sync:
-        manual:
-          - src: "src/**/*.ts"
-            dest: "src"
 
 manifests:
   rawYaml:
-    - infrastructure/kubernetes/base/*.yaml
-    - infrastructure/kubernetes/services/*.yaml
-    - infrastructure/kubernetes/ingress-service.yaml
-    # - infrastructure/kubernetes/kind-cluster-config.yaml
+    - infra/k8s/namespace/*.yaml
+    - infra/k8s/base/*.yaml
+    - infra/k8s/apps/**/*.yaml
 
 deploy:
   kubectl: {}

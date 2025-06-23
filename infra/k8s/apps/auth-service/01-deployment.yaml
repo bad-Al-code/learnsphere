@@ -1,0 +1,63 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: auth-service-migration-job
+  namespace: learnsphere-apps
+spec:
+  template:
+    spec:
+      containers:
+        - name: migrator
+          image: learnsphere/auth-service
+          imagePullPolicy: IfNotPresent
+          command: ["node", "dist/db/migrate.js"]
+          envFrom:
+            - configMapRef:
+                name: auth-service-config
+      restartPolicy: OnFailure
+  backoffLimit: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service-deployment
+  namespace: learnsphere-apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: learnsphere/auth-service
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /api/auth/health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/auth/health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          envFrom:
+            - configMapRef:
+                name: auth-service-config
+            - secretRef:
+                name: auth-secrets

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-service-config
+  namespace: learnsphere-apps
+data:
+  PORT: "8000"
+  NODE_ENV: "production"
+  DATABASE_URL: "postgresql://postgres:postgres@postgres-auth-service.learnsphere-db.svc.cluster.local:5432/auth_db"
+  RABBITMQ_URL: "amqp://guest:guest@rabbitmq-service.learnsphere-apps.svc.cluster.local:5672"
+  REDIS_URL: "redis://redis-service.learnsphere-apps.svc.cluster.local:6379"
+  JWT_EXPIRES_IN: "15m"
+  JWT_REFRESH_EXPIRES_IN: "7d"
