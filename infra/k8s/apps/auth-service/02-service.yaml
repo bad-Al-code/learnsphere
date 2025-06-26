@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: auth-service-clusterip
-  namespace: learnsphere-apps
+  # namespace: learnsphere-apps
 spec:
   type: ClusterIP
   selector:

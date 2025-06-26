@@ -21,6 +21,7 @@ manifests:
 
 deploy:
   kubectl: {}
+  defaultNamespace: learnsphere-apps
 
 portForward:
   - resourceType: service

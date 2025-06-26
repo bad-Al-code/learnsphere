@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: auth-service-config
-  namespace: learnsphere-apps
+  # namespace: learnsphere-apps
 data:
   PORT: "8000"
   NODE_ENV: "production"
