@@ -1,0 +1,154 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-auth-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-auth
+  template:
+    metadata:
+      labels:
+        app: postgres-auth
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17.5
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "auth_db"
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "postgres"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-auth-service
+spec:
+  selector:
+    app: postgres-auth
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+# User Service Database
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-user-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-user
+  template:
+    metadata:
+      labels:
+        app: postgres-user
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17.5
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "user_db"
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "postgres"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-user-service
+spec:
+  selector:
+    app: postgres-user
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+#  Course Service Database
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-course-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-course
+  template:
+    metadata:
+      labels:
+        app: postgres-course
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17.5
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "course_db"
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "postgres"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-course-service
+spec:
+  selector:
+    app: postgres-course
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+#  Enrollment Service Database
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-enrollment-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-enrollment
+  template:
+    metadata:
+      labels:
+        app: postgres-enrollment
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17.5
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "enrollment_db"
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "postgres"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-enrollment-service
+spec:
+  selector:
+    app: postgres-enrollment
+  ports:
+    - port: 5432
+      targetPort: 5432
