@@ -21,7 +21,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis--auth-service
+  name: redis-auth-service
 spec:
   selector:
     app: redis-auth
@@ -53,7 +53,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis--course-service
+  name: redis-course-service
 spec:
   selector:
     app: redis-course
