@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: course-service-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: course-service
+  template:
+    metadata:
+      labels:
+        app: course-service
+    spec:
+      containers:
+        - name: course-service
+          image: learnsphere/course-service
+          ports:
+            - containerPort: 8003
+          env:
+            - name: PORT
+              value: "8003"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgres@postgres-course-service:5432/course_db"
+            - name: REDIS_URL
+              value: "redis://redis-course-service:6379"
+            - name: RABBITMQ_URL
+              value: "amqp://guest:guest@rabbitmq-service:5672"
+            - name: USER_SERVICE_URL
+              value: "http://user-service-clusterip:8001"
+            - name: MEDIA_SERVICE_URL
+              value: "http://media-service-clusterip:8002"
+            - name: JWT_SECRET
+              value: "OF6dL/ZPyrfGZABnTHY5U2qzQ72nhaUdVuuZsHc2gv0="
+            - name: COOKIE_PARSER_SECRET
+              value: "LPDaNdF0R+/jeb1OTx/CjBzFqRXdZvL0m6y48aHNGtw="
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: course-service-clusterip
+spec:
+  type: ClusterIP
+  selector:
+    app: course-service
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8003
+      targetPort: 8003

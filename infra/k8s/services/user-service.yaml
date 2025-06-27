@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: learnsphere/user-service
+          ports:
+            - containerPort: 8001
+          env:
+            - name: PORT
+              value: "8001"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgres@postgres-user-service:5432/user_db"
+            - name: RABBITMQ_URL
+              value: "amqp://guest:guest@rabbitmq-service:5672"
+            - name: MEDIA_SERVICE_URL
+              value: "http://media-service-clusterip:8002"
+            - name: JWT_SECRET
+              value: "OF6dL/ZPyrfGZABnTHY5U2qzQ72nhaUdVuuZsHc2gv0="
+            - name: COOKIE_PARSER_SECRET
+              value: "LPDaNdF0R+/jeb1OTx/CjBzFqRXdZvL0m6y48aHNGtw="
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service-clusterip
+spec:
+  type: ClusterIP
+  selector:
+    app: user-service
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8001
+      targetPort: 8001

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: learnsphere/auth-service
+          ports:
+            - containerPort: 8000
+          env:
+            - name: PORT
+              value: "8000"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgres@postgres-auth-service:5432/auth_db"
+            - name: REDIS_URL
+              value: "redis://redis-auth-service:6379"
+            - name: RABBITMQ_URL
+              value: "amqp://guest:guest@rabbitmq-service:5672"
+            - name: JWT_REFRESH_SECRET
+              value: "/51JSQ0CnQA8RvgAhKD43uV8x3yCbggjzwytx9Xa+Jk="
+            - name: JWT_SECRET
+              value: "OF6dL/ZPyrfGZABnTHY5U2qzQ72nhaUdVuuZsHc2gv0="
+            - name: COOKIE_PARSER_SECRET
+              value: "LPDaNdF0R+/jeb1OTx/CjBzFqRXdZvL0m6y48aHNGtw="
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service-clusterip
+spec:
+  type: ClusterIP
+  selector:
+    app: auth-service
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
