@@ -2,7 +2,6 @@ apiVersion: skaffold/v4beta12
 kind: Config
 metadata:
   name: learnsphere
-
 build:
   local:
     useBuildkit: true
@@ -12,16 +11,34 @@ build:
       context: services/auth-service
       docker:
         dockerfile: Dockerfile
+    - image: learnsphere/user-service
+      context: services/user-service
+      docker:
+        dockerfile: Dockerfile
+    - image: learnsphere/media-service
+      context: services/media-service
+      docker:
+        dockerfile: Dockerfile
+    - image: learnsphere/notification-service
+      context: services/notification-service
+      docker:
+        dockerfile: Dockerfile
+    - image: learnsphere/course-service
+      context: services/course-service
+      docker:
+        dockerfile: Dockerfile
+    - image: learnsphere/enrollment-service
+      context: services/enrollment-service
+      docker:
+        dockerfile: Dockerfile
 
 manifests:
   rawYaml:
-    - infra/k8s/namespace/*.yaml
     - infra/k8s/base/*.yaml
-    - infra/k8s/apps/**/*.yaml
+    - infra/k8s/services/*.yaml
 
 deploy:
   kubectl: {}
-  defaultNamespace: learnsphere-apps
 
 portForward:
   - resourceType: service
@@ -30,10 +47,6 @@ portForward:
     port: 80
     localPort: 8080
   - resourceType: service
-    resourceName: ingress-nginx-controller
-    namespace: ingress-nginx
-    port: 443
-    localPort: 8443
-
-profiles:
-  - name: dev
+    resourceName: rabbitmq-service
+    port: 15672
+    localPort: 15672
