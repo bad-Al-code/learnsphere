@@ -8,7 +8,7 @@ spec:
       containers:
         - name: migrator
           image: learnsphere/course-service
-          command: ["pnpm", "db:migrate"]
+          command: ["node", "dist/db/migrate.js"]
           envFrom:
             - configMapRef:
                 name: course-service-config

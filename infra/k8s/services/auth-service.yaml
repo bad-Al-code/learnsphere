@@ -8,7 +8,7 @@ spec:
       containers:
         - name: migrator
           image: learnsphere/auth-service
-          command: ["pnpm", "db:migrate"]
+          command: ["node", "dist/db/migrate.js"]
           envFrom:
             - configMapRef:
                 name: auth-service-config
