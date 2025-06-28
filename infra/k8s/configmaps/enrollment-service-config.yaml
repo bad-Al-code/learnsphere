@@ -9,3 +9,4 @@ data:
   RABBITMQ_URL: "amqp://guest:guest@rabbitmq-service:5672"
   COURSE_SERVICE_URL: "http://course-service-clusterip:8003"
   USER_SERVICE_URL: "http://user-service-clusterip:8003"
+  REDIS_URL: "redis://redis-enrollment-service:6379"
