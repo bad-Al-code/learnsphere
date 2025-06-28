@@ -4,6 +4,10 @@ metadata:
   name: learnsphere-ingress
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "learnsphere-affinity"
+    nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
+    nginx.ingress.kubernetes.io/session-cookie-path: "/"
 spec:
   ingressClassName: nginx
   rules:
