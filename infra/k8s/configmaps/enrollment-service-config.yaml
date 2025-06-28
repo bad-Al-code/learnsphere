@@ -7,6 +7,5 @@ data:
   NODE_ENV: "development"
   DATABASE_URL: "postgresql://postgres:postgres@postgres-enrollment-service:5432/enrollment_db"
   RABBITMQ_URL: "amqp://guest:guest@rabbitmq-service:5672"
-  MEDIA_SERVICE_URL: "http://media-service-clusterip:8002"
   COURSE_SERVICE_URL: "http://course-service-clusterip:8003"
   USER_SERVICE_URL: "http://user-service-clusterip:8003"

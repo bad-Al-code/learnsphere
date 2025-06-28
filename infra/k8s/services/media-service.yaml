@@ -17,23 +17,11 @@ spec:
           image: learnsphere/media-service
           ports:
             - containerPort: 8002
-          env:
-            - name: PORT
-              value: "8002"
-            - name: RABBITMQ_URL
-              value: "amqp://guest:guest@rabbitmq-service:5672"
-            - name: AWS_REGION
-              value: "ap-south-1"
-            - name: AWS_RAW_UPLOADS_BUCKET
-              value: "learnsphere-raw-uploads-acomjehk"
-            - name: AWS_PROCESSED_MEDIA_BUCKET
-              value: "learnsphere-processed-media-xt9tcab6"
-            - name: AWS_SQS_QUEUE_URL
-              value: "https://sqs.ap-south-1.amazonaws.com/260123625978/s3-media-events-queue"
-            - name: AWS_ACCESS_KEY_ID
-              value: "AKIATZEETRH5IGO3NOO2"
-            - name: AWS_SECRET_ACCESS_KEY
-              value: "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"
+          envFrom:
+            - configMapRef:
+                name: media-service-config
+            - secretRef:
+                name: media-secrets
 ---
 apiVersion: v1
 kind: Service

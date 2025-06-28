@@ -17,19 +17,11 @@ spec:
           image: learnsphere/user-service
           ports:
             - containerPort: 8001
-          env:
-            - name: PORT
-              value: "8001"
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgres@postgres-user-service:5432/user_db"
-            - name: RABBITMQ_URL
-              value: "amqp://guest:guest@rabbitmq-service:5672"
-            - name: MEDIA_SERVICE_URL
-              value: "http://media-service-clusterip:8002"
-            - name: JWT_SECRET
-              value: "OF6dL/ZPyrfGZABnTHY5U2qzQ72nhaUdVuuZsHc2gv0="
-            - name: COOKIE_PARSER_SECRET
-              value: "LPDaNdF0R+/jeb1OTx/CjBzFqRXdZvL0m6y48aHNGtw="
+          envFrom:
+            - configMapRef:
+                name: user-service-config
+            - secretRef:
+                name: auth-secrets
 ---
 apiVersion: v1
 kind: Service

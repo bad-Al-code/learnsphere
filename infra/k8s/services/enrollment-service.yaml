@@ -17,23 +17,11 @@ spec:
           image: learnsphere/enrollment-service
           ports:
             - containerPort: 8004
-          env:
-            - name: PORT
-              value: "8004"
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgres@postgres-enrollment-service:5432/enrollment_db"
-            - name: REDIS_URL
-              value: "redis://redis-auth-service:6379"
-            - name: RABBITMQ_URL
-              value: "amqp://guest:guest@rabbitmq-service:5672"
-            - name: COURSE_SERVICE_URL
-              value: "http://course-service-clusterip:8003"
-            - name: USER_SERVICE_URL
-              value: "http://user-service-clusterip:8001"
-            - name: JWT_SECRET
-              value: "OF6dL/ZPyrfGZABnTHY5U2qzQ72nhaUdVuuZsHc2gv0="
-            - name: COOKIE_PARSER_SECRET
-              value: "LPDaNdF0R+/jeb1OTx/CjBzFqRXdZvL0m6y48aHNGtw="
+          envFrom:
+            - configMapRef:
+                name: enrollment-service-config
+            - secretRef:
+                name: auth-secrets
 ---
 apiVersion: v1
 kind: Service
