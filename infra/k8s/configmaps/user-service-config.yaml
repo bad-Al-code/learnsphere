@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-service-config
+data:
+  PORT: "8001"
+  NODE_ENV: "development"
+  DATABASE_URL: "postgresql://postgres:postgres@postgres-user-service:5432/user_db"
+  REDIS_URL: "redis://redis-course-service:6379"
+  RABBITMQ_URL: "amqp://guest:guest@rabbitmq-service:5672"
+  MEDIA_SERVICE_URL: "http://media-service-clusterip:8002"
