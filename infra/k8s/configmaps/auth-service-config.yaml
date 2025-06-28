@@ -8,3 +8,5 @@ data:
   DATABASE_URL: "postgresql://postgres:postgres@postgres-auth-service:5432/auth_db"
   REDIS_URL: "redis://redis-auth-service:6379"
   RABBITMQ_URL: "amqp://guest:guest@rabbitmq-service:5672"
+  JWT_EXPIRES_IN: "15m"
+  JWT_REFRESH_EXPIRES_IN: "7d"
