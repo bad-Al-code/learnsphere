@@ -38,6 +38,7 @@ manifests:
     - infra/k8s/secrets/*.yaml
     - infra/k8s/configmaps/*.yaml
     - infra/k8s/services/*.yaml
+    - infra/k8s/ingress-service.yaml
 
 deploy:
   kubectl: {}

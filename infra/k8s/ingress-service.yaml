@@ -1,0 +1,60 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: learnsphere-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /api/auth/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: auth-service-clusterip
+                port:
+                  number: 8000
+          - path: /api/users/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: user-service-clusterip
+                port:
+                  number: 8001
+          - path: /api/media/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: media-service-clusterip
+                port:
+                  number: 8002
+          - path: /api/courses/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: course-service-clusterip
+                port:
+                  number: 8003
+          - path: /api/modules/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: course-service-clusterip
+                port:
+                  number: 8003
+          - path: /api/lessons/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: course-service-clusterip
+                port:
+                  number: 8003
+          - path: /api/enrollments/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: enrollment-service-clusterip
+                port:
+                  number: 8004
