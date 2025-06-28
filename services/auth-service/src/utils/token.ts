@@ -38,7 +38,12 @@ export const attachCookiesToResponse = (
       // secure: process.env.NODE_ENV === "production",
       secure: true,
       signed: isSecure,
-      domain: process.env.COOKIE_DOMAIN || "localhost",
+      sameSite: "lax" as const,
+      path: "/",
+      domain:
+        process.env.NODE_ENV === "production"
+          ? process.env.COOKIE_DOMAIN
+          : undefined,
     };
 
     res.cookie("token", accessToken, accessTokenCookieOptions);
@@ -66,7 +71,12 @@ export const attachCookiesToResponse = (
       // secure: process.env.NODE_ENV === "production",
       secure: true,
       signed: isSecure,
-      domain: process.env.COOKIE_DOMAIN || "localhost",
+      sameSite: "lax" as const,
+      path: "/",
+      domain:
+        process.env.NODE_ENV === "production"
+          ? process.env.COOKIE_DOMAIN
+          : undefined,
     };
 
     res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
