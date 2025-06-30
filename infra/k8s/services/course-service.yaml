@@ -6,7 +6,7 @@ spec:
   template:
     spec:
       containers:
-        - name: course-migrator
+        - name: migrator
           image: learnsphere/course-service
           command: ["node", "dist/db/migrate.js"]
           envFrom:
@@ -16,7 +16,7 @@ spec:
                 name: auth-secrets
       restartPolicy: OnFailure
   backoffLimit: 4
----
+  -
 apiVersion: apps/v1
 kind: Deployment
 metadata:
