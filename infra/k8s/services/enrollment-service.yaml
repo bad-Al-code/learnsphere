@@ -6,7 +6,7 @@ spec:
   template:
     spec:
       containers:
-        - name: migrator
+        - name: enrollment-migrator
           image: learnsphere/enrollment-service
           command: ["node", "dist/db/migrate.js"]
           envFrom:
