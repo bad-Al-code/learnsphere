@@ -1,12 +1,20 @@
-import { Router, Request, Response } from "express";
+import express, { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
+import { healthState } from "../config/health-state";
 
-const router = Router();
+const router = express.Router();
 
 router.get("/health", (req: Request, res: Response) => {
-  res
-    .status(StatusCodes.OK)
-    .json({ message: "Enrollment service is up and running" });
+  if (healthState.isReady()) {
+    res
+      .status(StatusCodes.OK)
+      .json({ status: "UP", message: "Enrollment service is up and running" });
+  } else {
+    res.status(StatusCodes.SERVICE_UNAVAILABLE).json({
+      status: "DOWN",
+      message: "Enrollment service is up and running",
+    });
+  }
 });
 
 export { router as healthRouter };

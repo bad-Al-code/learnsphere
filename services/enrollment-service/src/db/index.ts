@@ -4,6 +4,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 
 import * as schema from "./schema";
 import logger from "../config/logger";
+import { healthState } from "../config/health-state";
 
 if (!process.env.DATABASE_URL) {
   throw new Error(`DATABASE_URL environemnt variable is not set.`);
@@ -15,10 +16,12 @@ export const pool = new Pool({
 
 pool.on("connect", () => {
   logger.info(`Database connected successfully`);
+  healthState.set("db", true);
 });
 
 pool.on("error", (err) => {
   logger.error("Database connection error", { error: err.stack });
+  healthState.set("db", false);
   process.exit(1);
 });
 

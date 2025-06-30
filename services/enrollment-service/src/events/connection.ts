@@ -31,6 +31,7 @@ class RabbitMQConnection {
         this.channel = channel;
 
         logger.info("RabbitMQ connected successfully.");
+        healthState.set("rabbimq", true);
 
         this.channel.on("close", () => {
           logger.warn("RabbitMQ channel closed.");
@@ -45,6 +46,7 @@ class RabbitMQConnection {
       } catch (err) {
         retries++;
 
+        healthState.set("rabbimq", false);
         logger.error(
           `Failed to connect to RabbitMQ. Retrying in ${
             RETRY_DELAY_MS / 1000
