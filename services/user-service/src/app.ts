@@ -12,7 +12,9 @@ const app = express();
 // app.set("trust proxy", true);
 app.use(json());
 app.use(helmet());
-app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
+app.use(cookieParser(process.env.COOKIE_PARSER_SECRET, {
+  secure: process.env.NODE_ENV === 'production',
+}));
 app.use(currentUser);
 
 app.use((req, res, next) => {
