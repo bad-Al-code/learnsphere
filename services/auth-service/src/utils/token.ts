@@ -19,7 +19,6 @@ export const attachCookiesToResponse = (
   user: UserPayload,
   options: AttachCookiesOptions
 ) => {
-  const isSecure = process.env.COOKIE_SECURE === "true";
   if (options.accessToken) {
     const accessToken = jwt.sign(
       {
@@ -37,7 +36,7 @@ export const attachCookiesToResponse = (
       expires: new Date(Date.now() + 15 * 60 * 1000),
       // secure: process.env.NODE_ENV === "production",
       secure: process.env.NODE_ENV === "production",
-      signed: isSecure,
+      signed: true,
       sameSite: "lax" as const,
       path: "/",
       domain:
@@ -70,7 +69,7 @@ export const attachCookiesToResponse = (
       expires: new Date(Date.now() + oneDay * 7),
       // secure: process.env.NODE_ENV === "production",
       secure: process.env.NODE_ENV === "production",
-      signed: isSecure,
+      signed: true,
       sameSite: "lax" as const,
       path: "/",
       domain:
