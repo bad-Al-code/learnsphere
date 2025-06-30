@@ -1,5 +1,6 @@
 import amqp, { Channel, ChannelModel } from "amqplib";
 import logger from "../config/logger";
+import { healthState } from "../config/health-state";
 
 const MAX_RETRIES = 10;
 const RETRY_DELAY_MS = 5000;
@@ -31,7 +32,7 @@ class RabbitMQConnection {
         this.channel = channel;
 
         logger.info("RabbitMQ connected successfully.");
-        healthState.set("rabbimq", true);
+        healthState.set("rabbitmq", true);
 
         this.channel.on("close", () => {
           logger.warn("RabbitMQ channel closed.");
@@ -46,7 +47,7 @@ class RabbitMQConnection {
       } catch (err) {
         retries++;
 
-        healthState.set("rabbimq", false);
+        healthState.set("rabbitmq", false);
         logger.error(
           `Failed to connect to RabbitMQ. Retrying in ${
             RETRY_DELAY_MS / 1000
