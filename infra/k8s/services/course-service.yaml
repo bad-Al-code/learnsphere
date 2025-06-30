@@ -16,7 +16,7 @@ spec:
                 name: auth-secrets
       restartPolicy: OnFailure
   backoffLimit: 4
-  -
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
