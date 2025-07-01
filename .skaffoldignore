@@ -1,0 +1,44 @@
+# Ignore version control
+.git
+.gitignore
+
+# Ignore node-related folders
+node_modules/
+npm-debug.log
+yarn.lock
+pnpm-lock.yaml
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore OS/system files
+.DS_Store
+Thumbs.db
+
+# Ignore build artifacts
+dist/
+build/
+*.log
+*.tmp
+*.swp
+
+# Ignore Docker files not used in builds
+**/Dockerfile.dev
+docker-compose*
+
+# Ignore coverage or test reports
+coverage/
+*.lcov
+
+# Ignore editor configs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore Kubernetes-related output (if any)
+.kube/
+
+# Optional: ignore all hidden files (be careful with this)
+.*/*
