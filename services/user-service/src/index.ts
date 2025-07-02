@@ -7,10 +7,13 @@ import {
   UserAvatarProcessedListener,
   UserRegisteredListener,
 } from "./events/listener";
+import { checkDatabaseConnection } from "./db";
 
 const startServer = async () => {
   try {
     await rabbitMQConnection.connect();
+    await checkDatabaseConnection();
+
     new UserRegisteredListener().listen();
     new UserAvatarProcessedListener().listen();
 

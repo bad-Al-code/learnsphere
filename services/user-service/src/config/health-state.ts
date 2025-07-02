@@ -5,7 +5,7 @@ class HealthStateManager {
     redis: false,
   };
 
-  private criticalDependencies: string[] = ["db", "rabbitmq", "redis"];
+  private criticalDependencies: string[] = ["db", "rabbitmq"];
 
   public set(
     dependency: "db" | "rabbitmq" | "redis",

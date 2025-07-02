@@ -17,6 +17,8 @@ declare global {
   }
 }
 
+const ignorePath = ["/api/users/health"];
+
 export const currentUser = (
   req: Request,
   res: Response,
@@ -25,7 +27,9 @@ export const currentUser = (
   const token = req.signedCookies.token;
 
   if (!token) {
-    logger.debug(`No token found in signed cookies`);
+    if (!ignorePath.includes(req.path)) {
+      logger.debug(`No token found in signed cookies`);
+    }
 
     return next();
   }
