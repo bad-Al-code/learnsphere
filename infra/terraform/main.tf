@@ -56,3 +56,13 @@ module "ecr_enrollment_service" {
   project_name    = var.project_name
   repository_name = "${var.project_name}/enrollment-service"
 }
+
+# ============================================
+# ===       ECS Cluster                    ===
+# ============================================
+module "eks" {
+  source             = "./modules/eks"
+  project_name       = var.project_name
+  vpc_id             = module.vpc.vpc_id
+  private_subnet_ids = module.vpc.private_subnet_ids
+}
