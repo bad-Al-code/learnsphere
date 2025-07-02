@@ -19,12 +19,12 @@ class RedisConnection {
     });
 
     this.client.on("ready", () => {
+      healthState.set("redis", true);
       logger.info("Redis connected successfully and ready to use.");
     });
 
     try {
       await this.client.connect();
-      healthState.set("redis", true);
     } catch (err) {
       logger.error("Failed to connect to Redis", { error: err });
 

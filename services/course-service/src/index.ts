@@ -5,11 +5,13 @@ import logger from "./config/logger";
 import { rabbitMQConnection } from "./events/connection";
 import { redisConnection } from "./config/redis";
 import { VideoProcessedListener } from "./events/listener";
+import { checkDatabaseConnection } from "./db";
 
 const startServer = async () => {
   try {
     await rabbitMQConnection.connect();
     await redisConnection.connect();
+    await checkDatabaseConnection();
 
     new VideoProcessedListener().listen();
 
