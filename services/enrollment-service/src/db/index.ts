@@ -22,10 +22,23 @@ pool.on("connect", () => {
 pool.on("error", (err) => {
   logger.error("Database connection error", { error: err.stack });
   healthState.set("db", false);
-  process.exit(1);
+  // process.exit(1);
 });
 
 export const db = drizzle(pool, {
   schema,
   logger: process.env.NODE_ENV === "development",
 });
+
+export const checkDatabaseConnection = async () => {
+  try {
+    await db.query.enrollments.findFirst();
+    logger.info(`Database connection verified successfully,`);
+    healthState.set("db", true);
+  } catch (error) {
+    logger.info(`Failed to verify Database connection`);
+    healthState.set("db", false);
+
+    throw error;
+  }
+};

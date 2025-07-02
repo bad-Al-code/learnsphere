@@ -4,11 +4,13 @@ import { app } from "./app";
 import logger from "./config/logger";
 import { rabbitMQConnection } from "./events/connection";
 import { redisConnection } from "./config/redis";
+import { checkDatabaseConnection } from "./db";
 
 const startServer = async () => {
   try {
     await rabbitMQConnection.connect();
     await redisConnection.connect();
+    await checkDatabaseConnection();
 
     const PORT = process.env.PORT || 8000;
     app.listen(PORT, () => {
