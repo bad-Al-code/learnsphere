@@ -13,7 +13,6 @@ const start = async () => {
       logger.info(`Media service API listening on port ${PORT}`);
     });
 
-    // TODO: start the SQS worker here
     const worker = new SqsWorker();
     worker.start();
   } catch (error) {

@@ -1,20 +1,12 @@
 import express, { json } from "express";
 import { healthRouter, mediaRouter } from "./routes";
-import logger from "./config/logger";
 import helmet from "helmet";
+import { httpLogger } from "./middlewares/http-logger";
 
 const app = express();
 app.use(json());
 app.use(helmet());
-
-app.use((req, res, next) => {
-  res.on("finish", () => {
-    logger.info(
-      `HTTP Request: ${req.method} ${req.originalUrl} - Status ${res.statusCode}`
-    );
-  });
-  next();
-});
+app.use(httpLogger);
 
 app.use("/api/media", healthRouter);
 app.use("/api/media", mediaRouter);
