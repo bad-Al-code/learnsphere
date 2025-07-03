@@ -4,7 +4,7 @@ module "eks" {
 
 
   cluster_name    = "${var.project_name}-cluster"
-  cluster_version = "1.29"
+  cluster_version = "1.31"
 
   vpc_id     = var.vpc_id
   subnet_ids = var.private_subnet_ids
