@@ -17,3 +17,9 @@ variable "cicd_user_arn" {
   description = "The ARN of the IAM user for the CI/CD pipeline."
   type        = string
 }
+
+variable "ebs_csi_driver_role_arn" {
+  description = "The ARN of the IAM role for the EBS CSI Driver service account."
+  type        = string
+  default     = ""
+}

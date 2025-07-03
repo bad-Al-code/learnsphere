@@ -29,7 +29,8 @@ module "eks" {
 
   cluster_addons = {
     aws-ebs-csi-driver = {
-      most_recent = true
+      most_recent              = true
+      service_account_role_arn = var.ebs_csi_driver_role_arn
     }
   }
 
