@@ -122,5 +122,12 @@ jobs:
         env:
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          find infrastructure/kubernetes/services -type f -name "*.yaml" -exec \
+          find infra/k8s/services -type f -name "*.yaml" -exec \
             sed -i 's|image: \(learnsphere/.*\)|image: ${{ env.ECR_REGISTRY }}/\1:${{ env.IMAGE_TAG }}|g' {} +
+
+      - name: Deploy All Manifests to EKS
+        run: |
+          kubectl apply -f infrastructure/kubernetes/base/
+          kubectl apply -f infrastructure/kubernetes/configmaps/
+          kubectl apply -f infrastructure/kubernetes/services/
+          kubectl apply -f infrastructure/kubernetes/ingress-service.yaml
