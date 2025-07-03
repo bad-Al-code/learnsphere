@@ -68,3 +68,28 @@ output "sqs_s3_events_queue_url" {
   description = "The URL of the SQS queue for S3 events."
   value       = aws_sqs_queue.s3_events_queue.id
 }
+
+
+output "media_service_access_key_id" {
+  description = "The access key ID for the media-service IAM user."
+  value       = aws_iam_access_key.media_service_user_key.id
+  sensitive   = true
+}
+
+output "media_service_secret_access_key" {
+  description = "The secret access key for the media-service IAM user."
+  value       = aws_iam_access_key.media_service_user_key.secret
+  sensitive   = true
+}
+
+output "cicd_user_access_key_id" {
+  description = "The access key ID for the CI/CD IAM user."
+  value       = aws_iam_access_key.cicd_user_key.id
+  sensitive   = true
+}
+
+output "cicd_user_secret_access_key" {
+  description = "The secret access key for the CI/CD IAM user."
+  value       = aws_iam_access_key.cicd_user_key.secret
+  sensitive   = true
+}
