@@ -27,6 +27,12 @@ module "eks" {
     }
   }
 
+  cluster_addons = {
+    aws-ebs-csi-driver = {
+      most_recent = true
+    }
+  }
+
   eks_managed_node_groups = {
     learnsphere_nodes = {
       name           = "${var.project_name}-node-group"
