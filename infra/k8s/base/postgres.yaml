@@ -6,6 +6,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: postgres-auth-pvc
 spec:
+  storageClassName: gp2
   accessModes:
     - ReadWriteOnce
   resources:
@@ -67,6 +68,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: postgres-user-pvc
 spec:
+  storageClassName: gp2
   accessModes:
     - ReadWriteOnce
   resources:
@@ -130,6 +132,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: postgres-course-pvc
 spec:
+  storageClassName: gp2
   accessModes:
     - ReadWriteOnce
   resources:
@@ -193,6 +196,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: postgres-enrollment-pvc
 spec:
+  storageClassName: gp2
   accessModes:
     - ReadWriteOnce
   resources:
