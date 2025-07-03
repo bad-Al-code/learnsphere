@@ -27,12 +27,12 @@ module "eks" {
     }
   }
 
-  cluster_addons = {
-    aws-ebs-csi-driver = {
-      most_recent              = true
-      service_account_role_arn = var.ebs_csi_driver_role_arn
-    }
-  }
+  # cluster_addons = {
+  #   aws-ebs-csi-driver = {
+  #     most_recent              = true
+  #     service_account_role_arn = var.ebs_csi_driver_role_arn
+  #   }
+  # }
 
   eks_managed_node_groups = {
     learnsphere_nodes = {
