@@ -127,7 +127,7 @@ jobs:
 
       - name: Deploy All Manifests to EKS
         run: |
-          kubectl apply -f infrastructure/kubernetes/base/
-          kubectl apply -f infrastructure/kubernetes/configmaps/
-          kubectl apply -f infrastructure/kubernetes/services/
-          kubectl apply -f infrastructure/kubernetes/ingress-service.yaml
+          kubectl apply -f infra/k8s/base/
+          kubectl apply -f infra/k8s/configmaps/
+          kubectl apply -f infra/k8s/services/
+          kubectl apply -f infra/k8s/ingress-service.yaml
