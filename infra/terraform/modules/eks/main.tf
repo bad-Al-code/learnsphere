@@ -1,6 +1,6 @@
 module "eks" {
-  source  = "terraform-aws-modules/eks/aws"
-  
+  source = "terraform-aws-modules/eks/aws"
+
 
   cluster_name    = "${var.project_name}-cluster"
   cluster_version = "1.31"
@@ -8,7 +8,8 @@ module "eks" {
   vpc_id     = var.vpc_id
   subnet_ids = var.private_subnet_ids
 
-  cluster_endpoint_public_access = true
+  cluster_endpoint_public_access           = true
+  enable_cluster_creator_admin_permissions = true
 
   eks_managed_node_groups = {
     learnsphere_nodes = {
@@ -19,6 +20,7 @@ module "eks" {
       instance_types = ["t3.medium"]
     }
   }
+
 
   tags = {
     Environment = "development"
