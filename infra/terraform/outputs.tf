@@ -52,3 +52,19 @@ output "private_subnet_ids" {
   description = "List of IDs of the private subnets."
   value       = module.vpc.private_subnet_ids
 }
+
+
+output "s3_raw_uploads_bucket_name" {
+  description = "The name of the S3 bucket for raw media uploads."
+  value       = aws_s3_bucket.raw_uploads.bucket
+}
+
+output "s3_processed_media_bucket_name" {
+  description = "The name of the S3 bucket for processed media."
+  value       = aws_s3_bucket.processed_media.bucket
+}
+
+output "sqs_s3_events_queue_url" {
+  description = "The URL of the SQS queue for S3 events."
+  value       = aws_sqs_queue.s3_events_queue.id
+}
