@@ -8,22 +8,18 @@ data:
 
     server:
       http_listen_port: 3100
-      grpc_listen_port: 9095
-
-    memberlist:
-      join_members:
-        - loki-service
 
     common:
-      path_prefix: /loki
-      replication_factor: 1
-      ring:
-        kvstore:
-          store: memberlist
+      path_prefix: /var/loki
       storage:
         filesystem:
-          chunks_directory: /loki/chunks
-          rules_directory: /loki/rules
+          chunks_directory: /var/loki/chunks
+          rules_directory: /var/loki/rules
+      replication_factor: 1
+      ring: 
+        instance_addr: 127.0.0.1
+        kvstore: 
+          store: inmemory
 
     schema_config:
       configs:
@@ -76,7 +72,7 @@ spec:
             - name: config-volume
               mountPath: /etc/loki
             - name: loki-storage
-              mountPath: /loki
+              mountPath: /var/loki
       volumes:
         - name: config-volume
           configMap:
