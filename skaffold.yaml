@@ -49,8 +49,14 @@ portForward:
     resourceName: ingress-nginx-controller
     namespace: ingress-nginx
     port: 80
-    localPort: 8080
+    localPort: 8081
   - resourceType: service
     resourceName: rabbitmq-service
+    namespace: default
     port: 15672
     localPort: 15672
+  - resourceType: service
+    resourceName: grafana-service
+    namespace: default
+    port: 3000
+    localPort: 3000
