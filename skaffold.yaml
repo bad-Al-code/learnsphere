@@ -49,7 +49,7 @@ portForward:
     resourceName: ingress-nginx-controller
     namespace: ingress-nginx
     port: 80
-    localPort: 8081
+    localPort: 8080
   - resourceType: service
     resourceName: rabbitmq-service
     namespace: default
