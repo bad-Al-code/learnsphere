@@ -19,4 +19,6 @@ export const metricsRecorder = (
 
     metricsService.httpRequestsTotal.inc(labels);
   });
+
+  next();
 };

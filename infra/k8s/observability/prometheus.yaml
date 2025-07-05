@@ -63,6 +63,26 @@ data:
             action: replace
             target_label: job
 ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-to-auth-service
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: auth-service
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: prometheus
+      ports:
+        - protocol: TCP
+          port: 8000
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
