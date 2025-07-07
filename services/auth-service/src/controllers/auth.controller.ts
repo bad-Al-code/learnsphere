@@ -12,12 +12,6 @@ const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
 const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
 
 export class AuthController {
-  private static async _findUserByEmail(
-    email: string
-  ): Promise<User | undefined> {
-    return db.query.users.findFirst({ where: eq(users.email, email) });
-  }
-
   public static async singup(email: string, password: string) {
     logger.debug(`Checking if user exists with email: ${email}`);
 
