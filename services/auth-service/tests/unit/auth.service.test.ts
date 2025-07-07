@@ -44,13 +44,9 @@ describe("AuthService", () => {
 
       await AuthService.signup(existingUser.email, existingUser.password);
 
-      const signupPromise = await AuthService.signup(
-        existingUser.email,
-        "some_random_password"
-      );
-
-      await expect(signupPromise).rejects.toThrow(BadRequestError);
-      await expect(signupPromise).rejects.toThrow("Email is already in use.");
+      await expect(() =>
+        AuthService.signup(existingUser.email, "another_password")
+      ).rejects.toThrow(new BadRequestError("Email is already in use."));
     });
   });
 
@@ -78,20 +74,15 @@ describe("AuthService", () => {
     });
 
     it("should throw a BadRequestError for a non-existent user", async () => {
-      const loginPromise = AuthService.login(
-        "nonexistent@user.com",
-        "some_password"
-      );
-
-      await expect(loginPromise).rejects.toThrow(BadRequestError);
-      await expect(loginPromise).rejects.toThrow("Invalid credentials");
+      await expect(() =>
+        AuthService.login("nonexistent@user.com", "some_password")
+      ).rejects.toThrow(new BadRequestError("Invalid credentials"));
     });
 
     it("should throw a BadRequestError for an incorrect password", async () => {
-      const loginPromise = AuthService.login(testUser.email, "wrong_password");
-
-      await expect(loginPromise).rejects.toThrow(BadRequestError);
-      await expect(loginPromise).rejects.toThrow("Invalid credentials");
+      await expect(() =>
+        AuthService.login(testUser.email, "wrong_password")
+      ).rejects.toThrow(new BadRequestError("Invalid credentials"));
     });
   });
 });

@@ -7,7 +7,7 @@ export class BadRequestError extends CustomError {
   statusCode: number = StatusCodes.BAD_REQUEST;
 
   constructor(public details: string | ErrorDetails[]) {
-    super("Invalid request parameters");
+    super(typeof details === "string" ? details : "Invalid request parameters");
 
     Object.setPrototypeOf(this, BadRequestError.prototype);
   }
