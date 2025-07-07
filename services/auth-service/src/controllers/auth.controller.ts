@@ -29,9 +29,7 @@ export class AuthController {
   }
 
   public static async forgotPassword(email: string) {
-    const result = await AuthService.forgotPassword(email);
-
-    return result;
+    return await AuthService.forgotPassword(email);
   }
 
   public static async resetPassword(
