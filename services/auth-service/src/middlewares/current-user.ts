@@ -1,26 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JsonWebTokenError } from "jsonwebtoken";
+import { eq } from "drizzle-orm";
+
 import { BlacklistService } from "../controllers/blacklist-service";
 import logger from "../config/logger";
 import { db } from "../db";
-import { eq } from "drizzle-orm";
-import { userRoleEnum, users } from "../db/schema";
-
-type UserRecord = typeof users.$inferSelect;
-
-interface TokenPayload {
-  id: string;
-  email: string;
-  role: (typeof userRoleEnum.enumValues)[number];
-  jti: string;
-  iat: number;
-  exp: number;
-}
-
-interface CurrentUser {
-  tokenPayload: TokenPayload;
-  dbUser: UserRecord;
-}
+import { CurrentUser, TokenPayload } from "../types/auth.types";
+import { users } from "../db/schema";
 
 declare global {
   namespace Express {

@@ -2,17 +2,7 @@ import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
 import logger from "../config/logger";
-
-interface UserPayload {
-  id: string;
-  email: string;
-  role: "student" | "instructor" | "admin";
-}
-
-interface AttachCookiesOptions {
-  accessToken: boolean;
-  refreshToken: boolean;
-}
+import { AttachCookiesOptions, UserPayload } from "../types/auth.types";
 
 export const attachCookiesToResponse = (
   res: Response,
