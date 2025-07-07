@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { metricsService } from "../services/metrics-service";
+import { metricsService } from "../controllers/metrics-service";
 
 export const metricsRecorder = (
   req: Request,

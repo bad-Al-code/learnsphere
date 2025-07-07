@@ -7,7 +7,7 @@ import { httpLogger } from "./middlewares/http-logger";
 import { currentUser } from "./middlewares/current-user";
 import helmet from "helmet";
 import { metricsRecorder } from "./middlewares/metrics-recorder";
-import { metricsService } from "./services/metrics-service";
+import { metricsService } from "./controllers/metrics-service";
 
 const app = express();
 

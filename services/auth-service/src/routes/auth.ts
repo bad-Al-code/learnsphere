@@ -11,7 +11,7 @@ import {
   signupSchema,
   verifyEmailSchema,
 } from "../schemas/auth-schema";
-import { UserService } from "../services/user-service";
+import { AuthController } from "../controllers/auth.controller";
 import {
   UserPasswordResetRequiredPublisher,
   UserRegisteredPublisher,
@@ -19,7 +19,7 @@ import {
 } from "../events/publisher";
 import logger from "../config/logger";
 import { UnauthenticatedError } from "../errors";
-import { BlacklistService } from "../services/blacklist-service";
+import { BlacklistService } from "../controllers/blacklist-service";
 import { requireAuth } from "../middlewares/require-auth";
 import { attachCookiesToResponse, sendTokenResponse } from "../utils/token";
 import { apiLimiter } from "../middlewares/rate-limiter";
@@ -33,7 +33,7 @@ router.post(
   async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
-    const { user, verificationToken } = await UserService.singup(
+    const { user, verificationToken } = await AuthController.singup(
       email,
       password
     );
@@ -69,7 +69,7 @@ router.post(
   async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
-    const user = await UserService.login(email, password);
+    const user = await AuthController.login(email, password);
 
     sendTokenResponse(
       res,
@@ -152,7 +152,7 @@ router.post(
   async (req: Request, res: Response) => {
     const { email, token } = req.body;
 
-    await UserService.verifyEmail(email, token);
+    await AuthController.verifyEmail(email, token);
 
     res
       .status(StatusCodes.OK)
@@ -166,7 +166,7 @@ router.post(
   validateRequest(forgotPasswordSchema),
   async (req: Request, res: Response) => {
     const { email } = req.body;
-    const result = await UserService.forgotPassword(email);
+    const result = await AuthController.forgotPassword(email);
 
     if (result) {
       const publisher = new UserPasswordResetRequiredPublisher();
@@ -186,7 +186,7 @@ router.post(
   async (req: Request, res: Response) => {
     const { email, token, password } = req.body;
 
-    await UserService.resetPassword(email, token, password);
+    await AuthController.resetPassword(email, token, password);
     res
       .status(StatusCodes.OK)
       .json({ message: "Password has been reset successfully." });
@@ -207,7 +207,7 @@ router.post(
   validateRequest(resendVerificationSchema),
   async (req: Request, res: Response) => {
     const { email } = req.body;
-    const result = await UserService.resendVerificationEmail(email);
+    const result = await AuthController.resendVerificationEmail(email);
 
     if (result) {
       const publisher = new UserVerificationRequiredPublisher();

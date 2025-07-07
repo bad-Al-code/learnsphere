@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JsonWebTokenError } from "jsonwebtoken";
-import { BlacklistService } from "../services/blacklist-service";
+import { BlacklistService } from "../controllers/blacklist-service";
 import logger from "../config/logger";
 import { db } from "../db";
 import { eq } from "drizzle-orm";

@@ -10,7 +10,7 @@ import { TokenUtil } from "../utils/jwt-token-genration-hashing";
 const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
 const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
 
-export class UserService {
+export class AuthController {
   private static async _findUserByEmail(
     email: string
   ): Promise<User | undefined> {
