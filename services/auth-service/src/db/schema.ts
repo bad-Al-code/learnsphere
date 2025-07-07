@@ -28,6 +28,3 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
-
-export type User = InferSelectModel<typeof users>;
-export type NewUser = InferInsertModel<typeof users>;

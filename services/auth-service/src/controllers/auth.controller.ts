@@ -2,10 +2,11 @@ import { eq } from "drizzle-orm";
 
 import logger from "../config/logger";
 import { db } from "../db";
-import { users, User } from "../db/schema";
+import { users } from "../db/schema";
 import { BadRequestError, UnauthenticatedError } from "../errors";
 import { Password } from "../utils/password";
 import { TokenUtil } from "../utils/jwt-token-genration-hashing";
+import { User } from "../db/database.types";
 
 const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
 const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
