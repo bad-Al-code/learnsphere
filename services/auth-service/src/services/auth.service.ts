@@ -2,11 +2,12 @@ import { eq } from "drizzle-orm";
 
 import { db } from "../db";
 import { User } from "../db/database.types";
-import { users } from "../db/schema";
+import { userRoleEnum, users } from "../db/schema";
 import logger from "../config/logger";
 import { BadRequestError, UnauthenticatedError } from "../errors";
 import { TokenUtil } from "../utils/crypto";
 import { Password } from "../utils/password";
+import { UserRepository } from "../db/user.repository";
 
 const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
 const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
@@ -36,19 +37,18 @@ export class AuthService {
 
     const passwordHash = await Password.toHash(password);
 
-    const newUser = await db
-      .insert(users)
-      .values({
-        email,
-        passwordHash,
-        verificationToken: hashedToken,
-        verificationTokenExpiresAt,
-      })
-      .returning({ id: users.id, email: users.email, role: users.role });
+    const newUserRecord = {
+      email,
+      passwordHash,
+      verificationToken: hashedToken,
+      verificationTokenExpiresAt,
+    };
 
-    logger.info(`User created successfully with ID: ${newUser[0].id}`);
+    const newUser = await UserRepository.create(newUserRecord);
 
-    return { user: newUser[0], verificationToken };
+    logger.info(`User created successfully with ID: ${newUser.id}`);
+
+    return { user: newUser, verificationToken };
   }
 
   public static async login(email: string, password: string) {
