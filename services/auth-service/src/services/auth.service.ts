@@ -16,7 +16,7 @@ export class AuthService {
   private static async _findUserByEmail(
     email: string
   ): Promise<User | undefined> {
-    return db.query.users.findFirst({ where: eq(users.email, email) });
+    return UserRepository.findByEmail(email);
   }
 
   public static async signup(email: string, password: string) {
@@ -79,11 +79,10 @@ export class AuthService {
   public static async verifyEmail(email: string, verificationToken: string) {
     const hashedToken = TokenUtil.hashToken(verificationToken);
 
-    const user = await db.query.users.findFirst({
-      where: (users, { and, eq }) =>
-        and(eq(users.email, email), eq(users.verificationToken, hashedToken)),
-    });
-
+    const user = await UserRepository.findByEmailAndVerificationToken(
+      email,
+      hashedToken
+    );
     if (!user) {
       throw new UnauthenticatedError("Verification failed: Invalid token");
     }
@@ -100,14 +99,11 @@ export class AuthService {
 
     logger.info(`Verifying email for user ID: ${user.id}`);
 
-    await db
-      .update(users)
-      .set({
-        isVerified: true,
-        verificationToken: null,
-        verificationTokenExpiresAt: null,
-      })
-      .where(eq(users.id, user.id!));
+    await UserRepository.updateUser(user.id!, {
+      isVerified: true,
+      verificationToken: null,
+      verificationTokenExpiresAt: null,
+    });
 
     logger.info(`Email successfully verified for user ID: ${user.id}`);
   }
@@ -125,13 +121,10 @@ export class AuthService {
       FIFTEEN_MINUTES_IN_MS
     );
 
-    await db
-      .update(users)
-      .set({
-        passwordResetToken: hashedToken,
-        passwordResetTokenExpiresAt,
-      })
-      .where(eq(users.id, user.id!));
+    await UserRepository.updateUser(user.id!, {
+      passwordResetToken: hashedToken,
+      passwordResetTokenExpiresAt,
+    });
 
     logger.info(`Password reset token generated for user: ${user.id}`);
 
@@ -145,11 +138,10 @@ export class AuthService {
   ) {
     const hashedToken = TokenUtil.hashToken(resetToken);
 
-    const user = await db.query.users.findFirst({
-      where: (users, { and, eq }) =>
-        and(eq(users.email, email), eq(users.passwordResetToken, hashedToken)),
-    });
-
+    const user = await UserRepository.findByEmailAndPasswordResetToken(
+      email,
+      hashedToken
+    );
     if (!user) {
       throw new UnauthenticatedError("Password reset failed: Invalid token.");
     }
@@ -165,16 +157,13 @@ export class AuthService {
 
     const newPasswordHash = await Password.toHash(newPassword);
 
-    await db
-      .update(users)
-      .set({
-        passwordHash: newPasswordHash,
-        passwordResetToken: null,
-        passwordResetTokenExpiresAt: null,
-        passwordChangedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, user.id!));
+    await UserRepository.updateUser(user.id!, {
+      passwordHash: newPasswordHash,
+      passwordResetToken: null,
+      passwordResetTokenExpiresAt: null,
+      passwordChangedAt: new Date(),
+      updatedAt: new Date(),
+    });
 
     logger.info(`Password succesfully reset for user ID: ${user.id}`);
   }
@@ -195,13 +184,10 @@ export class AuthService {
     const verificationTokenExpiresAt =
       TokenUtil.getExpirationDate(TWO_HOURS_IN_MS);
 
-    await db
-      .update(users)
-      .set({
-        verificationToken: hashedToken,
-        verificationTokenExpiresAt,
-      })
-      .where(eq(users.id, user.id!));
+    await UserRepository.updateUser(user.id!, {
+      verificationToken: hashedToken,
+      verificationTokenExpiresAt,
+    });
 
     logger.info(`New verifiation token generated for user: ${user.id}`);
 
