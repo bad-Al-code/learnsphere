@@ -21,9 +21,7 @@ export class AuthService {
   public static async singup(email: string, password: string) {
     logger.debug(`Checking if user exists with email: ${email}`);
 
-    const existingUser = await db.query.users.findFirst({
-      where: eq(users.email, email),
-    });
+    const existingUser = await this._findUserByEmail(email);
 
     if (existingUser) {
       logger.warn(`Signup attempt with existing email: ${email}`);
@@ -51,5 +49,30 @@ export class AuthService {
     logger.info(`User created successfully with ID: ${newUser[0].id}`);
 
     return { user: newUser[0], verificationToken };
+  }
+
+  public static async login(email: string, password: string) {
+    logger.debug(`Login attempt for email: ${email}`);
+
+    const existingUser = await this._findUserByEmail(email);
+
+    if (!existingUser) {
+      logger.warn(`Login failed: User not found for email ${email}`);
+
+      throw new BadRequestError("Invalid credentials");
+    }
+
+    const passwordMatch = await Password.compare(
+      existingUser.passwordHash,
+      password
+    );
+
+    if (!passwordMatch) {
+      logger.warn(`Login failed: Invalid password for ${email}`);
+
+      throw new BadRequestError("Invalid credentials");
+    }
+
+    return existingUser;
   }
 }

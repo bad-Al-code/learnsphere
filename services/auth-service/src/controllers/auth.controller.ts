@@ -55,30 +55,9 @@ export class AuthController {
   }
 
   public static async login(email: string, password: string) {
-    logger.debug(`Login attempt for email: ${email}`);
+    const user = await AuthService.login(email, password);
 
-    const existingUser = await db.query.users.findFirst({
-      where: eq(users.email, email),
-    });
-
-    if (!existingUser) {
-      logger.warn(`Login failed: User not found for email ${email}`);
-
-      throw new BadRequestError("Invalid credentials");
-    }
-
-    const passwordMatch = await Password.compare(
-      existingUser.passwordHash,
-      password
-    );
-
-    if (!passwordMatch) {
-      logger.warn(`Login failed: Invalid password for ${email}`);
-
-      throw new BadRequestError("Invalid credentials");
-    }
-
-    return existingUser;
+    return user;
   }
 
   public static async forgotPassword(email: string) {
