@@ -1,13 +1,9 @@
-import { eq } from "drizzle-orm";
-
-import { db } from "../db";
-import { User } from "../db/database.types";
-import { userRoleEnum, users } from "../db/schema";
-import logger from "../config/logger";
-import { BadRequestError, UnauthenticatedError } from "../errors";
-import { TokenUtil } from "../utils/crypto";
-import { Password } from "../utils/password";
-import { UserRepository } from "../db/user.repository";
+import { User } from '../db/database.types';
+import logger from '../config/logger';
+import { BadRequestError, UnauthenticatedError } from '../errors';
+import { TokenUtil } from '../utils/crypto';
+import { Password } from '../utils/password';
+import { UserRepository } from '../db/user.repository';
 
 const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
 const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
@@ -27,7 +23,7 @@ export class AuthService {
     if (existingUser) {
       logger.warn(`Signup attempt with existing email: ${email}`);
 
-      throw new BadRequestError("Email is already in use.");
+      throw new BadRequestError('Email is already in use.');
     }
 
     const { rawToken: verificationToken, hashedToken } =
@@ -59,7 +55,7 @@ export class AuthService {
     if (!existingUser) {
       logger.warn(`Login failed: User not found for email ${email}`);
 
-      throw new BadRequestError("Invalid credentials");
+      throw new BadRequestError('Invalid credentials');
     }
 
     const passwordMatch = await Password.compare(
@@ -70,7 +66,7 @@ export class AuthService {
     if (!passwordMatch) {
       logger.warn(`Login failed: Invalid password for ${email}`);
 
-      throw new BadRequestError("Invalid credentials");
+      throw new BadRequestError('Invalid credentials');
     }
 
     return existingUser;
@@ -84,7 +80,7 @@ export class AuthService {
       hashedToken
     );
     if (!user) {
-      throw new UnauthenticatedError("Verification failed: Invalid token");
+      throw new UnauthenticatedError('Verification failed: Invalid token');
     }
 
     if (
@@ -94,7 +90,7 @@ export class AuthService {
       logger.warn(
         `Attempt to use expired or missing verification token for user: ${user.id}`
       );
-      throw new UnauthenticatedError("Verification failed: Token has expired.");
+      throw new UnauthenticatedError('Verification failed: Token has expired.');
     }
 
     logger.info(`Verifying email for user ID: ${user.id}`);
@@ -143,7 +139,7 @@ export class AuthService {
       hashedToken
     );
     if (!user) {
-      throw new UnauthenticatedError("Password reset failed: Invalid token.");
+      throw new UnauthenticatedError('Password reset failed: Invalid token.');
     }
 
     if (
@@ -151,7 +147,7 @@ export class AuthService {
       Date.now() > user.passwordResetTokenExpiresAt.getTime()
     ) {
       throw new UnauthenticatedError(
-        "Password reset failed: Token has expired"
+        'Password reset failed: Token has expired'
       );
     }
 

@@ -1,11 +1,11 @@
-import "dotenv/config";
-import { Pool } from "pg";
-import { drizzle } from "drizzle-orm/node-postgres";
+import 'dotenv/config';
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 
-import * as schema from "./schema";
-import logger from "../config/logger";
-import { healthState } from "../config/health-state";
-import { env } from "../config/env";
+import * as schema from './schema';
+import logger from '../config/logger';
+import { healthState } from '../config/health-state';
+import { env } from '../config/env';
 
 const DATABASE_URL = env.DATABASE_URL;
 
@@ -13,30 +13,30 @@ export const pool = new Pool({
   connectionString: DATABASE_URL,
 });
 
-pool.on("connect", () => {
+pool.on('connect', () => {
   logger.info(`Database connected successfully`);
-  healthState.set("db", true);
+  healthState.set('db', true);
 });
 
-pool.on("error", (err) => {
-  logger.error("Database connection error", { error: err.stack });
-  healthState.set("db", false);
+pool.on('error', (err) => {
+  logger.error('Database connection error', { error: err.stack });
+  healthState.set('db', false);
   // process.exit(1);
 });
 
 export const db = drizzle(pool, {
   schema,
-  logger: env.NODE_ENV === "development",
+  logger: env.NODE_ENV === 'development',
 });
 
 export const checkDatabaseConnection = async () => {
   try {
     await db.query.users.findFirst();
     logger.info(`Database connection verified successfully,`);
-    healthState.set("db", true);
+    healthState.set('db', true);
   } catch (error) {
     logger.info(`Failed to verify Database connection`);
-    healthState.set("db", false);
+    healthState.set('db', false);
 
     throw error;
   }

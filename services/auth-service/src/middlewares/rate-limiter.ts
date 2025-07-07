@@ -1,9 +1,9 @@
-import { RedisStore } from "rate-limit-redis";
-import { redisConnection } from "../config/redis";
-import { rateLimit, RateLimitRequestHandler } from "express-rate-limit";
-import { BadRequestError } from "../errors";
-import { Request, Response, NextFunction } from "express";
-import { StatusCodes } from "http-status-codes";
+import { RedisStore } from 'rate-limit-redis';
+import { StatusCodes } from 'http-status-codes';
+import { Request, Response, NextFunction } from 'express';
+
+import { redisConnection } from '../config/redis';
+import { rateLimit, RateLimitRequestHandler } from 'express-rate-limit';
 
 let limiterInstance: RateLimitRequestHandler | null = null;
 
@@ -27,7 +27,7 @@ function createLimiter(): RateLimitRequestHandler {
     handler: (req, res, next, options) => {
       const retryAfterSeconds = Math.ceil(options.windowMs / 1000);
 
-      res.setHeader("Retry-After", retryAfterSeconds);
+      res.setHeader('Retry-After', retryAfterSeconds);
 
       res.status(StatusCodes.TOO_MANY_REQUESTS).json({
         message: `Too many requests. You may try again after ${retryAfterSeconds} seconds.`,

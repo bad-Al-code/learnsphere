@@ -1,10 +1,10 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq } from 'drizzle-orm';
 
-import { db } from ".";
-import { NewUser, User } from "./database.types";
-import { users } from "./schema";
+import { db } from '.';
+import { NewUser, User } from './database.types';
+import { users } from './schema';
 
-type UpdatableUserFields = Partial<Omit<User, "id" | "createdAt">>;
+type UpdatableUserFields = Partial<Omit<User, 'id' | 'createdAt'>>;
 
 export class UserRepository {
   public static async findByEmail(email: string): Promise<User | undefined> {
@@ -42,7 +42,7 @@ export class UserRepository {
   public static async create(newUser: NewUser): Promise<{
     id: string;
     email: string;
-    role: "student" | "instructor" | "admin";
+    role: 'student' | 'instructor' | 'admin';
   }> {
     const [createdUser] = await db
       .insert(users)
@@ -50,7 +50,7 @@ export class UserRepository {
       .returning({ id: users.id, email: users.email, role: users.role });
 
     if (!createdUser.id) {
-      throw new Error("User creation failed: ID is null");
+      throw new Error('User creation failed: ID is null');
     }
 
     return {

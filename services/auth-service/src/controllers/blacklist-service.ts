@@ -1,5 +1,5 @@
-import logger from "../config/logger";
-import { redisConnection } from "../config/redis";
+import logger from '../config/logger';
+import { redisConnection } from '../config/redis';
 
 export class BlacklistService {
   public static async addToBlacklist(jti: string, tokenExp: number) {
@@ -11,13 +11,16 @@ export class BlacklistService {
 
     if (ttl > 0) {
       try {
-        await redisClient.set(key, "blacklisted", { EX: ttl });
+        await redisClient.set(key, 'blacklisted', { EX: ttl });
 
         logger.info(
           `Token JTI ${jti} added to blacklist with ttl of ${ttl} seconds`
         );
       } catch (error) {
-        logger.error(`Failed to add token to redis blacklist`, { jti, error });
+        logger.error(`Failed to add token to redis blacklist`, {
+          jti,
+          error,
+        });
       }
     }
   }

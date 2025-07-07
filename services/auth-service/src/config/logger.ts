@@ -1,23 +1,23 @@
-import winston from "winston";
+import winston from 'winston';
 
-import { env } from "./env";
+import { env } from './env';
 
 const { combine, colorize, timestamp, splat, errors, printf, json } =
   winston.format;
 
 const logger = winston.createLogger({
-  level: process.env.NODE_ENV === "development" ? "debug" : "info",
+  level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
   format:
-    env.NODE_ENV === "development"
+    env.NODE_ENV === 'development'
       ? combine(
           colorize(),
-          timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+          timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
           splat(),
           errors({ stack: true }),
           printf(
             (info) =>
               `${info.timestamp} ${info.level}: ${info.message} ${
-                info.stack ? `\n${info.stack}` : ""
+                info.stack ? `\n${info.stack}` : ''
               }`
           )
         )

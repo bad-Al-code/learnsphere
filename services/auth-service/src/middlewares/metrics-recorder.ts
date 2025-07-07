@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from "express";
-import { metricsService } from "../controllers/metrics-service";
+import { NextFunction, Request, Response } from 'express';
+import { metricsService } from '../controllers/metrics-service';
 
 export const metricsRecorder = (
   req: Request,
@@ -8,7 +8,7 @@ export const metricsRecorder = (
 ) => {
   const end = metricsService.httpRequestDurationMicroseconds.startTimer();
 
-  res.on("finish", () => {
+  res.on('finish', () => {
     const labels = {
       route: req.route ? req.route.path : req.path,
       method: req.method,

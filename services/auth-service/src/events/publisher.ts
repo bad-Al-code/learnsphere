@@ -1,12 +1,12 @@
-import logger from "../config/logger";
-import { rabbitMQConnection } from "./connection";
+import logger from '../config/logger';
+import { rabbitMQConnection } from './connection';
 
 export abstract class Publisher<T extends { topic: string; data: any }> {
-  abstract topic: T["topic"];
-  protected exchange = "learnsphere";
-  protected exchangeType = "topic";
+  abstract topic: T['topic'];
+  protected exchange = 'learnsphere';
+  protected exchangeType = 'topic';
 
-  async publish(data: T["data"]): Promise<void> {
+  async publish(data: T['data']): Promise<void> {
     const channel = rabbitMQConnection.getChannel();
     await channel.assertExchange(this.exchange, this.exchangeType, {
       durable: true,
@@ -24,7 +24,7 @@ export abstract class Publisher<T extends { topic: string; data: any }> {
 }
 
 interface UserRegisteredEvent {
-  topic: "user.registered";
+  topic: 'user.registered';
   data: {
     id: string;
     email: string;
@@ -32,11 +32,11 @@ interface UserRegisteredEvent {
 }
 
 export class UserRegisteredPublisher extends Publisher<UserRegisteredEvent> {
-  topic: "user.registered" = "user.registered";
+  topic: 'user.registered' = 'user.registered';
 }
 
 interface UserVerificationRequiredEvent {
-  topic: "user.verification.required";
+  topic: 'user.verification.required';
   data: {
     email: string;
     verificationToken: string;
@@ -44,11 +44,11 @@ interface UserVerificationRequiredEvent {
 }
 
 export class UserVerificationRequiredPublisher extends Publisher<UserVerificationRequiredEvent> {
-  topic: "user.verification.required" = "user.verification.required";
+  topic: 'user.verification.required' = 'user.verification.required';
 }
 
 interface UserPasswordResetRequiredEvent {
-  topic: "user.password_reset.required";
+  topic: 'user.password_reset.required';
   data: {
     email: string;
     resetToken: string;
@@ -56,5 +56,5 @@ interface UserPasswordResetRequiredEvent {
 }
 
 export class UserPasswordResetRequiredPublisher extends Publisher<UserPasswordResetRequiredEvent> {
-  topic: "user.password_reset.required" = "user.password_reset.required";
+  topic: 'user.password_reset.required' = 'user.password_reset.required';
 }

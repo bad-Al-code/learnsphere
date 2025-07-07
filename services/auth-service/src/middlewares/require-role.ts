@@ -1,7 +1,7 @@
-import { NextFunction, Request, Response } from "express";
-import { ForbiddenError } from "../errors";
+import { NextFunction, Request, Response } from 'express';
+import { ForbiddenError } from '../errors';
 
-type UserRole = "student" | "instructor" | "admin";
+type UserRole = 'student' | 'instructor' | 'admin';
 
 export const requireRole = (allowRoles: UserRole[]) => {
   return (req: Request, res: Response, next: NextFunction) => {

@@ -1,4 +1,4 @@
-import { userRoleEnum, users } from "../db/schema";
+import { userRoleEnum, users } from '../db/schema';
 
 export type UserRecord = typeof users.$inferSelect;
 
@@ -14,7 +14,7 @@ export interface TokenPayload {
 export interface UserPayload {
   id: string;
   email: string;
-  role: "student" | "instructor" | "admin";
+  role: 'student' | 'instructor' | 'admin';
 }
 
 export interface CurrentUser {

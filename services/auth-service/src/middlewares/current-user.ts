@@ -1,13 +1,13 @@
-import { NextFunction, Request, Response } from "express";
-import jwt, { JsonWebTokenError } from "jsonwebtoken";
-import { eq } from "drizzle-orm";
+import { NextFunction, Request, Response } from 'express';
+import jwt, { JsonWebTokenError } from 'jsonwebtoken';
+import { eq } from 'drizzle-orm';
 
-import { BlacklistService } from "../controllers/blacklist-service";
-import logger from "../config/logger";
-import { db } from "../db";
-import { CurrentUser, TokenPayload } from "../types/auth.types";
-import { users } from "../db/schema";
-import { env } from "../config/env";
+import { BlacklistService } from '../controllers/blacklist-service';
+import logger from '../config/logger';
+import { db } from '../db';
+import { CurrentUser, TokenPayload } from '../types/auth.types';
+import { users } from '../db/schema';
+import { env } from '../config/env';
 
 declare global {
   namespace Express {
@@ -62,7 +62,7 @@ export const currentUser = async (
     if (error instanceof JsonWebTokenError) {
       logger.warn(`Invalid JWT received: ${error.message}`);
     } else {
-      logger.error("An unexpected error occurred in currentUser middleware", {
+      logger.error('An unexpected error occurred in currentUser middleware', {
         error,
       });
     }

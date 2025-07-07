@@ -1,9 +1,9 @@
-import { Request, Response } from "express";
-import { v4 as uuidv4 } from "uuid";
-import jwt from "jsonwebtoken";
-import logger from "../config/logger";
-import { AttachCookiesOptions, UserPayload } from "../types/auth.types";
-import { env } from "../config/env";
+import { Response } from 'express';
+import { v4 as uuidv4 } from 'uuid';
+import jwt from 'jsonwebtoken';
+import logger from '../config/logger';
+import { AttachCookiesOptions, UserPayload } from '../types/auth.types';
+import { env } from '../config/env';
 
 export const attachCookiesToResponse = (
   res: Response,
@@ -19,21 +19,21 @@ export const attachCookiesToResponse = (
         jti: uuidv4(),
       },
       env.JWT_SECRET,
-      { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"] }
+      { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] }
     );
 
     const accessTokenCookieOptions = {
       httpOnly: true,
       expires: new Date(Date.now() + 15 * 60 * 1000),
       // secure: process.env.NODE_ENV === "production",
-      secure: env.NODE_ENV === "production",
+      secure: env.NODE_ENV === 'production',
       signed: true,
-      sameSite: "lax" as const,
-      path: "/",
-      domain: env.NODE_ENV === "production" ? env.COOKIE_DOMAIN : undefined,
+      sameSite: 'lax' as const,
+      path: '/',
+      domain: env.NODE_ENV === 'production' ? env.COOKIE_DOMAIN : undefined,
     };
 
-    res.cookie("token", accessToken, accessTokenCookieOptions);
+    res.cookie('token', accessToken, accessTokenCookieOptions);
   }
 
   if (options.refreshToken) {
@@ -45,7 +45,7 @@ export const attachCookiesToResponse = (
       },
       env.JWT_REFRESH_SECRET!,
       {
-        expiresIn: env.JWT_REFRESH_EXPIRES_IN as jwt.SignOptions["expiresIn"],
+        expiresIn: env.JWT_REFRESH_EXPIRES_IN as jwt.SignOptions['expiresIn'],
       }
     );
 
@@ -55,14 +55,14 @@ export const attachCookiesToResponse = (
       httpOnly: true,
       expires: new Date(Date.now() + oneDay * 7),
       // secure: process.env.NODE_ENV === "production",
-      secure: env.NODE_ENV === "production",
+      secure: env.NODE_ENV === 'production',
       signed: true,
-      sameSite: "lax" as const,
-      path: "/",
-      domain: env.NODE_ENV === "production" ? env.COOKIE_DOMAIN : undefined,
+      sameSite: 'lax' as const,
+      path: '/',
+      domain: env.NODE_ENV === 'production' ? env.COOKIE_DOMAIN : undefined,
     };
 
-    res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
+    res.cookie('refreshToken', refreshToken, refreshTokenCookieOptions);
   }
 };
 
@@ -75,10 +75,13 @@ export const sendTokenResponse = (
     `Attaching access and refresh tokens for user id ${user.id}  to a secure cookie`
   );
 
-  attachCookiesToResponse(res, user, { accessToken: true, refreshToken: true });
+  attachCookiesToResponse(res, user, {
+    accessToken: true,
+    refreshToken: true,
+  });
 
   res.status(statusCode).json({
-    message: "Success",
+    message: 'Success',
     user: { id: user.id, email: user.email, role: user.role },
   });
 };
