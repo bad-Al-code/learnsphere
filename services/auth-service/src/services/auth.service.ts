@@ -18,7 +18,7 @@ export class AuthService {
     return db.query.users.findFirst({ where: eq(users.email, email) });
   }
 
-  public static async singup(email: string, password: string) {
+  public static async signup(email: string, password: string) {
     logger.debug(`Checking if user exists with email: ${email}`);
 
     const existingUser = await this._findUserByEmail(email);
