@@ -1,4 +1,6 @@
 import amqp, { Channel, ChannelModel } from "amqplib";
+
+import { env } from "../config/env";
 import logger from "../config/logger";
 import { healthState } from "../config/health-state";
 
@@ -15,7 +17,7 @@ class RabbitMQConnection {
       return;
     }
 
-    const rabbitUrl = process.env.RABBITMQ_URL;
+    const rabbitUrl = env.RABBITMQ_URL;
     if (!rabbitUrl) {
       throw new Error("Missing RABBITMQ_URL in environment.");
     }

@@ -13,6 +13,7 @@ import { attachCookiesToResponse, sendTokenResponse } from "../utils/token";
 import logger from "../config/logger";
 import { UnauthenticatedError } from "../errors";
 import { TokenPayload, UserPayload } from "../types/auth.types";
+import { env } from "../config/env";
 
 export class AuthController {
   public static async signup(req: Request, res: Response, next: NextFunction) {
@@ -102,7 +103,7 @@ export class AuthController {
 
       const payload = jwt.verify(
         refreshToken,
-        process.env.JWT_REFRESH_SECRET!
+        env.JWT_REFRESH_SECRET!
       ) as UserPayload;
 
       const userPayload: UserPayload = {

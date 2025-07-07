@@ -7,6 +7,7 @@ import logger from "../config/logger";
 import { db } from "../db";
 import { CurrentUser, TokenPayload } from "../types/auth.types";
 import { users } from "../db/schema";
+import { env } from "../config/env";
 
 declare global {
   namespace Express {
@@ -28,7 +29,7 @@ export const currentUser = async (
   }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;
+    const payload = jwt.verify(token, env.JWT_SECRET!) as TokenPayload;
 
     const isRevoked = await BlacklistService.isBlacklisted(payload.jti);
     if (isRevoked) {

@@ -5,13 +5,12 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
 import logger from "../config/logger";
 import { healthState } from "../config/health-state";
+import { env } from "../config/env";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(`DATABASE_URL environemnt variable is not set.`);
-}
+const DATABASE_URL = env.DATABASE_URL;
 
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: DATABASE_URL,
 });
 
 pool.on("connect", () => {
@@ -27,7 +26,7 @@ pool.on("error", (err) => {
 
 export const db = drizzle(pool, {
   schema,
-  logger: process.env.NODE_ENV === "development",
+  logger: env.NODE_ENV === "development",
 });
 
 export const checkDatabaseConnection = async () => {

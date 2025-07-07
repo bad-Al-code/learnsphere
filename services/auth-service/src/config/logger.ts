@@ -1,12 +1,14 @@
 import winston from "winston";
 
+import { env } from "./env";
+
 const { combine, colorize, timestamp, splat, errors, printf, json } =
   winston.format;
 
 const logger = winston.createLogger({
   level: process.env.NODE_ENV === "development" ? "debug" : "info",
   format:
-    process.env.NODE_ENV === "development"
+    env.NODE_ENV === "development"
       ? combine(
           colorize(),
           timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),

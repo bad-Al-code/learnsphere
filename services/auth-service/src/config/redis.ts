@@ -1,5 +1,7 @@
 import { createClient, RedisClientType } from "redis";
+
 import logger from "./logger";
+import { env } from "./env";
 import { healthState } from "./health-state";
 
 class RedisConnection {
@@ -11,7 +13,7 @@ class RedisConnection {
     }
 
     this.client = createClient({
-      url: process.env.REDIS_URL,
+      url: env.REDIS_URL,
     });
 
     this.client.on("error", (err) => {

@@ -8,6 +8,7 @@ import { currentUser } from "./middlewares/current-user";
 import helmet from "helmet";
 import { metricsRecorder } from "./middlewares/metrics-recorder";
 import { metricsService } from "./controllers/metrics-service";
+import { env } from "./config/env";
 
 const app = express();
 
@@ -21,7 +22,7 @@ app.get("/metrics", async (req: Request, res: Response) => {
 app.use(json());
 app.use(helmet());
 app.use(httpLogger);
-app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
+app.use(cookieParser(env.COOKIE_PARSER_SECRET));
 app.use(metricsRecorder);
 app.use(currentUser);
 

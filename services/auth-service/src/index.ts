@@ -5,6 +5,7 @@ import logger from "./config/logger";
 import { rabbitMQConnection } from "./events/connection";
 import { redisConnection } from "./config/redis";
 import { checkDatabaseConnection } from "./db";
+import { env } from "./config/env";
 
 const startServer = async () => {
   try {
@@ -12,11 +13,10 @@ const startServer = async () => {
     await redisConnection.connect();
     await checkDatabaseConnection();
 
-    const PORT = process.env.PORT || 8000;
+    const PORT = env.PORT;
+    const NODE_ENV = env.NODE_ENV;
     app.listen(PORT, () => {
-      logger.info(
-        `Auth service listening on port ${PORT} in ${process.env.NODE_ENV} mode`
-      );
+      logger.info(`Auth service listening on port ${PORT} in ${NODE_ENV} mode`);
     });
 
     const shutdown = async () => {
