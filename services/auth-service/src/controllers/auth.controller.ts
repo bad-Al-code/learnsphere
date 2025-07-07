@@ -5,7 +5,7 @@ import { db } from "../db";
 import { users } from "../db/schema";
 import { BadRequestError, UnauthenticatedError } from "../errors";
 import { Password } from "../utils/password";
-import { TokenUtil } from "../utils/jwt-token-genration-hashing";
+import { TokenUtil } from "../utils/crypto";
 import { User } from "../db/database.types";
 
 const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
