@@ -26,12 +26,17 @@ describe("Auth Routes - Integration Tests", () => {
       expect(response.body.message).toBe("Success");
       expect(response.body.user.email).toBe(userData.email);
 
-      const cookies = response.headers["set-cookie"];
-      expect(cookies).toBeDefined();
-      expect(cookies?.some((cookie) => cookie.startsWith("token="))).toBe(true);
-      expect(
-        cookies?.some((cookie) => cookie.startsWith("refreshToken="))
-      ).toBe(true);
+      let cookies: string[] = [];
+
+      if (response.headers["set-cookie"]) {
+        const rawCookies = response.headers["set-cookie"];
+        cookies = Array.isArray(rawCookies) ? rawCookies : [rawCookies];
+      }
+
+      expect(cookies.some((cookie) => cookie.startsWith("token="))).toBe(true);
+      expect(cookies.some((cookie) => cookie.startsWith("refreshToken="))).toBe(
+        true
+      );
     });
 
     it("should return 400 if email is already in use", async () => {
