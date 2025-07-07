@@ -2,10 +2,11 @@ import { promisify } from "node:util";
 import { exec } from "node:child_process";
 import { afterAll, beforeAll } from "vitest";
 
-import logger from "../../config/logger";
-import { env } from "../../config/env";
-import { redisConnection } from "../../config/redis";
-import { pool } from "../../db";
+import { env } from "../../src/config/env";
+import logger from "../../src/config/logger";
+import { redisConnection } from "../../src/config/redis";
+import { pool } from "../../src/db";
+
 env.DATABASE_URL = `${env.DATABASE_URL}_test`;
 
 const runMigrations = async () => {
