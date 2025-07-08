@@ -19,8 +19,6 @@ import { AuditService } from '../services/audit.service';
 import { SessionService } from '../services/session.service';
 import passport from '../config/passport';
 import { User } from '../db/database.types';
-import { userInfo } from 'os';
-import { jaccardDistance } from 'drizzle-orm';
 
 export class AuthController {
   public static async signup(req: Request, res: Response, next: NextFunction) {

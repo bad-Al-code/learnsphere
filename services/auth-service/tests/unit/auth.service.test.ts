@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { faker } from '@faker-js/faker';
 
 import { db } from '../../src/db';
@@ -7,6 +7,14 @@ import { AuthService } from '../../src/services/auth.service';
 import { UserRepository } from '../../src/db/user.repository';
 import { BadRequestError, UnauthenticatedError } from '../../src/errors';
 import { Password } from '../../src/utils/password';
+import { UserRegisteredPublisher } from '../../src/events/publisher';
+
+vi.mock('../../src/events/publisher', () => {
+  const UserRegisteredPublisher = vi.fn();
+
+  UserRegisteredPublisher.prototype.publish = vi.fn();
+  return { UserRegisteredPublisher };
+});
 
 beforeEach(async () => {
   await db.delete(users);
@@ -120,7 +128,7 @@ describe('AuthService', () => {
       expect(updatedUser).toBeDefined();
 
       const isNewPasswordCorrect = await Password.compare(
-        updatedUser!.passwordHash,
+        updatedUser!.passwordHash!,
         newPassword
       );
       expect(isNewPasswordCorrect).toBe(true);
@@ -151,6 +159,57 @@ describe('AuthService', () => {
           'any-new-password'
         )
       ).rejects.toThrow(new BadRequestError('User Not Found'));
+    });
+  });
+});
+
+describe('findOrCreateOauthUser()', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should return an existing user if one is found by email', async () => {
+    const existingUser = await UserRepository.create({
+      email: 'existing.user@example.com',
+      passwordHash: 'some-hash',
+    });
+
+    const oauthProfile = {
+      email: 'existing.user@example.com',
+      firstName: 'Existing',
+      lastName: 'User',
+    };
+
+    const result = await AuthService.findOrCreateOauthUser(oauthProfile);
+
+    expect(result.id).toBe(existingUser.id);
+    expect(result.email).toBe(existingUser.email);
+
+    expect(UserRegisteredPublisher.prototype.publish).not.toHaveBeenCalled();
+  });
+
+  it('should create a new user and publish an event if no user is found', async () => {
+    const oauthProfile = {
+      email: 'new.user@example.com',
+      firstName: 'New',
+      lastName: 'User',
+      avatarUrl: 'http://example.com/avatar.jpg',
+    };
+
+    const newUser = await AuthService.findOrCreateOauthUser(oauthProfile);
+
+    expect(newUser).toBeDefined();
+    expect(newUser.email).toBe(oauthProfile.email);
+    expect(newUser.isVerified).toBe(true);
+
+    expect(UserRegisteredPublisher.prototype.publish).toHaveBeenCalledTimes(1);
+
+    expect(UserRegisteredPublisher.prototype.publish).toHaveBeenCalledWith({
+      id: newUser.id,
+      email: oauthProfile.email,
+      firstName: oauthProfile.firstName,
+      lastName: oauthProfile.lastName,
+      avatarUrl: oauthProfile.avatarUrl,
     });
   });
 });
