@@ -243,7 +243,7 @@ export class AuthService {
    * @throws {UnauthenticatedError} If the current password is incorrect.
    * @throws {BadRequestError} If the user is not found.
    */
-  public static async updatePasssword(
+  public static async updatePassword(
     userId: string,
     currentPassword: string,
     newPassword: string

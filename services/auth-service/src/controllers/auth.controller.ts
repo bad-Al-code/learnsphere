@@ -232,7 +232,7 @@ export class AuthController {
         throw new UnauthenticatedError('Authentication required');
       }
 
-      await AuthService.updatePasssword(userId, currentPassword, newPassword);
+      await AuthService.updatePassword(userId, currentPassword, newPassword);
 
       res
         .status(StatusCodes.OK)

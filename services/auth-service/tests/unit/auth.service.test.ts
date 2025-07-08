@@ -110,7 +110,7 @@ describe('AuthService', () => {
     it('should update the password successfully with the correct current password', async () => {
       const newPassword = 'newPassword123';
 
-      await AuthService.updatePasssword(
+      await AuthService.updatePassword(
         testUser.id,
         testUser.password,
         newPassword
@@ -133,7 +133,7 @@ describe('AuthService', () => {
       const wrongCurrentPassword = 'wrong-password';
 
       await expect(() =>
-        AuthService.updatePasssword(
+        AuthService.updatePassword(
           testUser.id,
           wrongCurrentPassword,
           newPassword
@@ -145,7 +145,7 @@ describe('AuthService', () => {
       const nonExistentUserId = faker.string.uuid();
 
       await expect(() =>
-        AuthService.updatePasssword(
+        AuthService.updatePassword(
           nonExistentUserId,
           'any-password',
           'any-new-password'
