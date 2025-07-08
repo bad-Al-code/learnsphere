@@ -21,7 +21,7 @@ export const users = pgTable('users', {
     .primaryKey()
     .notNull(),
   email: text('email').notNull().unique(),
-  passwordHash: text('password_hash').notNull(),
+  passwordHash: text('password_hash'),
   role: userRoleEnum('role').default('student').notNull(),
   isVerified: boolean('is_verified').default(false).notNull(),
   verificationToken: text('verification_token'),

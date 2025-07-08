@@ -11,6 +11,7 @@ import { metricsRecorder } from './middlewares/metrics-recorder';
 import { metricsService } from './controllers/metrics-service';
 import { env } from './config/env';
 import { swaggerSpec } from './config/swagger';
+import passport from 'passport';
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.get('/metrics', async (req: Request, res: Response) => {
 });
 
 app.use(json());
+app.use(passport.initialize());
 app.use(helmet());
 app.use(httpLogger);
 app.use(cookieParser(env.COOKIE_PARSER_SECRET));

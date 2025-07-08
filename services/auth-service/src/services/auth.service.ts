@@ -1,3 +1,5 @@
+import crypto from 'node:crypto';
+
 import { User } from '../db/database.types';
 import logger from '../config/logger';
 import { BadRequestError, UnauthenticatedError } from '../errors';
@@ -6,6 +8,7 @@ import { Password } from '../utils/password';
 import { UserRepository } from '../db/user.repository';
 import { RequestContext } from '../types/service.types';
 import { AuditService } from './audit.service';
+import { UserRegisteredPublisher } from '../events/publisher';
 
 const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
 const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
@@ -93,7 +96,7 @@ export class AuthService {
 
     const existingUser = await this._findUserByEmail(email);
 
-    if (!existingUser) {
+    if (!existingUser || !existingUser.passwordHash) {
       logger.warn(`Login failed: User not found for email ${email}`);
 
       await AuditService.logEvent({
@@ -298,6 +301,12 @@ export class AuthService {
       throw new BadRequestError('User Not Found');
     }
 
+    if (!user.passwordHash) {
+      throw new BadRequestError(
+        'Cannot update password for an account created with a social provider.'
+      );
+    }
+
     const isPasswordCorrect = await Password.compare(
       user.passwordHash,
       currentPassword
@@ -321,5 +330,51 @@ export class AuthService {
       ipAddress: context.ipAddress,
       userAgent: context.userAgent,
     });
+  }
+
+  /**
+   * Finds an existing user by email or creates a new one for OAuth flows.
+   * If a new user is created, their password field is null, and they are marked as verified.
+   * @param email The email address provided ny tht OAuth Provier.
+   * @returns The found or newly created user
+   */
+  public static async findOrCreateOauthUser(email: string): Promise<User> {
+    const existingUser = await UserRepository.findByEmail(email);
+    if (existingUser) {
+      logger.info(`Found existing user during OAuth flow for email: ${email}`);
+
+      return existingUser;
+    }
+
+    logger.info(`Creating new user from OAuth provider for email: ${email}`);
+
+    const tempPassword = `oauth-${crypto.randomBytes(16).toString('hex')}`;
+    const passwordHash = await Password.toHash(tempPassword);
+
+    const newUserRecord = await UserRepository.create({
+      email,
+      passwordHash,
+      isVerified: true,
+    });
+
+    try {
+      const publisher = new UserRegisteredPublisher();
+      await publisher.publish({
+        id: newUserRecord.id,
+        email: newUserRecord.email,
+      });
+    } catch (error) {
+      logger.error('Failed to publish user.registered event for OAuth user', {
+        userId: newUserRecord.id,
+        error,
+      });
+    }
+
+    const fullUser = await UserRepository.findById(newUserRecord.id);
+    if (!fullUser) {
+      throw new Error('Failed to create OAuth user');
+    }
+
+    return fullUser;
   }
 }

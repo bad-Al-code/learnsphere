@@ -130,6 +130,34 @@ router.post('/refresh', AuthController.refresh);
 
 /**
  * @openapi
+ * /api/auth/google:
+ *   get:
+ *     summary: Initiate Google OAuth login
+ *     tags: [Authentication]
+ *     description: Redirects the user to Google's consent screen to start the login process.
+ *     responses:
+ *       '302':
+ *         description: Redirect to Google's authentication page.
+ */
+router.get('/google', AuthController.googleLogin);
+
+/**
+ * @openapi
+ * /api/auth/google/callback:
+ *   get:
+ *     summary: Google OAuth callback URL
+ *     tags: [Authentication]
+ *     description: The URL Google redirects to after user authentication. It handles user creation/login and sets session cookies. Should not be called directly by clients.
+ *     responses:
+ *       '200':
+ *         description: Authentication successful. Cookies are set.
+ *       '401':
+ *         description: Authentication failed.
+ */
+router.get('/google/callback', AuthController.googleCallback);
+
+/**
+ * @openapi
  * /api/auth/verify-email:
  *   post:
  *     summary: Verify a user's email address

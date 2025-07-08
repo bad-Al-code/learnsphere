@@ -25,6 +25,12 @@ const envSchema = z.object({
     .string()
     .min(32, 'COOKIE_PARSER_SECRET must be at least 32 characters long'),
   COOKIE_DOMAIN: z.string().optional(),
+
+  GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID is required'),
+  GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET is required'),
+  GOOGLE_CALLBACK_URL: z
+    .string()
+    .url('GOOGLE_CALLBACK_URL must be a valid URL'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

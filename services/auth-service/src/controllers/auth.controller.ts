@@ -17,6 +17,10 @@ import { env } from '../config/env';
 import { RequestContext } from '../types/service.types';
 import { AuditService } from '../services/audit.service';
 import { SessionService } from '../services/session.service';
+import passport from '../config/passport';
+import { User } from '../db/database.types';
+import { userInfo } from 'os';
+import { jaccardDistance } from 'drizzle-orm';
 
 export class AuthController {
   public static async signup(req: Request, res: Response, next: NextFunction) {
@@ -311,6 +315,51 @@ export class AuthController {
     } catch (error) {
       next(error);
     }
+  }
+
+  public static googleLogin = passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    session: false,
+  });
+
+  public static googleCallback(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    passport.authenticate(
+      'google',
+      { session: false },
+      (err: Error, user: User, _info: object) => {
+        if (err || !user) {
+          res
+            .status(StatusCodes.UNAUTHORIZED)
+            .json({ message: 'Google authentication failed.' });
+          return;
+        }
+
+        const context: RequestContext = {
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'],
+        };
+
+        const { jti } = sendTokenResponse(
+          res,
+          { id: user.id, email: user.email, role: user.role },
+          StatusCodes.OK
+        );
+
+        if (jti) {
+          AuditService.logEvent({
+            action: 'LOGIN_SUCCESS',
+            userId: user.id,
+            ...context,
+            details: { provider: 'google' },
+          });
+          SessionService.createSession(jti, user.id, context);
+        }
+      }
+    )(req, res, next);
   }
 
   public static testAuth(req: Request, res: Response, next: NextFunction) {
