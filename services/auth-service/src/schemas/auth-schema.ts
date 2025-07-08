@@ -116,6 +116,21 @@ import { z } from 'zod';
  *               field:
  *                 type: string
  *                 description: The field that caused the error (optional).
+ *     UpdatePassword:
+ *       type: object
+ *       required:
+ *         - currentPassword
+ *         - newPassword
+ *       properties:
+ *         currentPassword:
+ *           type: string
+ *           format: password
+ *           example: 'myOldPassword123'
+ *         newPassword:
+ *           type: string
+ *           format: password
+ *           description: The user's new password (min 8 characters).
+ *           example: 'myNewSecurePassword456'
  */
 
 export const signupSchema = z.object({
@@ -170,5 +185,17 @@ export const resetPasswordSchema = z.object({
       .string({ required_error: 'Password is required' })
       .min(8, 'Password must at least 8 characters long')
       .max(50, 'Password must be at most 50 characters long'),
+  }),
+});
+
+export const updatePasswordSchema = z.object({
+  body: z.object({
+    currentPassword: z.string({
+      required_error: 'Current password is required',
+    }),
+    newPassword: z
+      .string({ required_error: 'New Password is required' })
+      .min(8, 'New password must be at least 8 chracters long')
+      .max(50, 'New password must be at most 50 characters long'),
   }),
 });

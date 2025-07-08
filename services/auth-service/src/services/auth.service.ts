@@ -234,4 +234,42 @@ export class AuthService {
 
     return { user, verificationToken };
   }
+
+  /**
+   * Updates the password for an authenticated user.
+   * @param userId The ID of the user updating their password
+   * @param currentPassword The user's current plain-text password.
+   * @param newPassword The user's new plain-text password
+   * @throws {UnauthenticatedError} If the current password is incorrect.
+   * @throws {BadRequestError} If the user is not found.
+   */
+  public static async updatePasssword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> {
+    logger.debug(`Password update attempt for user ID: ${userId}`);
+
+    const user = await UserRepository.findById(userId);
+    if (!user) {
+      throw new BadRequestError('User Not Found');
+    }
+
+    const isPasswordCorrect = await Password.compare(
+      user.passwordHash,
+      currentPassword
+    );
+    if (!isPasswordCorrect) {
+      throw new UnauthenticatedError('Incorrect current password');
+    }
+
+    const newPasswordHash = await Password.toHash(newPassword);
+
+    await UserRepository.updateUser(user.id!, {
+      passwordHash: newPasswordHash,
+      passwordChangedAt: new Date(),
+    });
+
+    logger.info(`Password successfully updated for user ID: ${userId}`);
+  }
 }

@@ -17,6 +17,7 @@ import {
   resendVerificationSchema,
   resetPasswordSchema,
   signupSchema,
+  updatePasswordSchema,
   verifyEmailSchema,
 } from '../schemas/auth-schema';
 import { AuthController } from '../controllers/auth.controller';
@@ -237,6 +238,40 @@ router.post(
   '/reset-password',
   validateRequest(resetPasswordSchema),
   AuthController.resetPassword
+);
+
+/**
+ * @openapi
+ * /api/auth/update-password:
+ *   patch:
+ *     summary: Update the current user's password
+ *     tags: [Account Management]
+ *     description: Allows a logged-in user to change their own password.
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdatePassword'
+ *     responses:
+ *       '200':
+ *         description: Password updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericSuccess'
+ *       '401':
+ *         description: Authentication required or current password is incorrect.
+ *       '400':
+ *         description: Invalid input for new password.
+ */
+router.patch(
+  '/update-password',
+  requireAuth,
+  validateRequest(updatePasswordSchema),
+  AuthController.updatePassword
 );
 
 /**

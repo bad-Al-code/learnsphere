@@ -220,6 +220,28 @@ export class AuthController {
     }
   }
 
+  public static async updatePassword(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      const userId = req.currentUser?.dbUser.id;
+      if (!userId) {
+        throw new UnauthenticatedError('Authentication required');
+      }
+
+      await AuthService.updatePasssword(userId, currentPassword, newPassword);
+
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'Password updated successfvully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public static testAuth(req: Request, res: Response, next: NextFunction) {
     try {
       res.status(StatusCodes.OK).json({
