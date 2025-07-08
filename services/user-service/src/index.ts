@@ -8,6 +8,7 @@ import {
   UserRegisteredListener,
 } from "./events/listener";
 import { checkDatabaseConnection } from "./db";
+import { env } from "./config/env";
 
 const startServer = async () => {
   try {
@@ -17,10 +18,10 @@ const startServer = async () => {
     new UserRegisteredListener().listen();
     new UserAvatarProcessedListener().listen();
 
-    const PORT = process.env.PORT || 8001;
+    const PORT = env.PORT || 8001;
     app.listen(PORT, () => {
       logger.info(
-        `User service listening on port ${PORT} in ${process.env.NODE_ENV} mode`
+        `User service listening on port ${PORT} in ${env.NODE_ENV} mode`
       );
     });
 

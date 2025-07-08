@@ -7,6 +7,7 @@ import logger from "../config/logger";
 import axios, { AxiosError } from "axios";
 import { searchProfileSchema } from "../schemas/profile-schema";
 import { NotAuthorizedError } from "../errors";
+import { env } from "../config/env";
 
 export class ProfileController {
   public static async getMyProfile(
@@ -118,8 +119,7 @@ export class ProfileController {
       const { filename } = req.body;
       const userId = req.currentUser!.id;
 
-      const mediaServiceUrl =
-        process.env.MEDIA_SERVICE_URL || "http://localhost:8002";
+      const mediaServiceUrl = env.MEDIA_SERVICE_URL || "http://localhost:8002";
 
       logger.info(
         `Requesting upload URL from media-service for user: ${userId}`

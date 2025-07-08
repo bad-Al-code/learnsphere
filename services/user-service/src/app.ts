@@ -7,6 +7,7 @@ import { currentUser } from "./middlewares/current-user";
 import { errorHandler } from "./middlewares/error-handler";
 import helmet from "helmet";
 import { httpLogger } from "./middlewares/http-logger";
+import { env } from "./config/env";
 
 const app = express();
 
@@ -14,7 +15,7 @@ app.set("trust proxy", 1);
 app.use(json());
 app.use(helmet());
 app.use(httpLogger);
-app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
+app.use(cookieParser(env.COOKIE_PARSER_SECRET));
 app.use(currentUser);
 
 app.use("/api/users", healthRouter);
