@@ -2,7 +2,11 @@
  * @openapi
  * tags:
  *   name: Authentication
- *   description: User authentication and management
+ *   description: User authentication, registration, and session management.
+ *
+ * tags:
+ *   name: Account Management
+ *   description: Email verification and password management.
  */
 
 import { Router } from 'express';
@@ -36,23 +40,47 @@ const router = Router();
  *           schema:
  *             $ref: '#/components/schemas/UserSignup'
  *     responses:
- *       201:
- *         description: User created successfully. Returns user object and sets auth cookies.
+ *       '201':
+ *         description: User created successfully.
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Success
- *                 user:
- *                   $ref: '#/components/schemas/UserResponse'
- *       400:
+ *               $ref: '#/components/schemas/UserResponse'
+ *       '400':
  *         description: Invalid input or email already in use.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/signup', validateRequest(signupSchema), AuthController.signup);
 
+/**
+ * @openapi
+ * /api/auth/login:
+ *   post:
+ *     summary: Log in an existing user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserLogin'
+ *     responses:
+ *       '200':
+ *         description: User logged in successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserResponse'
+ *       '400':
+ *         description: Invalid credentials.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.post(
   '/login',
   apiLimiter,
@@ -60,16 +88,95 @@ router.post(
   AuthController.login
 );
 
+/**
+ * @openapi
+ * /api/auth/logout:
+ *   post:
+ *     summary: Log out the current user
+ *     tags: [Authentication]
+ *     description: Clears the authentication cookies. This endpoint requires a valid session to be active.
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: Logout successful.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericSuccess'
+ */
 router.post('/logout', AuthController.logout);
 
+/**
+ * @openapi
+ * /api/auth/refresh:
+ *   post:
+ *     summary: Refresh the access token
+ *     tags: [Authentication]
+ *     description: Uses the `refreshToken` cookie to issue a new `token` (access token).
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: Access token refreshed successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserResponse'
+ *       '401':
+ *         description: No refresh token provided or token is invalid/expired.
+ */
 router.post('/refresh', AuthController.refresh);
 
+/**
+ * @openapi
+ * /api/auth/verify-email:
+ *   post:
+ *     summary: Verify a user's email address
+ *     tags: [Account Management]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/VerifyEmail'
+ *     responses:
+ *       '200':
+ *         description: Email verified successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericSuccess'
+ *       '401':
+ *         description: Token is invalid or expired.
+ */
 router.post(
   '/verify-email',
   validateRequest(verifyEmailSchema),
   AuthController.verifyEmail
 );
 
+/**
+ * @openapi
+ * /api/auth/resend-verification:
+ *   post:
+ *     summary: Resend the verification email
+ *     tags: [Account Management]
+ *     description: Sends a new verification link to a user's email if their account is not yet verified. For security, it always returns a generic success message.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/EmailPayload'
+ *     responses:
+ *       '200':
+ *         description: A generic success message.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericSuccess'
+ */
 router.post(
   '/resend-verification',
   apiLimiter,
@@ -77,6 +184,27 @@ router.post(
   AuthController.resendVerificationEmail
 );
 
+/**
+ * @openapi
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Initiate the password reset process
+ *     tags: [Account Management]
+ *     description: Sends a password reset link to the user's email. For security, it always returns a generic success message.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/EmailPayload'
+ *     responses:
+ *       '200':
+ *         description: A generic success message.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericSuccess'
+ */
 router.post(
   '/forgot-password',
   apiLimiter,
@@ -84,12 +212,51 @@ router.post(
   AuthController.forgotPassword
 );
 
+/**
+ * @openapi
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Reset a user's password using a token
+ *     tags: [Account Management]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ResetPassword'
+ *     responses:
+ *       '200':
+ *         description: Password has been reset successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericSuccess'
+ *       '401':
+ *         description: Token is invalid or expired.
+ */
 router.post(
   '/reset-password',
   validateRequest(resetPasswordSchema),
   AuthController.resetPassword
 );
 
+/**
+ * @openapi
+ * /api/auth/test-auth:
+ *   get:
+ *     summary: Test authentication and role middleware
+ *     tags: [Authentication]
+ *     description: An example of a protected route that requires a valid session cookie and 'admin' role.
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: Access granted. Returns user and token info.
+ *       '401':
+ *         description: Unauthorized. Missing or invalid token.
+ *       '403':
+ *         description: Forbidden. User does not have the required role.
+ */
 router.get(
   '/test-auth',
   requireAuth,
