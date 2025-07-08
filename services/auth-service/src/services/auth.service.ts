@@ -4,6 +4,8 @@ import { BadRequestError, UnauthenticatedError } from '../errors';
 import { TokenUtil } from '../utils/crypto';
 import { Password } from '../utils/password';
 import { UserRepository } from '../db/user.repository';
+import { RequestContext } from '../types/service.types';
+import { AuditService } from './audit.service';
 
 const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
 const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
@@ -69,13 +71,24 @@ export class AuthService {
    * @returns The full user object if authentication is successful.
    * @throws {BadRequestError} If credentials are invalid.
    */
-  public static async login(email: string, password: string) {
+  public static async login(
+    email: string,
+    password: string,
+    context: RequestContext = {}
+  ) {
     logger.debug(`Login attempt for email: ${email}`);
 
     const existingUser = await this._findUserByEmail(email);
 
     if (!existingUser) {
       logger.warn(`Login failed: User not found for email ${email}`);
+
+      await AuditService.logEvent({
+        action: 'LOGIN_FAILURE',
+        ipAddress: context.ipAddress,
+        userAgent: context.userAgent,
+        details: { email, reason: 'User not found' },
+      });
 
       throw new BadRequestError('Invalid credentials');
     }
@@ -88,8 +101,23 @@ export class AuthService {
     if (!passwordMatch) {
       logger.warn(`Login failed: Invalid password for ${email}`);
 
+      await AuditService.logEvent({
+        action: 'LOGIN_FAILURE',
+        userId: existingUser.id,
+        ipAddress: context.ipAddress,
+        userAgent: context.userAgent,
+        details: { email, reason: 'Incorrect password' },
+      });
+
       throw new BadRequestError('Invalid credentials');
     }
+
+    await AuditService.logEvent({
+      action: 'LOGIN_SUCCESS',
+      userId: existingUser.id,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+    });
 
     return existingUser;
   }

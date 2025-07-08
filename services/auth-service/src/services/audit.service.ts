@@ -11,6 +11,9 @@ type LogEventData = {
 };
 
 export class AuditService {
+  /**
+   * @param eventData The data for the event to be logged.
+   */
   public static async logEvent(eventData: LogEventData): Promise<void> {
     try {
       await AuditRepository.create({

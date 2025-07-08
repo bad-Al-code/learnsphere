@@ -14,6 +14,7 @@ import logger from '../config/logger';
 import { UnauthenticatedError } from '../errors';
 import { UserPayload } from '../types/auth.types';
 import { env } from '../config/env';
+import { RequestContext } from '../types/service.types';
 
 export class AuthController {
   public static async signup(req: Request, res: Response, next: NextFunction) {
@@ -49,7 +50,13 @@ export class AuthController {
   public static async login(req: Request, res: Response, next: NextFunction) {
     try {
       const { email, password } = req.body;
-      const user = await AuthService.login(email, password);
+      const context: RequestContext = {
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      };
+
+      const user = await AuthService.login(email, password, context);
+
       sendTokenResponse(
         res,
         { id: user.id!, email: user.email, role: user.role },
