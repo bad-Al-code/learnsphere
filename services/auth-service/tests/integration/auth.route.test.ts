@@ -40,7 +40,10 @@ describe('Auth Routes - Integration Tests', () => {
       );
 
       const logs = await db.query.auditLogs.findMany({
-        where: eq(auditLogs.userId, response.body.user.id),
+        where: and(
+          eq(auditLogs.userId, response.body.user.id),
+          eq(auditLogs.action, 'SIGNUP_SUCCESS')
+        ),
       });
 
       expect(logs).toHaveLength(1);
@@ -119,7 +122,10 @@ describe('Auth Routes - Integration Tests', () => {
       expect(cookies.some((cookie) => cookie.startsWith('token='))).toBe(true);
 
       const logs = await db.query.auditLogs.findMany({
-        where: eq(auditLogs.userId, response.body.user.id),
+        where: and(
+          eq(auditLogs.userId, response.body.user.id),
+          eq(auditLogs.action, 'LOGIN_SUCCESS')
+        ),
       });
 
       expect(logs).toHaveLength(1);
