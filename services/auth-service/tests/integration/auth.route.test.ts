@@ -4,7 +4,8 @@ import { faker } from '@faker-js/faker';
 
 import { app } from '../../src/app';
 import { db } from '../../src/db';
-import { users } from '../../src/db/schema';
+import { auditLogs, users } from '../../src/db/schema';
+import { and, eq } from 'drizzle-orm';
 
 beforeEach(async () => {
   await db.delete(users);
@@ -37,6 +38,13 @@ describe('Auth Routes - Integration Tests', () => {
       expect(cookies.some((cookie) => cookie.startsWith('refreshToken='))).toBe(
         true
       );
+
+      const logs = await db.query.auditLogs.findMany({
+        where: eq(auditLogs.userId, response.body.user.id),
+      });
+
+      expect(logs).toHaveLength(1);
+      expect(logs[0].action).toBe('SIGNUP_SUCCESS');
     });
 
     it('should return 400 if email is already in use', async () => {
@@ -83,10 +91,14 @@ describe('Auth Routes - Integration Tests', () => {
       password: 'strong_password123',
     };
 
-    beforeEach(async () => {
-      await request(app).post('/api/auth/signup').send(testUser);
-    });
+    let createdUser: { id: string; email: string; role: string };
 
+    beforeEach(async () => {
+      const signupResponse = await request(app)
+        .post('/api/auth/signup')
+        .send(testUser);
+      createdUser = signupResponse.body.user;
+    });
     it('should log in a user with correct credentials, return 200, and set cookies', async () => {
       const response = await request(app)
         .post('/api/auth/login')
@@ -105,10 +117,18 @@ describe('Auth Routes - Integration Tests', () => {
       }
 
       expect(cookies.some((cookie) => cookie.startsWith('token='))).toBe(true);
+
+      const logs = await db.query.auditLogs.findMany({
+        where: eq(auditLogs.userId, response.body.user.id),
+      });
+
+      expect(logs).toHaveLength(1);
+      expect(logs[0].action).toBe('LOGIN_SUCCESS');
+      expect(logs[0].userId).toBe(response.body.user.id);
     });
 
     it('should return 400 for a correct email but incorrect password', async () => {
-      const response = await request(app)
+      await request(app)
         .post('/api/auth/login')
         .send({
           email: testUser.email,
@@ -116,7 +136,18 @@ describe('Auth Routes - Integration Tests', () => {
         })
         .expect(400);
 
-      expect(response.body.errors[0].message).toBe('Invalid credentials');
+      const logs = await db.query.auditLogs.findMany({
+        where: and(
+          eq(auditLogs.userId, createdUser.id),
+          eq(auditLogs.action, 'LOGIN_FAILURE')
+        ),
+      });
+
+      expect(logs).toHaveLength(1);
+      expect(logs[0].details).toEqual({
+        email: testUser.email,
+        reason: 'Incorrect password',
+      });
     });
   });
 
