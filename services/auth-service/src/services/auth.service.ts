@@ -29,10 +29,15 @@ export class AuthService {
    * Registers a new user.
    * @param email The new user's email.
    * @param password The new user's plain-text password.
+   * @param [context={}]
    * @returns An object containing the new user and their raw verification token.
    * @throws {BadRequestError} If the email is already in use.
    */
-  public static async signup(email: string, password: string) {
+  public static async signup(
+    email: string,
+    password: string,
+    context: RequestContext = {}
+  ) {
     logger.debug(`Checking if user exists with email: ${email}`);
 
     const existingUser = await this._findUserByEmail(email);
@@ -60,6 +65,14 @@ export class AuthService {
     const newUser = await UserRepository.create(newUserRecord);
 
     logger.info(`User created successfully with ID: ${newUser.id}`);
+
+    await AuditService.logEvent({
+      action: 'SIGNUP_SUCCESS',
+      userId: newUser.id,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      details: { email: newUser.email },
+    });
 
     return { user: newUser, verificationToken };
   }
@@ -268,13 +281,15 @@ export class AuthService {
    * @param userId The ID of the user updating their password
    * @param currentPassword The user's current plain-text password.
    * @param newPassword The user's new plain-text password
+   * @param [context={}]
    * @throws {UnauthenticatedError} If the current password is incorrect.
    * @throws {BadRequestError} If the user is not found.
    */
   public static async updatePassword(
     userId: string,
     currentPassword: string,
-    newPassword: string
+    newPassword: string,
+    context: RequestContext = {}
   ): Promise<void> {
     logger.debug(`Password update attempt for user ID: ${userId}`);
 
@@ -299,5 +314,12 @@ export class AuthService {
     });
 
     logger.info(`Password successfully updated for user ID: ${userId}`);
+
+    await AuditService.logEvent({
+      action: 'PASSWORD_UPDATE_SUCCESS',
+      userId: userId,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+    });
   }
 }

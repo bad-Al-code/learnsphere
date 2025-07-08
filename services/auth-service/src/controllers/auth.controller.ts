@@ -15,14 +15,21 @@ import { UnauthenticatedError } from '../errors';
 import { UserPayload } from '../types/auth.types';
 import { env } from '../config/env';
 import { RequestContext } from '../types/service.types';
+import { AuditService } from '../services/audit.service';
 
 export class AuthController {
   public static async signup(req: Request, res: Response, next: NextFunction) {
     try {
       const { email, password } = req.body;
+      const context: RequestContext = {
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      };
+
       const { user, verificationToken } = await AuthService.signup(
         email,
-        password
+        password,
+        context
       );
 
       const registeredPublisher = new UserRegisteredPublisher();
@@ -69,6 +76,16 @@ export class AuthController {
 
   public static async logout(req: Request, res: Response, _next: NextFunction) {
     try {
+      const userId = req.currentUser?.dbUser.id;
+      if (userId) {
+        AuditService.logEvent({
+          action: 'LOGOUT',
+          userId: userId,
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'],
+        });
+      }
+
       const accessToken = req.signedCookies.token;
       if (accessToken) {
         const decoded = jwt.decode(accessToken) as {
@@ -239,7 +256,17 @@ export class AuthController {
         throw new UnauthenticatedError('Authentication required');
       }
 
-      await AuthService.updatePassword(userId, currentPassword, newPassword);
+      const context: RequestContext = {
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      };
+
+      await AuthService.updatePassword(
+        userId,
+        currentPassword,
+        newPassword,
+        context
+      );
 
       res
         .status(StatusCodes.OK)
