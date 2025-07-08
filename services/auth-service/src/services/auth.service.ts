@@ -10,6 +10,8 @@ import { RequestContext } from '../types/service.types';
 import { AuditService } from './audit.service';
 import { UserRegisteredPublisher } from '../events/publisher';
 import { OauthProfile } from '../types/auth.types';
+import axios from 'axios';
+import { env } from '../config/env';
 
 const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
 const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
@@ -108,6 +110,36 @@ export class AuthService {
       });
 
       throw new BadRequestError('Invalid credentials');
+    }
+
+    try {
+      const userServiceUrl = env.USER_SERVICE_URL;
+      const response = await axios.get<{ status: string }>(
+        `${userServiceUrl}/api/users/${existingUser.id}`
+      );
+
+      if (response.data.status === 'suspended') {
+        logger.warn(`Login attempt by suspended user: ${existingUser.id}`);
+
+        await AuditService.logEvent({
+          action: 'LOGIN_FAILURE',
+          userId: existingUser.id,
+          ipAddress: context.ipAddress,
+          userAgent: context.userAgent,
+          details: { email, reason: 'Account suspended' },
+        });
+
+        throw new UnauthenticatedError('Your account has been suspended.');
+      }
+    } catch (error) {
+      logger.error(
+        'Failed to contact user-service to check user status during login',
+        { error }
+      );
+
+      throw new Error(
+        'Could not verify account status. Please try again later.'
+      );
     }
 
     const passwordMatch = await Password.compare(

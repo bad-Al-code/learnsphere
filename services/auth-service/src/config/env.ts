@@ -11,6 +11,8 @@ const envSchema = z.object({
   REDIS_URL: z.string().min(1, 'REDIS_URL is required'),
   RABBITMQ_URL: z.string().min(1, 'RABBITMQ_URL is required'),
 
+  USER_SERVICE_URL: z.string().min(1, 'USER_SERVICE_URL is requied'),
+
   JWT_SECRET: z
     .string()
     .min(32, 'JWT_SECRET must be at least 32 characters long'),

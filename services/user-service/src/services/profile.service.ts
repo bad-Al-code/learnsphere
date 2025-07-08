@@ -212,4 +212,29 @@ export class ProfileService {
 
     return updatedProfile!;
   }
+
+  /**
+   * [Admin] Suspends a user's account.
+   * A suspended user should not be able to log in.
+   * @param userId The ID of the user to suspend.
+   * @returns The updated profile.
+   */
+  public static async suspendUser(userId: string): Promise<Profile> {
+    const profile = await this.getPrivateProfileById(userId);
+
+    if (profile.status === 'suspended') {
+      return profile;
+    }
+
+    const updatedProfile = await ProfileRepository.update(userId, {
+      status: 'suspended',
+    });
+    if (!updatedProfile) {
+      throw new NotFoundError('Profile');
+    }
+
+    logger.warn(`User account ${userId} has been suspended by an admin.`);
+
+    return updatedProfile;
+  }
 }

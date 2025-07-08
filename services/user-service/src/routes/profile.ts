@@ -331,4 +331,35 @@ router.post(
   ProfileController.approveInstructor
 );
 
+/**
+ * @openapi
+ * /api/users/{id}/suspend:
+ *   post:
+ *     summary: "[Admin] Suspend a user's account"
+ *     tags: [Admin]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the user to suspend.
+ *     responses:
+ *       '200':
+ *         description: User suspended successfully.
+ *       '401':
+ *         description: Unauthorized.
+ *       '403':
+ *         description: Forbidden. Requester is not an admin.
+ */
+router.post(
+  '/:id/suspend',
+  requireAuth,
+  requireRole(['admin']),
+  ProfileController.suspendUser
+);
+
 export { router as profileRouter };

@@ -204,4 +204,22 @@ export class ProfileController {
       next(error);
     }
   }
+
+  public static async suspendUser(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id } = req.params;
+
+      await ProfileService.suspendUser(id);
+
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'User has been suspended successfully.' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
