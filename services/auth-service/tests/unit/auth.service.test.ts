@@ -116,11 +116,16 @@ describe('AuthService', () => {
         newPassword
       );
 
-      const loggedInUser = await AuthService.login(testUser.email, newPassword);
-      expect(loggedInUser.id).toBe(testUser.id);
+      const updatedUser = await UserRepository.findById(testUser.id);
+      expect(updatedUser).toBeDefined();
 
-      const dbUser = await UserRepository.findById(testUser.id);
-      expect(dbUser?.passwordChangedAt).not.toBeNull();
+      const isNewPasswordCorrect = await Password.compare(
+        updatedUser!.passwordHash,
+        newPassword
+      );
+      expect(isNewPasswordCorrect).toBe(true);
+
+      expect(updatedUser!.passwordChangedAt).not.toBeNull();
     });
 
     it('should throws an UnaunthenticatedError if the current password is incorrect', async () => {
@@ -145,7 +150,7 @@ describe('AuthService', () => {
           'any-password',
           'any-new-password'
         )
-      ).rejects.toThrow(new BadRequestError('User Not Found.'));
+      ).rejects.toThrow(new BadRequestError('User Not Found'));
     });
   });
 });

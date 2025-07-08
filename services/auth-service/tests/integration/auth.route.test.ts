@@ -176,7 +176,7 @@ describe('Auth Routes - Integration Tests', () => {
       await request(app)
         .patch('/api/auth/update-password')
         .set('Cookie', authCookies)
-        .send({ currentPassword: testUser.password, newPassword: newPassword })
+        .send({ currentPassword: 'wrong-password', newPassword: newPassword })
         .expect(401);
     });
   });
