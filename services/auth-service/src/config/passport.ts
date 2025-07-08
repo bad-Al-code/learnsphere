@@ -4,6 +4,7 @@ import { Strategy as GoogleStrategy, Profile } from 'passport-google-oauth20';
 import { env } from './env';
 import { AuthService } from '../services/auth.service';
 import { User } from '../db/database.types';
+import { OauthProfile } from '../types/auth.types';
 
 passport.use(
   new GoogleStrategy(
@@ -26,9 +27,14 @@ passport.use(
           );
         }
 
-        const user = await AuthService.findOrCreateOauthUser(
-          profile.emails[0].value
-        );
+        const userProfile: OauthProfile = {
+          email: profile.emails[0].value,
+          firstName: profile.name?.givenName,
+          lastName: profile.name?.familyName,
+          avatarUrl: profile.photos?.[0]?.value,
+        };
+
+        const user = await AuthService.findOrCreateOauthUser(userProfile);
 
         return done(null, user);
       } catch (error) {

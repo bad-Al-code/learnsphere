@@ -26,3 +26,10 @@ export interface AttachCookiesOptions {
   accessToken: boolean;
   refreshToken: boolean;
 }
+
+export interface OauthProfile {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  avatarUrl?: string;
+}

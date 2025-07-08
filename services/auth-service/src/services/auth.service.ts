@@ -9,6 +9,7 @@ import { UserRepository } from '../db/user.repository';
 import { RequestContext } from '../types/service.types';
 import { AuditService } from './audit.service';
 import { UserRegisteredPublisher } from '../events/publisher';
+import { OauthProfile } from '../types/auth.types';
 
 const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
 const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
@@ -338,7 +339,11 @@ export class AuthService {
    * @param email The email address provided ny tht OAuth Provier.
    * @returns The found or newly created user
    */
-  public static async findOrCreateOauthUser(email: string): Promise<User> {
+  public static async findOrCreateOauthUser(
+    profile: OauthProfile
+  ): Promise<User> {
+    const { email, firstName, lastName, avatarUrl } = profile;
+
     const existingUser = await UserRepository.findByEmail(email);
     if (existingUser) {
       logger.info(`Found existing user during OAuth flow for email: ${email}`);
@@ -362,6 +367,9 @@ export class AuthService {
       await publisher.publish({
         id: newUserRecord.id,
         email: newUserRecord.email,
+        firstName: firstName,
+        lastName: lastName,
+        avatarUrl: avatarUrl,
       });
     } catch (error) {
       logger.error('Failed to publish user.registered event for OAuth user', {
