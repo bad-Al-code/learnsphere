@@ -64,10 +64,17 @@ describe('Profile Routes - Integration Tests', () => {
 
 describe('Authentication Routes', async () => {
   describe('User Settings (/me/settings)', () => {
-    it('GET -> should return the default settings for a newly created user', async () => {
-      const userId = faker.string.uuid();
-      const authCookies = generateAuthCookie(userId);
+    let userId: string;
+    let authCookies: string;
 
+    beforeEach(async () => {
+      userId = faker.string.uuid();
+      await db.insert(profiles).values({ userId });
+
+      authCookies = generateAuthCookie(userId);
+    });
+
+    it('GET -> should return the default settings for a newly created user', async () => {
       const response = await request(app)
         .get('/api/users/me/settings')
         .set('Cookie', authCookies)
@@ -84,9 +91,6 @@ describe('Authentication Routes', async () => {
     });
 
     it("PUT -> should update the user's settings and return the new settings", async () => {
-      const userId = faker.string.uuid();
-      const authCookies = generateAuthCookie(userId);
-
       const newSettings = {
         theme: 'dark',
         language: 'fr',
@@ -106,9 +110,6 @@ describe('Authentication Routes', async () => {
     });
 
     it('PUT -> should perform a partial update without affecting other settings', async () => {
-      const userId = faker.string.uuid();
-      const authCookies = generateAuthCookie(userId);
-
       const partialUpdate = {
         theme: 'dark',
       };
