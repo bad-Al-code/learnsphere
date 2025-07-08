@@ -276,6 +276,51 @@ router.patch(
 
 /**
  * @openapi
+ * /api/auth/sessions:
+ *   get:
+ *     summary: Get all active sessions for the current user
+ *     tags: [Account Management]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: A list of active sessions.
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.get('/sessions', requireAuth, AuthController.getSessions);
+
+/**
+ * @openapi
+ * /api/auth/sessions/{sessionId}:
+ *   delete:
+ *     summary: Terminate a specific user session
+ *     tags: [Account Management]
+ *     description: Logs out a specific device/session by its ID.
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The JTI of the session to terminate.
+ *     responses:
+ *       '200':
+ *         description: Session terminated successfully.
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.delete(
+  '/sessions/:sessionId',
+  requireAuth,
+  AuthController.terminateSession
+);
+
+/**
+ * @openapi
  * /api/auth/test-auth:
  *   get:
  *     summary: Test authentication and role middleware

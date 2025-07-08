@@ -9,14 +9,17 @@ export const attachCookiesToResponse = (
   res: Response,
   user: UserPayload,
   options: AttachCookiesOptions
-) => {
+): { jti: string | null } => {
+  let jti: string | null = null;
+
   if (options.accessToken) {
+    jti = uuidv4();
     const accessToken = jwt.sign(
       {
         id: user.id,
         email: user.email,
         role: user.role,
-        jti: uuidv4(),
+        jti,
       },
       env.JWT_SECRET,
       { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] }
@@ -64,18 +67,20 @@ export const attachCookiesToResponse = (
 
     res.cookie('refreshToken', refreshToken, refreshTokenCookieOptions);
   }
+
+  return { jti };
 };
 
 export const sendTokenResponse = (
   res: Response,
   user: UserPayload,
   statusCode: number
-) => {
+): { jti: string | null } => {
   logger.info(
     `Attaching access and refresh tokens for user id ${user.id}  to a secure cookie`
   );
 
-  attachCookiesToResponse(res, user, {
+  const { jti } = attachCookiesToResponse(res, user, {
     accessToken: true,
     refreshToken: true,
   });
@@ -84,4 +89,6 @@ export const sendTokenResponse = (
     message: 'Success',
     user: { id: user.id, email: user.email, role: user.role },
   });
+
+  return { jti };
 };
