@@ -1,179 +1,111 @@
-import { eq, ilike, or, count, inArray } from "drizzle-orm";
 import logger from "../config/logger";
-import { db } from "../db";
-import { profiles } from "../db/schema";
 import { NotFoundError } from "../errors";
-
-interface NewProfileData {
-  userId: string;
-}
-
-interface UpdateProfileData {
-  firstName?: string;
-  lastName?: string;
-  bio?: string;
-  avatarUrls: {
-    small?: string;
-    medium?: string;
-    large?: string;
-  };
-}
+import {
+  ProfileRepository,
+  NewProfile,
+  UpdateProfile,
+  Profile,
+} from "../db/profile.repository";
 
 export class ProfileService {
-  public static async createProfile(data: NewProfileData) {
+  /**
+   * Creates a new user profile.
+   * @param data The data for the new profile.
+   * @returns The newly created profile.
+   */
+  public static async createProfile(data: NewProfile): Promise<Profile> {
     logger.info(`Creating a new profile for user ID: ${data.userId}`);
-
     try {
-      const newProfile = await db
-        .insert(profiles)
-        .values({
-          userId: data.userId,
-        })
-        .returning();
-
+      const newProfile = await ProfileRepository.create(data);
       logger.info(`Successfully created profile for user ID: ${data.userId}`);
-
-      return newProfile[0];
+      return newProfile;
     } catch (error) {
-      logger.error("Error creating profile in database", {
-        userId: data.userId,
-        error,
-      });
-
+      logger.error("Error creating profile", { userId: data.userId, error });
       throw error;
     }
   }
 
-  public static async getPrivateProfileById(userId: string) {
+  /**
+   * Retrieves the full private profile for a user.
+   * @param userId The ID of the user.
+   * @returns The full profile object.
+   * @throws {NotFoundError} If the profile is not found.
+   */
+  public static async getPrivateProfileById(userId: string): Promise<Profile> {
     logger.debug(`Fetching private profile for user ID: ${userId}`);
-    const profile = await db.query.profiles.findFirst({
-      where: eq(profiles.userId, userId),
-    });
-
+    const profile = await ProfileRepository.findPrivateById(userId);
     if (!profile) {
       throw new NotFoundError("Profile");
     }
-
     return profile;
   }
 
-  public static async getProfileById(userId: string) {
-    logger.debug(`Fetching public profile for user ID: ${userId}`);
-
-    const publicProfile = await db
-      .select({
-        userId: profiles.userId,
-        firstName: profiles.firstName,
-        lastName: profiles.lastName,
-        bio: profiles.bio,
-        avatarUrls: profiles.avatarUrls,
-        createdAt: profiles.createdAt,
-      })
-      .from(profiles)
-      .where(eq(profiles.userId, userId))
-      .limit(1);
-
-    if (publicProfile.length === 0) {
-      throw new NotFoundError("User Profile");
-    }
-
-    return publicProfile[0];
-  }
-
-  public static async updateProfile(userId: string, data: UpdateProfileData) {
-    logger.info(`Updating profile for user ID: ${userId}`, { data });
-
-    const updatedProfile = await db
-      .update(profiles)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(profiles.userId, userId))
-      .returning();
-
-    if (updatedProfile.length === 0) {
-      logger.warn(
-        `Attempted to update a profile that does not exist: ${userId}`
-      );
-      return null;
-    }
-
-    return updatedProfile[0];
-  }
-
+  /**
+   * Retrieves the public-safe profile for a user.
+   * @param userId The ID of the user.
+   * @returns A public profile object.
+   * @throws {NotFoundError} If the profile is not found.
+   */
   public static async getPublicProfileById(userId: string) {
     logger.debug(`Fetching public profile for user ID: ${userId}`);
-
-    const publicProfile = await db
-      .select({
-        userId: profiles.userId,
-        firstName: profiles.firstName,
-        lastName: profiles.lastName,
-        bio: profiles.bio,
-        createdAt: profiles.createdAt,
-        avatarUrls: profiles.avatarUrls,
-      })
-      .from(profiles)
-      .where(eq(profiles.userId, userId))
-      .limit(1);
-
-    if (publicProfile.length === 0) {
+    const publicProfile = await ProfileRepository.findPublicById(userId);
+    if (!publicProfile) {
       throw new NotFoundError("User Profile");
     }
-
-    return publicProfile[0];
+    return publicProfile;
   }
 
+  /**
+   * Retrieves multiple public profiles by their IDs.
+   * @param userIds An array of user IDs.
+   * @returns An array of public profile objects.
+   */
   public static async getPublicProfilesByIds(userIds: string[]) {
     logger.debug(
       `Fetching public profiles for ${userIds.length} users in bulk`
     );
-
-    const publicProfile = await db
-      .select({
-        userId: profiles.userId,
-        firstName: profiles.firstName,
-        lastName: profiles.lastName,
-        avatarUrls: profiles.avatarUrls,
-        headline: profiles.headline,
-      })
-      .from(profiles)
-      .where(inArray(profiles.userId, userIds));
-
-    return publicProfile;
+    return ProfileRepository.findPublicByIds(userIds);
   }
 
+  /**
+   * Updates a user's profile.
+   * @param userId The ID of the user whose profile is to be updated.
+   * @param data The data to update.
+   * @returns The updated profile object.
+   * @throws {NotFoundError} If the profile to update is not found.
+   */
+  public static async updateProfile(
+    userId: string,
+    data: UpdateProfile
+  ): Promise<Profile> {
+    logger.info(`Updating profile for user ID: ${userId}`, { data });
+    const updatedProfile = await ProfileRepository.update(userId, data);
+    if (!updatedProfile) {
+      logger.warn(
+        `Attempted to update a profile that does not exist: ${userId}`
+      );
+      throw new NotFoundError("Profile");
+    }
+    return updatedProfile;
+  }
+
+  /**
+   * Searches for user profiles.
+   * @param query The search term.
+   * @param page The page number for pagination.
+   * @param limit The number of results per page.
+   * @returns A paginated search result object.
+   */
   public static async searchProfiles(
     query: string = "",
     page: number,
     limit: number
   ) {
-    const offset = (page - 1) * limit;
-
-    const whereClause = query
-      ? or(
-          ilike(profiles.firstName, `%${query}%`),
-          ilike(profiles.lastName, `%${query}%`)
-        )
-      : undefined;
-
-    const totalResultQuery = db
-      .select({ value: count() })
-      .from(profiles)
-      .where(whereClause);
-
-    const resultQuery = db
-      .select({
-        userId: profiles.userId,
-        firstName: profiles.firstName,
-        lastName: profiles.lastName,
-        avatarUrls: profiles.avatarUrls,
-        headline: profiles.headline,
-      })
-      .from(profiles)
-      .where(whereClause)
-      .offset(offset);
-
-    const [total, results] = await Promise.all([totalResultQuery, resultQuery]);
-    const totalResults = total[0].value;
+    const { totalResults, results } = await ProfileRepository.search(
+      query,
+      page,
+      limit
+    );
     const totalPages = Math.ceil(totalResults / limit);
 
     return {
