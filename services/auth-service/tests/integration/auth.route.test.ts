@@ -131,4 +131,53 @@ describe('Auth Routes - Integration Tests', () => {
 
     expect(response.body.errors[0].message).toBe('Invalid credentials');
   });
+
+  describe('PATCH /api/auth/update-password', () => {
+    const testUser = {
+      email: faker.internet.email(),
+      password: faker.internet.password(),
+    };
+
+    const newPassword = 'newPassword123';
+    let authCookies: string[];
+
+    beforeEach(async () => {
+      await request(app).post('/api/auth/signup').send(testUser);
+
+      const loginResponse = await request(app)
+        .post('/api/auth/login')
+        .send(testUser);
+
+      const rawCookies = loginResponse.headers['set-cookie'];
+      authCookies = Array.isArray(rawCookies) ? rawCookies : [rawCookies];
+    });
+
+    it('should return 401 Unauthorized if no auth cookie is provided', async () => {
+      await request(app)
+        .patch('/api/auth/update-password')
+        .send({ currentPassword: testUser.password, newPassword: newPassword })
+        .expect(401);
+    });
+
+    it('should update the password and return 200 OK if the correct cookie and passsword are provided', async () => {
+      await request(app)
+        .patch('/api/auth/update-password')
+        .set('Cookie', authCookies)
+        .send({ currentPassword: testUser.password, newPassword: newPassword })
+        .expect(200);
+
+      await request(app)
+        .post('/api/auth/login')
+        .send({ email: testUser.email, password: newPassword })
+        .expect(200);
+    });
+
+    it('should return 401 Unauthorized if the current password is incorrect', async () => {
+      await request(app)
+        .patch('/api/auth/update-password')
+        .set('Cookie', authCookies)
+        .send({ currentPassword: testUser.password, newPassword: newPassword })
+        .expect(401);
+    });
+  });
 });

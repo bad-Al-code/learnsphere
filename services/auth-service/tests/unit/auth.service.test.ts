@@ -5,7 +5,7 @@ import { db } from '../../src/db';
 import { users } from '../../src/db/schema';
 import { AuthService } from '../../src/services/auth.service';
 import { UserRepository } from '../../src/db/user.repository';
-import { BadRequestError } from '../../src/errors';
+import { BadRequestError, UnauthenticatedError } from '../../src/errors';
 import { Password } from '../../src/utils/password';
 
 beforeEach(async () => {
@@ -86,6 +86,66 @@ describe('AuthService', () => {
       await expect(() =>
         AuthService.login(testUser.email, 'wrong_password')
       ).rejects.toThrow(new BadRequestError('Invalid credentials'));
+    });
+  });
+
+  describe('updatePassword', () => {
+    let testUser: {
+      id: string;
+      email: string;
+      password: string;
+    };
+
+    beforeEach(async () => {
+      const password = faker.internet.password();
+      const passwordHash = await Password.toHash(password);
+      const created = await UserRepository.create({
+        email: faker.internet.email(),
+        passwordHash,
+      });
+
+      testUser = { ...created, password };
+    });
+
+    it('should update the password successfully with the correct current password', async () => {
+      const newPassword = 'newPassword123';
+
+      await AuthService.updatePasssword(
+        testUser.id,
+        testUser.password,
+        newPassword
+      );
+
+      const loggedInUser = await AuthService.login(testUser.email, newPassword);
+      expect(loggedInUser.id).toBe(testUser.id);
+
+      const dbUser = await UserRepository.findById(testUser.id);
+      expect(dbUser?.passwordChangedAt).not.toBeNull();
+    });
+
+    it('should throws an UnaunthenticatedError if the current password is incorrect', async () => {
+      const newPassword = 'newPassword123';
+      const wrongCurrentPassword = 'wrong-password';
+
+      await expect(() =>
+        AuthService.updatePasssword(
+          testUser.id,
+          wrongCurrentPassword,
+          newPassword
+        )
+      ).rejects.toThrow(new UnauthenticatedError('Incorrect current password'));
+    });
+
+    it('should throws a BadRequestError if the user ID does not exist', async () => {
+      const nonExistentUserId = faker.string.uuid();
+
+      await expect(() =>
+        AuthService.updatePasssword(
+          nonExistentUserId,
+          'any-password',
+          'any-new-password'
+        )
+      ).rejects.toThrow(new BadRequestError('User Not Found.'));
     });
   });
 });
