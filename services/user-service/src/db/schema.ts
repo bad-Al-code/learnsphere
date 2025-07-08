@@ -1,4 +1,11 @@
-import { pgTable, text, timestamp, varchar, jsonb } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  text,
+  timestamp,
+  varchar,
+  jsonb,
+  pgEnum,
+} from 'drizzle-orm/pg-core';
 
 export type UserSettings = {
   theme: 'light' | 'dark';
@@ -8,6 +15,12 @@ export type UserSettings = {
     weeklyNewsletter: boolean;
   };
 };
+
+export const userStatusEnum = pgEnum('user_status', [
+  'active',
+  'pending_instructor_review',
+  'suspended',
+]);
 
 export const profiles = pgTable('profiles', {
   userId: text('user_id').primaryKey(),
@@ -26,6 +39,8 @@ export const profiles = pgTable('profiles', {
     linkedin?: string;
     github?: string;
   }>(),
+
+  status: userStatusEnum('status').default('active').notNull(),
 
   settings: jsonb('settings')
     .$type<UserSettings>()
