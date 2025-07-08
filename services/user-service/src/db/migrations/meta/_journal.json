@@ -8,6 +8,13 @@
       "when": 1749881469590,
       "tag": "0000_strong_blue_shield",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1752006830230,
+      "tag": "0001_daily_scarecrow",
+      "breakpoints": true
     }
   ]
 }

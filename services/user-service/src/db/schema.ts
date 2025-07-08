@@ -1,5 +1,14 @@
 import { pgTable, text, timestamp, varchar, jsonb } from 'drizzle-orm/pg-core';
 
+export type UserSettings = {
+  theme: 'light' | 'dark';
+  language: 'en' | 'es' | 'fr';
+  notifications: {
+    newCourseAlerts: boolean;
+    weeklyNewsletter: boolean;
+  };
+};
+
 export const profiles = pgTable('profiles', {
   userId: text('user_id').primaryKey(),
   firstName: varchar('first_name', { length: 50 }),
@@ -17,6 +26,18 @@ export const profiles = pgTable('profiles', {
     linkedin?: string;
     github?: string;
   }>(),
+
+  settings: jsonb('settings')
+    .$type<UserSettings>()
+    .default({
+      theme: 'light',
+      language: 'en',
+      notifications: {
+        newCourseAlerts: true,
+        weeklyNewsletter: false,
+      },
+    })
+    .notNull(),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

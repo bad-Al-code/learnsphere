@@ -1,0 +1,1 @@
+ALTER TABLE "profiles" ADD COLUMN "settings" jsonb DEFAULT '{"theme":"light","language":"en","notifications":{"newCourseAlerts":true,"weeklyNewsletter":false}}'::jsonb NOT NULL;
