@@ -5,7 +5,7 @@ import { ProfileService } from '../services/profile.service';
 
 interface Event {
   topic: string;
-  data: any;
+  data: unknown;
 }
 
 export abstract class Listener<T extends Event> {
@@ -62,12 +62,12 @@ interface UserRegisteredEvent extends Event {
 }
 
 export class UserRegisteredListener extends Listener<UserRegisteredEvent> {
-  topic: 'user.registered' = 'user.registered';
+  readonly topic: 'user.registered' = 'user.registered' as const;
   queueGroupName: string = 'user-service';
 
   async onMessage(
     data: UserRegisteredEvent['data'],
-    msg: ConsumeMessage
+    _msg: ConsumeMessage
   ): Promise<void> {
     logger.info(`Event data received for topic [${this.topic}]: %o`, data);
 
@@ -92,7 +92,7 @@ interface UserAvatarProcessedEvent extends Event {
 }
 
 export class UserAvatarProcessedListener extends Listener<UserAvatarProcessedEvent> {
-  topic: 'user.avatar.processed' = 'user.avatar.processed';
+  readonly topic: 'user.avatar.processed' = 'user.avatar.processed' as const;
   queueGroupName: string = 'user-service-avatar';
 
   async onMessage(
@@ -100,7 +100,7 @@ export class UserAvatarProcessedListener extends Listener<UserAvatarProcessedEve
       userId: string;
       avatarUrls: { small?: string; medium?: string; large?: string };
     },
-    msg: ConsumeMessage
+    _msg: ConsumeMessage
   ): Promise<void> {
     logger.info(`Avatar processed event received for user: ${data.userId}`);
 

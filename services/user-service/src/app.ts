@@ -1,7 +1,6 @@
 import express, { json } from 'express';
 import cookieParser from 'cookie-parser';
 
-import logger from './config/logger';
 import { healthRouter, profileRouter } from './routes';
 import { currentUser } from './middlewares/current-user';
 import { errorHandler } from './middlewares/error-handler';
