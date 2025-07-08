@@ -1,5 +1,58 @@
 import { z } from 'zod';
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ProfileResponse:
+ *       type: object
+ *       properties:
+ *         userId:
+ *           type: string
+ *           format: uuid
+ *         firstName:
+ *           type: string
+ *           nullable: true
+ *         lastName:
+ *           type: string
+ *           nullable: true
+ *         bio:
+ *           type: string
+ *           nullable: true
+ *         headline:
+ *           type: string
+ *           nullable: true
+ *         avatarUrls:
+ *           type: object
+ *           properties:
+ *             small:
+ *               type: string
+ *             medium:
+ *               type: string
+ *             large:
+ *               type: string
+ *     UpdateProfilePayload:
+ *       type: object
+ *       properties:
+ *         firstName:
+ *           type: string
+ *           example: 'John'
+ *         lastName:
+ *           type: string
+ *           example: 'Doe'
+ *         bio:
+ *           type: string
+ *           example: 'Software developer and lifelong learner.'
+ *         headline:
+ *           type: string
+ *           example: 'Building the future, one line of code at a time.'
+ *   securitySchemes:
+ *      cookieAuth:
+ *        type: apiKey
+ *        in: cookie
+ *        name: token
+ */
+
 export const updateProfileSchema = z.object({
   body: z.object({
     firstName: z.string().min(1).max(50).optional(),
