@@ -7,7 +7,6 @@ import { env } from '../../src/config/env';
 import { app } from '../../src/app';
 import { db } from '../../src/db';
 import { profiles } from '../../src/db/schema';
-import { desc } from 'drizzle-orm';
 
 const generateAuthCookie = (
   userId: string,
