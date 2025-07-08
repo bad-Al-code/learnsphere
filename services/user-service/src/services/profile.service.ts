@@ -79,13 +79,16 @@ export class ProfileService {
     data: UpdateProfile
   ): Promise<Profile> {
     logger.info(`Updating profile for user ID: ${userId}`, { data });
+
     const updatedProfile = await ProfileRepository.update(userId, data);
     if (!updatedProfile) {
       logger.warn(
         `Attempted to update a profile that does not exist: ${userId}`
       );
+
       throw new NotFoundError('Profile');
     }
+
     return updatedProfile;
   }
 

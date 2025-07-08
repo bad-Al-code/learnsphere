@@ -104,8 +104,17 @@ export class UserAvatarProcessedListener extends Listener<UserAvatarProcessedEve
   ): Promise<void> {
     logger.info(`Avatar processed event received for user: ${data.userId}`);
 
-    await ProfileService.updateProfile(data.userId, {
-      avatarUrls: data.avatarUrls,
-    });
+    try {
+      await ProfileService.updateProfile(data.userId, {
+        avatarUrls: data.avatarUrls,
+      });
+
+      logger.info(`Successfully updated avatar for user: ${data.userId}`);
+    } catch (error) {
+      logger.error(`Failed to process user.avatar.processed event`, {
+        userId: data.userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 }
