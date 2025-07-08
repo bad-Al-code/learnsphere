@@ -1,6 +1,6 @@
 # LearnSphere - Auth Service
 
-This service is responsible for all authentication and user account management within the LearnSphere platform. It handles user registration, login, session management via secure cookies, password resets, and email verification.
+This service is responsible for all authentication and user account management within the LearnSphere platform. It handles user registration, login, session management via secure cookies, password resets, email verification, and provides a comprehensive audit trail for security events.
 
 ## Features
 
@@ -8,9 +8,11 @@ This service is responsible for all authentication and user account management w
 - **Session Management**: Use JWT (Json Web Tokens) stored in `httpOnly`, secure cookies.
 - **Token Refresh**: Implement a refresh token mechanism for persistent sessions.
 - **Account Management**: Full flows for email verification, password reset, and resending verification links.
+- **Security**: Includes rate limiting on sensitive endpoints and a detailed audit log for all critical actions.
 - **Role-Based Access Control (RBAC)**: Middleware to protect routes based on users roles (student, instructor, admin).
 - **API Documentation**: Interactive API documentation available by Swagger/OpenAPI.
 - **Comprehensive Testing**: Includes unit, integration, and E2E tests.
+- **Code Quality**: Enforced by ESLint for error checking and Prettier for consistent formatting.
 
 ---
 
