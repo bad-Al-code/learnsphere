@@ -162,6 +162,28 @@ router.put(
 
 /**
  * @openapi
+ * /api/users/me/apply-for-instructor:
+ *   post:
+ *     summary: Submit an application to become an instructor
+ *     tags: [My Profile]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: Application submitted successfully.
+ *       '401':
+ *         description: Unauthorized.
+ *       '400':
+ *         description: User already has a pending application or is already an instructor.
+ */
+router.post(
+  '/me/apply-for-instructor',
+  requireAuth,
+  ProfileController.applyForInstructor
+);
+
+/**
+ * @openapi
  * /api/users/search:
  *   get:
  *     summary: Search for user profiles
@@ -274,6 +296,39 @@ router.put(
   requireRole(['admin']),
   validateRequest(updateProfileSchema),
   ProfileController.updateUserProfileById
+);
+
+/**
+ * @openapi
+ * /api/users/{id}/approve-instructor:
+ *   post:
+ *     summary: "[Admin] Approve a user's instructor application"
+ *     tags: [Admin]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the user whose application is being approved.
+ *     responses:
+ *       '200':
+ *         description: The user's profile, now with an updated role.
+ *       '401':
+ *         description: Unauthorized.
+ *       '403':
+ *         description: Forbidden. Requester is not an admin.
+ *       '400':
+ *         description: User did not have a pending application.
+ */
+router.post(
+  '/:id/approve-instructor',
+  requireAuth,
+  requireRole(['admin']),
+  ProfileController.approveInstructor
 );
 
 export { router as profileRouter };

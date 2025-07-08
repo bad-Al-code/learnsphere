@@ -1,5 +1,5 @@
 import logger from '../config/logger';
-import { NotFoundError } from '../errors';
+import { BadRequestError, NotFoundError } from '../errors';
 import {
   ProfileRepository,
   NewProfile,
@@ -7,6 +7,7 @@ import {
   Profile,
 } from '../db/profile.repository';
 import { UserSettings } from '../db/schema';
+import { UserRoleUpdatedPublisher } from '../events/publisher';
 
 export class ProfileService {
   /**
@@ -161,5 +162,54 @@ export class ProfileService {
     }
 
     return updatedProfile!.settings;
+  }
+
+  /**
+   * Allows a user to submit an application to become an instructor.
+   * @param userId The ID of user applying.
+   @throws { BadRequestError} If the user is already an instructor or has a pending application
+   */
+  public static async applyForInstructor(userId: string): Promise<void> {
+    const profile = await this.getPrivateProfileById(userId);
+
+    if (profile.status === 'pending_instructor_review') {
+      throw new BadRequestError(`You already have a pending application.`);
+    }
+
+    await ProfileRepository.update(userId, {
+      status: 'pending_instructor_review',
+    });
+    logger.info(`User ${userId} has applied to become an instructor`);
+  }
+
+  /**
+   * [Admin] Approves a user's application to become an instructor.
+   * @param userId The ID of the user to approve.
+   * @returns The updated profile.
+   * @throws { BadRequestError } If the user did not have a pending application.
+   */
+  public static async approveInstructor(userId: string): Promise<Profile> {
+    const profile = await this.getPrivateProfileById(userId);
+
+    if (profile.status !== 'pending_instructor_review') {
+      throw new BadRequestError(
+        'User does not have a pending instructor application'
+      );
+    }
+
+    const updatedProfile = await ProfileRepository.update(userId, {
+      status: 'active',
+    });
+    if (!this.updateProfile) {
+      throw new NotFoundError('Profile');
+    }
+
+    const publisher = new UserRoleUpdatedPublisher();
+    await publisher.publish({
+      userId: userId,
+      newRole: 'instructor',
+    });
+
+    return updatedProfile!;
   }
 }

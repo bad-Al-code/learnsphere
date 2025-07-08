@@ -172,4 +172,36 @@ export class ProfileController {
       next(error);
     }
   }
+
+  public static async applyForInstructor(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userId = req.currentUser!.id;
+
+      await ProfileService.applyForInstructor(userId);
+
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'Your application has been submitted for review.' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async approveInstructor(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id } = req.params;
+      const updatedProfile = await ProfileService.approveInstructor(id);
+      res.status(StatusCodes.OK).json(updatedProfile);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
