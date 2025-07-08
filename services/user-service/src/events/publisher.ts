@@ -2,7 +2,7 @@ import { rabbitMQConnection } from './connection';
 
 import logger from '../config/logger';
 
-export abstract class Publisher<T extends { topic: string; data: object }> {
+export abstract class Publisher<T extends { topic: string; data: unknown }> {
   abstract topic: T['topic'];
   protected exchange = 'learnsphere';
   protected exchangeType = 'topic';
@@ -12,10 +12,13 @@ export abstract class Publisher<T extends { topic: string; data: object }> {
     await channel.assertExchange(this.exchange, this.exchangeType, {
       durable: true,
     });
+
     const message = JSON.stringify(data);
+
     channel.publish(this.exchange, this.topic, Buffer.from(message));
+
     logger.info(
-      `Event published to exchange '${this.exchange}' with topic '${this.topic}'`,
+      `Event published to exchange '${this.exchange}' with topic '${this.topic}': %o`,
       data
     );
   }
