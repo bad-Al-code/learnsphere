@@ -1,7 +1,7 @@
 import { ConsumeMessage } from "amqplib";
 import logger from "../config/logger";
 import { rabbitMQConnection } from "./connection";
-import { ProfileService } from "../services/profile-service";
+import { ProfileService } from "../services/profile.service";
 
 interface Event {
   topic: string;

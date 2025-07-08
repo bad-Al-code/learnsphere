@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { requireAuth } from "../middlewares/require-auth";
-import { ProfileService } from "../services/profile-service";
+import { ProfileService } from "../services/profile.service";
 import { StatusCodes } from "http-status-codes";
 import { validateRequest } from "../middlewares/validate-request";
 import {
