@@ -25,7 +25,8 @@ export const currentUser = (
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.signedCookies.token;
+  const token =
+    env.NODE_ENV === "test" ? req.cookies.token : req.signedCookies.token;
 
   if (!token) {
     if (!ignorePath.includes(req.path)) {
