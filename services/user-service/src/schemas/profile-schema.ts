@@ -10,27 +10,36 @@ import { z } from 'zod';
  *         userId:
  *           type: string
  *           format: uuid
+ *           example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef'
  *         firstName:
  *           type: string
  *           nullable: true
+ *           example: 'John'
  *         lastName:
  *           type: string
  *           nullable: true
+ *           example: 'Doe'
  *         bio:
  *           type: string
  *           nullable: true
+ *           example: 'Software developer and lifelong learner.'
  *         headline:
  *           type: string
  *           nullable: true
+ *           example: 'Building the future, one line of code at a time.'
  *         avatarUrls:
  *           type: object
+ *           nullable: true
  *           properties:
  *             small:
  *               type: string
+ *               format: url
  *             medium:
  *               type: string
+ *               format: url
  *             large:
  *               type: string
+ *               format: url
  *     UpdateProfilePayload:
  *       type: object
  *       properties:
@@ -46,6 +55,34 @@ import { z } from 'zod';
  *         headline:
  *           type: string
  *           example: 'Building the future, one line of code at a time.'
+ *     AvatarUploadUrlRequest:
+ *       type: object
+ *       required:
+ *         - filename
+ *       properties:
+ *         filename:
+ *           type: string
+ *           example: 'my-avatar.jpg'
+ *     AvatarUploadUrlResponse:
+ *       type: object
+ *       properties:
+ *         uploadUrl:
+ *           type: string
+ *           format: url
+ *           description: The presigned URL to which the client should upload the file.
+ *         key:
+ *           type: string
+ *           description: The object key for the uploaded file in the storage bucket.
+ *     BulkUserRequest:
+ *       type: object
+ *       required:
+ *         - userIds
+ *       properties:
+ *         userIds:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
  *   securitySchemes:
  *      cookieAuth:
  *        type: apiKey
