@@ -20,7 +20,7 @@ function createLimiter(): RateLimitRequestHandler {
 
   limiterInstance = rateLimit({
     windowMs: 15 * 60 * 1000, // 15min
-    max: 200,
+    max: 20,
     standardHeaders: true,
     legacyHeaders: false,
     store: store,
