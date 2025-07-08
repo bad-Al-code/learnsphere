@@ -1,12 +1,11 @@
 /**
  * @openapi
  * tags:
- *   name: Authentication
- *   description: User authentication, registration, and session management.
+ *   - name: Authentication
+ *     description: User authentication, registration, and session management.
  *
- * tags:
- *   name: Account Management
- *   description: Email verification and password management.
+ *   - name: Account Management
+ *     description: Email verification and password management.
  */
 
 import { Router } from 'express';
