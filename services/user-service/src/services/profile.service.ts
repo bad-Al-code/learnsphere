@@ -6,6 +6,7 @@ import {
   UpdateProfile,
   Profile,
 } from '../db/profile.repository';
+import { UserSettings } from '../db/schema';
 
 export class ProfileService {
   /**
@@ -120,5 +121,45 @@ export class ProfileService {
         limit,
       },
     };
+  }
+
+  /**
+   * Retrieves just the settings for a given user.
+   * @param userId The ID of the user
+   * @returns The user's settings object
+   * @throws { NotFoundError } If the profile is not found.
+   */
+  public static async getSettings(userId: string): Promise<UserSettings> {
+    const profile = await ProfileRepository.findPrivateById(userId);
+    if (!profile) {
+      throw new NotFoundError('Profile');
+    }
+
+    return profile.settings;
+  }
+
+  /**
+   * Updates the settings for a given user.
+   * @param userId The ID of the user.
+   * @param newSettings The new settings object to apply.
+   * @returns The updated settings object.
+   * @throws {NotFoundError} If the profile is not found.
+   */
+  public static async updateSettings(
+    userId: string,
+    newSettings: Partial<UserSettings>
+  ): Promise<UserSettings> {
+    const currentSettings = await this.getSettings(userId);
+    const mergedSettings = { ...currentSettings, ...newSettings };
+
+    const updatedProfile = await ProfileRepository.updateSettins(
+      userId,
+      mergedSettings
+    );
+    if (!this.updateProfile) {
+      throw new NotFoundError('Profile');
+    }
+
+    return updatedProfile!.settings;
   }
 }

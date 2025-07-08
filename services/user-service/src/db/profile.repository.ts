@@ -1,7 +1,7 @@
 import { count, eq, ilike, inArray, or } from 'drizzle-orm';
 
 import { db } from '.';
-import { profiles } from './schema';
+import { profiles, UserSettings } from './schema';
 
 export type Profile = typeof profiles.$inferSelect;
 export type NewProfile = typeof profiles.$inferInsert;
@@ -132,5 +132,24 @@ export class ProfileRepository {
     ]);
 
     return { totalResults, results };
+  }
+
+  /**
+   * Updates only the settings for a user.
+   * @param userId The ID of the user.
+   * @param settings The new settings object
+   * @returns The full updated profile.
+   */
+  public static async updateSettins(
+    userId: string,
+    settings: UserSettings
+  ): Promise<Profile | null> {
+    const [updateProfile] = await db
+      .update(profiles)
+      .set({ settings, updatedAt: new Date() })
+      .where(eq(profiles.userId, userId))
+      .returning();
+
+    return updateProfile || null;
   }
 }

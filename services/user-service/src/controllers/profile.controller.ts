@@ -137,4 +137,39 @@ export class ProfileController {
       next(new Error(`Could not create upload URL.`));
     }
   }
+
+  public static async getMySettings(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userId = req.currentUser!.id;
+
+      const settings = await ProfileService.getSettings(userId);
+
+      res.status(StatusCodes.OK).json(settings);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async updateMySettings(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userId = req.currentUser!.id;
+
+      const updatedSettings = await ProfileService.updateSettings(
+        userId,
+        req.body
+      );
+
+      res.status(StatusCodes.OK).json(updatedSettings);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

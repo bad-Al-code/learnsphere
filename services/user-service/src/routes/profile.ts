@@ -19,6 +19,7 @@ import {
   bulkUsersSchema,
   searchProfileSchema,
   updateProfileSchema,
+  updateSettingsSchema,
 } from '../schemas/profile-schema';
 import { ProfileController } from '../controllers/profile.controller';
 
@@ -106,6 +107,57 @@ router.post(
   requireAuth,
   validateRequest(avatarUploadUrlSchema),
   ProfileController.getAvatarUploadUrl
+);
+
+/**
+ * @openapi
+ * /api/users/me/settings:
+ *   get:
+ *     summary: Get the current user's application settings
+ *     tags: [My Profile]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: The user's settings object.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserSettings'
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.get('/me/settings', requireAuth, ProfileController.getMySettings);
+
+/**
+ * @openapi
+ * /api/users/me/settings:
+ *   put:
+ *     summary: Update the current user's application settings
+ *     tags: [My Profile]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserSettings'
+ *     responses:
+ *       '200':
+ *         description: The updated settings object.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserSettings'
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.put(
+  '/me/settings',
+  requireAuth,
+  validateRequest(updateSettingsSchema),
+  ProfileController.updateMySettings
 );
 
 /**

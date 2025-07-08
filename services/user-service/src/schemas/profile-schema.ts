@@ -83,6 +83,22 @@ import { z } from 'zod';
  *           items:
  *             type: string
  *             format: uuid
+ *     UserSettings:
+ *       type: object
+ *       properties:
+ *         theme:
+ *           type: string
+ *           enum: [light, dark]
+ *         language:
+ *           type: string
+ *           enum: [en, es, fr]
+ *         notifications:
+ *           type: object
+ *           properties:
+ *             newCourseAlerts:
+ *               type: boolean
+ *             weeklyNewsletter:
+ *               type: boolean
  *   securitySchemes:
  *      cookieAuth:
  *        type: apiKey
@@ -130,4 +146,19 @@ export const bulkUsersSchema = z.object({
   body: z.object({
     userIds: z.array(z.string().uuid()).nonempty(),
   }),
+});
+
+export const updateSettingsSchema = z.object({
+  body: z
+    .object({
+      theme: z.enum(['light', 'dark']).optional(),
+      language: z.enum(['en', 'es', 'fr']).optional(),
+      Notification: z
+        .object({
+          newCourseAlerts: z.boolean().optional(),
+          weeklyNewsletter: z.boolean().optional(),
+        })
+        .optional(),
+    })
+    .partial(),
 });
