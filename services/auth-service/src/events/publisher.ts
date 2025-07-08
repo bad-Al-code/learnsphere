@@ -1,7 +1,7 @@
 import logger from '../config/logger';
 import { rabbitMQConnection } from './connection';
 
-export abstract class Publisher<T extends { topic: string; data: any }> {
+export abstract class Publisher<T extends { topic: string; data: unknown }> {
   abstract topic: T['topic'];
   protected exchange = 'learnsphere';
   protected exchangeType = 'topic';
@@ -32,7 +32,7 @@ interface UserRegisteredEvent {
 }
 
 export class UserRegisteredPublisher extends Publisher<UserRegisteredEvent> {
-  topic: 'user.registered' = 'user.registered';
+  readonly topic: 'user.registered' = 'user.registered' as const;
 }
 
 interface UserVerificationRequiredEvent {
@@ -44,7 +44,8 @@ interface UserVerificationRequiredEvent {
 }
 
 export class UserVerificationRequiredPublisher extends Publisher<UserVerificationRequiredEvent> {
-  topic: 'user.verification.required' = 'user.verification.required';
+  readonly topic: 'user.verification.required' =
+    'user.verification.required' as const;
 }
 
 interface UserPasswordResetRequiredEvent {
@@ -56,5 +57,6 @@ interface UserPasswordResetRequiredEvent {
 }
 
 export class UserPasswordResetRequiredPublisher extends Publisher<UserPasswordResetRequiredEvent> {
-  topic: 'user.password_reset.required' = 'user.password_reset.required';
+  readonly topic: 'user.password_reset.required' =
+    'user.password_reset.required' as const;
 }

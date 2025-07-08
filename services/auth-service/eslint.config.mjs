@@ -27,6 +27,12 @@ export default tseslint.config(
           caughtErrorsIgnorePattern: '^_',
         },
       ],
+      '@typescript-eslint/no-namespace': [
+        'error',
+        {
+          allowDeclarations: true,
+        },
+      ],
     },
   },
 
