@@ -8,13 +8,28 @@ import { UserRepository } from '../db/user.repository';
 const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
 const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
 
+/**
+ * Contains all business logic related to user authentication and management.
+ */
 export class AuthService {
+  /**
+   * Finds a user by email. Private helper for this service.
+   * @param email The user's email.
+   * @returns A user object or undefined.
+   */
   private static async _findUserByEmail(
     email: string
   ): Promise<User | undefined> {
     return UserRepository.findByEmail(email);
   }
 
+  /**
+   * Registers a new user.
+   * @param email The new user's email.
+   * @param password The new user's plain-text password.
+   * @returns An object containing the new user and their raw verification token.
+   * @throws {BadRequestError} If the email is already in use.
+   */
   public static async signup(email: string, password: string) {
     logger.debug(`Checking if user exists with email: ${email}`);
 
@@ -47,6 +62,13 @@ export class AuthService {
     return { user: newUser, verificationToken };
   }
 
+  /**
+   * Authenticates a user with their email and password.
+   * @param email The user's email.
+   * @param password The user's plain-text password.
+   * @returns The full user object if authentication is successful.
+   * @throws {BadRequestError} If credentials are invalid.
+   */
   public static async login(email: string, password: string) {
     logger.debug(`Login attempt for email: ${email}`);
 
@@ -72,6 +94,12 @@ export class AuthService {
     return existingUser;
   }
 
+  /**
+   * Verifies a user's email using a token.
+   * @param email The user's email.
+   * @param verificationToken The raw verification token sent to the user.
+   * @throws {UnauthenticatedError} If the token is invalid or expired.
+   */
   public static async verifyEmail(email: string, verificationToken: string) {
     const hashedToken = TokenUtil.hashToken(verificationToken);
 
@@ -104,6 +132,11 @@ export class AuthService {
     logger.info(`Email successfully verified for user ID: ${user.id}`);
   }
 
+  /**
+   * Initiates the password reset process for a user.
+   * @param email The user's email.
+   * @returns An object with the raw reset token, or null if the user doesn't exist.
+   */
   public static async forgotPassword(email: string) {
     const user = await this._findUserByEmail(email);
     if (!user) {
@@ -127,6 +160,13 @@ export class AuthService {
     return { resetToken };
   }
 
+  /**
+   * Resets a user's password using a valid reset token.
+   * @param email The user's email.
+   * @param resetToken The raw password reset token.
+   * @param newPassword The user's new plain-text password.
+   * @throws {UnauthenticatedError} If the reset token is invalid or expired.
+   */
   public static async resetPassword(
     email: string,
     resetToken: string,
@@ -164,6 +204,11 @@ export class AuthService {
     logger.info(`Password succesfully reset for user ID: ${user.id}`);
   }
 
+  /**
+   * Resends a verification email to an unverified user.
+   * @param email The user's email.
+   * @returns An object with the user and new token, or null if the user is already verified or doesn't exist.
+   */
   public static async resendVerificationEmail(email: string) {
     const user = await this._findUserByEmail(email);
     if (!user || user.isVerified) {
