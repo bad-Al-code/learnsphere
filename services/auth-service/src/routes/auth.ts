@@ -1,3 +1,10 @@
+/**
+ * @openapi
+ * tags:
+ *   name: Authentication
+ *   description: User authentication and management
+ */
+
 import { Router } from 'express';
 
 import { validateRequest } from '../middlewares/validate-request';
@@ -16,6 +23,34 @@ import { requireRole } from '../middlewares/require-role';
 
 const router = Router();
 
+/**
+ * @openapi
+ * /api/auth/signup:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserSignup'
+ *     responses:
+ *       201:
+ *         description: User created successfully. Returns user object and sets auth cookies.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Success
+ *                 user:
+ *                   $ref: '#/components/schemas/UserResponse'
+ *       400:
+ *         description: Invalid input or email already in use.
+ */
 router.post('/signup', validateRequest(signupSchema), AuthController.signup);
 
 router.post(

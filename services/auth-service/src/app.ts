@@ -1,5 +1,6 @@
 import express, { json, Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
 
 import { errorHandler } from './middlewares/error-handler';
 import { authRouter, healthRouter } from './routes';
@@ -9,10 +10,13 @@ import helmet from 'helmet';
 import { metricsRecorder } from './middlewares/metrics-recorder';
 import { metricsService } from './controllers/metrics-service';
 import { env } from './config/env';
+import { swaggerSpec } from './config/swagger';
 
 const app = express();
 
 app.set('trust proxy', 1);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get('/metrics', async (req: Request, res: Response) => {
   res.set('Content-Type', metricsService.register.contentType);
