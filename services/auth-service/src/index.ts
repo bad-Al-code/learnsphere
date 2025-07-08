@@ -6,12 +6,14 @@ import { rabbitMQConnection } from './events/connection';
 import { redisConnection } from './config/redis';
 import { checkDatabaseConnection } from './db';
 import { env } from './config/env';
+import { UserRoleUpdatedListener } from './events/listener';
 
 const startServer = async () => {
   try {
     await rabbitMQConnection.connect();
     await redisConnection.connect();
     await checkDatabaseConnection();
+    new UserRoleUpdatedListener().listen();
 
     const PORT = env.PORT;
     const NODE_ENV = env.NODE_ENV;

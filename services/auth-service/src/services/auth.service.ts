@@ -385,4 +385,26 @@ export class AuthService {
 
     return fullUser;
   }
+
+  /**
+   * Updates a user's role. Called by an event listener when a role
+   * change occurs in another service (e.g., user-service).
+   * @param userId The ID of the user whose role is to be updated.
+   * @param newRole The new role to assign to the user.
+   */
+  public static async updateUserRole(
+    userId: string,
+    newRole: 'student' | 'instructor' | 'admin'
+  ): Promise<void> {
+    const user = await UserRepository.findById(userId);
+
+    if (!user) {
+      logger.warn(
+        `Received role update event for non-existent user: ${userId}`
+      );
+      return;
+    }
+
+    await UserRepository.updateUser(userId, { role: newRole });
+  }
 }
