@@ -24,6 +24,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      zod: require.resolve("zod"),
       "@": new URL("./src", import.meta.url).pathname,
     },
   },

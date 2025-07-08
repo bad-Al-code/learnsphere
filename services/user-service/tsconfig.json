@@ -111,6 +111,6 @@
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
 
-  "include": ["src/**/*", "tests/"],
+  "include": ["src/**/*", "tests/**/*.ts"],
   "exclude": ["node_modules", "dist", "drizzle.config.ts"]
 }
