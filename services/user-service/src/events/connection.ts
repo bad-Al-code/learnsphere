@@ -1,7 +1,7 @@
-import amqp, { Channel, ChannelModel } from "amqplib";
-import logger from "../config/logger";
-import { healthState } from "../config/health-state";
-import { env } from "../config/env";
+import amqp, { Channel, ChannelModel } from 'amqplib';
+import logger from '../config/logger';
+import { healthState } from '../config/health-state';
+import { env } from '../config/env';
 
 const MAX_RETRIES = 10;
 const RETRY_DELAY_MS = 5000;
@@ -12,19 +12,19 @@ class RabbitMQConnection {
 
   public async connect(): Promise<void> {
     if (this.connection) {
-      logger.info("RabbitMQ already connected.");
+      logger.info('RabbitMQ already connected.');
       return;
     }
 
     const rabbitUrl = env.RABBITMQ_URL;
     if (!rabbitUrl) {
-      throw new Error("Missing RABBITMQ_URL in environment.");
+      throw new Error('Missing RABBITMQ_URL in environment.');
     }
 
     let retries = 0;
     while (retries < MAX_RETRIES) {
       try {
-        logger.info("Connecting to RabbitMQ...");
+        logger.info('Connecting to RabbitMQ...');
 
         const connection = await amqp.connect(rabbitUrl);
         const channel = await connection.createChannel();
@@ -32,22 +32,22 @@ class RabbitMQConnection {
         this.connection = connection;
         this.channel = channel;
 
-        logger.info("RabbitMQ connected successfully.");
-        healthState.set("rabbitmq", true);
+        logger.info('RabbitMQ connected successfully.');
+        healthState.set('rabbitmq', true);
 
-        this.channel.on("close", () => {
-          logger.warn("RabbitMQ channel closed.");
+        this.channel.on('close', () => {
+          logger.warn('RabbitMQ channel closed.');
           this.channel = null;
         });
 
-        this.channel.on("error", (err) => {
-          logger.error("RabbitMQ channel error", { error: err.message });
+        this.channel.on('error', (err) => {
+          logger.error('RabbitMQ channel error', { error: err.message });
         });
 
         return;
       } catch (err) {
         retries++;
-        healthState.set("rabbitmq", false);
+        healthState.set('rabbitmq', false);
 
         logger.error(
           `Failed to connect to RabbitMQ. Retrying in ${
@@ -70,7 +70,7 @@ class RabbitMQConnection {
 
   public getChannel(): Channel {
     if (!this.channel) {
-      throw new Error("RabbitMQ channel not available. Call connect() first.");
+      throw new Error('RabbitMQ channel not available. Call connect() first.');
     }
     return this.channel;
   }
@@ -79,16 +79,16 @@ class RabbitMQConnection {
     try {
       if (this.channel) {
         await this.channel.close();
-        logger.info("RabbitMQ channel closed.");
+        logger.info('RabbitMQ channel closed.');
       }
 
       if (this.connection) {
         const conn = this.connection;
         await conn.close();
-        logger.info("RabbitMQ connection closed.");
+        logger.info('RabbitMQ connection closed.');
       }
     } catch (err) {
-      logger.error("Error closing RabbitMQ", {
+      logger.error('Error closing RabbitMQ', {
         error: (err as Error).message,
       });
     } finally {

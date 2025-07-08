@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const updateProfileSchema = z.object({
   body: z.object({
@@ -8,7 +8,7 @@ export const updateProfileSchema = z.object({
     headline: z.string().max(100).optional().nullable(),
     websiteUrl: z
       .string()
-      .url({ message: "Invalid URL format" })
+      .url({ message: 'Invalid URL format' })
       .optional()
       .nullable(),
     socialLinks: z

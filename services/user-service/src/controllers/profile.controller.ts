@@ -1,13 +1,13 @@
-import { NextFunction, Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
-import { z } from "zod";
+import { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import { z } from 'zod';
 
-import { ProfileService } from "../services/profile.service";
-import logger from "../config/logger";
-import axios, { AxiosError } from "axios";
-import { searchProfileSchema } from "../schemas/profile-schema";
-import { NotAuthorizedError } from "../errors";
-import { env } from "../config/env";
+import { ProfileService } from '../services/profile.service';
+import logger from '../config/logger';
+import axios, { AxiosError } from 'axios';
+import { searchProfileSchema } from '../schemas/profile-schema';
+import { NotAuthorizedError } from '../errors';
+import { env } from '../config/env';
 
 export class ProfileController {
   public static async getMyProfile(
@@ -53,7 +53,7 @@ export class ProfileController {
       const { id } = req.params;
       const requester = req.currentUser;
 
-      if (requester?.role === "admin") {
+      if (requester?.role === 'admin') {
         const profile = await ProfileService.getPrivateProfileById(id);
         res.status(StatusCodes.OK).json(profile);
         return;
@@ -102,7 +102,7 @@ export class ProfileController {
     try {
       const { q, page, limit } = req.query as unknown as z.infer<
         typeof searchProfileSchema
-      >["query"];
+      >['query'];
       const searchResult = await ProfileService.searchProfiles(q, page, limit);
       res.status(StatusCodes.OK).json(searchResult);
     } catch (error) {
@@ -119,14 +119,14 @@ export class ProfileController {
       const { filename } = req.body;
       const userId = req.currentUser!.id;
 
-      const mediaServiceUrl = env.MEDIA_SERVICE_URL || "http://localhost:8002";
+      const mediaServiceUrl = env.MEDIA_SERVICE_URL || 'http://localhost:8002';
 
       logger.info(
         `Requesting upload URL from media-service for user: ${userId}`
       );
       const response = await axios.post(
         `${mediaServiceUrl}/api/media/request-upload-url`,
-        { filename, uploadType: "avatar", metadata: { userId: userId } }
+        { filename, uploadType: 'avatar', metadata: { userId: userId } }
       );
 
       res.status(StatusCodes.OK).json(response.data);

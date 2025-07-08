@@ -1,14 +1,14 @@
-import winston from "winston";
+import winston from 'winston';
 
 const { combine, timestamp, json, colorize, printf, splat } = winston.format;
 
 const logger = winston.createLogger({
-  level: process.env.NODE_ENV === "development" ? "debug" : "info",
+  level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
   format:
-    process.env.NODE_ENV === "development"
+    process.env.NODE_ENV === 'development'
       ? combine(
           colorize(),
-          timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+          timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
           splat(),
           printf((info) => `${info.timestamp} ${info.level}: ${info.message}`)
         )

@@ -1,14 +1,14 @@
-import "dotenv/config";
+import 'dotenv/config';
 
-import { app } from "./app";
-import logger from "./config/logger";
-import { rabbitMQConnection } from "./events/connection";
+import { app } from './app';
+import logger from './config/logger';
+import { rabbitMQConnection } from './events/connection';
 import {
   UserAvatarProcessedListener,
   UserRegisteredListener,
-} from "./events/listener";
-import { checkDatabaseConnection } from "./db";
-import { env } from "./config/env";
+} from './events/listener';
+import { checkDatabaseConnection } from './db';
+import { env } from './config/env';
 
 const startServer = async () => {
   try {
@@ -25,11 +25,11 @@ const startServer = async () => {
       );
     });
 
-    process.on("SIGINT", async () => {
+    process.on('SIGINT', async () => {
       await rabbitMQConnection.close();
       process.exit(0);
     });
-    process.on("SIGTERM", async () => {
+    process.on('SIGTERM', async () => {
       await rabbitMQConnection.close();
       process.exit(0);
     });

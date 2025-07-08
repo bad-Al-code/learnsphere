@@ -1,47 +1,47 @@
-import { Router } from "express";
-import { requireAuth } from "../middlewares/require-auth";
-import { requireRole } from "../middlewares/require-role";
-import { validateRequest } from "../middlewares/validate-request";
+import { Router } from 'express';
+import { requireAuth } from '../middlewares/require-auth';
+import { requireRole } from '../middlewares/require-role';
+import { validateRequest } from '../middlewares/validate-request';
 import {
   avatarUploadUrlSchema,
   bulkUsersSchema,
   searchProfileSchema,
   updateProfileSchema,
-} from "../schemas/profile-schema";
-import { ProfileController } from "../controllers/profile.controller";
+} from '../schemas/profile-schema';
+import { ProfileController } from '../controllers/profile.controller';
 
 const router = Router();
 
-router.get("/me", requireAuth, ProfileController.getMyProfile);
+router.get('/me', requireAuth, ProfileController.getMyProfile);
 router.put(
-  "/me",
+  '/me',
   requireAuth,
   validateRequest(updateProfileSchema),
   ProfileController.updateMyProfile
 );
 router.post(
-  "/me/avatar-upload-url",
+  '/me/avatar-upload-url',
   requireAuth,
   validateRequest(avatarUploadUrlSchema),
   ProfileController.getAvatarUploadUrl
 );
 
 router.get(
-  "/search",
+  '/search',
   validateRequest(searchProfileSchema),
   ProfileController.searchProfiles
 );
 router.post(
-  "/bulk",
+  '/bulk',
   validateRequest(bulkUsersSchema),
   ProfileController.getBulkProfiles
 );
-router.get("/:id", ProfileController.getProfileById);
+router.get('/:id', ProfileController.getProfileById);
 
 router.put(
-  "/:id",
+  '/:id',
   requireAuth,
-  requireRole(["admin"]),
+  requireRole(['admin']),
   validateRequest(updateProfileSchema),
   ProfileController.updateUserProfileById
 );

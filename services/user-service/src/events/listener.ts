@@ -1,7 +1,7 @@
-import { ConsumeMessage } from "amqplib";
-import logger from "../config/logger";
-import { rabbitMQConnection } from "./connection";
-import { ProfileService } from "../services/profile.service";
+import { ConsumeMessage } from 'amqplib';
+import logger from '../config/logger';
+import { rabbitMQConnection } from './connection';
+import { ProfileService } from '../services/profile.service';
 
 interface Event {
   topic: string;
@@ -9,12 +9,12 @@ interface Event {
 }
 
 export abstract class Listener<T extends Event> {
-  abstract topic: T["topic"];
+  abstract topic: T['topic'];
   abstract queueGroupName: string;
-  abstract onMessage(data: T["data"], msg: ConsumeMessage): void;
+  abstract onMessage(data: T['data'], msg: ConsumeMessage): void;
 
-  protected exchange = "learnsphere";
-  protected exchangeType = "topic";
+  protected exchange = 'learnsphere';
+  protected exchangeType = 'topic';
 
   listen(): void {
     const channel = rabbitMQConnection.getChannel();
@@ -54,7 +54,7 @@ export abstract class Listener<T extends Event> {
 }
 
 interface UserRegisteredEvent extends Event {
-  topic: "user.registered";
+  topic: 'user.registered';
   data: {
     id: string;
     email: string;
@@ -62,11 +62,11 @@ interface UserRegisteredEvent extends Event {
 }
 
 export class UserRegisteredListener extends Listener<UserRegisteredEvent> {
-  topic: "user.registered" = "user.registered";
-  queueGroupName: string = "user-service";
+  topic: 'user.registered' = 'user.registered';
+  queueGroupName: string = 'user-service';
 
   async onMessage(
-    data: UserRegisteredEvent["data"],
+    data: UserRegisteredEvent['data'],
     msg: ConsumeMessage
   ): Promise<void> {
     logger.info(`Event data received for topic [${this.topic}]: %o`, data);
@@ -80,7 +80,7 @@ export class UserRegisteredListener extends Listener<UserRegisteredEvent> {
 }
 
 interface UserAvatarProcessedEvent extends Event {
-  topic: "user.avatar.processed";
+  topic: 'user.avatar.processed';
   data: {
     userId: string;
     avatarUrls: {
@@ -92,8 +92,8 @@ interface UserAvatarProcessedEvent extends Event {
 }
 
 export class UserAvatarProcessedListener extends Listener<UserAvatarProcessedEvent> {
-  topic: "user.avatar.processed" = "user.avatar.processed";
-  queueGroupName: string = "user-service-avatar";
+  topic: 'user.avatar.processed' = 'user.avatar.processed';
+  queueGroupName: string = 'user-service-avatar';
 
   async onMessage(
     data: {

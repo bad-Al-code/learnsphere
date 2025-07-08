@@ -1,12 +1,12 @@
-import { count, eq, ilike, inArray, or } from "drizzle-orm";
+import { count, eq, ilike, inArray, or } from 'drizzle-orm';
 
-import { db } from ".";
-import { profiles } from "./schema";
+import { db } from '.';
+import { profiles } from './schema';
 
 export type Profile = typeof profiles.$inferSelect;
 export type NewProfile = typeof profiles.$inferInsert;
 export type UpdateProfile = Partial<
-  Omit<Profile, "userId" | "createdAt" | "updatedAt">
+  Omit<Profile, 'userId' | 'createdAt' | 'updatedAt'>
 >;
 
 export class ProfileRepository {

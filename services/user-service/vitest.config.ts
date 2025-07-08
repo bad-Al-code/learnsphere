@@ -1,33 +1,33 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ["tests/**/*.{test,spec}.{js,ts}"],
+    include: ['tests/**/*.{test,spec}.{js,ts}'],
     globals: true,
-    environment: "node",
-    setupFiles: ["./tests/config/setup.ts"],
+    environment: 'node',
+    setupFiles: ['./tests/config/setup.ts'],
     hookTimeout: 40000,
     coverage: {
-      provider: "v8",
-      reporter: ["text", "html"],
-      include: ["src/**/*.ts"],
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      include: ['src/**/*.ts'],
       exclude: [
-        "src/index.ts",
-        "src/app.ts",
-        "src/db/migrate.ts",
-        "src/types",
-        "src/errors",
-        "src/config/health-state.ts",
-        "src/events/connection.ts",
+        'src/index.ts',
+        'src/app.ts',
+        'src/db/migrate.ts',
+        'src/types',
+        'src/errors',
+        'src/config/health-state.ts',
+        'src/events/connection.ts',
       ],
     },
   },
   resolve: {
     alias: {
-      zod: require.resolve("zod"),
-      "@": new URL("./src", import.meta.url).pathname,
+      zod: require.resolve('zod'),
+      '@': new URL('./src', import.meta.url).pathname,
     },
   },
 });
 
-process.env.NODE_ENV = "test";
+process.env.NODE_ENV = 'test';

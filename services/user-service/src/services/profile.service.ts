@@ -1,11 +1,11 @@
-import logger from "../config/logger";
-import { NotFoundError } from "../errors";
+import logger from '../config/logger';
+import { NotFoundError } from '../errors';
 import {
   ProfileRepository,
   NewProfile,
   UpdateProfile,
   Profile,
-} from "../db/profile.repository";
+} from '../db/profile.repository';
 
 export class ProfileService {
   /**
@@ -20,7 +20,7 @@ export class ProfileService {
       logger.info(`Successfully created profile for user ID: ${data.userId}`);
       return newProfile;
     } catch (error) {
-      logger.error("Error creating profile", { userId: data.userId, error });
+      logger.error('Error creating profile', { userId: data.userId, error });
       throw error;
     }
   }
@@ -35,7 +35,7 @@ export class ProfileService {
     logger.debug(`Fetching private profile for user ID: ${userId}`);
     const profile = await ProfileRepository.findPrivateById(userId);
     if (!profile) {
-      throw new NotFoundError("Profile");
+      throw new NotFoundError('Profile');
     }
     return profile;
   }
@@ -50,7 +50,7 @@ export class ProfileService {
     logger.debug(`Fetching public profile for user ID: ${userId}`);
     const publicProfile = await ProfileRepository.findPublicById(userId);
     if (!publicProfile) {
-      throw new NotFoundError("User Profile");
+      throw new NotFoundError('User Profile');
     }
     return publicProfile;
   }
@@ -84,7 +84,7 @@ export class ProfileService {
       logger.warn(
         `Attempted to update a profile that does not exist: ${userId}`
       );
-      throw new NotFoundError("Profile");
+      throw new NotFoundError('Profile');
     }
     return updatedProfile;
   }
@@ -97,7 +97,7 @@ export class ProfileService {
    * @returns A paginated search result object.
    */
   public static async searchProfiles(
-    query: string = "",
+    query: string = '',
     page: number,
     limit: number
   ) {
