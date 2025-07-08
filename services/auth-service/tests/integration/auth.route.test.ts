@@ -76,4 +76,59 @@ describe('Auth Routes - Integration Tests', () => {
       await request(app).get('/api/auth/test-auth').expect(401);
     });
   });
+
+  describe('POST /api/auth/login', () => {
+    const testUser = {
+      email: faker.internet.email(),
+      password: 'strong_password123',
+    };
+
+    beforeEach(async () => {
+      await request(app).post('/api/auth/signup').send(testUser);
+    });
+
+    it('should log in a user with correct credentials, return 200, and set cookies', async () => {
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({ email: testUser.email, password: testUser.password })
+        .expect(200);
+
+      expect(response.body.user.email).toBe(testUser.email);
+
+      let cookies: string[] = [];
+
+      expect(cookies).toBeDefined();
+
+      if (response.headers['set-cookie']) {
+        const rawCookies = response.headers['set-cookie'];
+        cookies = Array.isArray(rawCookies) ? rawCookies : [rawCookies];
+      }
+
+      expect(cookies.some((cookie) => cookie.startsWith('token='))).toBe(true);
+    });
+
+    it('should return 400 for a correct email but incorrect password', async () => {
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: testUser.email,
+          password: 'wrong_password',
+        })
+        .expect(400);
+
+      expect(response.body.errors[0].message).toBe('Invalid credentials');
+    });
+  });
+
+  it('should return 400 for a non-existent email', async () => {
+    const response = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: 'nobody@example.com',
+        password: 'any_password',
+      })
+      .expect(400);
+
+    expect(response.body.errors[0].message).toBe('Invalid credentials');
+  });
 });
