@@ -1,25 +1,15 @@
-import { Request, Response, Router } from "express";
+import { Router } from "express";
+
 import { validateRequest } from "../middlewares/validate-request";
 import { requestUploadUrlSchema } from "../schemas/media-schema";
-import { MediaService, UploadUrlParams } from "../services/media-service";
-import { StatusCodes } from "http-status-codes";
+import { MediaController } from "../controllers/media.controller";
 
 const router = Router();
 
 router.post(
   "/request-upload-url",
   validateRequest(requestUploadUrlSchema),
-  async (req: Request, res: Response) => {
-    const { filename, uploadType, metadata } = req.body;
-
-    const result = await MediaService.getUploadUrl({
-      uploadType,
-      filename,
-      metadata,
-    });
-
-    res.status(StatusCodes.OK).json(result);
-  }
+  MediaController.getUploadUrl
 );
 
 export { router as mediaRouter };
