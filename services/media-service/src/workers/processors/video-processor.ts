@@ -7,53 +7,15 @@ import { TranscoderService } from "../../clients/transcoder.client";
 import { VideoProcessedPublisher } from "../../events/publisher";
 import logger from "../../config/logger";
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { s3Client } from "../../config/s3Client";
-import { INSPECT_MAX_BYTES } from "node:buffer";
+import { S3Client } from "../../clients/s3.client";
 import { env } from "../../config/env";
+import { s3Client } from "../../config/s3Client";
 
 const processedBucket = env.AWS_PROCESSED_MEDIA_BUCKET!;
 
 export class VideoProcessor implements IProcessor {
   public canProcess(metadata: Record<string, string | undefined>): boolean {
     return metadata.uploadType === "video";
-  }
-
-  private async downloadFile(
-    s3Info: S3EventInfo,
-    tempDir: string
-  ): Promise<string> {
-    const localPath = path.join(tempDir, path.basename(s3Info.key));
-
-    logger.info(
-      `Downloading s3://${s3Info.bucket}/${s3Info.key} to ${localPath}`
-    );
-
-    const getCommand = new GetObjectCommand({
-      Bucket: s3Info.bucket,
-      Key: s3Info.key,
-    });
-    const response = await s3Client.send(getCommand);
-
-    if (!response.Body) {
-      throw new Error(`S3 object has no body`);
-    }
-
-    const writeStream = fs.createWriteStream(localPath);
-    response.Body.transformToWebStream().pipeTo(
-      new WritableStream({
-        write(chunk) {
-          writeStream.write(chunk);
-        },
-        close() {
-          writeStream.end();
-        },
-      })
-    );
-
-    return new Promise((resolve, reject) => {
-      writeStream.on("finish", () => resolve(localPath));
-      writeStream.on("error", reject);
-    });
   }
 
   private getMimeType(filename: string): string {
@@ -117,10 +79,11 @@ export class VideoProcessor implements IProcessor {
     await fs.ensureDir(tempProcessedDir);
 
     try {
-      const rawVideoPath = await this.downloadFile(s3Info, tempRawDir);
+      const localInputPath = path.join(tempRawDir, path.basename(s3Info.key));
+      await S3Client.downloadToFile(s3Info.bucket, s3Info.key, localInputPath);
 
       await TranscoderService.transcodeToHls({
-        inputPath: rawVideoPath,
+        inputPath: localInputPath,
         outputDir: tempProcessedDir,
       });
 
