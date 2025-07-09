@@ -1,6 +1,7 @@
 import amqp, { Channel, ChannelModel } from "amqplib";
 import logger from "../config/logger";
 import { healthState } from "../config/health-state";
+import { env } from "../config/env";
 
 const MAX_RETRIES = 10;
 const RETRY_DELAY_MS = 5000;
@@ -15,7 +16,7 @@ class RabbitMQConnection {
       return;
     }
 
-    const rabbitUrl = process.env.RABBITMQ_URL;
+    const rabbitUrl = env.RABBITMQ_URL;
     if (!rabbitUrl) {
       throw new Error("Missing RABBITMQ_URL in environment.");
     }

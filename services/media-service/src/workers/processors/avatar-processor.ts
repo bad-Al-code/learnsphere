@@ -3,6 +3,9 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import { Message } from "@aws-sdk/client-sqs";
+
+import { env } from "../../config/env";
 import { IProcessor, S3EventInfo } from "./ip-processor";
 import logger from "../../config/logger";
 import sharp from "sharp";
@@ -10,9 +13,8 @@ import {
   UserAvatarFailedPublisher,
   UserAvatarProcessedPublisher,
 } from "../../events/publisher";
-import { Message } from "@aws-sdk/client-sqs";
 
-const s3Client = new S3Client({ region: process.env.AWS_REGION! });
+const s3Client = new S3Client({ region: env.AWS_REGION! });
 
 export class AvatarProcessor implements IProcessor {
   public canProcess(metadata: Record<string, string | undefined>): boolean {
@@ -46,7 +48,7 @@ export class AvatarProcessor implements IProcessor {
         .toBuffer();
       const sizes = { small: 50, medium: 200, large: 800 };
 
-      const processedBucket = process.env.AWS_PROCESSED_MEDIA_BUCKET!;
+      const processedBucket = env.AWS_PROCESSED_MEDIA_BUCKET!;
       const processedUrls: { [key: string]: string } = {};
 
       const uploadPromises = Object.entries(sizes).map(
@@ -64,7 +66,7 @@ export class AvatarProcessor implements IProcessor {
           });
           await s3Client.send(putCommand);
 
-          const finalUrl = `https://${processedBucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${processedKey}`;
+          const finalUrl = `https://${processedBucket}.s3.${env.AWS_REGION}.amazonaws.com/${processedKey}`;
           processedUrls[sizeName] = finalUrl;
         }
       );

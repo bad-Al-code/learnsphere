@@ -17,11 +17,11 @@ FROM base AS production
 ENV NODE_ENV=production
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
-# COPY --from=build /app/src/db/migrations ./src/db/migrations
+COPY --from=build /app/entrypoint.sh ./entrypoint.sh
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 RUN chown -R appuser:appgroup /app
 USER appuser
 
 EXPOSE 8002
 
-CMD [ "node", "dist/index.js" ]
+CMD ["./entrypoint.sh"]

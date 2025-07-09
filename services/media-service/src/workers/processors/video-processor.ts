@@ -9,8 +9,9 @@ import logger from "../../config/logger";
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../../config/s3Client";
 import { INSPECT_MAX_BYTES } from "node:buffer";
+import { env } from "../../config/env";
 
-const processedBucket = process.env.AWS_PROCESSED_MEDIA_BUCKET!;
+const processedBucket = env.AWS_PROCESSED_MEDIA_BUCKET!;
 
 export class VideoProcessor implements IProcessor {
   public canProcess(metadata: Record<string, string | undefined>): boolean {
@@ -126,7 +127,7 @@ export class VideoProcessor implements IProcessor {
       const s3OutputPrefix = `videos/${lessonId}`;
       await this.uploadDirectory(tempProcessedDir, s3OutputPrefix);
 
-      const finalPlaylistUrl = `https://${processedBucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3OutputPrefix}/playlist.m3u8`;
+      const finalPlaylistUrl = `https://${processedBucket}.s3.${env.AWS_REGION}.amazonaws.com/${s3OutputPrefix}/playlist.m3u8`;
 
       const publisher = new VideoProcessedPublisher();
       await publisher.publish({
