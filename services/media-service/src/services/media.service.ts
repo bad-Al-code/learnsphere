@@ -1,8 +1,6 @@
-import { PutObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import logger from '../config/logger';
-import { s3Client } from '../config/s3Client';
 import { env } from '../config/env';
+import { S3ClientService } from '../clients/s3.client';
 
 export interface UploadUrlParams {
   filename: string;
@@ -47,16 +45,11 @@ export class MediaService {
 
     logger.info(`Generaiting pre-signed URL for key: ${key}`);
 
-    const command = new PutObjectCommand({
-      Bucket: rawBucket,
-      Key: key,
-      Tagging: new URLSearchParams(tagsToApply).toString(),
-    });
-
-    const signedUrlExpiresIn = 600;
-    const signedUrl = await getSignedUrl(s3Client, command, {
-      expiresIn: signedUrlExpiresIn,
-    });
+    const signedUrl = await S3ClientService.getPresignedUploadUrl(
+      rawBucket,
+      key,
+      tagsToApply
+    );
 
     return { signedUrl, key };
   }
