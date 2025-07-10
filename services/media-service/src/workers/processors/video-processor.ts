@@ -1,20 +1,20 @@
-import { Message } from "@aws-sdk/client-sqs";
-import { IProcessor, S3EventInfo } from "./ip-processor";
-import path, { resolve } from "node:path";
-import os from "node:os";
-import fs from "fs-extra";
-import { TranscoderService } from "../../services/transcoder.service";
-import { VideoProcessedPublisher } from "../../events/publisher";
-import logger from "../../config/logger";
-import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { s3Client } from "../../config/s3Client";
-import { INSPECT_MAX_BYTES } from "node:buffer";
+import { Message } from '@aws-sdk/client-sqs';
+import { IProcessor, S3EventInfo } from './ip-processor';
+import path, { resolve } from 'node:path';
+import os from 'node:os';
+import fs from 'fs-extra';
+import { TranscoderService } from '../../services/transcoder.service';
+import { VideoProcessedPublisher } from '../../events/publisher';
+import logger from '../../config/logger';
+import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import { s3Client } from '../../config/s3Client';
+import { INSPECT_MAX_BYTES } from 'node:buffer';
 
 const processedBucket = process.env.AWS_PROCESSED_MEDIA_BUCKET!;
 
 export class VideoProcessor implements IProcessor {
   public canProcess(metadata: Record<string, string | undefined>): boolean {
-    return metadata.uploadType === "video";
+    return metadata.uploadType === 'video';
   }
 
   private async downloadFile(
@@ -50,15 +50,15 @@ export class VideoProcessor implements IProcessor {
     );
 
     return new Promise((resolve, reject) => {
-      writeStream.on("finish", () => resolve(localPath));
-      writeStream.on("error", reject);
+      writeStream.on('finish', () => resolve(localPath));
+      writeStream.on('error', reject);
     });
   }
 
   private getMimeType(filename: string): string {
-    if (filename.endsWith(".m3u8")) return "application/vnd.apple.mpegurl";
-    if (filename.endsWith(".ts")) return "video/mp2t";
-    return "application/octet-stream";
+    if (filename.endsWith('.m3u8')) return 'application/vnd.apple.mpegurl';
+    if (filename.endsWith('.ts')) return 'video/mp2t';
+    return 'application/octet-stream';
   }
 
   private async uploadDirectory(

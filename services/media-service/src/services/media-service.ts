@@ -1,11 +1,11 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import logger from "../config/logger";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { s3Client } from "../config/s3Client";
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import logger from '../config/logger';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { s3Client } from '../config/s3Client';
 
 export interface UploadUrlParams {
   filename: string;
-  uploadType: "avatar" | "video";
+  uploadType: 'avatar' | 'video';
   metadata: Record<string, string>;
 }
 
@@ -21,18 +21,18 @@ export class MediaService {
 
     let key: string;
     switch (uploadType) {
-      case "avatar":
+      case 'avatar':
         if (!metadata.userId)
-          throw new Error("userId is required for avatar uploads");
+          throw new Error('userId is required for avatar uploads');
         key = `uploads/avatars/${metadata.userId}/${Date.now()}-${filename}`;
         break;
-      case "video":
+      case 'video':
         if (!metadata.lessonId)
-          throw new Error("lessonId is required for video uploads");
+          throw new Error('lessonId is required for video uploads');
         key = `uploads/videos/${metadata.lessonId}/${Date.now()}-${filename}`;
         break;
       default:
-        throw new Error("Invalid upload type");
+        throw new Error('Invalid upload type');
     }
 
     logger.info(`Generaiting pre-signed URL for key: ${key}`);

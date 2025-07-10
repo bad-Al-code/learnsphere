@@ -2,17 +2,17 @@ import {
   GetObjectCommand,
   GetObjectTaggingCommand,
   S3Client,
-} from "@aws-sdk/client-s3";
+} from '@aws-sdk/client-s3';
 import {
   DeleteMessageCommand,
   Message,
   ReceiveMessageCommand,
   SQSClient,
-} from "@aws-sdk/client-sqs";
-import { IProcessor } from "./processors/ip-processor";
-import { AvatarProcessor } from "./processors/avatar-processor";
-import { VideoProcessor } from "./processors/video-processor";
-import logger from "../config/logger";
+} from '@aws-sdk/client-sqs';
+import { IProcessor } from './processors/ip-processor';
+import { AvatarProcessor } from './processors/avatar-processor';
+import { VideoProcessor } from './processors/video-processor';
+import logger from '../config/logger';
 
 const sqsClient = new SQSClient({ region: process.env.AWS_REGION! });
 const s3Client = new S3Client({ region: process.env.AWS_REGION! });
@@ -65,7 +65,7 @@ export class SqsWorker {
       const s3Record = body.Records[0].s3;
       const s3Info = {
         bucket: s3Record.bucket.name,
-        key: decodeURIComponent(s3Record.object.key.replace(/\+/g, " ")),
+        key: decodeURIComponent(s3Record.object.key.replace(/\+/g, ' ')),
       };
 
       const getTagsCommand = new GetObjectTaggingCommand({
@@ -74,10 +74,13 @@ export class SqsWorker {
       });
       const { TagSet } = await s3Client.send(getTagsCommand);
       const metadata =
-        TagSet?.reduce((acc, tag) => {
-          if (tag.Key) acc[tag.Key] = tag.Value;
-          return acc;
-        }, {} as Record<string, string | undefined>) || {};
+        TagSet?.reduce(
+          (acc, tag) => {
+            if (tag.Key) acc[tag.Key] = tag.Value;
+            return acc;
+          },
+          {} as Record<string, string | undefined>
+        ) || {};
 
       const processor = this.processors.find((p) => p.canProcess(metadata));
       if (processor) {

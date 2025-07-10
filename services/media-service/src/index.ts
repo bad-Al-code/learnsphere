@@ -1,8 +1,8 @@
-import "dotenv/config";
-import { app } from "./app";
-import logger from "./config/logger";
-import { SqsWorker } from "./workers/sqs-worker";
-import { rabbitMQConnection } from "./events/connection";
+import 'dotenv/config';
+import { app } from './app';
+import logger from './config/logger';
+import { SqsWorker } from './workers/sqs-worker';
+import { rabbitMQConnection } from './events/connection';
 
 const start = async () => {
   try {
@@ -16,7 +16,7 @@ const start = async () => {
     const worker = new SqsWorker();
     worker.start();
   } catch (error) {
-    logger.error("Failed to start the media-service", { error });
+    logger.error('Failed to start the media-service', { error });
     process.exit(1);
   }
 };

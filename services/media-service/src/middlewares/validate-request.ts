@@ -1,6 +1,6 @@
-import { AnyZodObject, ZodError } from "zod";
-import { NextFunction, Request, Response } from "express";
-import { BadRequestError } from "../errors";
+import { AnyZodObject, ZodError } from 'zod';
+import { NextFunction, Request, Response } from 'express';
+import { BadRequestError } from '../errors';
 
 export const validateRequest =
   (schema: AnyZodObject) =>
@@ -13,7 +13,7 @@ export const validateRequest =
         const errors = error.errors.map(
           (err: (typeof error.errors)[number]) => ({
             message: err.message,
-            field: err.path.slice(1).join("."),
+            field: err.path.slice(1).join('.'),
           })
         );
 

@@ -1,18 +1,18 @@
-import { Router, Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
-import { healthState } from "../config/health-state";
+import { Router, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import { healthState } from '../config/health-state';
 
 const router = Router();
 
-router.get("/health", (req: Request, res: Response) => {
+router.get('/health', (req: Request, res: Response) => {
   if (healthState.isReady()) {
     res
       .status(StatusCodes.OK)
-      .json({ status: "UP", message: "Media service is up and running" });
+      .json({ status: 'UP', message: 'Media service is up and running' });
   } else {
     res
       .status(StatusCodes.SERVICE_UNAVAILABLE)
-      .json({ status: "DOWN", message: "Media service is up and running" });
+      .json({ status: 'DOWN', message: 'Media service is up and running' });
   }
 });
 

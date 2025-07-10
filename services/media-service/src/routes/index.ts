@@ -1,2 +1,2 @@
-export * from "./health";
-export * from "./media";
+export * from './health';
+export * from './media';

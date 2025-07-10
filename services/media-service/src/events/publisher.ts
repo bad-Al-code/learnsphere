@@ -1,12 +1,12 @@
-import logger from "../config/logger";
-import { rabbitMQConnection } from "./connection";
+import logger from '../config/logger';
+import { rabbitMQConnection } from './connection';
 
 export abstract class Publisher<T extends { topic: string; data: any }> {
-  abstract topic: T["topic"];
-  protected exchange = "learnsphere";
-  protected exchangeType = "topic";
+  abstract topic: T['topic'];
+  protected exchange = 'learnsphere';
+  protected exchangeType = 'topic';
 
-  async publish(data: T["data"]): Promise<void> {
+  async publish(data: T['data']): Promise<void> {
     const channel = rabbitMQConnection.getChannel();
     await channel.assertExchange(this.exchange, this.exchangeType, {
       durable: true,
@@ -24,7 +24,7 @@ export abstract class Publisher<T extends { topic: string; data: any }> {
 }
 
 interface UserAvatarProcessedEvent {
-  topic: "user.avatar.processed";
+  topic: 'user.avatar.processed';
   data: {
     userId: string;
     avatarUrls: {
@@ -36,11 +36,11 @@ interface UserAvatarProcessedEvent {
 }
 
 export class UserAvatarProcessedPublisher extends Publisher<UserAvatarProcessedEvent> {
-  topic: "user.avatar.processed" = "user.avatar.processed";
+  topic: 'user.avatar.processed' = 'user.avatar.processed';
 }
 
 interface UserAvatarFailedEvent {
-  topic: "user.avatar.failed";
+  topic: 'user.avatar.failed';
   data: {
     userId: string;
     reason: string;
@@ -48,11 +48,11 @@ interface UserAvatarFailedEvent {
 }
 
 export class UserAvatarFailedPublisher extends Publisher<UserAvatarFailedEvent> {
-  topic: "user.avatar.failed" = "user.avatar.failed";
+  topic: 'user.avatar.failed' = 'user.avatar.failed';
 }
 
 interface VideoProcessedEvent {
-  topic: "video.processed";
+  topic: 'video.processed';
   data: {
     lessonId: string;
     videoUrl: string;
@@ -60,5 +60,5 @@ interface VideoProcessedEvent {
 }
 
 export class VideoProcessedPublisher extends Publisher<VideoProcessedEvent> {
-  topic: "video.processed" = "video.processed";
+  topic: 'video.processed' = 'video.processed';
 }

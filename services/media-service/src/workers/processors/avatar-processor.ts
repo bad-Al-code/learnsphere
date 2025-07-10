@@ -2,21 +2,21 @@ import {
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
-} from "@aws-sdk/client-s3";
-import { IProcessor, S3EventInfo } from "./ip-processor";
-import logger from "../../config/logger";
-import sharp from "sharp";
+} from '@aws-sdk/client-s3';
+import { IProcessor, S3EventInfo } from './ip-processor';
+import logger from '../../config/logger';
+import sharp from 'sharp';
 import {
   UserAvatarFailedPublisher,
   UserAvatarProcessedPublisher,
-} from "../../events/publisher";
-import { Message } from "@aws-sdk/client-sqs";
+} from '../../events/publisher';
+import { Message } from '@aws-sdk/client-sqs';
 
 const s3Client = new S3Client({ region: process.env.AWS_REGION! });
 
 export class AvatarProcessor implements IProcessor {
   public canProcess(metadata: Record<string, string | undefined>): boolean {
-    return metadata.uploadType === "avatar";
+    return metadata.uploadType === 'avatar';
   }
 
   public async process(
@@ -52,7 +52,7 @@ export class AvatarProcessor implements IProcessor {
       const uploadPromises = Object.entries(sizes).map(
         async ([sizeName, size]) => {
           const finalBuffer = await sharp(processedImageBuffer)
-            .resize(size, size, { fit: "cover" })
+            .resize(size, size, { fit: 'cover' })
             .toBuffer();
           const processedKey = `avatars/${userId}-${sizeName}.jpeg`;
 
@@ -60,7 +60,7 @@ export class AvatarProcessor implements IProcessor {
             Bucket: processedBucket,
             Key: processedKey,
             Body: finalBuffer,
-            ContentType: "image/jpeg",
+            ContentType: 'image/jpeg',
           });
           await s3Client.send(putCommand);
 
@@ -79,12 +79,12 @@ export class AvatarProcessor implements IProcessor {
       await publisher.publish({ userId, avatarUrls: processedUrls });
     } catch (error) {
       const err = error as Error;
-      logger.error("Error processing avatar", { userId, error: err.message });
+      logger.error('Error processing avatar', { userId, error: err.message });
 
       const failurePublisher = new UserAvatarFailedPublisher();
       await failurePublisher.publish({
         userId,
-        reason: err.message || "An unknown processing error occurred.",
+        reason: err.message || 'An unknown processing error occurred.',
       });
 
       throw error;
