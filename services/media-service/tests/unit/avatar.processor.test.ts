@@ -1,7 +1,6 @@
-import { expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { faker } from '@faker-js/faker';
 
-import { beforeEach, describe } from 'node:test';
 import { AvatarProcessor } from '../../src/workers/processors/avatar-processor';
 import { S3ClientService } from '../../src/clients/s3.client';
 import { ImageClient } from '../../src/clients/image.client';
