@@ -12,6 +12,12 @@ import { TranscodingService } from '../../services/transcoding.service';
 const processedBucket = env.AWS_PROCESSED_MEDIA_BUCKET!;
 
 export class VideoProcessor implements IProcessor {
+  private readonly successPublisher: VideoProcessedPublisher;
+
+  constructor() {
+    this.successPublisher = new VideoProcessedPublisher();
+  }
+
   public canProcess(metadata: Record<string, string | undefined>): boolean {
     return metadata.uploadType === 'video';
   }
@@ -63,8 +69,7 @@ export class VideoProcessor implements IProcessor {
 
       const finalPlaylistUrl = `https://${processedBucket}.s3.${env.AWS_REGION}.amazonaws.com/${s3OutputPrefix}/playlist.m3u8`;
 
-      const publisher = new VideoProcessedPublisher();
-      await publisher.publish({
+      await this.successPublisher.publish({
         lessonId: lessonId,
         videoUrl: finalPlaylistUrl,
       });

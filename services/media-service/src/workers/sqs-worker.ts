@@ -9,8 +9,6 @@ import logger from '../config/logger';
 import { env } from '../config/env';
 import { S3EventParser } from './s3-event-parser';
 import { IProcessor } from './processors/ip-processor';
-import { AvatarProcessor } from './processors/avatar-processor';
-import { VideoProcessor } from './processors/video-processor';
 
 const sqsClient = new SQSClient({ region: env.AWS_REGION });
 
@@ -18,10 +16,10 @@ export class SqsWorker {
   private readonly queueUrl = env.AWS_SQS_QUEUE_URL;
   private readonly processors: IProcessor[];
 
-  constructor() {
-    this.processors = [new AvatarProcessor(), new VideoProcessor()];
+  constructor(processors: IProcessor[]) {
+    this.processors = processors;
     logger.info(
-      `Worker initialized with ${this.processors.length} processors.`
+      `Worker initialized with ${this.processors.length} processors: [${processors.map((p) => p.constructor.name).join(', ')}]`
     );
   }
 

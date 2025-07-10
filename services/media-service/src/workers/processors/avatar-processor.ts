@@ -8,6 +8,14 @@ import { S3ClientService } from '../../clients/s3.client';
 import { ImageClient } from '../../clients/image.client';
 
 export class AvatarProcessor implements IProcessor {
+  private readonly successPublisher: UserAvatarProcessedPublisher;
+  private readonly failurePublisher: UserAvatarFailedPublisher;
+
+  constructor() {
+    this.successPublisher = new UserAvatarProcessedPublisher();
+    this.failurePublisher = new UserAvatarFailedPublisher();
+  }
+
   /**
    *
    * @param metadata
@@ -44,14 +52,12 @@ export class AvatarProcessor implements IProcessor {
         userId
       );
 
-      const publisher = new UserAvatarProcessedPublisher();
-      await publisher.publish({ userId, avatarUrls });
+      await this.successPublisher.publish({ userId, avatarUrls });
     } catch (error) {
       const err = error as Error;
       logger.error('Error processing avatar', { userId, error: err.message });
 
-      const failurePublisher = new UserAvatarFailedPublisher();
-      await failurePublisher.publish({
+      await this.failurePublisher.publish({
         userId,
         reason: err.message || 'An unknown processing error occurred.',
       });
