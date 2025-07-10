@@ -1,7 +1,7 @@
 import logger from '../config/logger';
 import { rabbitMQConnection } from './connection';
 
-export abstract class Publisher<T extends { topic: string; data: any }> {
+export abstract class Publisher<T extends { topic: string; data: object }> {
   abstract topic: T['topic'];
   protected exchange = 'learnsphere';
   protected exchangeType = 'topic';
@@ -36,7 +36,7 @@ interface UserAvatarProcessedEvent {
 }
 
 export class UserAvatarProcessedPublisher extends Publisher<UserAvatarProcessedEvent> {
-  topic: 'user.avatar.processed' = 'user.avatar.processed';
+  readonly topic: 'user.avatar.processed' = 'user.avatar.processed' as const;
 }
 
 interface UserAvatarFailedEvent {
@@ -48,7 +48,7 @@ interface UserAvatarFailedEvent {
 }
 
 export class UserAvatarFailedPublisher extends Publisher<UserAvatarFailedEvent> {
-  topic: 'user.avatar.failed' = 'user.avatar.failed';
+  readonly topic: 'user.avatar.failed' = 'user.avatar.failed' as const;
 }
 
 interface VideoProcessedEvent {
@@ -60,5 +60,5 @@ interface VideoProcessedEvent {
 }
 
 export class VideoProcessedPublisher extends Publisher<VideoProcessedEvent> {
-  topic: 'video.processed' = 'video.processed';
+  readonly topic: 'video.processed' = 'video.processed' as const;
 }

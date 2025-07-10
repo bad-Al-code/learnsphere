@@ -1,6 +1,6 @@
 import { Message } from '@aws-sdk/client-sqs';
 import { IProcessor, S3EventInfo } from './ip-processor';
-import path, { resolve } from 'node:path';
+import path from 'node:path';
 import os from 'node:os';
 import fs from 'fs-extra';
 import { TranscoderService } from '../../services/transcoder.service';
@@ -8,7 +8,6 @@ import { VideoProcessedPublisher } from '../../events/publisher';
 import logger from '../../config/logger';
 import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client } from '../../config/s3Client';
-import { INSPECT_MAX_BYTES } from 'node:buffer';
 
 const processedBucket = process.env.AWS_PROCESSED_MEDIA_BUCKET!;
 

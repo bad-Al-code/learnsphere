@@ -1,10 +1,9 @@
 import fs from 'node:fs';
+import path from 'node:path';
 
 import { TranscodeOptions } from '../types';
-import path from 'node:path';
 import { spawn } from 'node:child_process';
 import logger from '../config/logger';
-import { resolveCaa } from 'node:dns';
 
 export class TranscoderService {
   private static runFFmpeg(
@@ -69,8 +68,6 @@ export class TranscoderService {
     ];
 
     await this.runFFmpeg(normalizeArgs, 'Normalization');
-
-    const masterPlaylistPath = path.join(outputDir, 'playlist.m3u8');
 
     const hlsArgs = [
       '-i',

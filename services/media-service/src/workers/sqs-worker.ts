@@ -1,8 +1,4 @@
-import {
-  GetObjectCommand,
-  GetObjectTaggingCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
+import { GetObjectTaggingCommand, S3Client } from '@aws-sdk/client-s3';
 import {
   DeleteMessageCommand,
   Message,
