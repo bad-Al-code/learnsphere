@@ -2,7 +2,6 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import logger from "../config/logger";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client } from "../config/s3Client";
-import { env } from "../config/env";
 
 export interface UploadUrlParams {
   filename: string;
@@ -16,7 +15,7 @@ export class MediaService {
     filename,
     metadata,
   }: UploadUrlParams) {
-    const rawBucket = env.AWS_RAW_UPLOADS_BUCKET!;
+    const rawBucket = process.env.AWS_RAW_UPLOADS_BUCKET!;
 
     const tagsToApply = { ...metadata, uploadType: uploadType };
 
