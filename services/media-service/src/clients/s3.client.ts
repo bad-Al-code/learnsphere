@@ -22,10 +22,11 @@ export const s3 = new S3Client({
 
 export class S3ClientService {
   /**
-   *
-   * @param bucket
-   * @param key
-   * @param tags
+   * Generate a secure, time-limited URL for uploading a file directly to S3.
+   * @param bucket Tne name of the bucket to upload to
+   * @param key The full object key (path) for the file in S3
+   * @param tags A record of tags to attach to the S3 object upon upload
+   * @returns A promise that resolves to the presigned URL string.
    */
   public static async getPresignedUploadUrl(
     bucket: string,
@@ -43,10 +44,10 @@ export class S3ClientService {
   }
 
   /**
-   *
-   * @param bucket
-   * @param key
-   * @param localPath
+   * Downloads a file from S3 to a local temporary file path
+   * @param bucket The S3 bucket name
+   * @param key The S3 object key
+   * @param localPath the absolute local path to save the downloaded file to
    */
   public static async downloadFile(
     bucket: string,
@@ -72,6 +73,12 @@ export class S3ClientService {
     logger.info(`Successfully downloaded file to ${localPath}`);
   }
 
+  /**
+   * Uploads an entire local directory recursively to a specified S3 prefix
+   * @param localDirPath The absolute path to the local directory to upload
+   * @param bucket The destination S3 bucket
+   * @param s3KeyPrefix The prefix (folder) in S3 to upload the contents to
+   */
   public static async uploadDirectory(
     localDirPath: string,
     bucket: string,
@@ -107,9 +114,10 @@ export class S3ClientService {
   }
 
   /**
-   *
-   * @param bucket
-   * @param key
+   * Fetches the tags associated with a specific S3 object,
+   * @param bucket The S3 bucket name
+   * @param key The S3 object key
+   * @returns A key-value record of the object's tag
    */
   public static async getObjectTags(
     bucket: string,
@@ -133,22 +141,11 @@ export class S3ClientService {
   }
 
   /**
-   *
-   * @param filename
-   * @returns
-   */
-  private static getMimeType(filename: string): string {
-    if (filename.endsWith('.m3u8')) return 'application/vnd.apple.mpegurl';
-    if (filename.endsWith('.ts')) return 'video/mp2t';
-    return 'application/octet-stream';
-  }
-
-  /**
-   *
-   * @param bucket
-   * @param key
-   * @param buffer
-   * @param contentType
+   * Uploads a buffer directly to S3.
+   * @param bucket - The S3 bucket name.
+   * @param key - The S3 object key.
+   * @param buffer - The buffer containing the file data to upload.
+   * @param contentType - The MIME type of the content (e.g., 'image/jpeg').
    */
   public static async uploadBuffer(
     bucket: string,
@@ -188,5 +185,16 @@ export class S3ClientService {
     const byteArray = await response.Body.transformToByteArray();
 
     return Buffer.from(byteArray);
+  }
+
+  /**
+   * Determing the MIME type of a file based on its extension
+   * @param filename The name of file based on its extension
+   * @returns A string representing the content type
+   */
+  private static getMimeType(filename: string): string {
+    if (filename.endsWith('.m3u8')) return 'application/vnd.apple.mpegurl';
+    if (filename.endsWith('.ts')) return 'video/mp2t';
+    return 'application/octet-stream';
   }
 }

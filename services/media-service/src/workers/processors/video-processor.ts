@@ -18,10 +18,20 @@ export class VideoProcessor implements IProcessor {
     this.successPublisher = new VideoProcessedPublisher();
   }
 
+  /**
+   * Determines if this processor can handle a task based on metadata.
+   * @param metadata - The metadata tags from the S3 object.
+   * @returns True if the uploadType is 'avatar'.
+   */
   public canProcess(metadata: Record<string, string | undefined>): boolean {
     return metadata.uploadType === 'video';
   }
 
+  /**
+   * Orchestrates the avatar processing workflow.
+   * @param s3Info - Information about the uploaded S3 object.
+   * @param metadata - The metadata tags associated with the object.
+   */
   public async process(
     s3Info: S3EventInfo,
     metadata: Record<string, string | undefined>
