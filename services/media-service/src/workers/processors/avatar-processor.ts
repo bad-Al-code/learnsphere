@@ -1,25 +1,27 @@
-import {
-  GetObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
-
 import { IProcessor, S3EventInfo } from './ip-processor';
 import logger from '../../config/logger';
-import sharp from 'sharp';
 import {
   UserAvatarFailedPublisher,
   UserAvatarProcessedPublisher,
 } from '../../events/publisher';
-import { env } from '../../config/env';
-
-const s3Client = new S3Client({ region: env.AWS_REGION });
+import { S3ClientService } from '../../clients/s3.client';
+import { ImageClient } from '../../clients/image.client';
 
 export class AvatarProcessor implements IProcessor {
+  /**
+   *
+   * @param metadata
+   * @returns
+   */
   public canProcess(metadata: Record<string, string | undefined>): boolean {
     return metadata.uploadType === 'avatar';
   }
 
+  /**
+   *
+   * @param s3Info
+   * @param metadata
+   */
   public async process(
     s3Info: S3EventInfo,
     metadata: Record<string, string | undefined>
@@ -32,51 +34,18 @@ export class AvatarProcessor implements IProcessor {
     logger.info(`Processing avatar for user: ${userId}`);
 
     try {
-      const getCommand = new GetObjectCommand({
-        Bucket: s3Info.bucket,
-        Key: s3Info.key,
-      });
-      const response = await s3Client.send(getCommand);
-
-      const imageBuffer = Buffer.from(
-        await response.Body!.transformToByteArray()
-      );
-      const processedImageBuffer = await sharp(imageBuffer)
-        .jpeg({ quality: 90 })
-        .toBuffer();
-      const sizes = { small: 50, medium: 200, large: 800 };
-
-      const processedBucket = env.AWS_PROCESSED_MEDIA_BUCKET;
-      const processedUrls: { [key: string]: string } = {};
-
-      const uploadPromises = Object.entries(sizes).map(
-        async ([sizeName, size]) => {
-          const finalBuffer = await sharp(processedImageBuffer)
-            .resize(size, size, { fit: 'cover' })
-            .toBuffer();
-          const processedKey = `avatars/${userId}-${sizeName}.jpeg`;
-
-          const putCommand = new PutObjectCommand({
-            Bucket: processedBucket,
-            Key: processedKey,
-            Body: finalBuffer,
-            ContentType: 'image/jpeg',
-          });
-          await s3Client.send(putCommand);
-
-          const finalUrl = `https://${processedBucket}.s3.${env.AWS_REGION}.amazonaws.com/${processedKey}`;
-          processedUrls[sizeName] = finalUrl;
-        }
+      const imageBuffer = await S3ClientService.downloadFileAsBuffer(
+        s3Info.bucket,
+        s3Info.key
       );
 
-      await Promise.all(uploadPromises);
-      logger.info(
-        `All avatars sizes successfully processed for user ${userId}`,
-        { urls: processedUrls }
+      const avatarUrls = await ImageClient.processAndUploadAvatar(
+        imageBuffer,
+        userId
       );
 
       const publisher = new UserAvatarProcessedPublisher();
-      await publisher.publish({ userId, avatarUrls: processedUrls });
+      await publisher.publish({ userId, avatarUrls });
     } catch (error) {
       const err = error as Error;
       logger.error('Error processing avatar', { userId, error: err.message });

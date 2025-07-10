@@ -142,4 +142,51 @@ export class S3ClientService {
     if (filename.endsWith('.ts')) return 'video/mp2t';
     return 'application/octet-stream';
   }
+
+  /**
+   *
+   * @param bucket
+   * @param key
+   * @param buffer
+   * @param contentType
+   */
+  public static async uploadBuffer(
+    bucket: string,
+    key: string,
+    buffer: Buffer,
+    contentType: string
+  ): Promise<void> {
+    const putCommand = new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+    });
+
+    await s3.send(putCommand);
+  }
+
+  /**
+   *
+   * @param bucket
+   * @param key
+   * @returns
+   */
+  public static async downloadFileAsBuffer(
+    bucket: string,
+    key: string
+  ): Promise<Buffer> {
+    logger.info(`Downloading s3://${bucket}/${key} as buffer`);
+
+    const getCommand = new GetObjectCommand({ Bucket: bucket, Key: key });
+    const response = await s3.send(getCommand);
+
+    if (!response.Body) {
+      throw new Error(`S3 object s3://${bucket}/${key} has no body`);
+    }
+
+    const byteArray = await response.Body.transformToByteArray();
+
+    return Buffer.from(byteArray);
+  }
 }
