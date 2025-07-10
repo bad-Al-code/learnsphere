@@ -2,44 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { TranscodeOptions } from '../types';
-import { spawn } from 'node:child_process';
 import logger from '../config/logger';
+import { TranscoderClient } from '../clients/transcoder.client';
 
 export class TranscoderService {
-  private static runFFmpeg(
-    args: string[],
-    friendlyName: string
-  ): Promise<void> {
-    return new Promise((resolve, reject) => {
-      logger.info(`Starting ffmpeg process: [${friendlyName}]... `, { args });
-
-      const ffmpegProcess = spawn('ffmpeg', args);
-      ffmpegProcess.stderr.on('data', (data) => {
-        logger.debug(`[${friendlyName}] stderr: ${data}`);
-      });
-
-      ffmpegProcess.on('close', (code) => {
-        if (code === 0) {
-          logger.info(
-            `ffmpeg process [${friendlyName}] finished successfully.`
-          );
-          resolve();
-        } else {
-          const errorMsg = `ffmpeg process [${friendlyName}] exited with code ${code}`;
-          logger.error(errorMsg);
-          reject(new Error(errorMsg));
-        }
-      });
-
-      ffmpegProcess.on('error', (err) => {
-        logger.error(`Failed to start ffmpeg process [${friendlyName}]`, {
-          error: err,
-        });
-        reject(err);
-      });
-    });
-  }
-
   public static async transcodeToHls({
     inputPath,
     outputDir,
@@ -67,7 +33,7 @@ export class TranscoderService {
       mezzaninePath,
     ];
 
-    await this.runFFmpeg(normalizeArgs, 'Normalization');
+    await TranscoderClient.execute(normalizeArgs, 'Normalization');
 
     const hlsArgs = [
       '-i',
@@ -138,7 +104,7 @@ export class TranscoderService {
       path.join(outputDir, '%v/playlist.m3u8'),
     ];
 
-    await this.runFFmpeg(hlsArgs, 'HLS Transcoding');
+    await TranscoderClient.execute(hlsArgs, 'HLS Transcoding');
 
     await fs.promises.unlink(mezzaninePath);
 
