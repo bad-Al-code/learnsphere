@@ -8,12 +8,7 @@ import {
   timestamp,
 } from 'drizzle-orm/pg-core';
 
-export const mediaStatusEnum = pgEnum('media_status', [
-  'uploading',
-  'processing',
-  'completed',
-  'failed',
-]);
+import { mediaStatusEnum } from '../types';
 
 export const uploadTypeEnum = pgEnum('upload_type', ['avatar', 'video']);
 

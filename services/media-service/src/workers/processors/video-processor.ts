@@ -8,6 +8,7 @@ import logger from '../../config/logger';
 import { S3ClientService } from '../../clients/s3.client';
 import { env } from '../../config/env';
 import { TranscodingService } from '../../services/transcoding.service';
+import { MediaRepository } from '../../db/media.repository';
 
 const processedBucket = env.AWS_PROCESSED_MEDIA_BUCKET!;
 
@@ -54,6 +55,8 @@ export class VideoProcessor implements IProcessor {
     await fs.ensureDir(tempProcessedDir);
 
     try {
+      await MediaRepository.updateByS3Key(s3Info.key, { status: 'processing' });
+
       const localRawVideoPath = path.join(
         tempRawDir,
         path.basename(s3Info.key)
@@ -79,11 +82,21 @@ export class VideoProcessor implements IProcessor {
 
       const finalPlaylistUrl = `https://${processedBucket}.s3.${env.AWS_REGION}.amazonaws.com/${s3OutputPrefix}/playlist.m3u8`;
 
+      await MediaRepository.updateByS3Key(s3Info.key, {
+        status: 'completed',
+        processedUrls: { hls: finalPlaylistUrl },
+      });
+
       await this.successPublisher.publish({
         lessonId: lessonId,
         videoUrl: finalPlaylistUrl,
       });
     } catch (error) {
+      await MediaRepository.updateByS3Key(s3Info.key, {
+        status: 'failed',
+        errorMessage: (error as Error).message,
+      });
+
       logger.error(`Failed to process video for lesson ${lessonId}`, { error });
 
       throw error;

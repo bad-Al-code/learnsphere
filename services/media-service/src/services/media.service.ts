@@ -2,6 +2,7 @@ import logger from '../config/logger';
 import { env } from '../config/env';
 import { S3ClientService } from '../clients/s3.client';
 import { UploadUrlParams, SignedUrlResponse } from '../types';
+import { MediaRepository } from '../db/media.repository';
 
 export class MediaService {
   /**
@@ -32,6 +33,15 @@ export class MediaService {
       default:
         throw new Error('Invalid upload type');
     }
+
+    logger.info(`Creating media asset record in database...`);
+    await MediaRepository.create({
+      s3Key: key,
+      uploadType: uploadType,
+      ownerUserId: metadata.userId || null,
+      parentEntityId: metadata.lessonId || metadata.userId,
+      status: 'uploading',
+    });
 
     logger.info(`Generaiting pre-signed URL for key: ${key}`);
 

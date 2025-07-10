@@ -1,3 +1,7 @@
+import { pgEnum } from 'drizzle-orm/pg-core';
+
+import { mediaAssets } from '../db/schema';
+
 export interface UploadUrlParams {
   filename: string;
   uploadType: 'avatar' | 'video';
@@ -37,3 +41,16 @@ export interface ParsedMessage {
   s3Info: S3EventInfo;
   metadata: Record<string, string>;
 }
+
+export const mediaStatusEnum = pgEnum('media_status', [
+  'uploading',
+  'processing',
+  'completed',
+  'failed',
+]);
+
+export type MediaAsset = typeof mediaAssets.$inferSelect;
+export type NewMediaAsset = typeof mediaAssets.$inferInsert;
+export type UpdateMediaAsset = Partial<
+  Omit<MediaAsset, 'id' | 'createdAt' | 'updatedAt'>
+>;

@@ -6,6 +6,7 @@ import {
 } from '../../events/publisher';
 import { S3ClientService } from '../../clients/s3.client';
 import { ImageClient } from '../../clients/image.client';
+import { MediaRepository } from '../../db/media.repository';
 
 export class AvatarProcessor implements IProcessor {
   private readonly successPublisher: UserAvatarProcessedPublisher;
@@ -42,6 +43,8 @@ export class AvatarProcessor implements IProcessor {
     logger.info(`Processing avatar for user: ${userId}`);
 
     try {
+      await MediaRepository.updateByS3Key(s3Info.key, { status: 'processing' });
+
       const imageBuffer = await S3ClientService.downloadFileAsBuffer(
         s3Info.bucket,
         s3Info.key
@@ -52,10 +55,19 @@ export class AvatarProcessor implements IProcessor {
         userId
       );
 
+      await MediaRepository.updateByS3Key(s3Info.key, {
+        status: 'completed',
+        processedUrls: avatarUrls,
+      });
+
       await this.successPublisher.publish({ userId, avatarUrls });
     } catch (error) {
+      await MediaRepository.updateByS3Key(s3Info.key, {
+        status: 'failed',
+        errorMessage: (error as Error).message,
+      });
+
       const err = error as Error;
-      logger.error('Error processing avatar', { userId, error: err.message });
 
       await this.failurePublisher.publish({
         userId,
