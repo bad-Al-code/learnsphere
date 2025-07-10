@@ -1,24 +1,24 @@
 import 'dotenv/config';
-import { app } from './app';
+
 import logger from './config/logger';
-import { SqsWorker } from './workers/sqs-worker';
 import { rabbitMQConnection } from './events/connection';
 
-const start = async () => {
+const initializedServices = async () => {
   try {
     await rabbitMQConnection.connect();
 
-    const PORT = process.env.PORT || 8002;
-    app.listen(PORT, () => {
-      logger.info(`Media service API listening on port ${PORT}`);
-    });
-
-    const worker = new SqsWorker();
-    worker.start();
+    logger.info(`Shared services initialized sucessfully.`);
   } catch (error) {
-    logger.error('Failed to start the media-service', { error });
+    logger.error('Failed to initialized shared services', { error });
     process.exit(1);
   }
 };
 
-start();
+const main = async (): Promise<void> => {
+  await initializedServices();
+
+  import('./api');
+  import('./worker');
+};
+
+main();
