@@ -2,10 +2,12 @@ import 'dotenv/config';
 
 import logger from './config/logger';
 import { rabbitMQConnection } from './events/connection';
+import { checkDatabaseConnection } from './db';
 
 const initializedServices = async () => {
   try {
     await rabbitMQConnection.connect();
+    await checkDatabaseConnection();
 
     logger.info(`Shared services initialized sucessfully.`);
   } catch (error) {

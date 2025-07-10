@@ -6,6 +6,7 @@ const envSchema = z.object({
     .enum(['development', 'production', 'test'])
     .default('development'),
   PORT: z.coerce.number().default(8002),
+  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   RABBITMQ_URL: z.string().min(1, 'RABBITMQ_URL is required'),
 
   AWS_REGION: z.string().min(1, 'AWS_REGION is required'),
