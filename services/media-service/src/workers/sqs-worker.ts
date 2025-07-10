@@ -8,19 +8,17 @@ import {
 import logger from '../config/logger';
 import { env } from '../config/env';
 import { S3EventParser } from './s3-event-parser';
-import { IProcessor } from './processors/ip-processor';
+import { ProcessorFactory } from './processor.factory';
 
 const sqsClient = new SQSClient({ region: env.AWS_REGION });
 
 export class SqsWorker {
   private readonly queueUrl = env.AWS_SQS_QUEUE_URL;
-  private readonly processors: IProcessor[];
+  private readonly processorFactory: ProcessorFactory;
 
-  constructor(processors: IProcessor[]) {
-    this.processors = processors;
-    logger.info(
-      `Worker initialized with ${this.processors.length} processors: [${processors.map((p) => p.constructor.name).join(', ')}]`
-    );
+  constructor(processorFactory: ProcessorFactory) {
+    this.processorFactory = processorFactory;
+    logger.info(`Worker initialized with a processor factory`);
   }
 
   public start(): void {
@@ -64,13 +62,11 @@ export class SqsWorker {
     }
 
     const { s3Info, metadata } = parsedMessage;
-    const processor = this.processors.find((p) => p.canProcess(metadata));
+    const processor = this.processorFactory.getProcessor(metadata);
 
     if (!processor) {
-      logger.error('No processor found for message. Deleting from queue.', {
-        metadata,
-      });
       await this.deleteMessage(message.ReceiptHandle!);
+
       return;
     }
 

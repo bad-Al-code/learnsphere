@@ -1,4 +1,5 @@
 import logger from './config/logger';
+import { ProcessorFactory } from './workers/processor.factory';
 import { AvatarProcessor } from './workers/processors/avatar-processor';
 import { VideoProcessor } from './workers/processors/video-processor';
 import { SqsWorker } from './workers/sqs-worker';
@@ -9,7 +10,9 @@ const startWorker = (): void => {
 
     const processors = [new AvatarProcessor(), new VideoProcessor()];
 
-    const worker = new SqsWorker(processors);
+    const processorFactory = new ProcessorFactory(processors);
+    const worker = new SqsWorker(processorFactory);
+
     worker.start();
   } catch (error) {
     logger.error(`Failed to start the SQS Worker`, { error });
