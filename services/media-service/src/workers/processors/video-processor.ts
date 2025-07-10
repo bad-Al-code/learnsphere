@@ -3,7 +3,7 @@ import { IProcessor, S3EventInfo } from './ip-processor';
 import path from 'node:path';
 import os from 'node:os';
 import fs from 'fs-extra';
-import { TranscoderService } from '../../services/transcoder.service';
+import { TranscoderService } from '../../controllers/transcoder.service';
 import { VideoProcessedPublisher } from '../../events/publisher';
 import logger from '../../config/logger';
 import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';

@@ -9,7 +9,7 @@ export interface UploadUrlParams {
   metadata: Record<string, string>;
 }
 
-export class MediaService {
+export class MediaController {
   public static async getUploadUrl({
     uploadType,
     filename,
