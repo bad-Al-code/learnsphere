@@ -5,7 +5,7 @@ import { TranscodeOptions } from '../types';
 import logger from '../config/logger';
 import { TranscoderClient } from '../clients/transcoder.client';
 
-export class TranscoderService {
+export class TranscodingService {
   public static async transcodeToHls({
     inputPath,
     outputDir,

@@ -3,11 +3,11 @@ import os from 'node:os';
 import fs from 'fs-extra';
 
 import { IProcessor, S3EventInfo } from './ip-processor';
-import { TranscoderService } from '../../controllers/transcoder.service';
 import { VideoProcessedPublisher } from '../../events/publisher';
 import logger from '../../config/logger';
 import { S3ClientService } from '../../clients/s3.client';
 import { env } from '../../config/env';
+import { TranscodingService } from '../../services/transcoding.service';
 
 const processedBucket = env.AWS_PROCESSED_MEDIA_BUCKET!;
 
@@ -49,7 +49,7 @@ export class VideoProcessor implements IProcessor {
         localRawVideoPath
       );
 
-      await TranscoderService.transcodeToHls({
+      await TranscodingService.transcodeToHls({
         inputPath: localRawVideoPath,
         outputDir: tempProcessedDir,
       });
