@@ -2,12 +2,7 @@ import sharp from 'sharp';
 import { env } from '../config/env';
 import { S3ClientService } from './s3.client';
 import logger from '../config/logger';
-
-export interface ProcessedAvatarUrls {
-  small: string;
-  medium: string;
-  large: string;
-}
+import { ProcessedAvatarUrls } from '../types';
 
 export class ImageClient {
   private static readonly SIZES = { small: 50, medium: 200, large: 800 };

@@ -1,4 +1,5 @@
-import { MediaService, UploadUrlParams } from '../services/media.service';
+import { UploadUrlParams } from '../types';
+import { MediaService } from '../services/media.service';
 
 export class MediaController {
   public static async getUploadUrl(params: UploadUrlParams) {

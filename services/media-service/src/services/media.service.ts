@@ -1,17 +1,7 @@
 import logger from '../config/logger';
 import { env } from '../config/env';
 import { S3ClientService } from '../clients/s3.client';
-
-export interface UploadUrlParams {
-  filename: string;
-  uploadType: 'avatar' | 'video';
-  metadata: Record<string, string>;
-}
-
-export interface SignedUrlResponse {
-  signedUrl: string;
-  key: string;
-}
+import { UploadUrlParams, SignedUrlResponse } from '../types';
 
 export class MediaService {
   /**

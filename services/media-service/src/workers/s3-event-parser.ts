@@ -1,15 +1,6 @@
 import { Message } from '@aws-sdk/client-sqs';
 import { S3ClientService } from '../clients/s3.client';
-
-export interface S3EventInfo {
-  bucket: string;
-  key: string;
-}
-
-export interface ParsedMessage {
-  s3Info: S3EventInfo;
-  metadata: Record<string, string>;
-}
+import { S3EventInfo, ParsedMessage } from '../types';
 
 export class S3EventParser {
   /**
