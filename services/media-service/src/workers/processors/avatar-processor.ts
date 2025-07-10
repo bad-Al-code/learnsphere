@@ -3,6 +3,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
+
 import { IProcessor, S3EventInfo } from './ip-processor';
 import logger from '../../config/logger';
 import sharp from 'sharp';
@@ -10,7 +11,6 @@ import {
   UserAvatarFailedPublisher,
   UserAvatarProcessedPublisher,
 } from '../../events/publisher';
-import { Message } from '@aws-sdk/client-sqs';
 import { env } from '../../config/env';
 
 const s3Client = new S3Client({ region: env.AWS_REGION });
@@ -21,7 +21,6 @@ export class AvatarProcessor implements IProcessor {
   }
 
   public async process(
-    message: Message,
     s3Info: S3EventInfo,
     metadata: Record<string, string | undefined>
   ): Promise<void> {

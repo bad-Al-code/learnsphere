@@ -1,4 +1,3 @@
-import { Message } from '@aws-sdk/client-sqs';
 import path from 'node:path';
 import os from 'node:os';
 import fs from 'fs-extra';
@@ -18,7 +17,6 @@ export class VideoProcessor implements IProcessor {
   }
 
   public async process(
-    _message: Message,
     s3Info: S3EventInfo,
     metadata: Record<string, string | undefined>
   ): Promise<void> {
