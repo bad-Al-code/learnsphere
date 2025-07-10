@@ -1,18 +1,22 @@
 import {
+  GetObjectCommand,
+  GetObjectTaggingCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
+import {
   DeleteMessageCommand,
   Message,
   ReceiveMessageCommand,
   SQSClient,
 } from "@aws-sdk/client-sqs";
-
 import { IProcessor } from "./processors/ip-processor";
 import { AvatarProcessor } from "./processors/avatar-processor";
 import { VideoProcessor } from "./processors/video-processor";
 import logger from "../config/logger";
 import { env } from "../config/env";
-import { S3EventParser } from "./s3-event.parser";
 
 const sqsClient = new SQSClient({ region: env.AWS_REGION! });
+const s3Client = new S3Client({ region: env.AWS_REGION! });
 
 export class SqsWorker {
   private readonly queueUrl = env.AWS_SQS_QUEUE_URL!;
@@ -56,12 +60,30 @@ export class SqsWorker {
     }
   }
 
-  private async delegateMessage(message: Message): Promise<void> {
+  private async delegateMessage(message: Message) {
     try {
-      const { s3Info, metadata } = await S3EventParser.parse(message);
+      const body = JSON.parse(message.Body!);
+      const s3Record = body.Records[0].s3;
+      const s3Info = {
+        bucket: s3Record.bucket.name,
+        key: decodeURIComponent(s3Record.object.key.replace(/\+/g, " ")),
+      };
+
+      const getTagsCommand = new GetObjectTaggingCommand({
+        Bucket: s3Info.bucket,
+        Key: s3Info.key,
+      });
+      const { TagSet } = await s3Client.send(getTagsCommand);
+      const metadata =
+        TagSet?.reduce((acc, tag) => {
+          if (tag.Key) acc[tag.Key] = tag.Value;
+          return acc;
+        }, {} as Record<string, string | undefined>) || {};
 
       const processor = this.processors.find((p) => p.canProcess(metadata));
-      if (!processor) {
+      if (processor) {
+        await processor.process(message, s3Info, metadata);
+      } else {
         throw new Error(
           `No processor found for message with metadata: ${JSON.stringify(
             metadata
@@ -69,13 +91,10 @@ export class SqsWorker {
         );
       }
 
-      await processor.process(message, s3Info, metadata);
-
       const deleteCommand = new DeleteMessageCommand({
         QueueUrl: this.queueUrl,
         ReceiptHandle: message.ReceiptHandle!,
       });
-
       await sqsClient.send(deleteCommand);
     } catch (error) {
       logger.error(
