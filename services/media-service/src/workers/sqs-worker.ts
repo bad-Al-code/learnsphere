@@ -10,11 +10,12 @@ import { AvatarProcessor } from './processors/avatar-processor';
 import { VideoProcessor } from './processors/video-processor';
 import logger from '../config/logger';
 import { S3ClientService } from '../clients/s3.client';
+import { env } from '../config/env';
 
-const sqsClient = new SQSClient({ region: process.env.AWS_REGION! });
+const sqsClient = new SQSClient({ region: env.AWS_REGION });
 
 export class SqsWorker {
-  private readonly queueUrl = process.env.AWS_SQS_QUEUE_URL!;
+  private readonly queueUrl = env.AWS_SQS_QUEUE_URL;
   private readonly processors: IProcessor[];
 
   constructor() {

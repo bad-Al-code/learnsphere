@@ -8,8 +8,9 @@ import { TranscoderService } from '../../controllers/transcoder.service';
 import { VideoProcessedPublisher } from '../../events/publisher';
 import logger from '../../config/logger';
 import { S3ClientService } from '../../clients/s3.client';
+import { env } from '../../config/env';
 
-const processedBucket = process.env.AWS_PROCESSED_MEDIA_BUCKET!;
+const processedBucket = env.AWS_PROCESSED_MEDIA_BUCKET!;
 
 export class VideoProcessor implements IProcessor {
   public canProcess(metadata: Record<string, string | undefined>): boolean {
@@ -62,7 +63,7 @@ export class VideoProcessor implements IProcessor {
         s3OutputPrefix
       );
 
-      const finalPlaylistUrl = `https://${processedBucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3OutputPrefix}/playlist.m3u8`;
+      const finalPlaylistUrl = `https://${processedBucket}.s3.${env.AWS_REGION}.amazonaws.com/${s3OutputPrefix}/playlist.m3u8`;
 
       const publisher = new VideoProcessedPublisher();
       await publisher.publish({
