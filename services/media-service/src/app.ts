@@ -1,9 +1,15 @@
 import express, { json } from 'express';
-import { healthRouter, mediaRouter } from './routes';
 import helmet from 'helmet';
+import swaggerUi from 'swagger-ui-express';
+
+import { healthRouter, mediaRouter } from './routes';
 import { httpLogger } from './middlewares/http-logger';
+import { swaggerSpec } from './config/swagger';
 
 const app = express();
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 app.use(json());
 app.use(helmet());
 app.use(httpLogger);
