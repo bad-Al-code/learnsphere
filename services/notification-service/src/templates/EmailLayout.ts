@@ -38,3 +38,16 @@ export const EmailLayout = (content: string): string => {
     </html>
   `;
 };
+
+export const EmailButton = (href: string, text: string): string => {
+  return `
+    <a
+      href="${href}"
+      class="button"
+      target="_blank"
+      style="display: inline-block; padding: 12px 24px; background-color: #000000; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;"
+    >
+      ${text}
+    </a>
+  `;
+};

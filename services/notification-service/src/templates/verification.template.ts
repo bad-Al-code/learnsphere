@@ -1,4 +1,4 @@
-import { EmailLayout } from "./EmailLayout";
+import { EmailButton, EmailLayout } from "./EmailLayout";
 
 /**
  * Generates the HTML for the email verification email.
@@ -10,7 +10,7 @@ export const generateVerificationEmail = (verificationLink: string): string => {
     <p>Hello,</p>
     <p>Thank you for signing up for LearnSphere! To complete your registration, please verify your email address by clicking the button below.</p>
     <p style="text-align: center; margin: 30px 0;">
-        <a href="${verificationLink}" class="button">Verify Email Address</a>
+      ${EmailButton(verificationLink, "Verify Email Address")}
     </p>
     <p>This verification link will expire in 2 hours.</p>
     <p>Welcome aboard,<br>The LearnSphere Team</p>
