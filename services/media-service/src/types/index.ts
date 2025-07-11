@@ -42,13 +42,6 @@ export interface ParsedMessage {
   metadata: Record<string, string>;
 }
 
-export const mediaStatusEnum = pgEnum('media_status', [
-  'uploading',
-  'processing',
-  'completed',
-  'failed',
-]);
-
 export type MediaAsset = typeof mediaAssets.$inferSelect;
 export type NewMediaAsset = typeof mediaAssets.$inferInsert;
 export type UpdateMediaAsset = Partial<
