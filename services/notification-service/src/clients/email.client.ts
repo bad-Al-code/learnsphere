@@ -26,6 +26,7 @@ export class EmailClient {
         to: options.to,
         subject: options.subject,
         html: options.html,
+        text: options.text,
       });
 
       if (error) {
