@@ -82,9 +82,7 @@
         "media_assets_s3_key_unique": {
           "name": "media_assets_s3_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "s3_key"
-          ]
+          "columns": ["s3_key"]
         }
       },
       "policies": {},
@@ -96,20 +94,12 @@
     "public.media_status": {
       "name": "media_status",
       "schema": "public",
-      "values": [
-        "uploading",
-        "processing",
-        "completed",
-        "failed"
-      ]
+      "values": ["uploading", "processing", "completed", "failed"]
     },
     "public.upload_type": {
       "name": "upload_type",
       "schema": "public",
-      "values": [
-        "avatar",
-        "video"
-      ]
+      "values": ["avatar", "video"]
     }
   },
   "schemas": {},
