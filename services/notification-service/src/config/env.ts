@@ -7,6 +7,7 @@ const envSchema = z.object({
     .default('development'),
 
   RABBITMQ_URL: z.string().min(1, 'RABBITMQ_URL is required'),
+  DATABASE_URL: z.string().url('DATABASE_URL must be a valid postgresql URL'),
 
   EMAIL_HOST: z.string().min(1, 'EMAIL_HOST is required'),
   EMAIL_PORT: z.coerce.number().default(587),

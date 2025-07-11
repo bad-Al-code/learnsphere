@@ -12,7 +12,11 @@
     "format": "prettier . --write",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "ts-node ./src/db/migrate.ts",
+    "db": "pnpm db:generate; pnpm db:migrate",
+    "db:studio": "pnpm drizzle-kit studio --port 6969 --verbose"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +25,9 @@
   "dependencies": {
     "amqplib": "^0.10.8",
     "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.44.2",
     "nodemailer": "^7.0.3",
+    "pg": "^8.16.3",
     "winston": "^3.17.0",
     "zod": "^3.25.75"
   },
@@ -30,7 +36,9 @@
     "@types/amqplib": "^0.10.7",
     "@types/node": "^24.0.1",
     "@types/nodemailer": "^6.4.17",
+    "@types/pg": "^8.15.4",
     "@vitest/coverage-v8": "3.2.4",
+    "drizzle-kit": "^0.31.4",
     "eslint-config-prettier": "^10.1.5",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
