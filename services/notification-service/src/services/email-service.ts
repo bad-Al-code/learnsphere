@@ -1,6 +1,8 @@
 import nodemailer from "nodemailer";
 import logger from "../config/logger";
 import { EmailClient } from "../clients/email.client";
+import { generateVerificationEmail } from "../templates/verification.template";
+import { generatePasswordResetEmail } from "../templates/password-reset.template";
 
 interface VerificationEmailData {
   email: string;
@@ -35,11 +37,7 @@ export class EmailService {
   ): Promise<void> {
     const verificationLink = `http://localhost:8000/verify-email?token=${data.verificationToken}&email=${data.email}`;
 
-    const htmlBody = `
-      <h1>Welcome to LearnSphere</h1>
-      <p>Please click the link below to verify your email address.</p>
-      <a href="${verificationLink}">Verify Email</a>
-    `;
+    const htmlBody = generateVerificationEmail(verificationLink);
 
     await this.emailClient.send({
       to: data.email,
@@ -58,11 +56,7 @@ export class EmailService {
   ): Promise<void> {
     const resetLink = `http://localhost:8000/reset-password?token=${data.resetToken}&email=${data.email}`;
 
-    const htmlBody = `
-      <h1>Password Reset Request</h1>
-      <p>Click the link below to reset your password.</p>
-      <a href="${resetLink}">Reset Password</a>
-    `;
+    const htmlBody = generatePasswordResetEmail(resetLink);
 
     await this.emailClient.send({
       to: data.email,
