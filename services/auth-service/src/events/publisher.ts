@@ -63,3 +63,15 @@ export class UserPasswordResetRequiredPublisher extends Publisher<UserPasswordRe
   readonly topic: 'user.password_reset.required' =
     'user.password_reset.required' as const;
 }
+
+interface UserPasswordChangedEvent {
+  topic: 'user.password.changed';
+  data: {
+    userId: string;
+    email: string;
+  };
+}
+
+export class UserPasswordChangedPublisher extends Publisher<UserPasswordChangedEvent> {
+  readonly topic: 'user.password.changed' = 'user.password.changed' as const;
+}

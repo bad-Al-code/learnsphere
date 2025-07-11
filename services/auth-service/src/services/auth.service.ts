@@ -8,7 +8,10 @@ import { Password } from '../utils/password';
 import { UserRepository } from '../db/user.repository';
 import { RequestContext } from '../types/service.types';
 import { AuditService } from './audit.service';
-import { UserRegisteredPublisher } from '../events/publisher';
+import {
+  UserPasswordChangedPublisher,
+  UserRegisteredPublisher,
+} from '../events/publisher';
 import { OauthProfile } from '../types/auth.types';
 import axios from 'axios';
 import { env } from '../config/env';
@@ -278,6 +281,9 @@ export class AuthService {
       updatedAt: new Date(),
     });
 
+    const publisher = new UserPasswordChangedPublisher();
+    await publisher.publish({ userId: user.id, email: user.email });
+
     logger.info(`Password succesfully reset for user ID: ${user.id}`);
   }
 
@@ -363,6 +369,9 @@ export class AuthService {
       ipAddress: context.ipAddress,
       userAgent: context.userAgent,
     });
+
+    const publisher = new UserPasswordChangedPublisher();
+    await publisher.publish({ userId: user.id, email: user.email });
   }
 
   /**

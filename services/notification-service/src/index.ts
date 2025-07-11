@@ -3,7 +3,9 @@ import 'dotenv/config';
 import logger from './config/logger';
 import { rabbitMQConnection } from './events/connection';
 import {
+  UserPasswordChangedListener,
   UserPasswordResetRequiredListener,
+  UserRegisteredWelcomeListener,
   UserVerificationRequiredListener,
 } from './events/listener';
 import { EmailClient } from './clients/email.client';
@@ -18,6 +20,8 @@ const start = async () => {
 
     new UserVerificationRequiredListener(emailService).listen();
     new UserPasswordResetRequiredListener(emailService).listen();
+    new UserRegisteredWelcomeListener(emailService).listen();
+    new UserPasswordChangedListener(emailService).listen();
 
     logger.info(`Notification service is ready and listening for events`);
   } catch (error) {

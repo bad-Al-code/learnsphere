@@ -28,7 +28,7 @@ describe('EmailService', () => {
         verificationToken: faker.string.uuid(),
       };
 
-      const expectedLink = `http://localhost:8000/verify-email?token=${testData.verificationToken}&email=${testData.email}`;
+      const expectedLink = `http://localhost:3000/verify-email?token=${testData.verificationToken}&email=${testData.email}`;
       const mockHtmlBody = '<p>Mock HTML Body</p>';
 
       vi.mocked(generateVerificationEmail).mockReturnValue(mockHtmlBody);
@@ -53,7 +53,7 @@ describe('EmailService', () => {
         resetToken: faker.string.uuid(),
       };
 
-      const resetLink = `http://localhost:8000/reset-password?token=${testData.resetToken}&email=${testData.email}`;
+      const resetLink = `http://localhost:3000/reset-password?token=${testData.resetToken}&email=${testData.email}`;
       const mockHtmlBody = '<p>Mock HTML Body</p>';
 
       vi.mocked(generatePasswordResetEmail).mockReturnValue(mockHtmlBody);

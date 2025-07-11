@@ -117,3 +117,63 @@ export class UserPasswordResetRequiredListener extends Listener<UserPasswordRese
     await this.emailService.sendPasswordResetEmail(data);
   }
 }
+
+interface UserRegisteredEvent extends Event {
+  topic: 'user.registered';
+  data: {
+    id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    avatarUrl?: string;
+  };
+}
+
+export class UserRegisteredWelcomeListener extends Listener<UserRegisteredEvent> {
+  readonly topic = 'user.registered' as const;
+  queueGroupName = 'notification-service-welcome';
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
+
+  async onMessage(
+    data: UserRegisteredEvent['data'],
+    _msg: ConsumeMessage
+  ): Promise<void> {
+    logger.info(`Welcome email event received for: ${data.email}`);
+    await this.emailService.sendWelcomeEmail({
+      email: data.email,
+      firstName: data.firstName,
+    });
+  }
+}
+
+interface UserPasswordChangedEvent extends Event {
+  topic: 'user.password.changed';
+  data: {
+    userId: string;
+    email: string;
+  };
+}
+
+export class UserPasswordChangedListener extends Listener<UserPasswordChangedEvent> {
+  readonly topic = 'user.password.changed' as const;
+  queueGroupName = 'notification-service-password-change';
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
+
+  async onMessage(
+    data: UserPasswordChangedEvent['data'],
+    _msg: ConsumeMessage
+  ): Promise<void> {
+    logger.info(`Password change notice event received for: ${data.email}`);
+    await this.emailService.sendPasswordChangeNotice({ email: data.email });
+  }
+}
