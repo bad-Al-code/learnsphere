@@ -1,6 +1,8 @@
 import nodemailer from "nodemailer";
 import Mail from "nodemailer/lib/mailer";
+
 import logger from "../config/logger";
+import { env } from "../config/env";
 
 export interface EmailOptions {
   to: string;
@@ -14,12 +16,12 @@ export class EmailClient {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: parseInt(process.env.EMAIL_PORT || "587", 10),
+      host: env.EMAIL_HOST,
+      port: env.EMAIL_PORT,
       // secure: true,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: env.EMAIL_USER,
+        pass: env.EMAIL_PASS,
       },
     });
 
@@ -33,7 +35,7 @@ export class EmailClient {
   public async send(options: EmailOptions): Promise<void> {
     try {
       const mailOptions = {
-        from: `LearnSphere ${process.env.EMAIL_FROM}`,
+        from: `LearnSphere ${env.EMAIL_FROM}`,
         to: options.to,
         subject: options.subject,
         text: options.text,
