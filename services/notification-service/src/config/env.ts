@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { z } from 'zod';
 
 const envSchema = z.object({
+  PORT: z.coerce.number().default(8006),
   NODE_ENV: z
     .enum(['development', 'production', 'test'])
     .default('development'),
@@ -14,6 +15,9 @@ const envSchema = z.object({
     .string()
     .email('EMAIL_FROM_ADDRESS must be a valid email'),
   EMAIL_FROM_NAME: z.string().min(1, 'EMAIL_FROM_NAME is required'),
+
+  COOKIE_PARSER_SECRET: z.string().min(1, 'COOKIE_PARSER_SECRET is required'),
+  JWT_SECRET: z.string().min(1, 'JWT_SECRET is required'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

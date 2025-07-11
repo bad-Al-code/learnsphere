@@ -10,6 +10,8 @@ import {
 } from './events/listener';
 import { EmailClient } from './clients/email.client';
 import { EmailService } from './services/email-service';
+import { env } from './config/env';
+import { app } from './app';
 
 const start = async () => {
   try {
@@ -23,7 +25,9 @@ const start = async () => {
     new UserPasswordChangedListener(emailService).listen();
     new UserVerifiedListener(emailService).listen();
 
-    logger.info(`Notification service is ready and listening for events`);
+    app.listen(env.PORT, () => {
+      logger.info(`Notification service API listening on port ${env.PORT}`);
+    });
   } catch (error) {
     const err = error as Error;
     logger.error('Failed to start notification service: %o', {
