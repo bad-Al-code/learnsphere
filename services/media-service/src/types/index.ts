@@ -1,5 +1,3 @@
-import { pgEnum } from 'drizzle-orm/pg-core';
-
 import { mediaAssets } from '../db/schema';
 
 export interface UploadUrlParams {
