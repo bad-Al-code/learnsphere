@@ -1,5 +1,11 @@
 import { notifications } from '../db/schema';
 
+export interface UserPayload {
+  id: string;
+  email: string;
+  role: 'student' | 'instructor' | 'admin';
+}
+
 export interface VerificationEmailData {
   email: string;
   verificationToken: string;
