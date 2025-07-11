@@ -24,7 +24,7 @@ export class EmailClient {
       const { data, error } = await this.resend.emails.send({
         from: fromAddress,
         to: options.to,
-        subject: options.text,
+        subject: options.subject,
         html: options.html,
       });
 
