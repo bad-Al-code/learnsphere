@@ -3,6 +3,7 @@ import { ConsumeMessage } from 'amqplib';
 import logger from '../config/logger';
 import { rabbitMQConnection } from './connection';
 import { EmailService } from '../services/email-service';
+import { NotificationService } from '../services/notification.service';
 
 interface Event {
   topic: string;
@@ -204,8 +205,23 @@ export class UserVerifiedListener extends Listener<UserVerifiedEvent> {
       `User verified event received for: ${data.email}. Sending welcome email.`
     );
 
-    await this.emailService.sendWelcomeEmail({
-      email: data.email,
+    await Promise.all([
+      this.emailService.sendWelcomeEmail({
+        email: data.email,
+      }),
+
+      NotificationService.createNotification({
+        recipientId: data.userId,
+        type: 'WELCOME',
+        content:
+          'Welcome to LearnSphere! Your account is now verified and ready to go.',
+        linkUrl: '/dashboard',
+      }),
+    ]).catch((error) => {
+      logger.error(`Error processing user.verified event`, {
+        userId: data.userId,
+        error,
+      });
     });
   }
 }
