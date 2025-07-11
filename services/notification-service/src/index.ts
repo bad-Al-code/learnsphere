@@ -6,15 +6,20 @@ import {
   UserPasswordResetRequiredListener,
   UserVerificationRequiredListener,
 } from "./events/listener";
+import { EmailClient } from "./clients/email.client";
+import { EmailService } from "./services/email-service";
 
 const start = async () => {
   try {
     await rabbitMQConnection.connect();
 
-    new UserVerificationRequiredListener().listen();
-    new UserPasswordResetRequiredListener().listen();
+    const emailClient = new EmailClient();
+    const emailService = new EmailService(emailClient);
 
-    logger.info(`Notification service is ready`);
+    new UserVerificationRequiredListener(emailService).listen();
+    new UserPasswordResetRequiredListener(emailService).listen();
+
+    logger.info(`Notification service is ready and listening for events`);
   } catch (error) {
     const err = error as Error;
     logger.error("Failed to start notification service: %o", {

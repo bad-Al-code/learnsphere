@@ -1,7 +1,8 @@
 import { ConsumeMessage } from "amqplib";
+
 import logger from "../config/logger";
 import { rabbitMQConnection } from "./connection";
-import { emailService } from "../services/email-service";
+import { EmailService } from "../services/email-service";
 
 interface Event {
   topic: string;
@@ -67,28 +68,23 @@ interface UserVerificationRequiredEvent {
 }
 
 export class UserVerificationRequiredListener extends Listener<UserVerificationRequiredEvent> {
-  topic: "user.verification.required" = "user.verification.required";
+  readonly topic: "user.verification.required" =
+    "user.verification.required" as const;
   queueGroupName = "notification-service-verification";
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
 
   async onMessage(
     data: { email: string; verificationToken: string },
-    msg: ConsumeMessage
+    _msg: ConsumeMessage
   ): Promise<void> {
     logger.info(`Verification event received for: ${data.email}`);
 
-    const verificationLink = `http://localhost:8000/api/auth/verify-email?token=${data.verificationToken}&email=${data.email}`;
-
-    await emailService.sendMail({
-      to: data.email,
-      subject: "Welcome to LearnSphere! Please verify your email",
-      text: `Welcome! Please verify your email by clicking this link: ${verificationLink}`,
-      html: `
-      <h1>Welcome to LearnSphere</h1>
-      <p>Thanks to signing up. Please click the link below to verify your email address.</p>
-      <a href="${verificationLink}" style="padding: 10px 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Verify Email</a>
-      <p>This link will expire in 2 hours.</p>
-      `,
-    });
+    await this.emailService.sendVerificationEmail(data);
   }
 }
 
@@ -101,28 +97,23 @@ interface UserPasswordResetRequiredEvent {
 }
 
 export class UserPasswordResetRequiredListener extends Listener<UserPasswordResetRequiredEvent> {
-  topic: "user.password_reset.required" = "user.password_reset.required";
+  readonly topic: "user.password_reset.required" =
+    "user.password_reset.required" as const;
   queueGroupName: string = "notification-service-password-reset";
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+
+    this.emailService = emailService;
+  }
 
   async onMessage(
     data: { email: string; resetToken: string },
-    msg: ConsumeMessage
+    _msg: ConsumeMessage
   ): Promise<void> {
     logger.info(`Password reset event received for: ${data.email}`);
 
-    const resetLink = `http://localhost:8000/api/auth/reset-password?token=${data.resetToken}&email=${data.email}`;
-
-    await emailService.sendMail({
-      to: data.email,
-      subject: "LearnSphere Password Reset Request",
-      text: `You requested a password reset. Please use the following link: ${resetLink}`,
-      html: `
-  <h1>Password Reset Requested</h1>
-  <p>You (or someone else) requested a password reset for your account. If this was not you, you can safely ignore this email.</p>
-  <p>Click the link below to set a new password:</p>
-  <a href="${resetLink}" style="padding: 10px 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a>
-  <p>This link will expire in 15 minutes.</p>
-  `,
-    });
+    await this.emailService.sendPasswordResetEmail(data);
   }
 }
