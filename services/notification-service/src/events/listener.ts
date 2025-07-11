@@ -177,3 +177,35 @@ export class UserPasswordChangedListener extends Listener<UserPasswordChangedEve
     await this.emailService.sendPasswordChangeNotice({ email: data.email });
   }
 }
+
+interface UserVerifiedEvent extends Event {
+  topic: 'user.verified';
+  data: {
+    userId: string;
+    email: string;
+  };
+}
+
+export class UserVerifiedListener extends Listener<UserVerifiedEvent> {
+  readonly topic = 'user.verified' as const;
+  queueGroupName = 'notification-service-welcome';
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
+
+  async onMessage(
+    data: UserVerifiedEvent['data'],
+    _msg: ConsumeMessage
+  ): Promise<void> {
+    logger.info(
+      `User verified event received for: ${data.email}. Sending welcome email.`
+    );
+
+    await this.emailService.sendWelcomeEmail({
+      email: data.email,
+    });
+  }
+}

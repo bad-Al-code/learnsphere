@@ -5,8 +5,8 @@ import { rabbitMQConnection } from './events/connection';
 import {
   UserPasswordChangedListener,
   UserPasswordResetRequiredListener,
-  UserRegisteredWelcomeListener,
   UserVerificationRequiredListener,
+  UserVerifiedListener,
 } from './events/listener';
 import { EmailClient } from './clients/email.client';
 import { EmailService } from './services/email-service';
@@ -20,8 +20,8 @@ const start = async () => {
 
     new UserVerificationRequiredListener(emailService).listen();
     new UserPasswordResetRequiredListener(emailService).listen();
-    new UserRegisteredWelcomeListener(emailService).listen();
     new UserPasswordChangedListener(emailService).listen();
+    new UserVerifiedListener(emailService).listen();
 
     logger.info(`Notification service is ready and listening for events`);
   } catch (error) {

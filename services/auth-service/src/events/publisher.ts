@@ -75,3 +75,17 @@ interface UserPasswordChangedEvent {
 export class UserPasswordChangedPublisher extends Publisher<UserPasswordChangedEvent> {
   readonly topic: 'user.password.changed' = 'user.password.changed' as const;
 }
+
+interface UserVerifiedEvent {
+  topic: 'user.verified';
+  data: {
+    userId: string;
+    email: string;
+    firstName?: string | null;
+    lastName?: string | null;
+  };
+}
+
+export class UserVerifiedPublisher extends Publisher<UserVerifiedEvent> {
+  readonly topic = 'user.verified' as const;
+}

@@ -11,6 +11,7 @@ import { AuditService } from './audit.service';
 import {
   UserPasswordChangedPublisher,
   UserRegisteredPublisher,
+  UserVerifiedPublisher,
 } from '../events/publisher';
 import { OauthProfile } from '../types/auth.types';
 import axios from 'axios';
@@ -208,6 +209,19 @@ export class AuthService {
       verificationToken: null,
       verificationTokenExpiresAt: null,
     });
+
+    try {
+      const publisher = new UserVerifiedPublisher();
+      await publisher.publish({
+        userId: user.id,
+        email: user.email,
+      });
+    } catch (error) {
+      logger.error('Failed to publish user.verified event', {
+        userId: user.id,
+        error,
+      });
+    }
 
     logger.info(`Email successfully verified for user ID: ${user.id}`);
   }
