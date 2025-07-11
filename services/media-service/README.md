@@ -61,10 +61,18 @@ pnpm install
 
 ### 4. Start Dependent Services
 
-This service requires a RabbitMQ. A `docker-compose.yaml` file is provided.
+This service requires a RabbitMQ for publishing events and a PostgreSQL database for tracking media assets. A `docker-compose.yaml` file is provided.
 
 ```bash
 docker compose up -d
+```
+
+### 5. Run Database Migrations
+
+Before starting the application, you must apply the database schema for the media assets tables.
+
+```bash
+pnpm db
 ```
 
 ---
@@ -101,7 +109,27 @@ pnpm test:ui
 pnpm test:coverage
 ```
 
-### 3. Code Quality Scripts
+### 3. Database Scripts
+
+- **Generate a new migration after schema changes**:
+
+```bash
+pnpm db:generate
+```
+
+- **Apply pending migrations to the database**:
+
+```bash
+pnpm db:migrate
+```
+
+- **Open Drizzle Studio to view/edit your database**:
+
+```bash
+pnpm db:studio
+```
+
+### 4. Code Quality Scripts
 
 - **Check for linting errors**:
 
