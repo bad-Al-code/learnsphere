@@ -81,9 +81,22 @@ services:
     volumes:
       - media-db-data:/var/lib/postgresql/data
 
+  postgres-notification:
+    image: postgres:17.5
+    container_name: learnsphere-notification-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: notification_db
+    ports:
+      - "5437:5432"
+    volumes:
+      - notification-db-data:/var/lib/postgresql/data
+
 volumes:
   auth-db-data:
   user-db-data:
   course-db-data:
   enrollment-db-data:
   media-db-data:
+  notification-db-data:
