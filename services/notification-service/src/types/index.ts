@@ -1,3 +1,5 @@
+import { notifications } from '../db/schema';
+
 export interface VerificationEmailData {
   email: string;
   verificationToken: string;
@@ -23,3 +25,6 @@ export interface EmailOptions {
   text: string;
   html: string;
 }
+
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;
