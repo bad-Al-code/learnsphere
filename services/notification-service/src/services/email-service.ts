@@ -3,25 +3,12 @@ import { generateVerificationEmail } from '../templates/verification.template';
 import { generatePasswordResetEmail } from '../templates/password-reset.template';
 import { generateWelcomeEmail } from '../templates/welcome.template';
 import { generatePasswordChangeNotice } from '../templates/password-change-notice.template';
-
-interface VerificationEmailData {
-  email: string;
-  verificationToken: string;
-}
-
-interface PasswordResetEmailData {
-  email: string;
-  resetToken: string;
-}
-
-interface WelcomeEmailData {
-  email: string;
-  firstName?: string | null;
-}
-
-interface PasswordChangeNoticeData {
-  email: string;
-}
+import {
+  VerificationEmailData,
+  PasswordResetEmailData,
+  WelcomeEmailData,
+  PasswordChangeNoticeData,
+} from '../types';
 
 export class EmailService {
   private emailClient: EmailClient;

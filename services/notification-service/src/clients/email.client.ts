@@ -3,13 +3,7 @@ import Mail from 'nodemailer/lib/mailer';
 
 import logger from '../config/logger';
 import { env } from '../config/env';
-
-export interface EmailOptions {
-  to: string;
-  subject: string;
-  text: string;
-  html: string;
-}
+import { EmailOptions } from '../types';
 
 export class EmailClient {
   private transporter: Mail;
