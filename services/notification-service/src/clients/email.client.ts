@@ -1,25 +1,16 @@
-import nodemailer from 'nodemailer';
-import Mail from 'nodemailer/lib/mailer';
+import { Resend } from 'resend';
 
 import logger from '../config/logger';
 import { env } from '../config/env';
 import { EmailOptions } from '../types';
 
 export class EmailClient {
-  private transporter: Mail;
+  private resend: Resend;
 
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: env.EMAIL_HOST,
-      port: env.EMAIL_PORT,
-      // secure: true,
-      auth: {
-        user: env.EMAIL_USER,
-        pass: env.EMAIL_PASS,
-      },
-    });
+    this.resend = new Resend(env.RESEND_API_KEY);
 
-    logger.info(`Nodemailer transporter configured`);
+    logger.info(`Resend EmailClient configured`);
   }
 
   /**
@@ -28,22 +19,33 @@ export class EmailClient {
    */
   public async send(options: EmailOptions): Promise<void> {
     try {
-      const mailOptions = {
-        from: `LearnSphere ${env.EMAIL_FROM}`,
-        to: options.to,
-        subject: options.subject,
-        text: options.text,
-        html: options.html,
-      };
+      const fromAddress = `${env.EMAIL_FROM_NAME} <${env.EMAIL_FROM_ADDRESS}>`;
 
-      const info = await this.transporter.sendMail(mailOptions);
+      const { data, error } = await this.resend.emails.send({
+        from: fromAddress,
+        to: options.to,
+        subject: options.text,
+        html: options.html,
+      });
+
+      if (error) {
+        throw error;
+      }
 
       logger.info(
-        `Email sent successfully to ${options.to}. Message ID: ${info.messageId}`
+        `Email send successfully via Resend to ${options.to}. Message ID: ${data?.id}`
       );
     } catch (error) {
-      logger.error(`Error seding email via EmailClient`, {
-        error: error instanceof Error ? error.message : String(error),
+      logger.error(`Error sending email via Resend EmailClient`, {
+        error:
+          error instanceof Error
+            ? {
+                message: error.message,
+                name: error.name,
+                stack: error.stack,
+              }
+            : String(error),
+        recipient: options.to,
       });
 
       throw error;
