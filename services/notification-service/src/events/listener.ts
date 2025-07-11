@@ -1,21 +1,21 @@
-import { ConsumeMessage } from "amqplib";
+import { ConsumeMessage } from 'amqplib';
 
-import logger from "../config/logger";
-import { rabbitMQConnection } from "./connection";
-import { EmailService } from "../services/email-service";
+import logger from '../config/logger';
+import { rabbitMQConnection } from './connection';
+import { EmailService } from '../services/email-service';
 
 interface Event {
   topic: string;
-  data: any;
+  data: object;
 }
 
 export abstract class Listener<T extends Event> {
-  abstract topic: T["topic"];
+  abstract topic: T['topic'];
   abstract queueGroupName: string;
-  abstract onMessage(data: T["data"], msg: ConsumeMessage): void;
+  abstract onMessage(data: T['data'], msg: ConsumeMessage): void;
 
-  protected exchange = "learnsphere";
-  protected exchangeType = "topic";
+  protected exchange = 'learnsphere';
+  protected exchangeType = 'topic';
 
   listen(): void {
     const channel = rabbitMQConnection.getChannel();
@@ -60,7 +60,7 @@ export abstract class Listener<T extends Event> {
 }
 
 interface UserVerificationRequiredEvent {
-  topic: "user.verification.required";
+  topic: 'user.verification.required';
   data: {
     email: string;
     verificationToken: string;
@@ -68,9 +68,9 @@ interface UserVerificationRequiredEvent {
 }
 
 export class UserVerificationRequiredListener extends Listener<UserVerificationRequiredEvent> {
-  readonly topic: "user.verification.required" =
-    "user.verification.required" as const;
-  queueGroupName = "notification-service-verification";
+  readonly topic: 'user.verification.required' =
+    'user.verification.required' as const;
+  queueGroupName = 'notification-service-verification';
   private emailService: EmailService;
 
   constructor(emailService: EmailService) {
@@ -89,7 +89,7 @@ export class UserVerificationRequiredListener extends Listener<UserVerificationR
 }
 
 interface UserPasswordResetRequiredEvent {
-  topic: "user.password_reset.required";
+  topic: 'user.password_reset.required';
   data: {
     email: string;
     resetToken: string;
@@ -97,9 +97,9 @@ interface UserPasswordResetRequiredEvent {
 }
 
 export class UserPasswordResetRequiredListener extends Listener<UserPasswordResetRequiredEvent> {
-  readonly topic: "user.password_reset.required" =
-    "user.password_reset.required" as const;
-  queueGroupName: string = "notification-service-password-reset";
+  readonly topic: 'user.password_reset.required' =
+    'user.password_reset.required' as const;
+  queueGroupName: string = 'notification-service-password-reset';
   private emailService: EmailService;
 
   constructor(emailService: EmailService) {

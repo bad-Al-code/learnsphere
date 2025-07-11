@@ -1,8 +1,8 @@
-import nodemailer from "nodemailer";
-import Mail from "nodemailer/lib/mailer";
+import nodemailer from 'nodemailer';
+import Mail from 'nodemailer/lib/mailer';
 
-import logger from "../config/logger";
-import { env } from "../config/env";
+import logger from '../config/logger';
+import { env } from '../config/env';
 
 export interface EmailOptions {
   to: string;

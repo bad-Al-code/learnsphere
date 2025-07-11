@@ -1,8 +1,6 @@
-import nodemailer from "nodemailer";
-import logger from "../config/logger";
-import { EmailClient } from "../clients/email.client";
-import { generateVerificationEmail } from "../templates/verification.template";
-import { generatePasswordResetEmail } from "../templates/password-reset.template";
+import { EmailClient } from '../clients/email.client';
+import { generateVerificationEmail } from '../templates/verification.template';
+import { generatePasswordResetEmail } from '../templates/password-reset.template';
 
 interface VerificationEmailData {
   email: string;
@@ -12,13 +10,6 @@ interface VerificationEmailData {
 interface PasswordResetEmailData {
   email: string;
   resetToken: string;
-}
-
-interface EmailOptions {
-  to: string;
-  subject: string;
-  text: string;
-  html: string;
 }
 
 export class EmailService {
@@ -41,7 +32,7 @@ export class EmailService {
 
     await this.emailClient.send({
       to: data.email,
-      subject: "Welcome to LearnSphere! Please Verify Your Email",
+      subject: 'Welcome to LearnSphere! Please Verify Your Email',
       text: `Please verify your email by visiting this link: ${verificationLink}`,
       html: htmlBody,
     });
@@ -60,7 +51,7 @@ export class EmailService {
 
     await this.emailClient.send({
       to: data.email,
-      subject: "LearnSphere Password Reset Request",
+      subject: 'LearnSphere Password Reset Request',
       text: `Reset your password with this link: ${resetLink}`,
       html: htmlBody,
     });

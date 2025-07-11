@@ -7,6 +7,9 @@
     "dev": "nodemon --exec ts-node src/index.ts",
     "start": "node ./dist/index.js",
     "build": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
     "test": "echo \"Error: no test specified\" && exit 1",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "ts-node ./src/db/migrate.ts"
@@ -26,7 +29,9 @@
     "@types/amqplib": "^0.10.7",
     "@types/node": "^24.0.1",
     "@types/nodemailer": "^6.4.17",
+    "eslint-config-prettier": "^10.1.5",
     "nodemon": "^3.1.10",
+    "prettier": "^3.6.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }

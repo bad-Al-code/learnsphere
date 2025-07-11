@@ -5,10 +5,10 @@ class HealthStateManager {
     redis: false,
   };
 
-  private criticalDependencies: string[] = ["rabbitmq"];
+  private criticalDependencies: string[] = ['rabbitmq'];
 
   public set(
-    dependency: "db" | "rabbitmq" | "redis",
+    dependency: 'db' | 'rabbitmq' | 'redis',
     isHealthy: boolean
   ): void {
     this.states[dependency] = isHealthy;
