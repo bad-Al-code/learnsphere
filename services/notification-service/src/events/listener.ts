@@ -175,7 +175,23 @@ export class UserPasswordChangedListener extends Listener<UserPasswordChangedEve
     _msg: ConsumeMessage
   ): Promise<void> {
     logger.info(`Password change notice event received for: ${data.email}`);
-    await this.emailService.sendPasswordChangeNotice({ email: data.email });
+
+    await Promise.all([
+      this.emailService.sendPasswordChangeNotice({ email: data.email }),
+
+      NotificationService.createNotification({
+        recipientId: data.userId,
+        type: 'SECURITY_ALERT',
+        content:
+          'Your password was recently changed. If this was not you, please secure your accounr.',
+        linkUrl: '/settings/security', // TODO: link to security setting page on the frontend
+      }),
+    ]).catch((error) => {
+      logger.error('Error processing user.password.changed event', {
+        userId: data.userId,
+        error,
+      });
+    });
   }
 }
 
