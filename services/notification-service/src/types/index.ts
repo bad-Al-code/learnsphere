@@ -1,4 +1,4 @@
-import { notifications } from '../db/schema';
+import { emailOutbox, notifications } from '../db/schema';
 
 export interface UserPayload {
   id: string;
@@ -30,7 +30,10 @@ export interface EmailOptions {
   subject: string;
   text: string;
   html: string;
+  type: 'verification' | 'password_reset' | 'welcome' | 'password_changed';
 }
 
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
+
+export type NewEmailLog = typeof emailOutbox.$inferInsert;

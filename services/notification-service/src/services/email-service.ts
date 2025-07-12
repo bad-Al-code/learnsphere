@@ -33,6 +33,7 @@ export class EmailService {
       subject: 'Welcome to LearnSphere! Please Verify Your Email',
       text: `Please verify your email by visiting this link: ${verificationLink}`,
       html: htmlBody,
+      type: 'verification',
     });
   }
 
@@ -52,6 +53,7 @@ export class EmailService {
       subject: 'LearnSphere Password Reset Request',
       text: `Reset your password with this link: ${resetLink}`,
       html: htmlBody,
+      type: 'password_reset',
     });
   }
 
@@ -70,6 +72,7 @@ export class EmailService {
         'Welcome to LearnSphere! We are excited to have you. You can log in at: ' +
         loginLink,
       html: htmlBody,
+      type: 'welcome',
     });
   }
 
@@ -87,6 +90,7 @@ export class EmailService {
       subject: 'Security Alert: Your LearnSphere Password Has Been Changed',
       text: `This is a notification that the password for your account (${data.email}) has been changed. If you did not make this change, please contact support immediately.`,
       html: htmlBody,
+      type: 'password_changed',
     });
   }
 }

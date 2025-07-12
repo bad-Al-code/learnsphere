@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 import logger from '../config/logger';
 import { env } from '../config/env';
 import { EmailOptions } from '../types';
+import { EmailOutboxRepository } from '../db/email-outbox.repository';
 
 export class EmailClient {
   private resend: Resend;
@@ -18,9 +19,10 @@ export class EmailClient {
    * @param options  The email optioons (to, subject, text, html)
    */
   public async send(options: EmailOptions): Promise<void> {
-    try {
-      const fromAddress = `${env.EMAIL_FROM_NAME} <${env.EMAIL_FROM_ADDRESS}>`;
+    const fromAddress = `${env.EMAIL_FROM_NAME} <${env.EMAIL_FROM_ADDRESS}>`;
+    let sendError: Error | null = null;
 
+    try {
       const { data, error } = await this.resend.emails.send({
         from: fromAddress,
         to: options.to,
@@ -37,19 +39,25 @@ export class EmailClient {
         `Email send successfully via Resend to ${options.to}. Message ID: ${data?.id}`
       );
     } catch (error) {
+      sendError = error as Error;
       logger.error(`Error sending email via Resend EmailClient`, {
-        error:
-          error instanceof Error
-            ? {
-                message: error.message,
-                name: error.name,
-                stack: error.stack,
-              }
-            : String(error),
+        error: sendError.message,
+        name: sendError.name,
+        stack: sendError.stack,
         recipient: options.to,
       });
+    } finally {
+      await EmailOutboxRepository.create({
+        recipient: options.to,
+        subject: options.subject,
+        type: options.type,
+        status: sendError ? 'failed' : 'sent',
+        errorMessage: sendError ? sendError.message : null,
+      });
+    }
 
-      throw error;
+    if (sendError) {
+      throw sendError;
     }
   }
 }
