@@ -8,6 +8,13 @@
       "when": 1752237046876,
       "tag": "0000_aromatic_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1752304284810,
+      "tag": "0001_skinny_hitman",
+      "breakpoints": true
     }
   ]
 }
