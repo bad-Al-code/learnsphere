@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notification</title>
+  </head>
+  <body>
+    <h1>Notification</h1>
+    <ul id="notification"></ul>
+    <script>
+      const JWT_TOKEN =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijg1MjkwYWFjLTlkNWItNDBjMS04NzBkLWU2OWYxMmM2ODFlMSIsImlhdCI6MTc1MjMwMzUzNiwiZXhwIjoxNzUyMzEwNzM2fQ.IySAIoYkynLaBHlZamLi4xsTfPkH3EMUid2v9jUkdpg';
+      document.cookie = `token=${JWT_TOKEN}; path=/;`;
+
+      const ws = new WebSocket('ws://localhost:8006');
+
+      ws.onopen = () => console.log(`WebSocket connection opened!`);
+      ws.onclose = () => console.log(`WebSocket connection closed!`);
+      ws.onerror = (error) => console.log(`WebSocket error:`, error);
+
+      ws.onmessage = (event) => {
+        console.log('Received message: ', event.data);
+
+        const notification = JSON.parse(event.data);
+        const li = document.createElement('li');
+        li.textContent = notification.content;
+
+        document.getElementById('notification').appendChild(li);
+      };
+    </script>
+  </body>
+</html>

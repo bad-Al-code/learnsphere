@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import http from 'node:http';
 
 import logger from './config/logger';
 import { rabbitMQConnection } from './events/connection';
@@ -12,6 +13,7 @@ import { EmailClient } from './clients/email.client';
 import { EmailService } from './services/email-service';
 import { env } from './config/env';
 import { app } from './app';
+import { WebSocketService } from './services/websocket.service';
 
 const start = async () => {
   try {
@@ -25,8 +27,15 @@ const start = async () => {
     new UserPasswordChangedListener(emailService).listen();
     new UserVerifiedListener(emailService).listen();
 
-    app.listen(env.PORT, () => {
-      logger.info(`Notification service API listening on port ${env.PORT}`);
+    const server = http.createServer(app);
+
+    const webSocketService = new WebSocketService(server);
+    webSocketService.start();
+
+    server.listen(env.PORT, () => {
+      logger.info(
+        `Notification service (HTTP & WS) listening on port ${env.PORT}`
+      );
     });
   } catch (error) {
     const err = error as Error;

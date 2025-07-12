@@ -1,6 +1,7 @@
 import logger from '../config/logger';
 import { NotificationRepository } from '../db/notification.repository';
 import { NewNotification, Notification } from '../types';
+import { WebSocketService } from './websocket.service';
 
 export class NotificationService {
   /**
@@ -16,7 +17,11 @@ export class NotificationService {
       recipientId: data.recipientId,
     });
 
-    return await NotificationRepository.create(data);
+    const notification = await NotificationRepository.create(data);
+
+    WebSocketService.sendNotification(notification.recipientId, notification);
+
+    return notification;
   }
 
   /**
