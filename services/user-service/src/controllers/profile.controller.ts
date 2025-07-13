@@ -222,4 +222,42 @@ export class ProfileController {
       next(error);
     }
   }
+
+  public static async addFcmToken(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userId = req.currentUser!.id;
+      const { token } = req.body;
+
+      await ProfileService.addFcmToken(userId, token);
+
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'Token registerd successfully.' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async removeFcmToken(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userId = req.currentUser!.id;
+      const { token } = req.body;
+
+      await ProfileService.removeFcmToken(userId, token);
+
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'Token removed successfully.' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

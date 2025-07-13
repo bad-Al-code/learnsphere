@@ -1,4 +1,4 @@
-import { count, eq, ilike, inArray, or } from 'drizzle-orm';
+import { sql, count, eq, ilike, inArray, or } from 'drizzle-orm';
 
 import { db } from '.';
 import { profiles, UserSettings } from './schema';
@@ -151,5 +151,38 @@ export class ProfileRepository {
       .returning();
 
     return updateProfile || null;
+  }
+
+  /**
+   * Adds a new FCM token to a user's profile.
+   * Uses a SQL function to append to the array without duplicates.
+   * @param userId The ID of the user.
+   * @param token The new FCM token to add.
+   */
+  public static async addFcmToken(
+    userId: string,
+    token: string
+  ): Promise<void> {
+    await db.execute(sql`
+      UPDATE "profiles"
+      SET "fcm_tokens" = array_append("fcm_tokens", ${token})
+      WHERE "user_id" = ${userId} AND NOT (${token} = ANY("fcm_tokens"))
+    `);
+  }
+
+  /**
+   * Removes an FCM token from a user's profile.
+   * @param userId The ID of the user.
+   * @param token The FCM token to remove.
+   */
+  public static async removeFcmToken(
+    userId: string,
+    token: string
+  ): Promise<void> {
+    await db.execute(sql`
+      UPDATE "profiles"
+      SET "fcm_tokens" = array_remove("fcm_tokens", ${token})
+      WHERE "user_id" = ${userId}
+    `);
   }
 }

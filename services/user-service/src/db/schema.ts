@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import {
   pgTable,
   text,
@@ -39,6 +40,11 @@ export const profiles = pgTable('profiles', {
     linkedin?: string;
     github?: string;
   }>(),
+
+  fcmTokens: text('fcm_tokens')
+    .array()
+    .default(sql`ARRAY[]::text[]`)
+    .notNull(),
 
   status: userStatusEnum('status').default('active').notNull(),
 

@@ -237,4 +237,32 @@ export class ProfileService {
 
     return updatedProfile;
   }
+
+  /**
+   * Associates a new FCM device token with a user's profile.
+   * @param userId The ID of the user.
+   * @param token The FCM token from the user's device.
+   */
+  public static async addFcmToken(
+    userId: string,
+    token: string
+  ): Promise<void> {
+    logger.info(`Adding FCM token for user: ${userId}`);
+
+    await ProfileRepository.addFcmToken(userId, token);
+  }
+
+  /**
+   * Disassociates an FCM device token from a user's profile (e.g., on logout).
+   * @param userId The ID of the user.
+   * @param token The FCM token to remove.
+   */
+  public static async removeFcmToken(
+    userId: string,
+    token: string
+  ): Promise<void> {
+    logger.info(`Adding FCM token for user: ${userId}`);
+
+    await ProfileRepository.removeFcmToken(userId, token);
+  }
 }

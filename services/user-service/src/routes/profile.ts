@@ -17,6 +17,7 @@ import { validateRequest } from '../middlewares/validate-request';
 import {
   avatarUploadUrlSchema,
   bulkUsersSchema,
+  fcmTokenSchema,
   searchProfileSchema,
   updateProfileSchema,
   updateSettingsSchema,
@@ -180,6 +181,20 @@ router.post(
   '/me/apply-for-instructor',
   requireAuth,
   ProfileController.applyForInstructor
+);
+
+router.post(
+  '/me/fcm-tokens',
+  requireAuth,
+  validateRequest(fcmTokenSchema),
+  ProfileController.addFcmToken
+);
+
+router.delete(
+  '/me/fcm-tokens',
+  requireAuth,
+  validateRequest(fcmTokenSchema),
+  ProfileController.removeFcmToken
 );
 
 /**

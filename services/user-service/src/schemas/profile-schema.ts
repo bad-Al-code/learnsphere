@@ -162,3 +162,9 @@ export const updateSettingsSchema = z.object({
     })
     .partial(),
 });
+
+export const fcmTokenSchema = z.object({
+  body: z.object({
+    token: z.string().min(1, 'FCM token is required'),
+  }),
+});
