@@ -42,6 +42,7 @@ describe('EmailService', () => {
         subject: 'Welcome to LearnSphere! Please Verify Your Email',
         text: expect.stringContaining(expectedLink),
         html: mockHtmlBody,
+        type: 'verification',
       });
     });
   });
@@ -67,6 +68,7 @@ describe('EmailService', () => {
         subject: 'LearnSphere Password Reset Request',
         text: expect.stringContaining(resetLink),
         html: mockHtmlBody,
+        type: 'password_reset',
       });
     });
   });
