@@ -377,4 +377,5 @@ router.post(
   ProfileController.suspendUser
 );
 
+router.get('/:id/fcm-tokens', ProfileController.getFcmTokens);
 export { router as profileRouter };

@@ -260,4 +260,19 @@ export class ProfileController {
       next(error);
     }
   }
+
+  public static async getFcmTokens(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id } = req.params;
+      const profile = await ProfileService.getPrivateProfileById(id);
+
+      res.status(StatusCodes.OK).json({ fcmTokens: profile.fcmTokens });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

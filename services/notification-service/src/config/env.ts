@@ -9,7 +9,11 @@ const envSchema = z.object({
 
   RABBITMQ_URL: z.string().min(1, 'RABBITMQ_URL is required'),
   DATABASE_URL: z.string().url('DATABASE_URL must be a valid postgresql URL'),
+  USER_SERVICE_URL: z.string().url('USER_SERVCE_URL is required'),
 
+  GOOGLE_APPLICATION_CREDENTIALS: z
+    .string()
+    .min(1, 'Path to Firebase service account key is required'),
   RESEND_API_KEY: z.string().min(1, 'RESEND_API_KEY is required'),
   EMAIL_FROM_ADDRESS: z
     .string()

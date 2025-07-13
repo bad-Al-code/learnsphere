@@ -1,9 +1,15 @@
+import axios from 'axios';
+
+import { PushClient } from '../clients/push.client';
 import logger from '../config/logger';
 import { NotificationRepository } from '../db/notification.repository';
 import { NewNotification, Notification } from '../types';
 import { WebSocketService } from './websocket.service';
+import { env } from '../config/env';
 
 export class NotificationService {
+  private static pushClient = new PushClient();
+
   /**
    * Creates a new in-app notification.
    * @param data The data for the notification
@@ -21,7 +27,35 @@ export class NotificationService {
 
     WebSocketService.sendNotification(notification.recipientId, notification);
 
+    this.sendPushNotification(notification);
+
     return notification;
+  }
+
+  private static async sendPushNotification(
+    notification: Notification
+  ): Promise<void> {
+    try {
+      const response = await axios.get<{ fcmTokens: string[] }>(
+        `${env.USER_SERVICE_URL}/api/users/${notification.recipientId}/fcm-tokens`
+      );
+
+      const tokens = response.data.fcmTokens;
+      if (tokens && tokens.length > 0) {
+        await this.pushClient.send(
+          tokens,
+          'New Notification from LearnSphere',
+          notification.content,
+          notification.linkUrl || undefined
+        );
+      }
+    } catch (error) {
+      logger.error(`Failed tp fetch FCM tokens or send push notification`, {
+        userId: notification.recipientId,
+        error:
+          error instanceof axios.AxiosError ? error.message : String(error),
+      });
+    }
   }
 
   /**
