@@ -61,7 +61,7 @@ export class CourseService {
   ): Promise<CourseWithInstructor> {
     const cacheKey = `course:details:${courseId}`;
 
-    const cachedCourse = await CacheService.get<any>(cacheKey);
+    const cachedCourse = await CacheService.get<CourseWithInstructor>(cacheKey);
     if (cachedCourse) {
       return cachedCourse;
     }

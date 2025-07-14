@@ -18,6 +18,7 @@ export const courses = pgTable('courses', {
   instructorId: uuid('instructor_id').notNull(),
   status: courseStatusEnum('status').default('draft').notNull(),
   prerequisiteCourseId: uuid('prerequisite_course_id').references(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (): any => courses.id
   ),
   createdAt: timestamp('created_at').defaultNow().notNull(),

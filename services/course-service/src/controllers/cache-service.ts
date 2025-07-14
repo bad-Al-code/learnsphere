@@ -26,7 +26,7 @@ export class CacheService {
     }
   }
 
-  public static async set(key: string, value: any): Promise<void> {
+  public static async set(key: string, value: unknown): Promise<void> {
     try {
       const stringValue = JSON.stringify(value);
       await this.client.set(key, stringValue, { EX: CACHE_TTL_SECONDS });
