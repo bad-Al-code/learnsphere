@@ -32,6 +32,10 @@ export class NotificationService {
     return notification;
   }
 
+  /**
+   * Fetches a user's FCM tokens from the user-service and sends them a push notification.
+   * @param notification The notification object saved in the database.
+   */
   private static async sendPushNotification(
     notification: Notification
   ): Promise<void> {

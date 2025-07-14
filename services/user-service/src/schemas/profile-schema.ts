@@ -99,6 +99,15 @@ import { z } from 'zod';
  *               type: boolean
  *             weeklyNewsletter:
  *               type: boolean
+ *     FcmTokenPayload:
+ *       type: object
+ *       required:
+ *         - token
+ *       properties:
+ *         token:
+ *           type: string
+ *           description: The FCM device token provided by the client application.
+ *           example: 'c2_...:APA91b...'
  *   securitySchemes:
  *      cookieAuth:
  *        type: apiKey

@@ -183,6 +183,26 @@ router.post(
   ProfileController.applyForInstructor
 );
 
+/**
+ * @openapi
+ * /api/users/me/fcm-tokens:
+ *   post:
+ *     summary: Register a device token for push notifications
+ *     tags: [My Profile]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/FcmTokenPayload'
+ *     responses:
+ *       '200':
+ *         description: Token registered successfully.
+ *       '401':
+ *         description: Unauthorized.
+ */
 router.post(
   '/me/fcm-tokens',
   requireAuth,
@@ -190,6 +210,26 @@ router.post(
   ProfileController.addFcmToken
 );
 
+/**
+ * @openapi
+ * /api/users/me/fcm-tokens:
+ *   delete:
+ *     summary: De-register a device token to stop push notifications
+ *     tags: [My Profile]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/FcmTokenPayload'
+ *     responses:
+ *       '200':
+ *         description: Token removed successfully.
+ *       '401':
+ *         description: Unauthorized.
+ */
 router.delete(
   '/me/fcm-tokens',
   requireAuth,
