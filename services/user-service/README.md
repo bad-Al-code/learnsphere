@@ -8,6 +8,7 @@ This service listens for events from the `auth-service` (e.g., `user.registered`
 
 - **Profile Management**: Full CRUD (Create, Read, Update) operations for user profiles.
 - **Event-Driven Architecture**: Listens to RabbitMQ events to stay in sync with the `auth-service`.
+- **Push Notification Support**: Manange FCM devices tokens for each user.
 - **Public vs. Private Profiles**: Logic to return different profile details based on the requester's authentication status and role.
 - **Bulk User Retrieval**: An endpoint to efficiently fetch multiple user profiles at once.
 - **Search Functionality**: Paginated search for user profiles by name.
