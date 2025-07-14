@@ -1,7 +1,5 @@
-import axios from 'axios';
-
 import { eq } from 'drizzle-orm';
-import { env } from '../config/env';
+import { MediaClient } from '../clients/media.client';
 import logger from '../config/logger';
 import { db } from '../db';
 import { LessonRepository } from '../db/repostiories/lesson.repository';
@@ -156,38 +154,17 @@ export class LessonService {
     filename: string,
     requesterId: string
   ) {
+    await AuthorizationService.verifyLessonOwnership(lessonId, requesterId);
+
     const lesson = await LessonRepository.findById(lessonId);
     if (!lesson) {
       throw new NotFoundError('Lesson');
     }
-    await AuthorizationService.verifyLessonOwnership(lessonId, requesterId);
 
     if (lesson.lessonType !== 'video') {
       throw new BadRequestError('This lesson is not a video lesson');
     }
 
-    const mediaServiceUrl = env.MEDIA_SERVICE_URL!;
-    logger.info(
-      `Requesting video upload URL from media-serice for lesson: ${lessonId}`
-    );
-
-    try {
-      const response = await axios.post(
-        `${mediaServiceUrl}/api/media/request-upload-url`,
-        {
-          filename,
-          uploadType: 'video',
-          metadata: { lessonId: lessonId },
-        }
-      );
-
-      return response.data;
-    } catch (error) {
-      logger.error(`Error contacting media-service for video upload URL`, {
-        error,
-      });
-
-      throw new Error('Could not create video upload url');
-    }
+    return MediaClient.requestVideoUploadUrl(lessonId, filename);
   }
 }
