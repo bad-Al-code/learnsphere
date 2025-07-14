@@ -1,8 +1,8 @@
 import { asc, count, eq, inArray } from 'drizzle-orm';
 
-import { db } from '.';
-import { Module, NewModule, UpdateModuleDto } from '../types';
-import { lessons, modules } from './schema';
+import { db } from '..';
+import { Module, NewModule, UpdateModuleDto } from '../../types';
+import { lessons, modules } from '../schema';
 
 export class ModuleRepository {
   /**

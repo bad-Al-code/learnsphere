@@ -1,12 +1,12 @@
 import { eq } from 'drizzle-orm';
 import logger from '../config/logger';
 import { db } from '../db';
-import { ModuleRepository } from '../db/module.repository';
+import { ModuleRepository } from '../db/repostiories/module.repository';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
 import { CreateLessonDto, UpdateLessonDto } from '../types';
 import { lessons } from '../db/schema';
-import { LessonRepository } from '../db/lesson.repository';
-import { CacheService } from '../controllers/cache-service';
+import { LessonRepository } from '../db/repostiories/lesson.repository';
+import { CacheService } from './cache.service';
 
 export class LessonService {
   public static async addLessonToModule(

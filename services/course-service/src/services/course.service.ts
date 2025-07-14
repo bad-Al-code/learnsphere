@@ -1,13 +1,13 @@
 import { UserClient } from '../clients/user.client';
 import logger from '../config/logger';
-import { CacheService } from '../controllers/cache-service';
-import { CourseRepository } from '../db/course.repository';
+import { CourseRepository } from '../db/repostiories';
 import { ForbiddenError, NotFoundError } from '../errors';
 import {
   CourseWithInstructor,
   CreateCourseDto,
   UpdateCourseDto,
 } from '../types';
+import { CacheService } from './cache.service';
 
 export class CourseService {
   /**

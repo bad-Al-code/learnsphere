@@ -1,8 +1,8 @@
 import { count, eq, inArray } from 'drizzle-orm';
 
-import { db } from '.';
-import { Course, NewCourse, UpdateCourse } from '../types';
-import { courses } from './schema';
+import { db } from '..';
+import { NewCourse, Course, UpdateCourse } from '../../types';
+import { courses } from '../schema';
 
 export class CourseRepository {
   /**

@@ -1,8 +1,8 @@
 import { eq, inArray } from 'drizzle-orm';
 
-import { db } from './index';
-import { lessons, textLessonContent } from './schema';
-import { NewLesson, Lesson, UpdateLessonDto } from '../types';
+import { db } from '../index';
+import { lessons, textLessonContent } from '../schema';
+import { NewLesson, Lesson, UpdateLessonDto } from '../../types';
 
 export class LessonRepository {
   /**

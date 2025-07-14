@@ -1,13 +1,13 @@
 import { eq } from 'drizzle-orm';
 
 import logger from '../config/logger';
-import { CacheService } from '../controllers/cache-service';
 import { db } from '../db';
-import { CourseRepository } from '../db/course.repository';
-import { ModuleRepository } from '../db/module.repository';
+import { ModuleRepository } from '../db/repostiories/module.repository';
 import { modules } from '../db/schema';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
 import { CreateModuleDto, UpdateModuleDto } from '../types';
+import { CourseRepository } from '../db/repostiories';
+import { CacheService } from './cache.service';
 
 export class ModuleService {
   public static async addModuleToCourse(
