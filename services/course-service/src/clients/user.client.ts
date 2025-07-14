@@ -15,7 +15,7 @@ export class UserClient {
    * @param userIds An array of user IDs to fetch,
    * @returns A map of userId to public profile.
    */
-  public static async getPublicProfile(
+  public static async getPublicProfiles(
     userIds: string[]
   ): Promise<Map<string, PublicProfile>> {
     if (!this.userServiceUrl || userIds.length === 0) {

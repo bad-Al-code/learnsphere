@@ -20,12 +20,7 @@ router.get("/", validateRequest(listCoursesSchema), CourseController.list);
 
 router.get("/:courseId", CourseController.getById);
 
-router.get("/:courseId/modules", async (req: Request, res: Response) => {
-  const { courseId } = req.params;
-  const courseModules = await CourseService.getModuleForCourse(courseId);
-
-  res.status(StatusCodes.OK).json(courseModules);
-});
+router.get("/:courseId/modules", CourseController.getCourseModules);
 
 router.post(
   "/",
@@ -75,12 +70,7 @@ router.post(
 router.post(
   "/bulk",
   validateRequest(bulkCoursesSchema),
-  async (req: Request, res: Response) => {
-    const { courseIds } = req.body;
-    const courses = await CourseService.getCourseByIds(courseIds);
-
-    res.status(StatusCodes.OK).json(courses);
-  }
+  CourseController.getBulk
 );
 
 export { router as courseRouter };

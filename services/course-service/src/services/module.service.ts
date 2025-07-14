@@ -36,6 +36,27 @@ export class ModuleService {
     return newModule;
   }
 
+  public static async getModulesForCourses(courseId: string) {
+    logger.info(`Fetching all modules for course: ${courseId}`);
+
+    const courseExists = await CourseRepository.findById(courseId);
+    if (!courseExists) {
+      throw new NotFoundError("Course");
+    }
+
+    return ModuleRepository.findManyByCourseId(courseId);
+  }
+
+  public static async getModuleDetails(moduleId: string) {
+    logger.info(`Fetching details for module: ${moduleId}`);
+
+    const moduleDetails = await ModuleRepository.findByIdWithLessons(moduleId);
+    if (!moduleDetails) {
+      throw new NotFoundError("Module");
+    }
+    return moduleDetails;
+  }
+
   public static async updateModule(
     moduleId: string,
     data: UpdateModuleDto,

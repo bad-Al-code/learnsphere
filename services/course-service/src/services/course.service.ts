@@ -34,6 +34,25 @@ export class CourseService {
   }
 
   /**
+   * Retrieves multiple courses by their IDs, including instructor details.
+   * @param courseIds - An array of course IDs.
+   */
+  public static async getCoursesByIds(courseIds: string[]) {
+    logger.info(`Fetching details for ${courseIds.length} courses in bulk`);
+    const courseList = await CourseRepository.findManyIds(courseIds);
+    const instructorIds = [...new Set(courseList.map((c) => c.instructorId))];
+    const instructorProfiles = await UserClient.getPublicProfiles(
+      instructorIds
+    );
+
+    const results = courseList.map((course) => ({
+      ...course,
+      instructor: instructorProfiles.get(course.instructorId) || null,
+    }));
+    return results;
+  }
+
+  /**
    * Retrieves the full details of a single course, including modules,
    * lessons, and instructor profile.
    * @param courseId - The ID of the course to fetch.
@@ -59,7 +78,7 @@ export class CourseService {
       throw new NotFoundError("Course");
     }
 
-    const instructorProfiles = await UserClient.getPublicProfile([
+    const instructorProfiles = await UserClient.getPublicProfiles([
       courseDetails.instructorId,
     ]);
     const result: CourseWithInstructor = {
@@ -89,7 +108,7 @@ export class CourseService {
       await CourseRepository.listPublished(limit, offset);
 
     const instructorIds = [...new Set(courseList.map((c) => c.instructorId))];
-    const instructorProfile = await UserClient.getPublicProfile(instructorIds);
+    const instructorProfile = await UserClient.getPublicProfiles(instructorIds);
 
     const resultWithInstructors: CourseWithInstructor[] = courseList.map(
       (course) => ({

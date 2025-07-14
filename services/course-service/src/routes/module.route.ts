@@ -13,12 +13,7 @@ import { LessonController } from "../controllers/lesson.controller";
 
 const router = Router();
 
-router.get("/:moduleId", async (req: Request, res: Response) => {
-  const { moduleId } = req.params;
-  const moduleDetails = await CourseService.getModuleDetails(moduleId);
-
-  res.status(StatusCodes.OK).json(moduleDetails);
-});
+router.get("/:moduleId", ModuleController.getById);
 
 router.post(
   "/:moduleId/lessons",

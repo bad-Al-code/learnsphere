@@ -2,7 +2,7 @@ import { asc, count, eq, inArray } from "drizzle-orm";
 
 import { db } from ".";
 import { Module, NewModule, UpdateModuleDto } from "../types";
-import { modules } from "./schema";
+import { lessons, modules } from "./schema";
 
 export class ModuleRepository {
   /**
@@ -37,6 +37,22 @@ export class ModuleRepository {
     return db.query.modules.findMany({
       where: inArray(modules.id, moduleIds),
       with: { course: true },
+    });
+  }
+
+  /**
+   * Finds a single module by its ID, including all of its lessons.
+   * @param moduleId - The ID of the module to find.
+   * @returns The module object with a nested array of lessons, or undefined.
+   */
+  public static async findByIdWithLessons(moduleId: string) {
+    return db.query.modules.findFirst({
+      where: eq(modules.id, moduleId),
+      with: {
+        lessons: {
+          orderBy: [asc(lessons.order)],
+        },
+      },
     });
   }
 

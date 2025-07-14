@@ -24,6 +24,20 @@ export class ModuleController {
     }
   }
 
+  public static async getById(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { moduleId } = req.params;
+      const moduleDetails = await ModuleService.getModuleDetails(moduleId);
+      res.status(StatusCodes.OK).json(moduleDetails);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public static async update(
     req: Request,
     res: Response,

@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { NotAuthorizedError } from "../errors";
 import { CourseService } from "../services/course.service";
 import { StatusCodes } from "http-status-codes";
+import { ModuleService } from "../services/module.service";
 
 export class CourseController {
   public static async create(
@@ -38,6 +39,34 @@ export class CourseController {
       const course = await CourseService.getCourseDetails(courseId);
 
       res.status(StatusCodes.OK).json(course);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getBulk(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { courseIds } = req.body;
+      const courses = await CourseService.getCoursesByIds(courseIds);
+      res.status(StatusCodes.OK).json(courses);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getCourseModules(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { courseId } = req.params;
+      const courseModules = await ModuleService.getModulesForCourses(courseId);
+      res.status(StatusCodes.OK).json(courseModules);
     } catch (error) {
       next(error);
     }
