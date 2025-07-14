@@ -10,12 +10,12 @@ export class LessonController {
     next: NextFunction
   ): Promise<void> {
     try {
-      // const { moduleId } = req.params;
+      const { moduleId } = req.params;
       const lessonData = req.body;
       const requesterId = req.currentUser!.id;
 
       const lesson = await LessonService.addLessonToModule(
-        lessonData,
+        { ...lessonData, moduleId },
         requesterId
       );
 
