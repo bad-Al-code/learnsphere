@@ -389,185 +389,185 @@ export class CourseService {
   //   });
   // }
 
-  public static async addLessonToModule(data: LessonData, requesterId: string) {
-    logger.info(`Adding lesson "${data.title}" to moduke ${data.moduleId}`);
+  // public static async addLessonToModule(data: LessonData, requesterId: string) {
+  //   logger.info(`Adding lesson "${data.title}" to moduke ${data.moduleId}`);
 
-    const parentModule = await db.query.modules.findFirst({
-      where: eq(modules.id, data.moduleId),
-      with: {
-        course: true,
-      },
-    });
+  //   const parentModule = await db.query.modules.findFirst({
+  //     where: eq(modules.id, data.moduleId),
+  //     with: {
+  //       course: true,
+  //     },
+  //   });
 
-    if (!parentModule) {
-      throw new NotFoundError("Module");
-    }
+  //   if (!parentModule) {
+  //     throw new NotFoundError("Module");
+  //   }
 
-    if (parentModule.course.instructorId !== requesterId) {
-      throw new ForbiddenError();
-    }
+  //   if (parentModule.course.instructorId !== requesterId) {
+  //     throw new ForbiddenError();
+  //   }
 
-    const newLessonData = await db.transaction(async (tx) => {
-      const lessonCountResult = await tx
-        .select({ value: count() })
-        .from(lessons)
-        .where(eq(lessons.moduleId, data.moduleId));
+  //   const newLessonData = await db.transaction(async (tx) => {
+  //     const lessonCountResult = await tx
+  //       .select({ value: count() })
+  //       .from(lessons)
+  //       .where(eq(lessons.moduleId, data.moduleId));
 
-      const nextOrder = lessonCountResult[0].value;
+  //     const nextOrder = lessonCountResult[0].value;
 
-      const insertedLessons = await tx
-        .insert(lessons)
-        .values({
-          title: data.title,
-          moduleId: data.moduleId,
-          lessonType: data.lessonType,
-          order: nextOrder,
-        })
-        .returning();
+  //     const insertedLessons = await tx
+  //       .insert(lessons)
+  //       .values({
+  //         title: data.title,
+  //         moduleId: data.moduleId,
+  //         lessonType: data.lessonType,
+  //         order: nextOrder,
+  //       })
+  //       .returning();
 
-      const newLesson = insertedLessons[0];
+  //     const newLesson = insertedLessons[0];
 
-      if (
-        data.lessonType === "text" &&
-        data.content &&
-        data.content.length > 0
-      ) {
-        await tx.insert(textLessonContent).values({
-          lessonId: newLesson.id,
-          content: data.content,
-        });
-      }
-      return newLesson;
-    });
+  //     if (
+  //       data.lessonType === "text" &&
+  //       data.content &&
+  //       data.content.length > 0
+  //     ) {
+  //       await tx.insert(textLessonContent).values({
+  //         lessonId: newLesson.id,
+  //         content: data.content,
+  //       });
+  //     }
+  //     return newLesson;
+  //   });
 
-    const finalLessonDetails = await this.getLessonDetails(newLessonData.id);
+  //   const finalLessonDetails = await this.getLessonDetails(newLessonData.id);
 
-    await CacheService.del(`course:details:${parentModule.courseId}`);
+  //   await CacheService.del(`course:details:${parentModule.courseId}`);
 
-    return finalLessonDetails;
-  }
+  //   return finalLessonDetails;
+  // }
 
-  public static async getLessonDetails(lessonId: string) {
-    logger.info(`Fetching details for lesson: ${lessonId}`);
+  // public static async getLessonDetails(lessonId: string) {
+  //   logger.info(`Fetching details for lesson: ${lessonId}`);
 
-    const lessonDetails = await db.query.lessons.findFirst({
-      where: eq(lessons.id, lessonId),
-      with: { textContent: true },
-    });
+  //   const lessonDetails = await db.query.lessons.findFirst({
+  //     where: eq(lessons.id, lessonId),
+  //     with: { textContent: true },
+  //   });
 
-    if (!lessonDetails) {
-      throw new NotFoundError("Lesson");
-    }
-    return lessonDetails;
-  }
+  //   if (!lessonDetails) {
+  //     throw new NotFoundError("Lesson");
+  //   }
+  //   return lessonDetails;
+  // }
 
-  public static async updateLesson(
-    lessonId: string,
-    data: UpdateLessonData,
-    requesterId: string
-  ) {
-    const lesson = await db.query.lessons.findFirst({
-      where: eq(lessons.id, lessonId),
-      with: { module: { with: { course: true } } },
-    });
-    if (!lesson) {
-      throw new NotFoundError("Lesson");
-    }
-    if (lesson.module.course.instructorId !== requesterId) {
-      throw new ForbiddenError();
-    }
+  // public static async updateLesson(
+  //   lessonId: string,
+  //   data: UpdateLessonData,
+  //   requesterId: string
+  // ) {
+  //   const lesson = await db.query.lessons.findFirst({
+  //     where: eq(lessons.id, lessonId),
+  //     with: { module: { with: { course: true } } },
+  //   });
+  //   if (!lesson) {
+  //     throw new NotFoundError("Lesson");
+  //   }
+  //   if (lesson.module.course.instructorId !== requesterId) {
+  //     throw new ForbiddenError();
+  //   }
 
-    await db.transaction(async (tx) => {
-      const { content, ...lessonData } = data;
-      if (Object.keys(lessonData).length > 0) {
-        await tx
-          .update(lessons)
-          .set(data)
-          .where(eq(lessons.id, lessonId))
-          .returning();
-      }
+  //   await db.transaction(async (tx) => {
+  //     const { content, ...lessonData } = data;
+  //     if (Object.keys(lessonData).length > 0) {
+  //       await tx
+  //         .update(lessons)
+  //         .set(data)
+  //         .where(eq(lessons.id, lessonId))
+  //         .returning();
+  //     }
 
-      if (data.lessonType === "text" && typeof data.content !== "undefined") {
-        await tx
-          .insert(textLessonContent)
-          .values({ lessonId, content: data.content })
-          .onConflictDoUpdate({
-            target: textLessonContent.lessonId,
-            set: { content: data.content },
-          });
-      }
+  //     if (data.lessonType === "text" && typeof data.content !== "undefined") {
+  //       await tx
+  //         .insert(textLessonContent)
+  //         .values({ lessonId, content: data.content })
+  //         .onConflictDoUpdate({
+  //           target: textLessonContent.lessonId,
+  //           set: { content: data.content },
+  //         });
+  //     }
 
-      const finalLessonDetails = await this.getLessonDetails(lessonId);
+  //     const finalLessonDetails = await this.getLessonDetails(lessonId);
 
-      await CacheService.del(`course:details:${lesson.module.courseId}`);
+  //     await CacheService.del(`course:details:${lesson.module.courseId}`);
 
-      return finalLessonDetails;
-    });
-  }
+  //     return finalLessonDetails;
+  //   });
+  // }
 
-  public static async deleteLesson(lessonId: string, requesterId: string) {
-    const lesson = await db.query.lessons.findFirst({
-      where: eq(lessons.id, lessonId),
-      with: { module: { with: { course: true } } },
-    });
-    if (!lesson) {
-      throw new NotFoundError("Parent Module");
-    }
-    if (lesson.module.course.instructorId !== requesterId) {
-      throw new ForbiddenError();
-    }
+  // public static async deleteLesson(lessonId: string, requesterId: string) {
+  //   const lesson = await db.query.lessons.findFirst({
+  //     where: eq(lessons.id, lessonId),
+  //     with: { module: { with: { course: true } } },
+  //   });
+  //   if (!lesson) {
+  //     throw new NotFoundError("Parent Module");
+  //   }
+  //   if (lesson.module.course.instructorId !== requesterId) {
+  //     throw new ForbiddenError();
+  //   }
 
-    logger.info(`Deleting lesson ${lessonId} by user ${requesterId}`);
+  //   logger.info(`Deleting lesson ${lessonId} by user ${requesterId}`);
 
-    await db.delete(lessons).where(eq(lessons.id, lessonId));
+  //   await db.delete(lessons).where(eq(lessons.id, lessonId));
 
-    await CacheService.del(`course:details:${lesson.module.courseId}`);
-  }
+  //   await CacheService.del(`course:details:${lesson.module.courseId}`);
+  // }
 
-  public static async reorderLessons(
-    orderedLessonIds: string[],
-    requesterId: string
-  ) {
-    if (orderedLessonIds.length === 0) {
-      return;
-    }
+  // public static async reorderLessons(
+  //   orderedLessonIds: string[],
+  //   requesterId: string
+  // ) {
+  //   if (orderedLessonIds.length === 0) {
+  //     return;
+  //   }
 
-    await db.transaction(async (tx) => {
-      const allLessons = await tx.query.lessons.findMany({
-        where: (lessons, { inArray }) => inArray(lessons.id, orderedLessonIds),
-        with: { module: { with: { course: true } } },
-      });
+  //   await db.transaction(async (tx) => {
+  //     const allLessons = await tx.query.lessons.findMany({
+  //       where: (lessons, { inArray }) => inArray(lessons.id, orderedLessonIds),
+  //       with: { module: { with: { course: true } } },
+  //     });
 
-      if (allLessons.length !== orderedLessonIds.length) {
-        throw new BadRequestError("One or more lessons IDs are invalid");
-      }
+  //     if (allLessons.length !== orderedLessonIds.length) {
+  //       throw new BadRequestError("One or more lessons IDs are invalid");
+  //     }
 
-      const parentModuleId = allLessons[0].moduleId;
-      const ownerId = allLessons[0].module.course.instructorId;
-      const allLessonsFromSameModule = allLessons.every(
-        (l) => l.moduleId === parentModuleId
-      );
+  //     const parentModuleId = allLessons[0].moduleId;
+  //     const ownerId = allLessons[0].module.course.instructorId;
+  //     const allLessonsFromSameModule = allLessons.every(
+  //       (l) => l.moduleId === parentModuleId
+  //     );
 
-      if (!allLessonsFromSameModule || ownerId !== requesterId) {
-        throw new ForbiddenError();
-      }
+  //     if (!allLessonsFromSameModule || ownerId !== requesterId) {
+  //       throw new ForbiddenError();
+  //     }
 
-      logger.info(
-        `Reordering ${allLessons.length} lessons from whole ${parentModuleId}`
-      );
+  //     logger.info(
+  //       `Reordering ${allLessons.length} lessons from whole ${parentModuleId}`
+  //     );
 
-      const updatePromises = orderedLessonIds.map((id, index) => {
-        return tx
-          .update(lessons)
-          .set({ order: index })
-          .where(eq(lessons.id, id));
-      });
+  //     const updatePromises = orderedLessonIds.map((id, index) => {
+  //       return tx
+  //         .update(lessons)
+  //         .set({ order: index })
+  //         .where(eq(lessons.id, id));
+  //     });
 
-      await Promise.all(updatePromises);
+  //     await Promise.all(updatePromises);
 
-      await CacheService.del(`course:details:${allLessons[0].module.courseId}`);
-    });
-  }
+  //     await CacheService.del(`course:details:${allLessons[0].module.courseId}`);
+  //   });
+  // }
 
   // public static async publishCourse(courseId: string, requesterId: string) {
   //   const course = await db.query.courses.findFirst({

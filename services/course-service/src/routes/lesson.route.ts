@@ -9,48 +9,25 @@ import {
   createLessonSchema,
   reorderSchema,
 } from "../schemas";
+import { LessonController } from "../controllers/lesson.controller";
 
 const router = Router();
 
-router.get("/:lessonId", async (req: Request, res: Response) => {
-  const { lessonId } = req.params;
-  const lessonDetails = await CourseService.getLessonDetails(lessonId);
-
-  res.status(StatusCodes.OK).json(lessonDetails);
-});
+router.get("/:lessonId", LessonController.getById);
 
 router.put(
   "/:lessonId",
   requireAuth,
   requireRole(["instructor", "admin"]),
   validateRequest(createLessonSchema.partial()),
-  async (req: Request, res: Response) => {
-    const { lessonId } = req.params;
-    const updatedData = req.body;
-    const requesterId = req.currentUser!.id;
-
-    const updatedLesson = await CourseService.updateLesson(
-      lessonId,
-      updatedData,
-      requesterId
-    );
-
-    res.status(StatusCodes.OK).json(updatedLesson);
-  }
+  LessonController.update
 );
 
 router.delete(
   "/:lessonId",
   requireAuth,
   requireRole(["instructor", "admin"]),
-  async (req: Request, res: Response) => {
-    const { lessonId } = req.params;
-    const requesterId = req.currentUser!.id;
-
-    await CourseService.deleteLesson(lessonId, requesterId);
-
-    res.status(StatusCodes.OK).json({ message: "Lesson deleted successfully" });
-  }
+  LessonController.delete
 );
 
 router.post(
@@ -58,16 +35,7 @@ router.post(
   requireAuth,
   requireRole(["instructor", "admin"]),
   validateRequest(reorderSchema),
-  async (req: Request, res: Response) => {
-    const { ids } = req.body;
-    const requesterId = req.currentUser!.id;
-
-    await CourseService.reorderLessons(ids, requesterId);
-
-    res
-      .status(StatusCodes.OK)
-      .json({ message: "Lessons reordered successfully." });
-  }
+  LessonController.reorder
 );
 
 router.post(

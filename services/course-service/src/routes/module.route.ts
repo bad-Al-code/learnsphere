@@ -9,6 +9,7 @@ import {
 } from "../schemas/course-schema";
 import { CourseService } from "../controllers/course-service";
 import { ModuleController } from "../controllers/module.controller";
+import { LessonController } from "../controllers/lesson.controller";
 
 const router = Router();
 
@@ -24,18 +25,7 @@ router.post(
   requireAuth,
   requireRole(["admin", "instructor"]),
   validateRequest(createLessonSchema),
-  async (req: Request, res: Response) => {
-    const { moduleId } = req.params;
-    const lessonData = req.body;
-    const requesterId = req.currentUser!.id;
-
-    const lesson = await CourseService.addLessonToModule(
-      { ...lessonData, moduleId },
-      requesterId
-    );
-
-    res.status(StatusCodes.CREATED).json(lesson);
-  }
+  LessonController.create
 );
 
 router.put(
