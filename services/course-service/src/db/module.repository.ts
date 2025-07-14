@@ -5,12 +5,22 @@ import { Module, NewModule } from "../types";
 import { modules } from "./schema";
 
 export class ModuleRepository {
+  /**
+   *
+   * @param data
+   * @returns
+   */
   public static async create(data: NewModule): Promise<Module> {
     const [newModule] = await db.insert(modules).values(data).returning();
 
     return newModule;
   }
 
+  /**
+   *
+   * @param moduleId
+   * @returns
+   */
   public static async findById(moduleId: string) {
     return db.query.modules.findFirst({
       where: eq(modules.id, moduleId),
@@ -18,6 +28,11 @@ export class ModuleRepository {
     });
   }
 
+  /**
+   *
+   * @param courseId
+   * @returns
+   */
   public static async findManyByCourseId(courseId: string): Promise<Module[]> {
     return db.query.modules.findMany({
       where: eq(modules.courseId, courseId),
@@ -25,6 +40,11 @@ export class ModuleRepository {
     });
   }
 
+  /**
+   *
+   * @param courseId
+   * @returns
+   */
   public static async coundByCourseId(courseId: string): Promise<number> {
     const [{ value }] = await db
       .select({ value: count() })
