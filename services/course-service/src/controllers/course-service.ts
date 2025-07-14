@@ -103,96 +103,96 @@ export class CourseService {
     return results;
   }
 
-  public static async getCourseDetails(courseId: string) {
-    const cacheKey = `course:details:${courseId}`;
+  // public static async getCourseDetails(courseId: string) {
+  //   const cacheKey = `course:details:${courseId}`;
 
-    const cachedCourse = await CacheService.get<any>(cacheKey);
-    if (cachedCourse) {
-      return cachedCourse;
-    }
+  //   const cachedCourse = await CacheService.get<any>(cacheKey);
+  //   if (cachedCourse) {
+  //     return cachedCourse;
+  //   }
 
-    logger.info(`Fetching full details for course: ${courseId}`);
+  //   logger.info(`Fetching full details for course: ${courseId}`);
 
-    const courseDetails = await CourseRepository.findByIdWithRelations(
-      courseId
-    );
+  //   const courseDetails = await CourseRepository.findByIdWithRelations(
+  //     courseId
+  //   );
 
-    if (!courseDetails) {
-      throw new NotFoundError("Course");
-    }
+  //   if (!courseDetails) {
+  //     throw new NotFoundError("Course");
+  //   }
 
-    const instructorProfiles = await this.getInstructorProfiles([
-      courseDetails.instructorId,
-    ]);
-    const resultWithInstructors = {
-      ...courseDetails,
-      instructor: instructorProfiles.get(courseDetails.instructorId),
-    };
+  //   const instructorProfiles = await this.getInstructorProfiles([
+  //     courseDetails.instructorId,
+  //   ]);
+  //   const resultWithInstructors = {
+  //     ...courseDetails,
+  //     instructor: instructorProfiles.get(courseDetails.instructorId),
+  //   };
 
-    const result = resultWithInstructors;
+  //   const result = resultWithInstructors;
 
-    await CacheService.set(cacheKey, result);
+  //   await CacheService.set(cacheKey, result);
 
-    return result;
-  }
+  //   return result;
+  // }
 
-  public static async listCourses(page: number, limit: number) {
-    if (page <= 0 || limit <= 0) {
-      throw new BadRequestError("Page and limit must be positive integers");
-    }
-    const cacheKey = `courses:list:page:${page}:limit:${limit}`;
+  // public static async listCourses(page: number, limit: number) {
+  //   if (page <= 0 || limit <= 0) {
+  //     throw new BadRequestError("Page and limit must be positive integers");
+  //   }
+  //   const cacheKey = `courses:list:page:${page}:limit:${limit}`;
 
-    const cachedCourses = await CacheService.get<any>(cacheKey);
-    if (cachedCourses) {
-      return cachedCourses;
-    }
+  //   const cachedCourses = await CacheService.get<any>(cacheKey);
+  //   if (cachedCourses) {
+  //     return cachedCourses;
+  //   }
 
-    logger.info(
-      `Fetching courses list from DB for page: ${page}, limit: ${limit}`
-    );
+  //   logger.info(
+  //     `Fetching courses list from DB for page: ${page}, limit: ${limit}`
+  //   );
 
-    const offset = (page - 1) * limit;
+  //   const offset = (page - 1) * limit;
 
-    const whereClause = eq(courses.status, "published");
-    const totalCourseQuery = db
-      .select({ value: count() })
-      .from(courses)
-      .where(whereClause);
+  //   const whereClause = eq(courses.status, "published");
+  //   const totalCourseQuery = db
+  //     .select({ value: count() })
+  //     .from(courses)
+  //     .where(whereClause);
 
-    const courseQuery = db.query.courses.findMany({
-      where: whereClause,
-      limit,
-      offset,
-    });
+  //   const courseQuery = db.query.courses.findMany({
+  //     where: whereClause,
+  //     limit,
+  //     offset,
+  //   });
 
-    const [total, courseList] = await Promise.all([
-      totalCourseQuery,
-      courseQuery,
-    ]);
+  //   const [total, courseList] = await Promise.all([
+  //     totalCourseQuery,
+  //     courseQuery,
+  //   ]);
 
-    const instructorIds = [...new Set(courseList.map((c) => c.instructorId))];
-    const instructorProfile = await this.getInstructorProfiles(instructorIds);
-    const resultWithInstructors: CourseWithInstructor[] = courseList.map(
-      (course) => ({
-        ...course,
-        instructor: instructorProfile.get(course.instructorId),
-      })
-    );
+  //   const instructorIds = [...new Set(courseList.map((c) => c.instructorId))];
+  //   const instructorProfile = await this.getInstructorProfiles(instructorIds);
+  //   const resultWithInstructors: CourseWithInstructor[] = courseList.map(
+  //     (course) => ({
+  //       ...course,
+  //       instructor: instructorProfile.get(course.instructorId),
+  //     })
+  //   );
 
-    const totalResult = total[0].value;
-    const totalPages = Math.ceil(totalResult / limit);
-    const result = {
-      results: resultWithInstructors,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalResult,
-      },
-    };
-    await CacheService.set(cacheKey, result);
+  //   const totalResult = total[0].value;
+  //   const totalPages = Math.ceil(totalResult / limit);
+  //   const result = {
+  //     results: resultWithInstructors,
+  //     pagination: {
+  //       currentPage: page,
+  //       totalPages,
+  //       totalResult,
+  //     },
+  //   };
+  //   await CacheService.set(cacheKey, result);
 
-    return result;
-  }
+  //   return result;
+  // }
 
   public static async updateCourse(
     courseId: string,

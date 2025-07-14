@@ -15,27 +15,9 @@ import { CourseController } from "../controllers/course.controller";
 
 const router = Router();
 
-router.get(
-  "/",
-  validateRequest(listCoursesSchema),
-  async (req: Request, res: Response) => {
-    const { limit, page } = req.query as unknown as z.infer<
-      typeof listCoursesSchema
-    >["query"];
+router.get("/", validateRequest(listCoursesSchema), CourseController.list);
 
-    const result = await CourseService.listCourses(page, limit);
-
-    res.status(StatusCodes.OK).json(result);
-  }
-);
-
-router.get("/:courseId", async (req: Request, res: Response) => {
-  const { courseId } = req.params;
-
-  const course = await CourseService.getCourseDetails(courseId);
-
-  res.status(StatusCodes.OK).json(course);
-});
+router.get("/:courseId", CourseController.getById);
 
 router.get("/:courseId/modules", async (req: Request, res: Response) => {
   const { courseId } = req.params;
