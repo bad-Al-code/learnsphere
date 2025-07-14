@@ -5,6 +5,8 @@ import { courses, lessons, modules, textLessonContent } from "../db/schema";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../errors";
 import axios from "axios";
 import { CacheService } from "./cache-service";
+import { CourseRepository } from "../db/course.repository";
+import { ModuleRepository } from "../db/module.repository";
 
 interface CreateCourseData {
   title: string;
@@ -89,18 +91,15 @@ export class CourseService {
       instructorId: data.instructorId,
     });
 
-    const newCourse = await db
-      .insert(courses)
-      .values({
-        title: data.title,
-        description: data.description,
-        instructorId: data.instructorId,
-      })
-      .returning();
+    const newCourse = await CourseRepository.create({
+      title: data.title,
+      description: data.description,
+      instructorId: data.instructorId,
+    });
 
     await CacheService.delByPattern("course:list:*");
 
-    return newCourse[0];
+    return newCourse;
   }
 
   public static async getCourseByIds(courseIds: string[]) {
@@ -131,22 +130,9 @@ export class CourseService {
 
     logger.info(`Fetching full details for course: ${courseId}`);
 
-    const courseDetails = await db.query.courses.findFirst({
-      where: eq(courses.id, courseId),
-      with: {
-        modules: {
-          orderBy: [asc(modules.order)],
-          with: {
-            lessons: {
-              orderBy: [asc(lessons.order)],
-              with: {
-                textContent: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const courseDetails = await CourseRepository.findByIdWithRelations(
+      courseId
+    );
 
     if (!courseDetails) {
       throw new NotFoundError("Course");
@@ -272,9 +258,7 @@ export class CourseService {
   public static async addModuleToCourse(data: ModuleData, requesterId: string) {
     logger.info(`Adding module "${data.title}" to course ${data.courseId}`);
 
-    const course = await db.query.courses.findFirst({
-      where: eq(courses.id, data.courseId),
-    });
+    const course = await CourseRepository.findById(data.courseId);
 
     if (!course) {
       throw new NotFoundError("Course");
@@ -284,24 +268,17 @@ export class CourseService {
       throw new ForbiddenError();
     }
 
-    const moduleCountResult = await db
-      .select({ value: count() })
-      .from(modules)
-      .where(eq(modules.courseId, data.courseId));
-    const nextOrder = moduleCountResult[0].value;
+    const nextOrder = await ModuleRepository.coundByCourseId(data.courseId);
 
-    const newModule = await db
-      .insert(modules)
-      .values({
-        title: data.title,
-        courseId: data.courseId,
-        order: nextOrder,
-      })
-      .returning();
+    const newModule = await ModuleRepository.create({
+      title: data.title,
+      courseId: data.courseId,
+      order: nextOrder,
+    });
 
     await CacheService.del(`course:details:${data.courseId}`);
 
-    return newModule[0];
+    return newModule;
   }
 
   public static async getModuleForCourse(courseId: string) {
