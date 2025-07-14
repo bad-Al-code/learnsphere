@@ -1,6 +1,146 @@
 import { z } from 'zod';
 import { lessonTypeEnum } from '../db/schema';
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Course:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *         title:
+ *           type: string
+ *         description:
+ *           type: string
+ *           nullable: true
+ *         instructorId:
+ *           type: string
+ *           format: uuid
+ *         status:
+ *           type: string
+ *           enum: [draft, published]
+ *
+ *     Module:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *         title:
+ *           type: string
+ *         courseId:
+ *           type: string
+ *           format: uuid
+ *         order:
+ *           type: integer
+ *
+ *     Lesson:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *         title:
+ *           type: string
+ *         moduleId:
+ *           type: string
+ *           format: uuid
+ *         order:
+ *           type: integer
+ *         lessonType:
+ *           type: string
+ *           enum: [video, text, quiz]
+ *         contentId:
+ *           type: string
+ *           nullable: true
+ *           description: "The ID or URL of the lesson's content (e.g., video URL)."
+ *
+ *     CourseDetails:
+ *       allOf:
+ *         - $ref: '#/components/schemas/Course'
+ *         - type: object
+ *           properties:
+ *             modules:
+ *               type: array
+ *               items:
+ *                 allOf:
+ *                  - $ref: '#/components/schemas/Module'
+ *                  - type: object
+ *                    properties:
+ *                      lessons:
+ *                        type: array
+ *                        items:
+ *                          $ref: '#/components/schemas/Lesson'
+ *
+ *     CreateCoursePayload:
+ *       type: object
+ *       required: [title]
+ *       properties:
+ *         title:
+ *           type: string
+ *           minLength: 3
+ *           example: "Introduction to SQL"
+ *         description:
+ *           type: string
+ *           example: "Learn the fundamentals of database management."
+ *
+ *     CreateModulePayload:
+ *       type: object
+ *       required: [title]
+ *       properties:
+ *         title:
+ *           type: string
+ *           minLength: 3
+ *           example: "Chapter 1: Basic Queries"
+ *
+ *     CreateLessonPayload:
+ *       type: object
+ *       required: [title, lessonType]
+ *       properties:
+ *         title:
+ *           type: string
+ *           minLength: 3
+ *           example: "SELECT Statements"
+ *         lessonType:
+ *           type: string
+ *           enum: [video, text, quiz]
+ *         content:
+ *           type: string
+ *           description: "The text content for a 'text' lesson."
+ *           example: "The SELECT statement is used to query the database..."
+ *
+ *     ReorderPayload:
+ *       type: object
+ *       required: [ids]
+ *       properties:
+ *         ids:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
+ *           description: An array of IDs in the desired new order.
+ *
+ *     BulkCoursesSchema:
+ *       type: object
+ *       required: [ids]
+ *       properties:
+ *         ids:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
+ *           description: An array of IDs.
+ *
+ *   securitySchemes:
+ *      cookieAuth:
+ *        type: apiKey
+ *        in: cookie
+ *        name: token
+ */
+
 export const createCourseSchema = z.object({
   body: z.object({
     title: z
