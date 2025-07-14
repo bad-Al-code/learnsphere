@@ -194,30 +194,30 @@ export class CourseService {
   //   return result;
   // }
 
-  public static async updateCourse(
-    courseId: string,
-    data: UpdateCourseData,
-    requesterId: string
-  ) {
-    const course = await db.query.courses.findFirst({
-      where: eq(courses.id, courseId),
-    });
-    if (!course) throw new NotFoundError("Course");
-    if (course.instructorId !== requesterId) throw new ForbiddenError();
+  // public static async updateCourse(
+  //   courseId: string,
+  //   data: UpdateCourseData,
+  //   requesterId: string
+  // ) {
+  //   const course = await db.query.courses.findFirst({
+  //     where: eq(courses.id, courseId),
+  //   });
+  //   if (!course) throw new NotFoundError("Course");
+  //   if (course.instructorId !== requesterId) throw new ForbiddenError();
 
-    const updatedCourse = await db
-      .update(courses)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(courses.id, courseId))
-      .returning();
+  //   const updatedCourse = await db
+  //     .update(courses)
+  //     .set({ ...data, updatedAt: new Date() })
+  //     .where(eq(courses.id, courseId))
+  //     .returning();
 
-    logger.info(`Updated Course ${courseId} by user ${requesterId}`);
+  //   logger.info(`Updated Course ${courseId} by user ${requesterId}`);
 
-    await CacheService.del(`course:details:${courseId}`);
-    await CacheService.delByPattern(`course:list:*`);
+  //   await CacheService.del(`course:details:${courseId}`);
+  //   await CacheService.delByPattern(`course:list:*`);
 
-    return updatedCourse[0];
-  }
+  //   return updatedCourse[0];
+  // }
 
   // public static async deleteCourse(courseId: string, requesterId: string) {
   //   const course = await db.query.courses.findFirst({
@@ -238,31 +238,31 @@ export class CourseService {
   //   await CacheService.delByPattern(`course:list:*`);
   // }
 
-  public static async addModuleToCourse(data: ModuleData, requesterId: string) {
-    logger.info(`Adding module "${data.title}" to course ${data.courseId}`);
+  // public static async addModuleToCourse(data: ModuleData, requesterId: string) {
+  //   logger.info(`Adding module "${data.title}" to course ${data.courseId}`);
 
-    const course = await CourseRepository.findById(data.courseId);
+  //   const course = await CourseRepository.findById(data.courseId);
 
-    if (!course) {
-      throw new NotFoundError("Course");
-    }
+  //   if (!course) {
+  //     throw new NotFoundError("Course");
+  //   }
 
-    if (course.instructorId !== requesterId) {
-      throw new ForbiddenError();
-    }
+  //   if (course.instructorId !== requesterId) {
+  //     throw new ForbiddenError();
+  //   }
 
-    const nextOrder = await ModuleRepository.coundByCourseId(data.courseId);
+  //   const nextOrder = await ModuleRepository.coundByCourseId(data.courseId);
 
-    const newModule = await ModuleRepository.create({
-      title: data.title,
-      courseId: data.courseId,
-      order: nextOrder,
-    });
+  //   const newModule = await ModuleRepository.create({
+  //     title: data.title,
+  //     courseId: data.courseId,
+  //     order: nextOrder,
+  //   });
 
-    await CacheService.del(`course:details:${data.courseId}`);
+  //   await CacheService.del(`course:details:${data.courseId}`);
 
-    return newModule;
-  }
+  //   return newModule;
+  // }
 
   public static async getModuleForCourse(courseId: string) {
     logger.info(`Fetching all modules for course: ${courseId}`);
@@ -299,95 +299,95 @@ export class CourseService {
     return moduleDetails;
   }
 
-  public static async updateModule(
-    moduleId: string,
-    data: UpdateModuleData,
-    requesterId: string
-  ) {
-    const parentModule = await db.query.modules.findFirst({
-      where: eq(modules.id, moduleId),
-      with: { course: true },
-    });
-    if (!parentModule) {
-      throw new NotFoundError("Module");
-    }
-    if (parentModule.course.instructorId !== requesterId) {
-      throw new ForbiddenError();
-    }
+  // public static async updateModule(
+  //   moduleId: string,
+  //   data: UpdateModuleData,
+  //   requesterId: string
+  // ) {
+  //   const parentModule = await db.query.modules.findFirst({
+  //     where: eq(modules.id, moduleId),
+  //     with: { course: true },
+  //   });
+  //   if (!parentModule) {
+  //     throw new NotFoundError("Module");
+  //   }
+  //   if (parentModule.course.instructorId !== requesterId) {
+  //     throw new ForbiddenError();
+  //   }
 
-    const updatedModule = await db
-      .update(modules)
-      .set(data)
-      .where(eq(modules.id, moduleId))
-      .returning();
+  //   const updatedModule = await db
+  //     .update(modules)
+  //     .set(data)
+  //     .where(eq(modules.id, moduleId))
+  //     .returning();
 
-    await CacheService.del(`course:details:${parentModule.courseId}`);
+  //   await CacheService.del(`course:details:${parentModule.courseId}`);
 
-    return updatedModule[0];
-  }
+  //   return updatedModule[0];
+  // }
 
-  public static async deleteModule(moduleId: string, requesterId: string) {
-    const parentModule = await db.query.modules.findFirst({
-      where: eq(modules.id, moduleId),
-      with: { course: true },
-    });
-    if (!parentModule) {
-      throw new NotFoundError("Module");
-    }
-    if (parentModule.course.instructorId !== requesterId) {
-      throw new ForbiddenError();
-    }
+  // public static async deleteModule(moduleId: string, requesterId: string) {
+  //   const parentModule = await db.query.modules.findFirst({
+  //     where: eq(modules.id, moduleId),
+  //     with: { course: true },
+  //   });
+  //   if (!parentModule) {
+  //     throw new NotFoundError("Module");
+  //   }
+  //   if (parentModule.course.instructorId !== requesterId) {
+  //     throw new ForbiddenError();
+  //   }
 
-    logger.info(`Deleting module ${moduleId} by user ${requesterId}`);
+  //   logger.info(`Deleting module ${moduleId} by user ${requesterId}`);
 
-    await db.delete(modules).where(eq(modules.id, moduleId));
+  //   await db.delete(modules).where(eq(modules.id, moduleId));
 
-    await CacheService.del(`course:details:${parentModule.courseId}`);
-  }
+  //   await CacheService.del(`course:details:${parentModule.courseId}`);
+  // }
 
-  public static async reorderModules(
-    orderModuleIds: string[],
-    requesterId: string
-  ) {
-    if (orderModuleIds.length === 0) {
-      return;
-    }
+  // public static async reorderModules(
+  //   orderModuleIds: string[],
+  //   requesterId: string
+  // ) {
+  //   if (orderModuleIds.length === 0) {
+  //     return;
+  //   }
 
-    await db.transaction(async (tx) => {
-      const allModules = await tx.query.modules.findMany({
-        where: (modules, { inArray }) => inArray(modules.id, orderModuleIds),
-        with: { course: true },
-      });
+  //   await db.transaction(async (tx) => {
+  //     const allModules = await tx.query.modules.findMany({
+  //       where: (modules, { inArray }) => inArray(modules.id, orderModuleIds),
+  //       with: { course: true },
+  //     });
 
-      if (allModules.length !== orderModuleIds.length) {
-        throw new BadRequestError("One or more moduls IDs are invalid");
-      }
+  //     if (allModules.length !== orderModuleIds.length) {
+  //       throw new BadRequestError("One or more moduls IDs are invalid");
+  //     }
 
-      const parentCourseId = allModules[0].course.id;
-      const ownerId = allModules[0].course.instructorId;
+  //     const parentCourseId = allModules[0].course.id;
+  //     const ownerId = allModules[0].course.instructorId;
 
-      const allModulesFromSameCourse = allModules.every(
-        (m) => m.courseId === parentCourseId
-      );
-      if (!allModulesFromSameCourse || ownerId !== requesterId) {
-        throw new ForbiddenError();
-      }
+  //     const allModulesFromSameCourse = allModules.every(
+  //       (m) => m.courseId === parentCourseId
+  //     );
+  //     if (!allModulesFromSameCourse || ownerId !== requesterId) {
+  //       throw new ForbiddenError();
+  //     }
 
-      logger.info(
-        `Reordering ${allModules.length} modules for course ${parentCourseId}`
-      );
+  //     logger.info(
+  //       `Reordering ${allModules.length} modules for course ${parentCourseId}`
+  //     );
 
-      const updatePromises = orderModuleIds.map((id, index) => {
-        return tx
-          .update(modules)
-          .set({ order: index })
-          .where(eq(modules.id, id));
-      });
+  //     const updatePromises = orderModuleIds.map((id, index) => {
+  //       return tx
+  //         .update(modules)
+  //         .set({ order: index })
+  //         .where(eq(modules.id, id));
+  //     });
 
-      await Promise.all(updatePromises);
-      await CacheService.del(`course:details:${parentCourseId}`);
-    });
-  }
+  //     await Promise.all(updatePromises);
+  //     await CacheService.del(`course:details:${parentCourseId}`);
+  //   });
+  // }
 
   public static async addLessonToModule(data: LessonData, requesterId: string) {
     logger.info(`Adding lesson "${data.title}" to moduke ${data.moduleId}`);

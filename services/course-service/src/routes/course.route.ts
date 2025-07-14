@@ -12,6 +12,7 @@ import { CourseService } from "../controllers/course-service";
 import { StatusCodes } from "http-status-codes";
 import { z } from "zod";
 import { CourseController } from "../controllers/course.controller";
+import { ModuleController } from "../controllers/module.controller";
 
 const router = Router();
 
@@ -39,18 +40,7 @@ router.post(
   requireAuth,
   requireRole(["admin", "instructor"]),
   validateRequest(createModuleSchema),
-  async (req: Request, res: Response) => {
-    const { courseId } = req.params;
-    const { title } = req.body;
-    const requesterId = req.currentUser!.id;
-
-    const module = await CourseService.addModuleToCourse(
-      { title, courseId },
-      requesterId
-    );
-
-    res.status(StatusCodes.CREATED).json(module);
-  }
+  ModuleController.create
 );
 
 router.put(

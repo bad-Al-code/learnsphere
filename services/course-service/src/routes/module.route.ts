@@ -8,6 +8,7 @@ import {
   createModuleSchema,
 } from "../schemas/course-schema";
 import { CourseService } from "../controllers/course-service";
+import { ModuleController } from "../controllers/module.controller";
 
 const router = Router();
 
@@ -42,49 +43,21 @@ router.put(
   requireAuth,
   requireRole(["instructor", "admin"]),
   validateRequest(createModuleSchema),
-  async (req: Request, res: Response) => {
-    const { moduleId } = req.params;
-    const { title } = req.body;
-    const requesterId = req.currentUser!.id;
-
-    const updatedModule = await CourseService.updateModule(
-      moduleId,
-      { title },
-      requesterId
-    );
-
-    res.status(StatusCodes.OK).json(updatedModule);
-  }
+  ModuleController.update
 );
 
 router.delete(
   "/:moduleId",
   requireAuth,
   requireRole(["instructor", "admin"]),
-  async (req: Request, res: Response) => {
-    const { moduleId } = req.params;
-    const requesterId = req.currentUser!.id;
-
-    await CourseService.deleteModule(moduleId, requesterId);
-
-    res.status(StatusCodes.OK).json({ message: "Module deleted successfully" });
-  }
+  ModuleController.delete
 );
 
 router.post(
   "/reorder",
   requireAuth,
   requireRole(["instructor", "admin"]),
-  async (req: Request, res: Response) => {
-    const { ids } = req.body;
-    const requesterId = req.currentUser!.id;
-
-    await CourseService.reorderModules(ids, requesterId);
-
-    res
-      .status(StatusCodes.OK)
-      .json({ message: "Modules reorderd successfully" });
-  }
+  ModuleController.reorder
 );
 
 export { router as moduleRouter };
