@@ -4,7 +4,7 @@ import logger from '../config/logger';
 import { db } from '../db';
 import { ModuleRepository } from '../db/repostiories/module.repository';
 import { modules } from '../db/schema';
-import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
+import { BadRequestError, NotFoundError } from '../errors';
 import { CreateModuleDto, UpdateModuleDto } from '../types';
 import { CourseRepository } from '../db/repostiories';
 import { CacheService } from './cache.service';
@@ -15,15 +15,12 @@ export class ModuleService {
     data: CreateModuleDto,
     requesterId: string
   ) {
-    logger.info(`Adding module "${data.title}" to course ${data.courseId}`);
+    await AuthorizationService.verifyCourseOwnership(
+      data.courseId,
+      requesterId
+    );
 
-    const course = await CourseRepository.findById(data.courseId);
-    if (!course) {
-      throw new NotFoundError('Course');
-    }
-    if (course.instructorId !== requesterId) {
-      throw new ForbiddenError();
-    }
+    logger.info(`Adding module "${data.title}" to course ${data.courseId}`);
 
     const nextOrder = await ModuleRepository.countByCourseId(data.courseId);
 
@@ -65,12 +62,11 @@ export class ModuleService {
   ) {
     await AuthorizationService.verifyModuleOwnership(moduleId, requesterId);
 
-    const parentModule = await ModuleRepository.findById(moduleId);
-
     const updatedModule = await ModuleRepository.update(moduleId, data);
+    const parentCourseId = (await ModuleRepository.findById(moduleId))!.course
+      .id;
 
-    await CacheService.del(`course:details:${parentModule?.courseId}`);
-
+    await CacheService.del(`course:details:${parentCourseId}`);
     return updatedModule;
   }
 
@@ -79,9 +75,7 @@ export class ModuleService {
     if (!parentModule) {
       throw new NotFoundError('Module');
     }
-    if (parentModule.course.instructorId !== requesterId) {
-      throw new ForbiddenError();
-    }
+    await AuthorizationService.verifyModuleOwnership(moduleId, requesterId);
 
     await ModuleRepository.delete(moduleId);
 
@@ -107,13 +101,18 @@ export class ModuleService {
       }
 
       const parentCourseId = allModules[0].course.id;
-      const ownerId = allModules[0].course.instructorId;
+      await AuthorizationService.verifyCourseOwnership(
+        parentCourseId,
+        requesterId
+      );
 
       const allModulesFromSameCourse = allModules.every(
         (m) => m.courseId === parentCourseId
       );
-      if (!allModulesFromSameCourse || ownerId !== requesterId) {
-        throw new ForbiddenError();
+      if (!allModulesFromSameCourse) {
+        throw new BadRequestError(
+          'All modules must belong to the same course.'
+        );
       }
 
       logger.info(
