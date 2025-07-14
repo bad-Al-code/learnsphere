@@ -1,0 +1,30 @@
+services:
+  postgres-course:
+    image: postgres:17.5
+    container_name: learnsphere-course-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: course_db
+    ports:
+      - '5434:5432'
+    volumes:
+      - course-db-data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:4.1.1-management-alpine
+    container_name: learnsphere-rabbitmq
+    ports:
+      - '5672:5672' # AMQP
+      - '15672:15672' # Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+  redis-course:
+    image: redis:alpine3.20
+    container_name: learnsphere-course-redis
+    ports:
+      - '6380:6379'
+volumes:
+  course-db-data:
