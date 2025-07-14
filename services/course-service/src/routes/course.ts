@@ -8,7 +8,7 @@ import {
   listCoursesSchema,
   bulkCoursesSchema,
 } from "../schemas/course-schema";
-import { CourseService } from "../services/course-service";
+import { CourseService } from "../controllers/course-service";
 import { StatusCodes } from "http-status-codes";
 import { z } from "zod";
 

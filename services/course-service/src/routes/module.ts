@@ -7,7 +7,7 @@ import {
   createLessonSchema,
   createModuleSchema,
 } from "../schemas/course-schema";
-import { CourseService } from "../services/course-service";
+import { CourseService } from "../controllers/course-service";
 
 const router = Router();
 

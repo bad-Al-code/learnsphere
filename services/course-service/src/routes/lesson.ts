@@ -2,7 +2,7 @@ import { Request, Response, Router } from "express";
 import { requireAuth } from "../middlewares/require-auth";
 import { requireRole } from "../middlewares/require-role";
 import { validateRequest } from "../middlewares/validate-request";
-import { CourseService } from "../services/course-service";
+import { CourseService } from "../controllers/course-service";
 import { StatusCodes } from "http-status-codes";
 import {
   videoUploadUrlSchema,
