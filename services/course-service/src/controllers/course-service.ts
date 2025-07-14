@@ -219,24 +219,24 @@ export class CourseService {
     return updatedCourse[0];
   }
 
-  public static async deleteCourse(courseId: string, requesterId: string) {
-    const course = await db.query.courses.findFirst({
-      where: eq(courses.id, courseId),
-    });
-    if (!course) {
-      throw new NotFoundError("Course");
-    }
-    if (course.instructorId !== requesterId) {
-      throw new ForbiddenError();
-    }
+  // public static async deleteCourse(courseId: string, requesterId: string) {
+  //   const course = await db.query.courses.findFirst({
+  //     where: eq(courses.id, courseId),
+  //   });
+  //   if (!course) {
+  //     throw new NotFoundError("Course");
+  //   }
+  //   if (course.instructorId !== requesterId) {
+  //     throw new ForbiddenError();
+  //   }
 
-    logger.info(`Deleting course ${courseId} by user ${requesterId}`);
+  //   logger.info(`Deleting course ${courseId} by user ${requesterId}`);
 
-    await db.delete(courses).where(eq(courses.id, courseId));
+  //   await db.delete(courses).where(eq(courses.id, courseId));
 
-    await CacheService.del(`course:details:${courseId}`);
-    await CacheService.delByPattern(`course:list:*`);
-  }
+  //   await CacheService.del(`course:details:${courseId}`);
+  //   await CacheService.delByPattern(`course:list:*`);
+  // }
 
   public static async addModuleToCourse(data: ModuleData, requesterId: string) {
     logger.info(`Adding module "${data.title}" to course ${data.courseId}`);
@@ -569,65 +569,65 @@ export class CourseService {
     });
   }
 
-  public static async publishCourse(courseId: string, requesterId: string) {
-    const course = await db.query.courses.findFirst({
-      where: eq(courses.id, courseId),
-    });
-    if (!course) {
-      throw new NotFoundError("Course");
-    }
-    if (course.instructorId !== requesterId) {
-      throw new ForbiddenError();
-    }
+  // public static async publishCourse(courseId: string, requesterId: string) {
+  //   const course = await db.query.courses.findFirst({
+  //     where: eq(courses.id, courseId),
+  //   });
+  //   if (!course) {
+  //     throw new NotFoundError("Course");
+  //   }
+  //   if (course.instructorId !== requesterId) {
+  //     throw new ForbiddenError();
+  //   }
 
-    if (course.status === "published") {
-      logger.warn(`Course ${courseId} is laready published. No action needed`);
-      return course;
-    }
+  //   if (course.status === "published") {
+  //     logger.warn(`Course ${courseId} is laready published. No action needed`);
+  //     return course;
+  //   }
 
-    logger.info(`Publishing course ${courseId} by user ${requesterId}`);
+  //   logger.info(`Publishing course ${courseId} by user ${requesterId}`);
 
-    await CacheService.del(`course:details:${courseId}`);
-    await CacheService.delByPattern("courses:list:*");
+  //   await CacheService.del(`course:details:${courseId}`);
+  //   await CacheService.delByPattern("courses:list:*");
 
-    const updatedCourse = await db
-      .update(courses)
-      .set({ status: "published", updatedAt: new Date() })
-      .where(eq(courses.id, courseId))
-      .returning();
+  //   const updatedCourse = await db
+  //     .update(courses)
+  //     .set({ status: "published", updatedAt: new Date() })
+  //     .where(eq(courses.id, courseId))
+  //     .returning();
 
-    return updatedCourse[0];
-  }
+  //   return updatedCourse[0];
+  // }
 
-  public static async unPublishCourse(courseId: string, requesterId: string) {
-    const course = await db.query.courses.findFirst({
-      where: eq(courses.id, courseId),
-    });
-    if (!course) {
-      throw new NotFoundError("Course");
-    }
-    if (course.instructorId !== requesterId) {
-      throw new ForbiddenError();
-    }
+  // public static async unPublishCourse(courseId: string, requesterId: string) {
+  //   const course = await db.query.courses.findFirst({
+  //     where: eq(courses.id, courseId),
+  //   });
+  //   if (!course) {
+  //     throw new NotFoundError("Course");
+  //   }
+  //   if (course.instructorId !== requesterId) {
+  //     throw new ForbiddenError();
+  //   }
 
-    if (course.status === "draft") {
-      logger.warn(`Course ${courseId} is already in draft. No action needed`);
-      return course;
-    }
+  //   if (course.status === "draft") {
+  //     logger.warn(`Course ${courseId} is already in draft. No action needed`);
+  //     return course;
+  //   }
 
-    logger.info(`Unpulishing course ${courseId} by user ${requesterId}`);
+  //   logger.info(`Unpulishing course ${courseId} by user ${requesterId}`);
 
-    const updatedCourse = await db
-      .update(courses)
-      .set({ status: "draft", updatedAt: new Date() })
-      .where(eq(courses.id, courseId))
-      .returning();
+  //   const updatedCourse = await db
+  //     .update(courses)
+  //     .set({ status: "draft", updatedAt: new Date() })
+  //     .where(eq(courses.id, courseId))
+  //     .returning();
 
-    await CacheService.del(`course:details:${courseId}`);
-    await CacheService.delByPattern("courses:list:*");
+  //   await CacheService.del(`course:details:${courseId}`);
+  //   await CacheService.delByPattern("courses:list:*");
 
-    return updatedCourse[0];
-  }
+  //   return updatedCourse[0];
+  // }
 
   public static async requestVideoUploadUrl(
     lessonId: string,

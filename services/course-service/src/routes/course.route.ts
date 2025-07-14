@@ -57,62 +57,29 @@ router.put(
   "/:courseId",
   requireAuth,
   requireRole(["instructor", "admin"]),
-  validateRequest(createCourseSchema),
-  async (req: Request, res: Response) => {
-    const { courseId } = req.params;
-    const updatedData = req.body;
-    const requesterId = req.currentUser!.id;
-
-    const course = await CourseService.updateCourse(
-      courseId,
-      updatedData,
-      requesterId
-    );
-
-    res.status(StatusCodes.OK).json(course);
-  }
+  validateRequest(createCourseSchema.partial()),
+  CourseController.update
 );
 
 router.delete(
   "/:courseId",
   requireAuth,
   requireRole(["instructor", "admin"]),
-  async (req: Request, res: Response) => {
-    const { courseId } = req.params;
-    const requesterId = req.currentUser!.id;
-
-    await CourseService.deleteCourse(courseId, requesterId);
-
-    res.status(StatusCodes.OK).json({ message: "Course deleted successfully" });
-  }
+  CourseController.delete
 );
 
 router.post(
   "/:courseId/publish",
   requireAuth,
   requireRole(["instructor", "admin"]),
-  async (req: Request, res: Response) => {
-    const { courseId } = req.params;
-    const requesterId = req.currentUser!.id;
-
-    const course = await CourseService.publishCourse(courseId, requesterId);
-
-    res.status(StatusCodes.OK).json(course);
-  }
+  CourseController.publish
 );
 
 router.post(
   "/:courseId/unpublish",
   requireAuth,
   requireRole(["instructor", "admin"]),
-  async (req: Request, res: Response) => {
-    const { courseId } = req.params;
-    const requesterId = req.currentUser!.id;
-
-    const course = await CourseService.unPublishCourse(courseId, requesterId);
-
-    res.status(StatusCodes.OK).json(course);
-  }
+  CourseController.unpublish
 );
 
 router.post(

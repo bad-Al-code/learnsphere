@@ -59,4 +59,78 @@ export class CourseController {
       next(error);
     }
   }
+
+  public static async update(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { courseId } = req.params;
+      const requesterId = req.currentUser!.id;
+
+      const course = await CourseService.updateCourse(
+        courseId,
+        req.body,
+        requesterId
+      );
+
+      res.status(StatusCodes.OK).json(course);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async delete(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { courseId } = req.params;
+      const requesterId = req.currentUser!.id;
+
+      await CourseService.deleteCourse(courseId, requesterId);
+
+      res
+        .status(StatusCodes.OK)
+        .json({ message: "Course deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async publish(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { courseId } = req.params;
+      const requesterId = req.currentUser!.id;
+
+      const course = await CourseService.publishCourse(courseId, requesterId);
+
+      res.status(StatusCodes.OK).json(course);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async unpublish(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { courseId } = req.params;
+      const requesterId = req.currentUser!.id;
+
+      const course = await CourseService.unPublishCourse(courseId, requesterId);
+
+      res.status(StatusCodes.OK).json(course);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
