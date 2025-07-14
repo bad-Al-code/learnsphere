@@ -1,12 +1,13 @@
 import { UserClient } from '../clients/user.client';
 import logger from '../config/logger';
 import { CourseRepository } from '../db/repostiories';
-import { ForbiddenError, NotFoundError } from '../errors';
+import { NotFoundError } from '../errors';
 import {
   CourseWithInstructor,
   CreateCourseDto,
   UpdateCourseDto,
 } from '../types';
+import { AuthorizationService } from './authorization.service';
 import { CacheService } from './cache.service';
 
 export class CourseService {
@@ -138,9 +139,7 @@ export class CourseService {
     data: UpdateCourseDto,
     requesterId: string
   ) {
-    const course = await CourseRepository.findById(courseId);
-    if (!course) throw new NotFoundError('Course');
-    if (course.instructorId !== requesterId) throw new ForbiddenError();
+    await AuthorizationService.verifyCourseOwnership(courseId, requesterId);
 
     const updatedCourse = await CourseRepository.update(courseId, data);
 
@@ -161,13 +160,7 @@ export class CourseService {
     courseId: string,
     requesterId: string
   ): Promise<void> {
-    const course = await CourseRepository.findById(courseId);
-    if (!course) {
-      throw new NotFoundError('Course');
-    }
-    if (course.instructorId !== requesterId) {
-      throw new ForbiddenError();
-    }
+    await AuthorizationService.verifyCourseOwnership(courseId, requesterId);
 
     await CourseRepository.delete(courseId);
 
@@ -183,15 +176,11 @@ export class CourseService {
    * @param requesterId - The ID of the user making the request.
    */
   public static async publishCourse(courseId: string, requesterId: string) {
-    const course = await CourseRepository.findById(courseId);
-    if (!course) {
-      throw new NotFoundError('Course');
-    }
-    if (course.instructorId !== requesterId) {
-      throw new ForbiddenError();
-    }
+    await AuthorizationService.verifyCourseOwnership(courseId, requesterId);
 
-    if (course.status === 'published') {
+    const course = await CourseRepository.findById(courseId);
+
+    if (course?.status === 'published') {
       logger.warn(`Course ${courseId} is laready published. No action needed`);
       return course;
     }
@@ -215,15 +204,10 @@ export class CourseService {
    * @param requesterId - The ID of the user making the request.
    */
   public static async unPublishCourse(courseId: string, requesterId: string) {
-    const course = await CourseRepository.findById(courseId);
-    if (!course) {
-      throw new NotFoundError('Course');
-    }
-    if (course.instructorId !== requesterId) {
-      throw new ForbiddenError();
-    }
+    await AuthorizationService.verifyCourseOwnership(courseId, requesterId);
 
-    if (course.status === 'draft') {
+    const course = await CourseRepository.findById(courseId);
+    if (course?.status === 'draft') {
       logger.warn(`Course ${courseId} is already in draft. No action needed`);
       return course;
     }

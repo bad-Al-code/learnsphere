@@ -8,6 +8,7 @@ import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
 import { CreateModuleDto, UpdateModuleDto } from '../types';
 import { CourseRepository } from '../db/repostiories';
 import { CacheService } from './cache.service';
+import { AuthorizationService } from './authorization.service';
 
 export class ModuleService {
   public static async addModuleToCourse(
@@ -62,17 +63,13 @@ export class ModuleService {
     data: UpdateModuleDto,
     requesterId: string
   ) {
+    await AuthorizationService.verifyModuleOwnership(moduleId, requesterId);
+
     const parentModule = await ModuleRepository.findById(moduleId);
-    if (!parentModule) {
-      throw new NotFoundError('Module');
-    }
-    if (parentModule.course.instructorId !== requesterId) {
-      throw new ForbiddenError();
-    }
 
     const updatedModule = await ModuleRepository.update(moduleId, data);
 
-    await CacheService.del(`course:details:${parentModule.courseId}`);
+    await CacheService.del(`course:details:${parentModule?.courseId}`);
 
     return updatedModule;
   }
