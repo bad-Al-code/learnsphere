@@ -20,7 +20,7 @@ This projects serves as a comprehensive portfolio piece demonstrating expertise 
 
 | **Category**                | Technology                                                                                   |
 | --------------------------- | -------------------------------------------------------------------------------------------- |
-| **Backend Services**        | Node.js, TypeScript, Go, Python (FastAPI), Express.js                                        |
+| **Backend Services**        | Node.js, TypeScript, Go, Python , Express.js                                                 |
 | **Databases & Caching**     | PostgreSQL (Relational Data), Redis (Caching, Token Blacklist), RabbitMQ (Message Queue)     |
 | **AI & Machine Learning**   | Python, LangChain, OpenAI/LLMs, Pinecone/Chroma (Vector DB), FFmpeg (Video/Audio)            |
 | **DevOps & Infrastructure** | Git, Docker, Kubernetes (Kind for local, EKS for prod), Helm, Terraform, GitHub Actions, AWS |
@@ -33,16 +33,16 @@ learnsphere/
 ├── .github/workflows/         # CI/CD Pipelines (GitHub Actions)
 ├── kubernetes/                # Global K8s resources (e.g., ingress-nginx, cert-manager)
 ├── services/
-│   ├── api-gateway/           # Go
+│   ├── api-gateway/           # Go (Not Decided Yet)
 │   ├── auth-service/          # Node.js + TypeScript
 │   │   ├── src/
 │   │   ├── Dockerfile
 │   │   └── helm-chart/
-│   ├── course-service/        # Go
-│   ├── enrollment-service/    # Python + FastAPI
+│   ├── course-service/        # Node.js + TypeScript
+│   ├── enrollment-service/    # Node.js + TypeScript
 │   ├── notification-service/  # Node.js + TypeScript
 │   ├── user-service/          # Node.js + TypeScript
-│   ├── video-processing-service/ # Go
+│   ├── video-processing-service/ # Node.js + TypeScript
 │   └── ai-qna-service/        # Python + LangChain
 ├── terraform/                 # AWS Infrastructure as Code
 │   ├── modules/
