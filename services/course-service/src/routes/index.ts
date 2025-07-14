@@ -1,4 +1,4 @@
 export * from "./health";
-export * from "./course";
+export * from "./course.route";
 export * from "./lesson";
 export * from "./module";

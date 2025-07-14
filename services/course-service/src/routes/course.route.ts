@@ -11,6 +11,7 @@ import {
 import { CourseService } from "../controllers/course-service";
 import { StatusCodes } from "http-status-codes";
 import { z } from "zod";
+import { CourseController } from "../controllers/course.controller";
 
 const router = Router();
 
@@ -48,19 +49,7 @@ router.post(
   requireAuth,
   requireRole(["admin", "instructor"]),
   validateRequest(createCourseSchema),
-  async (req: Request, res: Response) => {
-    const { title, description } = req.body;
-
-    const instructorId = req.currentUser!.id;
-
-    const course = await CourseService.createCourse({
-      title,
-      description,
-      instructorId,
-    });
-
-    res.status(StatusCodes.CREATED).json(course);
-  }
+  CourseController.create
 );
 
 router.post(

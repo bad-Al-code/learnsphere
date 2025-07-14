@@ -85,23 +85,6 @@ export class CourseService {
     }
   }
 
-  public static async createCourse(data: CreateCourseData) {
-    logger.info(`Creating a new course`, {
-      title: data.title,
-      instructorId: data.instructorId,
-    });
-
-    const newCourse = await CourseRepository.create({
-      title: data.title,
-      description: data.description,
-      instructorId: data.instructorId,
-    });
-
-    await CacheService.delByPattern("course:list:*");
-
-    return newCourse;
-  }
-
   public static async getCourseByIds(courseIds: string[]) {
     logger.info(`Fetching details for ${courseIds.length} courses in bulk`);
 
