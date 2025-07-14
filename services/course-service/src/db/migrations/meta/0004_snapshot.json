@@ -68,12 +68,8 @@
           "name": "courses_prerequisite_course_id_courses_id_fk",
           "tableFrom": "courses",
           "tableTo": "courses",
-          "columnsFrom": [
-            "prerequisite_course_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["prerequisite_course_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -134,12 +130,8 @@
           "name": "lessons_module_id_modules_id_fk",
           "tableFrom": "lessons",
           "tableTo": "modules",
-          "columnsFrom": [
-            "module_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["module_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -187,12 +179,8 @@
           "name": "modules_course_id_courses_id_fk",
           "tableFrom": "modules",
           "tableTo": "courses",
-          "columnsFrom": [
-            "course_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["course_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -233,12 +221,8 @@
           "name": "text_lesson_content_lesson_id_lessons_id_fk",
           "tableFrom": "text_lesson_content",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "lesson_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["lesson_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -248,9 +232,7 @@
         "text_lesson_content_lesson_id_unique": {
           "name": "text_lesson_content_lesson_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "lesson_id"
-          ]
+          "columns": ["lesson_id"]
         }
       },
       "policies": {},
@@ -262,19 +244,12 @@
     "public.course_status": {
       "name": "course_status",
       "schema": "public",
-      "values": [
-        "draft",
-        "published"
-      ]
+      "values": ["draft", "published"]
     },
     "public.lesson_type": {
       "name": "lesson_type",
       "schema": "public",
-      "values": [
-        "video",
-        "text",
-        "quiz"
-      ]
+      "values": ["video", "text", "quiz"]
     }
   },
   "schemas": {},

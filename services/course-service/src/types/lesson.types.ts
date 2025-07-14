@@ -1,4 +1,4 @@
-import { lessons, lessonTypeEnum } from "../db/schema";
+import { lessons, lessonTypeEnum } from '../db/schema';
 
 export type Lesson = typeof lessons.$inferSelect;
 export type NewLesson = typeof lessons.$inferInsert;

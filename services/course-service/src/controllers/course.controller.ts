@@ -1,9 +1,9 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response } from 'express';
 
-import { NotAuthorizedError } from "../errors";
-import { CourseService } from "../services/course.service";
-import { StatusCodes } from "http-status-codes";
-import { ModuleService } from "../services/module.service";
+import { NotAuthorizedError } from '../errors';
+import { CourseService } from '../services/course.service';
+import { StatusCodes } from 'http-status-codes';
+import { ModuleService } from '../services/module.service';
 
 export class CourseController {
   public static async create(
@@ -123,7 +123,7 @@ export class CourseController {
 
       res
         .status(StatusCodes.OK)
-        .json({ message: "Course deleted successfully" });
+        .json({ message: 'Course deleted successfully' });
     } catch (error) {
       next(error);
     }

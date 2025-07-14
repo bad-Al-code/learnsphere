@@ -1,8 +1,8 @@
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray } from 'drizzle-orm';
 
-import { db } from "./index";
-import { lessons, textLessonContent } from "./schema";
-import { NewLesson, Lesson, UpdateLessonDto } from "../types";
+import { db } from './index';
+import { lessons, textLessonContent } from './schema';
+import { NewLesson, Lesson, UpdateLessonDto } from '../types';
 
 export class LessonRepository {
   /**
@@ -60,7 +60,7 @@ export class LessonRepository {
    */
   public static async update(
     lessonId: string,
-    data: Partial<Omit<UpdateLessonDto, "content">>
+    data: Partial<Omit<UpdateLessonDto, 'content'>>
   ): Promise<Lesson> {
     const [updatedLesson] = await db
       .update(lessons)

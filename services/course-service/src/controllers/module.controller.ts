@@ -1,6 +1,6 @@
-import { NextFunction, Request, Response } from "express";
-import { ModuleService } from "../services/module.service";
-import { StatusCodes } from "http-status-codes";
+import { NextFunction, Request, Response } from 'express';
+import { ModuleService } from '../services/module.service';
+import { StatusCodes } from 'http-status-codes';
 
 export class ModuleController {
   public static async create(
@@ -69,7 +69,7 @@ export class ModuleController {
       await ModuleService.deleteModule(moduleId, requesterId);
       res
         .status(StatusCodes.OK)
-        .json({ message: "Module deleted successfully" });
+        .json({ message: 'Module deleted successfully' });
     } catch (error) {
       next(error);
     }
@@ -86,7 +86,7 @@ export class ModuleController {
       await ModuleService.reorderModules(ids, requesterId);
       res
         .status(StatusCodes.OK)
-        .json({ message: "Modules reordered successfully" });
+        .json({ message: 'Modules reordered successfully' });
     } catch (error) {
       next(error);
     }

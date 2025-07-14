@@ -1,7 +1,7 @@
-import { NextFunction, Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
+import { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
 
-import { LessonService } from "../services/lesson.service";
+import { LessonService } from '../services/lesson.service';
 
 export class LessonController {
   public static async create(
@@ -68,7 +68,7 @@ export class LessonController {
       await LessonService.deleteLesson(lessonId, requesterId);
       res
         .status(StatusCodes.OK)
-        .json({ message: "Lesson deleted successfully" });
+        .json({ message: 'Lesson deleted successfully' });
     } catch (error) {
       next(error);
     }
@@ -85,7 +85,7 @@ export class LessonController {
       await LessonService.reorderLessons(ids, requesterId);
       res
         .status(StatusCodes.OK)
-        .json({ message: "Lessons reordered successfully" });
+        .json({ message: 'Lessons reordered successfully' });
     } catch (error) {
       next(error);
     }

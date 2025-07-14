@@ -1,10 +1,10 @@
-import { StatusCodes } from "http-status-codes";
-import { CustomError } from "./custom-error";
+import { StatusCodes } from 'http-status-codes';
+import { CustomError } from './custom-error';
 
 export class NotFoundError extends CustomError {
   statusCode = StatusCodes.NOT_FOUND;
 
-  constructor(resource = "Route") {
+  constructor(resource = 'Route') {
     super(`${resource} not found`);
     Object.setPrototypeOf(this, NotFoundError.prototype);
   }

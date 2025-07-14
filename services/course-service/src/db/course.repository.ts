@@ -1,8 +1,8 @@
-import { count, eq, inArray } from "drizzle-orm";
+import { count, eq, inArray } from 'drizzle-orm';
 
-import { db } from ".";
-import { Course, NewCourse, UpdateCourse } from "../types";
-import { courses } from "./schema";
+import { db } from '.';
+import { Course, NewCourse, UpdateCourse } from '../types';
+import { courses } from './schema';
 
 export class CourseRepository {
   /**
@@ -71,7 +71,7 @@ export class CourseRepository {
    * @returns An object containing the paginated results and the total count.
    */
   public static async listPublished(limit: number, offset: number) {
-    const whereClause = eq(courses.status, "published");
+    const whereClause = eq(courses.status, 'published');
     const totalQuery = db
       .select({ value: count() })
       .from(courses)
@@ -118,7 +118,7 @@ export class CourseRepository {
    */
   public static async updateStatus(
     courseId: string,
-    status: "draft" | "published"
+    status: 'draft' | 'published'
   ): Promise<Course> {
     const [updatedCourse] = await db
       .update(courses)

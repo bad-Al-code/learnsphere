@@ -1,47 +1,46 @@
-import e, { Request, Response, Router } from "express";
-import { StatusCodes } from "http-status-codes";
-import { requireAuth } from "../middlewares/require-auth";
-import { requireRole } from "../middlewares/require-role";
-import { validateRequest } from "../middlewares/validate-request";
+import { Router } from 'express';
+
+import { requireAuth } from '../middlewares/require-auth';
+import { requireRole } from '../middlewares/require-role';
+import { validateRequest } from '../middlewares/validate-request';
 import {
   createLessonSchema,
   createModuleSchema,
-} from "../schemas/course-schema";
-import { CourseService } from "../controllers/course-service";
-import { ModuleController } from "../controllers/module.controller";
-import { LessonController } from "../controllers/lesson.controller";
+} from '../schemas/course-schema';
+import { ModuleController } from '../controllers/module.controller';
+import { LessonController } from '../controllers/lesson.controller';
 
 const router = Router();
 
-router.get("/:moduleId", ModuleController.getById);
+router.get('/:moduleId', ModuleController.getById);
 
 router.post(
-  "/:moduleId/lessons",
+  '/:moduleId/lessons',
   requireAuth,
-  requireRole(["admin", "instructor"]),
+  requireRole(['admin', 'instructor']),
   validateRequest(createLessonSchema),
   LessonController.create
 );
 
 router.put(
-  "/:moduleId",
+  '/:moduleId',
   requireAuth,
-  requireRole(["instructor", "admin"]),
+  requireRole(['instructor', 'admin']),
   validateRequest(createModuleSchema),
   ModuleController.update
 );
 
 router.delete(
-  "/:moduleId",
+  '/:moduleId',
   requireAuth,
-  requireRole(["instructor", "admin"]),
+  requireRole(['instructor', 'admin']),
   ModuleController.delete
 );
 
 router.post(
-  "/reorder",
+  '/reorder',
   requireAuth,
-  requireRole(["instructor", "admin"]),
+  requireRole(['instructor', 'admin']),
   ModuleController.reorder
 );
 

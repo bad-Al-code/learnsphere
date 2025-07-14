@@ -1,12 +1,12 @@
-import { eq } from "drizzle-orm";
-import logger from "../config/logger";
-import { db } from "../db";
-import { ModuleRepository } from "../db/module.repository";
-import { BadRequestError, ForbiddenError, NotFoundError } from "../errors";
-import { CreateLessonDto, UpdateLessonDto } from "../types";
-import { lessons } from "../db/schema";
-import { LessonRepository } from "../db/lesson.repository";
-import { CacheService } from "../controllers/cache-service";
+import { eq } from 'drizzle-orm';
+import logger from '../config/logger';
+import { db } from '../db';
+import { ModuleRepository } from '../db/module.repository';
+import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
+import { CreateLessonDto, UpdateLessonDto } from '../types';
+import { lessons } from '../db/schema';
+import { LessonRepository } from '../db/lesson.repository';
+import { CacheService } from '../controllers/cache-service';
 
 export class LessonService {
   public static async addLessonToModule(
@@ -17,7 +17,7 @@ export class LessonService {
 
     const parentModule = await ModuleRepository.findById(data.moduleId);
     if (!parentModule) {
-      throw new NotFoundError("Module");
+      throw new NotFoundError('Module');
     }
     if (parentModule.course.instructorId !== requesterId) {
       throw new ForbiddenError();
@@ -40,7 +40,7 @@ export class LessonService {
         .returning();
 
       if (
-        data.lessonType === "text" &&
+        data.lessonType === 'text' &&
         data.content &&
         data.content.length > 0
       ) {
@@ -58,7 +58,7 @@ export class LessonService {
 
     const lessonDetails = await LessonRepository.findByIdWithContent(lessonId);
     if (!lessonDetails) {
-      throw new NotFoundError("Lesson");
+      throw new NotFoundError('Lesson');
     }
 
     return lessonDetails;
@@ -70,16 +70,16 @@ export class LessonService {
     requesterId: string
   ) {
     const lesson = await LessonRepository.findById(lessonId);
-    if (!lesson) throw new NotFoundError("Lesson");
+    if (!lesson) throw new NotFoundError('Lesson');
     if (lesson.module.course.instructorId !== requesterId)
       throw new ForbiddenError();
 
-    await db.transaction(async (tx) => {
+    await db.transaction(async (_tx) => {
       const { content, ...lessonData } = data;
       if (Object.keys(lessonData).length > 0) {
         await LessonRepository.update(lessonId, lessonData);
       }
-      if (lesson.lessonType === "text" && typeof content !== "undefined") {
+      if (lesson.lessonType === 'text' && typeof content !== 'undefined') {
         await LessonRepository.upsertTextContent(lessonId, content);
       }
     });
@@ -93,7 +93,7 @@ export class LessonService {
     requesterId: string
   ): Promise<void> {
     const lesson = await LessonRepository.findById(lessonId);
-    if (!lesson) throw new NotFoundError("Lesson");
+    if (!lesson) throw new NotFoundError('Lesson');
     if (lesson.module.course.instructorId !== requesterId)
       throw new ForbiddenError();
 
@@ -110,17 +110,16 @@ export class LessonService {
     if (orderedLessonIds.length === 0) return;
 
     await db.transaction(async (tx) => {
-      const allLessons = await LessonRepository.findManyByIdsWithModule(
-        orderedLessonIds
-      );
+      const allLessons =
+        await LessonRepository.findManyByIdsWithModule(orderedLessonIds);
 
       if (allLessons.length !== orderedLessonIds.length) {
-        throw new BadRequestError("One or more lesson IDs are invalid.");
+        throw new BadRequestError('One or more lesson IDs are invalid.');
       }
 
       const parentModule = allLessons[0].module;
       if (!parentModule || !parentModule.course)
-        throw new Error("Lesson relation corrupted.");
+        throw new Error('Lesson relation corrupted.');
       if (parentModule.course.instructorId !== requesterId)
         throw new ForbiddenError();
 

@@ -1,5 +1,5 @@
-import logger from "../config/logger";
-import { redisConnection } from "../config/redis";
+import logger from '../config/logger';
+import { redisConnection } from '../config/redis';
 
 const CACHE_TTL_SECONDS = 10 * 60;
 

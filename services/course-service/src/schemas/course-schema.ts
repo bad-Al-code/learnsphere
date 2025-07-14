@@ -1,11 +1,11 @@
-import { z } from "zod";
-import { lessonTypeEnum } from "../db/schema";
+import { z } from 'zod';
+import { lessonTypeEnum } from '../db/schema';
 
 export const createCourseSchema = z.object({
   body: z.object({
     title: z
-      .string({ required_error: "Title is required" })
-      .min(3, "Title must be at least 3 characters"),
+      .string({ required_error: 'Title is required' })
+      .min(3, 'Title must be at least 3 characters'),
     description: z.string().optional(),
     prerequisiteCourseId: z.string().uuid().optional().nullable(),
   }),
@@ -13,13 +13,13 @@ export const createCourseSchema = z.object({
 
 export const createModuleSchema = z.object({
   body: z.object({
-    title: z.string({ required_error: "Title is required" }).min(3),
+    title: z.string({ required_error: 'Title is required' }).min(3),
   }),
 });
 
 export const createLessonSchema = z.object({
   body: z.object({
-    title: z.string({ required_error: "Title is required" }).min(3),
+    title: z.string({ required_error: 'Title is required' }).min(3),
     lessonType: z.enum(lessonTypeEnum.enumValues),
     content: z.string().optional(),
   }),
@@ -42,6 +42,6 @@ export const bulkCoursesSchema = z.object({
   body: z.object({
     courseIds: z
       .array(z.string().uuid())
-      .nonempty("At least one course ID is required"),
+      .nonempty('At least one course ID is required'),
   }),
 });

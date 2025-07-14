@@ -1,22 +1,22 @@
-import { ConsumeMessage } from "amqplib";
-import logger from "../config/logger";
-import { rabbitMQConnection } from "./connection";
-import { db } from "../db";
-import { lessons } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { ConsumeMessage } from 'amqplib';
+import logger from '../config/logger';
+import { rabbitMQConnection } from './connection';
+import { db } from '../db';
+import { lessons } from '../db/schema';
+import { eq } from 'drizzle-orm';
 
 interface Event {
   topic: string;
-  data: any;
+  data: object;
 }
 
 export abstract class Listener<T extends Event> {
-  abstract topic: T["topic"];
+  abstract topic: T['topic'];
   abstract queueGroupName: string;
-  abstract onMessage(data: T["data"], msg: ConsumeMessage): void;
+  abstract onMessage(data: T['data'], msg: ConsumeMessage): void;
 
-  protected exchange = "learnsphere";
-  protected exchangeType = "topic";
+  protected exchange = 'learnsphere';
+  protected exchangeType = 'topic';
 
   listen(): void {
     const channel = rabbitMQConnection.getChannel();
@@ -56,7 +56,7 @@ export abstract class Listener<T extends Event> {
 }
 
 interface VideoProcessedEvent {
-  topic: "video.processed";
+  topic: 'video.processed';
   data: {
     lessonId: string;
     videoUrl: string;
@@ -64,12 +64,12 @@ interface VideoProcessedEvent {
 }
 
 export class VideoProcessedListener extends Listener<VideoProcessedEvent> {
-  topic: "video.processed" = "video.processed";
-  queueGroupName: string = "course-service-video";
+  readonly topic: 'video.processed' = 'video.processed' as const;
+  queueGroupName: string = 'course-service-video';
 
   async onMessage(
     data: { lessonId: string; videoUrl: string },
-    msg: ConsumeMessage
+    _msg: ConsumeMessage
   ): Promise<void> {
     logger.info(`Video procesed event received for lesson" ${data.lessonId}`);
 

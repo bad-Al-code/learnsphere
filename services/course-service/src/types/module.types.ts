@@ -1,4 +1,4 @@
-import { modules } from "../db/schema";
+import { modules } from '../db/schema';
 
 export type Module = typeof modules.$inferSelect;
 export type NewModule = typeof modules.$inferInsert;

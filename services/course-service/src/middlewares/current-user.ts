@@ -1,16 +1,17 @@
-import jwt from "jsonwebtoken";
-import { NextFunction, Request, Response } from "express";
+import jwt from 'jsonwebtoken';
+import { NextFunction, Request, Response } from 'express';
 
-import logger from "../config/logger";
-import { env } from "../config/env";
+import logger from '../config/logger';
+import { env } from '../config/env';
 
 interface UserPayload {
   id: string;
   email: string;
-  role: "student" | "instructor" | "admin";
+  role: 'student' | 'instructor' | 'admin';
 }
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       currentUser?: UserPayload;
@@ -18,12 +19,12 @@ declare global {
   }
 }
 
-const ignorePath = ["/api/courses/health"];
+const ignorePath = ['/api/courses/health'];
 
 export const currentUser = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   const token = req.signedCookies.token;
 
@@ -41,10 +42,10 @@ export const currentUser = (
     req.currentUser = payload;
 
     logger.debug(
-      `Current user identified: ${payload.email} (ID: ${payload.id})`,
+      `Current user identified: ${payload.email} (ID: ${payload.id})`
     );
   } catch (err) {
-    logger.warn("Invalid JWT received", { error: (err as Error).message });
+    logger.warn('Invalid JWT received', { error: (err as Error).message });
   }
 
   next();

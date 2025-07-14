@@ -1,14 +1,13 @@
-import { UserClient } from "../clients/user.client";
-import logger from "../config/logger";
-import { CacheService } from "../controllers/cache-service";
-import { CourseRepository } from "../db/course.repository";
-import { ForbiddenError, NotFoundError } from "../errors";
-import { courseRouter } from "../routes";
+import { UserClient } from '../clients/user.client';
+import logger from '../config/logger';
+import { CacheService } from '../controllers/cache-service';
+import { CourseRepository } from '../db/course.repository';
+import { ForbiddenError, NotFoundError } from '../errors';
 import {
   CourseWithInstructor,
   CreateCourseDto,
   UpdateCourseDto,
-} from "../types";
+} from '../types';
 
 export class CourseService {
   /**
@@ -28,7 +27,7 @@ export class CourseService {
       instructorId: data.instructorId,
     });
 
-    await CacheService.delByPattern("course:list:*");
+    await CacheService.delByPattern('course:list:*');
 
     return newCourse;
   }
@@ -41,9 +40,8 @@ export class CourseService {
     logger.info(`Fetching details for ${courseIds.length} courses in bulk`);
     const courseList = await CourseRepository.findManyIds(courseIds);
     const instructorIds = [...new Set(courseList.map((c) => c.instructorId))];
-    const instructorProfiles = await UserClient.getPublicProfiles(
-      instructorIds
-    );
+    const instructorProfiles =
+      await UserClient.getPublicProfiles(instructorIds);
 
     const results = courseList.map((course) => ({
       ...course,
@@ -70,12 +68,11 @@ export class CourseService {
 
     logger.info(`Fetching full details for course: ${courseId}`);
 
-    const courseDetails = await CourseRepository.findByIdWithRelations(
-      courseId
-    );
+    const courseDetails =
+      await CourseRepository.findByIdWithRelations(courseId);
 
     if (!courseDetails) {
-      throw new NotFoundError("Course");
+      throw new NotFoundError('Course');
     }
 
     const instructorProfiles = await UserClient.getPublicProfiles([
@@ -142,7 +139,7 @@ export class CourseService {
     requesterId: string
   ) {
     const course = await CourseRepository.findById(courseId);
-    if (!course) throw new NotFoundError("Course");
+    if (!course) throw new NotFoundError('Course');
     if (course.instructorId !== requesterId) throw new ForbiddenError();
 
     const updatedCourse = await CourseRepository.update(courseId, data);
@@ -166,7 +163,7 @@ export class CourseService {
   ): Promise<void> {
     const course = await CourseRepository.findById(courseId);
     if (!course) {
-      throw new NotFoundError("Course");
+      throw new NotFoundError('Course');
     }
     if (course.instructorId !== requesterId) {
       throw new ForbiddenError();
@@ -188,24 +185,24 @@ export class CourseService {
   public static async publishCourse(courseId: string, requesterId: string) {
     const course = await CourseRepository.findById(courseId);
     if (!course) {
-      throw new NotFoundError("Course");
+      throw new NotFoundError('Course');
     }
     if (course.instructorId !== requesterId) {
       throw new ForbiddenError();
     }
 
-    if (course.status === "published") {
+    if (course.status === 'published') {
       logger.warn(`Course ${courseId} is laready published. No action needed`);
       return course;
     }
 
     const updatedCourse = await CourseRepository.updateStatus(
       courseId,
-      "published"
+      'published'
     );
 
     await CacheService.del(`course:details:${courseId}`);
-    await CacheService.delByPattern("courses:list:*");
+    await CacheService.delByPattern('courses:list:*');
 
     logger.info(`Published course ${courseId} by user ${requesterId}`);
 
@@ -220,13 +217,13 @@ export class CourseService {
   public static async unPublishCourse(courseId: string, requesterId: string) {
     const course = await CourseRepository.findById(courseId);
     if (!course) {
-      throw new NotFoundError("Course");
+      throw new NotFoundError('Course');
     }
     if (course.instructorId !== requesterId) {
       throw new ForbiddenError();
     }
 
-    if (course.status === "draft") {
+    if (course.status === 'draft') {
       logger.warn(`Course ${courseId} is already in draft. No action needed`);
       return course;
     }
@@ -235,11 +232,11 @@ export class CourseService {
 
     const updatedCourse = await CourseRepository.updateStatus(
       courseId,
-      "draft"
+      'draft'
     );
 
     await CacheService.del(`course:details:${courseId}`);
-    await CacheService.delByPattern("courses:list:*");
+    await CacheService.delByPattern('courses:list:*');
 
     logger.info(`Unpublished course ${courseId} by user ${requesterId}`);
 

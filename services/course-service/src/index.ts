@@ -1,12 +1,12 @@
-import "dotenv/config";
+import 'dotenv/config';
 
-import { app } from "./app";
-import logger from "./config/logger";
-import { rabbitMQConnection } from "./events/connection";
-import { redisConnection } from "./config/redis";
-import { VideoProcessedListener } from "./events/listener";
-import { checkDatabaseConnection } from "./db";
-import { env } from "./config/env";
+import { app } from './app';
+import logger from './config/logger';
+import { rabbitMQConnection } from './events/connection';
+import { redisConnection } from './config/redis';
+import { VideoProcessedListener } from './events/listener';
+import { checkDatabaseConnection } from './db';
+import { env } from './config/env';
 
 const startServer = async () => {
   try {
@@ -29,11 +29,11 @@ const startServer = async () => {
       await redisConnection.disconnect();
     };
 
-    process.on("SIGINT", shutdown);
-    process.on("SIGTERM", shutdown);
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
   } catch (error) {
     const err = error as Error;
-    logger.error("Failed to start the server: %o", { errMessage: err.message });
+    logger.error('Failed to start the server: %o', { errMessage: err.message });
     process.exit(1);
   }
 };

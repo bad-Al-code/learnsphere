@@ -1,13 +1,13 @@
-import { eq } from "drizzle-orm";
+import { eq } from 'drizzle-orm';
 
-import logger from "../config/logger";
-import { CacheService } from "../controllers/cache-service";
-import { db } from "../db";
-import { CourseRepository } from "../db/course.repository";
-import { ModuleRepository } from "../db/module.repository";
-import { modules } from "../db/schema";
-import { BadRequestError, ForbiddenError, NotFoundError } from "../errors";
-import { CreateModuleDto, UpdateModuleDto } from "../types";
+import logger from '../config/logger';
+import { CacheService } from '../controllers/cache-service';
+import { db } from '../db';
+import { CourseRepository } from '../db/course.repository';
+import { ModuleRepository } from '../db/module.repository';
+import { modules } from '../db/schema';
+import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
+import { CreateModuleDto, UpdateModuleDto } from '../types';
 
 export class ModuleService {
   public static async addModuleToCourse(
@@ -18,7 +18,7 @@ export class ModuleService {
 
     const course = await CourseRepository.findById(data.courseId);
     if (!course) {
-      throw new NotFoundError("Course");
+      throw new NotFoundError('Course');
     }
     if (course.instructorId !== requesterId) {
       throw new ForbiddenError();
@@ -41,7 +41,7 @@ export class ModuleService {
 
     const courseExists = await CourseRepository.findById(courseId);
     if (!courseExists) {
-      throw new NotFoundError("Course");
+      throw new NotFoundError('Course');
     }
 
     return ModuleRepository.findManyByCourseId(courseId);
@@ -52,7 +52,7 @@ export class ModuleService {
 
     const moduleDetails = await ModuleRepository.findByIdWithLessons(moduleId);
     if (!moduleDetails) {
-      throw new NotFoundError("Module");
+      throw new NotFoundError('Module');
     }
     return moduleDetails;
   }
@@ -64,7 +64,7 @@ export class ModuleService {
   ) {
     const parentModule = await ModuleRepository.findById(moduleId);
     if (!parentModule) {
-      throw new NotFoundError("Module");
+      throw new NotFoundError('Module');
     }
     if (parentModule.course.instructorId !== requesterId) {
       throw new ForbiddenError();
@@ -80,7 +80,7 @@ export class ModuleService {
   public static async deleteModule(moduleId: string, requesterId: string) {
     const parentModule = await ModuleRepository.findById(moduleId);
     if (!parentModule) {
-      throw new NotFoundError("Module");
+      throw new NotFoundError('Module');
     }
     if (parentModule.course.instructorId !== requesterId) {
       throw new ForbiddenError();
@@ -102,12 +102,11 @@ export class ModuleService {
     }
 
     await db.transaction(async (tx) => {
-      const allModules = await ModuleRepository.findManyByIdsWithCourse(
-        orderModuleIds
-      );
+      const allModules =
+        await ModuleRepository.findManyByIdsWithCourse(orderModuleIds);
 
       if (allModules.length !== orderModuleIds.length) {
-        throw new BadRequestError("One or more moduls IDs are invalid");
+        throw new BadRequestError('One or more moduls IDs are invalid');
       }
 
       const parentCourseId = allModules[0].course.id;

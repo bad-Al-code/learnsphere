@@ -1,6 +1,6 @@
-import axios from "axios";
-import logger from "../config/logger";
-import { env } from "../config/env";
+import axios from 'axios';
+import logger from '../config/logger';
+import { env } from '../config/env';
 
 interface PublicProfile {
   userId: string;
@@ -17,7 +17,7 @@ export class UserClient {
    * @returns A map of userId to public profile.
    */
   public static async getPublicProfiles(
-    userIds: string[],
+    userIds: string[]
   ): Promise<Map<string, PublicProfile>> {
     if (!this.userServiceUrl || userIds.length === 0) {
       return new Map();
@@ -28,7 +28,7 @@ export class UserClient {
 
       const response = await axios.post<PublicProfile[]>(
         `${this.userServiceUrl}/api/users/bulk`,
-        { userIds },
+        { userIds }
       );
 
       const profilesMap = new Map<string, PublicProfile>();
@@ -38,7 +38,7 @@ export class UserClient {
 
       return profilesMap;
     } catch (error) {
-      logger.error("Failed to fetch profiles in bulk from user-service", {
+      logger.error('Failed to fetch profiles in bulk from user-service', {
         error:
           error instanceof axios.AxiosError ? error.message : String(error),
       });

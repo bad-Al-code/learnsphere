@@ -1,9 +1,9 @@
-import { courses } from "../db/schema";
+import { courses } from '../db/schema';
 
 export type Course = typeof courses.$inferSelect;
 export type NewCourse = typeof courses.$inferInsert;
 export type UpdateCourse = Partial<
-  Omit<Course, "id" | "instructorId" | "createdAt" | "updatedAt">
+  Omit<Course, 'id' | 'instructorId' | 'createdAt' | 'updatedAt'>
 >;
 
 export interface CreateCourseDto {
