@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { LessonService } from '../services/lesson.service';
-import { CourseService } from './course-service';
 
 export class LessonController {
   public static async create(
@@ -102,7 +101,7 @@ export class LessonController {
       const { filename } = req.body;
       const requesterId = req.currentUser!.id;
 
-      const uploadData = await CourseService.requestVideoUploadUrl(
+      const uploadData = await LessonService.requestVideoUploadUrl(
         lessonId,
         filename,
         requesterId

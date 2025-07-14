@@ -7,6 +7,8 @@ import { CreateLessonDto, UpdateLessonDto } from '../types';
 import { lessons } from '../db/schema';
 import { LessonRepository } from '../db/repostiories/lesson.repository';
 import { CacheService } from './cache.service';
+import { env } from '../config/env';
+import axios from 'axios';
 
 export class LessonService {
   public static async addLessonToModule(
@@ -138,5 +140,49 @@ export class LessonService {
       await Promise.all(updatePromises);
       await CacheService.del(`course:details:${parentModule.courseId}`);
     });
+  }
+
+  public static async requestVideoUploadUrl(
+    lessonId: string,
+    filename: string,
+    requesterId: string
+  ) {
+    const lesson = await db.query.lessons.findFirst({
+      where: eq(lessons.id, lessonId),
+      with: { module: { with: { course: true } } },
+    });
+    if (!lesson) {
+      throw new NotFoundError('Lesson');
+    }
+    if (lesson.module.course.instructorId !== requesterId) {
+      throw new ForbiddenError();
+    }
+    if (lesson.lessonType !== 'video') {
+      throw new BadRequestError('This lesson is not a video lesson');
+    }
+
+    const mediaServiceUrl = env.MEDIA_SERVICE_URL!;
+    logger.info(
+      `Requesting video upload URL from media-serice for lesson: ${lessonId}`
+    );
+
+    try {
+      const response = await axios.post(
+        `${mediaServiceUrl}/api/media/request-upload-url`,
+        {
+          filename,
+          uploadType: 'video',
+          metadata: { lessonId: lessonId },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      logger.error(`Error contacting media-service for video upload URL`, {
+        error,
+      });
+
+      throw new Error('Could not create video upload url');
+    }
   }
 }
