@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { LessonService } from '../services/lesson.service';
+import { CourseService } from './course-service';
 
 export class LessonController {
   public static async create(
@@ -86,6 +87,28 @@ export class LessonController {
       res
         .status(StatusCodes.OK)
         .json({ message: 'Lessons reordered successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async requestVideoUploadUrl(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { lessonId } = req.params;
+      const { filename } = req.body;
+      const requesterId = req.currentUser!.id;
+
+      const uploadData = await CourseService.requestVideoUploadUrl(
+        lessonId,
+        filename,
+        requesterId
+      );
+
+      res.status(StatusCodes.OK).json(uploadData);
     } catch (error) {
       next(error);
     }

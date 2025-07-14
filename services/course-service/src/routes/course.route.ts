@@ -222,6 +222,29 @@ router.post(
   CourseController.unpublish
 );
 
+/**
+ * @openapi
+ * /api/courses/{courseId}/modules:
+ *   get:
+ *     summary: Get all modules for a specific course
+ *     tags: [Courses]
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       '200':
+ *         description: An ordered list of the course's modules.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Module'
+ */
 router.post(
   '/:courseId/modules',
   requireAuth,

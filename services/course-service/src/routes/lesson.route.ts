@@ -4,7 +4,7 @@
  *   - name: Lessons
  *     description: Operations for managing individual lessons. Lessons are children of Modules.
  */
-import { Request, Response, Router } from 'express';
+import { Router } from 'express';
 
 import { requireAuth } from '../middlewares/require-auth';
 import { requireRole } from '../middlewares/require-role';
@@ -15,8 +15,6 @@ import {
   videoUploadUrlSchema,
 } from '../schemas';
 import { LessonController } from '../controllers/lesson.controller';
-import { CourseService } from '../controllers/course-service';
-import { StatusCodes } from 'http-status-codes';
 
 const router = Router();
 
@@ -148,19 +146,7 @@ router.post(
   requireAuth,
   requireRole(['instructor', 'admin']),
   validateRequest(videoUploadUrlSchema),
-  async (req: Request, res: Response) => {
-    const { lessonId } = req.params;
-    const { filename } = req.body;
-    const requesterId = req.currentUser!.id;
-
-    const uploadData = await CourseService.requestVideoUploadUrl(
-      lessonId,
-      filename,
-      requesterId
-    );
-
-    res.status(StatusCodes.OK).json(uploadData);
-  }
+  LessonController.requestVideoUploadUrl
 );
 
 export { router as lessonRouter };
