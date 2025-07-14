@@ -1,5 +1,6 @@
 import axios from "axios";
 import logger from "../config/logger";
+import { env } from "../config/env";
 
 interface PublicProfile {
   userId: string;
@@ -8,7 +9,7 @@ interface PublicProfile {
 }
 
 export class UserClient {
-  private static userServiceUrl = process.env.USER_SERVICE_URL!;
+  private static userServiceUrl = env.USER_SERVICE_URL!;
 
   /**
    * Fetches multiple public profiles from the user-service in a single bulk request.
@@ -16,7 +17,7 @@ export class UserClient {
    * @returns A map of userId to public profile.
    */
   public static async getPublicProfiles(
-    userIds: string[]
+    userIds: string[],
   ): Promise<Map<string, PublicProfile>> {
     if (!this.userServiceUrl || userIds.length === 0) {
       return new Map();
@@ -27,7 +28,7 @@ export class UserClient {
 
       const response = await axios.post<PublicProfile[]>(
         `${this.userServiceUrl}/api/users/bulk`,
-        { userIds }
+        { userIds },
       );
 
       const profilesMap = new Map<string, PublicProfile>();

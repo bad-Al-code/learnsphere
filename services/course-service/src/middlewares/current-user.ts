@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express";
 
 import logger from "../config/logger";
+import { env } from "../config/env";
 
 interface UserPayload {
   id: string;
@@ -22,7 +23,7 @@ const ignorePath = ["/api/courses/health"];
 export const currentUser = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const token = req.signedCookies.token;
 
@@ -35,12 +36,12 @@ export const currentUser = (
   }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as UserPayload;
+    const payload = jwt.verify(token, env.JWT_SECRET) as UserPayload;
 
     req.currentUser = payload;
 
     logger.debug(
-      `Current user identified: ${payload.email} (ID: ${payload.id})`
+      `Current user identified: ${payload.email} (ID: ${payload.id})`,
     );
   } catch (err) {
     logger.warn("Invalid JWT received", { error: (err as Error).message });

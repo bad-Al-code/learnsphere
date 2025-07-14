@@ -6,6 +6,7 @@ import { rabbitMQConnection } from "./events/connection";
 import { redisConnection } from "./config/redis";
 import { VideoProcessedListener } from "./events/listener";
 import { checkDatabaseConnection } from "./db";
+import { env } from "./config/env";
 
 const startServer = async () => {
   try {
@@ -15,11 +16,11 @@ const startServer = async () => {
 
     new VideoProcessedListener().listen();
 
-    const PORT = process.env.PORT || 8001;
+    const PORT = env.PORT || 8001;
 
     app.listen(PORT, () => {
       logger.info(
-        `Course service listening on port ${PORT} in ${process.env.NODE_ENV} mode`
+        `Course service listening on port ${PORT} in ${env.NODE_ENV} mode`
       );
     });
 
