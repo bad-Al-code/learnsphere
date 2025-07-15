@@ -45,7 +45,7 @@ export abstract class Listener<T extends Event> {
               logger.error('Error handling message', {
                 topic: this.topic,
                 queue: this.queueGroupName,
-                error: err,
+                error: err instanceof Error ? err.message : String(err)
               });
             }
           } else {
@@ -97,7 +97,7 @@ export class UserVerificationRequiredListener extends Listener<UserVerificationR
     } catch (error) {
       logger.error('Error handling user.verification.required event', {
         email: data.email,
-        error,
+        error: error instanceof Error ? error.message: String(error),
       });
     }
   }
@@ -132,7 +132,7 @@ export class UserPasswordResetRequiredListener extends Listener<UserPasswordRese
     } catch (error) {
       logger.error('Error handling user.password_reset.required event', {
         email: data.email,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -172,7 +172,7 @@ export class UserRegisteredWelcomeListener extends Listener<UserRegisteredEvent>
     } catch (error) {
       logger.error('Error handling user.registered event', {
         email: data.email,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -215,7 +215,7 @@ export class UserPasswordChangedListener extends Listener<UserPasswordChangedEve
     } catch (error) {
       logger.error('Error handling user.password.changed event', {
         userId: data.userId,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -264,7 +264,7 @@ export class UserVerifiedListener extends Listener<UserVerifiedEvent> {
     } catch (error) {
       logger.error('Error handling user.verified event', {
         userId: data.userId,
-        error,
+        error:  error instanceof Error ? error.message : String(error)
       });
     }
   }
