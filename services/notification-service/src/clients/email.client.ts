@@ -1,9 +1,9 @@
 import { Resend } from 'resend';
 
-import logger from '../config/logger';
 import { env } from '../config/env';
-import { EmailOptions } from '../types';
+import logger from '../config/logger';
 import { EmailOutboxRepository } from '../db/email-outbox.repository';
+import { EmailOptions } from '../types';
 
 export class EmailClient {
   private resend: Resend;
@@ -40,7 +40,7 @@ export class EmailClient {
       );
     } catch (error) {
       sendError = error as Error;
-      logger.error(`Error sending email via Resend EmailClient`, {
+      logger.error('Error sending email via Resend EmailClient: %o', {
         error: sendError.message,
         name: sendError.name,
         stack: sendError.stack,

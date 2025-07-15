@@ -42,10 +42,13 @@ export abstract class Listener<T extends Event> {
               const parsedData = JSON.parse(msg.content.toString());
               this.onMessage(parsedData, msg);
             } catch (err) {
-              logger.error('Error handling message', {
+              let error = err as Error;
+              logger.error('Error handling message: %o', {
                 topic: this.topic,
                 queue: this.queueGroupName,
-                error: err instanceof Error ? err.message : String(err)
+                error: error.message,
+                stack: error.stack,
+                name: error.name,
               });
             }
           } else {
@@ -58,11 +61,14 @@ export abstract class Listener<T extends Event> {
       });
     };
 
-    setup().catch((error) => {
+    setup().catch((err) => {
+      let error = err as Error;
       logger.error(`Error setting up listener`, {
         queue: this.queueGroupName,
         topic: this.topic,
-        error,
+        error: error.message,
+        stack: error.stack,
+        name: error.name,
       });
     });
   }
@@ -94,10 +100,13 @@ export class UserVerificationRequiredListener extends Listener<UserVerificationR
     try {
       logger.info(`Verification event received for: ${data.email}`);
       await this.emailService.sendVerificationEmail(data);
-    } catch (error) {
-      logger.error('Error handling user.verification.required event', {
+    } catch (err) {
+      let error = err as Error;
+      logger.error('Error handling user.verification.required event: %o', {
         email: data.email,
-        error: error instanceof Error ? error.message: String(error),
+        error: error.message,
+        name: error.name,
+        stack: error.stack,
       });
     }
   }
@@ -129,10 +138,13 @@ export class UserPasswordResetRequiredListener extends Listener<UserPasswordRese
     try {
       logger.info(`Password reset event received for: ${data.email}`);
       await this.emailService.sendPasswordResetEmail(data);
-    } catch (error) {
-      logger.error('Error handling user.password_reset.required event', {
+    } catch (err) {
+      let error = err as Error;
+      logger.error('Error handling user.password_reset.required event: %o', {
         email: data.email,
-        error: error instanceof Error ? error.message : String(error),
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
       });
     }
   }
@@ -169,10 +181,13 @@ export class UserRegisteredWelcomeListener extends Listener<UserRegisteredEvent>
         email: data.email,
         firstName: data.firstName,
       });
-    } catch (error) {
-      logger.error('Error handling user.registered event', {
+    } catch (err) {
+      let error = err as Error;
+      logger.error('Error handling user.registered event: %o', {
         email: data.email,
-        error: error instanceof Error ? error.message : String(error),
+        error: error.message,
+        stack: error.stack,
+        name: error.name,
       });
     }
   }
@@ -212,10 +227,13 @@ export class UserPasswordChangedListener extends Listener<UserPasswordChangedEve
           linkUrl: '/settings/security',
         }),
       ]);
-    } catch (error) {
-      logger.error('Error handling user.password.changed event', {
+    } catch (err) {
+      let error = err as Error;
+      logger.error('Error handling user.password.changed event: %o', {
         userId: data.userId,
-        error: error instanceof Error ? error.message : String(error),
+        error: error.message,
+        stack: error.stack,
+        name: error.name,
       });
     }
   }
@@ -261,10 +279,13 @@ export class UserVerifiedListener extends Listener<UserVerifiedEvent> {
           linkUrl: '/dashboard',
         }),
       ]);
-    } catch (error) {
-      logger.error('Error handling user.verified event', {
+    } catch (err) {
+      let error = err as Error;
+      logger.error('Error handling user.verified event: %o', {
         userId: data.userId,
-        error:  error instanceof Error ? error.message : String(error)
+        error: error.message,
+        stack: error.stack,
+        name: error.name,
       });
     }
   }
