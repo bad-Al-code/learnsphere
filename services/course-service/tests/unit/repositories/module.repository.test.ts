@@ -1,13 +1,13 @@
 import { faker } from '@faker-js/faker';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { db } from '../../src/db';
-import { ModuleRepository } from '../../src/db/repostiories';
+import { db } from '../../../src/db';
+import { ModuleRepository } from '../../../src/db/repostiories';
 import {
   courses,
   lessons,
   modules,
-} from '../../src/db/schema';
+} from '../../../src/db/schema';
 
 beforeEach(async () => {
   await db.delete(lessons);
