@@ -3,6 +3,7 @@ import logger from '../config/logger';
 import { CourseRepository } from '../db/repostiories';
 import { NotFoundError } from '../errors';
 import {
+  Course,
   CourseWithInstructor,
   CreateCourseDto,
   UpdateCourseDto,
@@ -11,6 +12,25 @@ import { AuthorizationService } from './authorization.service';
 import { CourseCacheService } from './course-cache.service';
 
 export class CourseService {
+  /**
+   * A private helper to fetch instructor profiles for a list of courses and merge merge them into the course objects.
+   * @param courses An array of course objects
+   * @returns An array of CourseWiithInstructor objects
+   */
+  private static async _enrichCourseWithInstructors(courses: Course[]) {
+    if (courses.length === 0) {
+      return [];
+    }
+
+    const instructorIds = [...new Set(courses.map((c) => c.instructorId))];
+    const instructorProfile = await UserClient.getPublicProfiles(instructorIds);
+
+    return courses.map((course) => ({
+      ...course,
+      instrctor: instructorProfile.get(course.instructorId),
+    }));
+  }
+
   /**
    * Creates a new course.
    * @param data - Contains title, description, and instructorId.
@@ -40,15 +60,8 @@ export class CourseService {
   public static async getCoursesByIds(courseIds: string[]) {
     logger.info(`Fetching details for ${courseIds.length} courses in bulk`);
     const courseList = await CourseRepository.findManyIds(courseIds);
-    const instructorIds = [...new Set(courseList.map((c) => c.instructorId))];
-    const instructorProfiles =
-      await UserClient.getPublicProfiles(instructorIds);
 
-    const results = courseList.map((course) => ({
-      ...course,
-      instructor: instructorProfiles.get(course.instructorId) || null,
-    }));
-    return results;
+    return this._enrichCourseWithInstructors(courseList);
   }
 
   /**
@@ -74,13 +87,7 @@ export class CourseService {
       throw new NotFoundError('Course');
     }
 
-    const instructorProfiles = await UserClient.getPublicProfiles([
-      courseDetails.instructorId,
-    ]);
-    const result: CourseWithInstructor = {
-      ...courseDetails,
-      instructor: instructorProfiles.get(courseDetails.instructorId) || null,
-    };
+    const [result] = await this._enrichCourseWithInstructors([courseDetails]);
 
     await CourseCacheService.setCourseDetails(courseId, result);
 
@@ -103,15 +110,8 @@ export class CourseService {
     const { totalResults, results: courseList } =
       await CourseRepository.listPublished(limit, offset);
 
-    const instructorIds = [...new Set(courseList.map((c) => c.instructorId))];
-    const instructorProfile = await UserClient.getPublicProfiles(instructorIds);
-
-    const resultWithInstructors: CourseWithInstructor[] = courseList.map(
-      (course) => ({
-        ...course,
-        instructor: instructorProfile.get(course.instructorId) || null,
-      })
-    );
+    const resultWithInstructors =
+      await this._enrichCourseWithInstructors(courseList);
 
     const totalPages = Math.ceil(totalResults / limit);
     const result = {
