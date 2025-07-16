@@ -97,7 +97,9 @@ export class CourseController {
     try {
       const { courseId } = req.params;
       const requesterId = req.currentUser?.id;
-      if(!requesterId) { throw new NotAuthorizedError()};
+      if (!requesterId) {
+        throw new NotAuthorizedError();
+      }
 
       const course = await CourseService.updateCourse(
         courseId,
@@ -119,7 +121,9 @@ export class CourseController {
     try {
       const { courseId } = req.params;
       const requesterId = req.currentUser?.id;
-      if(!requesterId) { throw new NotAuthorizedError()};
+      if (!requesterId) {
+        throw new NotAuthorizedError();
+      }
 
       await CourseService.deleteCourse(courseId, requesterId);
 
@@ -139,7 +143,9 @@ export class CourseController {
     try {
       const { courseId } = req.params;
       const requesterId = req.currentUser?.id;
-      if(!requesterId) { throw new NotAuthorizedError()};
+      if (!requesterId) {
+        throw new NotAuthorizedError();
+      }
 
       const course = await CourseService.publishCourse(courseId, requesterId);
 
@@ -157,7 +163,9 @@ export class CourseController {
     try {
       const { courseId } = req.params;
       const requesterId = req.currentUser?.id;
-      if(!requesterId) { throw new NotAuthorizedError()};
+      if (!requesterId) {
+        throw new NotAuthorizedError();
+      }
 
       const course = await CourseService.unPublishCourse(courseId, requesterId);
 

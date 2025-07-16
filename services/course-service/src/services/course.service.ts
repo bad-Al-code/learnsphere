@@ -8,7 +8,7 @@ import {
   UpdateCourseDto,
 } from '../types';
 import { AuthorizationService } from './authorization.service';
-import { CacheService } from './cache.service';
+import { CourseCacheService } from './course-cache.service';
 
 export class CourseService {
   /**
@@ -28,7 +28,7 @@ export class CourseService {
       instructorId: data.instructorId,
     });
 
-    await CacheService.delByPattern('course:list:*');
+    await CourseCacheService.invalidateCourseList();
 
     return newCourse;
   }
@@ -60,9 +60,7 @@ export class CourseService {
   public static async getCourseDetails(
     courseId: string
   ): Promise<CourseWithInstructor> {
-    const cacheKey = `course:details:${courseId}`;
-
-    const cachedCourse = await CacheService.get<CourseWithInstructor>(cacheKey);
+    const cachedCourse = await CourseCacheService.getCourseDetails(courseId);
     if (cachedCourse) {
       return cachedCourse;
     }
@@ -84,7 +82,7 @@ export class CourseService {
       instructor: instructorProfiles.get(courseDetails.instructorId) || null,
     };
 
-    await CacheService.set(cacheKey, result);
+    await CourseCacheService.setCourseDetails(courseId, result);
 
     return result;
   }
@@ -143,8 +141,8 @@ export class CourseService {
 
     const updatedCourse = await CourseRepository.update(courseId, data);
 
-    await CacheService.del(`course:details:${courseId}`);
-    await CacheService.delByPattern(`course:list:*`);
+    await CourseCacheService.invalidateCacheDetails(courseId);
+    await CourseCacheService.invalidateCourseList();
 
     logger.info(`Updated Course ${courseId} by user ${requesterId}`);
 
@@ -164,8 +162,8 @@ export class CourseService {
 
     await CourseRepository.delete(courseId);
 
-    await CacheService.del(`course:details:${courseId}`);
-    await CacheService.delByPattern(`course:list:*`);
+    await CourseCacheService.invalidateCacheDetails(courseId);
+    await CourseCacheService.invalidateCourseList();
 
     logger.info(`Deleted course ${courseId} by user ${requesterId}`);
   }
@@ -190,8 +188,8 @@ export class CourseService {
       'published'
     );
 
-    await CacheService.del(`course:details:${courseId}`);
-    await CacheService.delByPattern('courses:list:*');
+    await CourseCacheService.invalidateCacheDetails(courseId);
+    await CourseCacheService.invalidateCourseList();
 
     logger.info(`Published course ${courseId} by user ${requesterId}`);
 
@@ -219,8 +217,8 @@ export class CourseService {
       'draft'
     );
 
-    await CacheService.del(`course:details:${courseId}`);
-    await CacheService.delByPattern('courses:list:*');
+    await CourseCacheService.invalidateCacheDetails(courseId);
+    await CourseCacheService.invalidateCourseList();
 
     logger.info(`Unpublished course ${courseId} by user ${requesterId}`);
 

@@ -2,13 +2,13 @@ import { eq } from 'drizzle-orm';
 
 import logger from '../config/logger';
 import { db } from '../db';
+import { CourseRepository } from '../db/repostiories';
 import { ModuleRepository } from '../db/repostiories/module.repository';
 import { modules } from '../db/schema';
 import { BadRequestError, NotFoundError } from '../errors';
 import { CreateModuleDto, UpdateModuleDto } from '../types';
-import { CourseRepository } from '../db/repostiories';
-import { CacheService } from './cache.service';
 import { AuthorizationService } from './authorization.service';
+import { CourseCacheService } from './course-cache.service';
 
 export class ModuleService {
   public static async addModuleToCourse(
@@ -29,7 +29,7 @@ export class ModuleService {
       order: nextOrder,
     });
 
-    await CacheService.del(`course:details:${data.courseId}`);
+    await CourseCacheService.invalidateCacheDetails(data.courseId);
 
     return newModule;
   }
@@ -66,7 +66,8 @@ export class ModuleService {
     const parentCourseId = (await ModuleRepository.findById(moduleId))!.course
       .id;
 
-    await CacheService.del(`course:details:${parentCourseId}`);
+    await CourseCacheService.invalidateCacheDetails(parentCourseId);
+
     return updatedModule;
   }
 
@@ -79,7 +80,7 @@ export class ModuleService {
 
     await ModuleRepository.delete(moduleId);
 
-    await CacheService.del(`course:details:${parentModule.courseId}`);
+    await CourseCacheService.invalidateCacheDetails(parentModule.courseId);
 
     logger.info(`Deleted module ${moduleId} by user ${requesterId}`);
   }
@@ -127,7 +128,7 @@ export class ModuleService {
       });
 
       await Promise.all(updatePromises);
-      await CacheService.del(`course:details:${parentCourseId}`);
+      await CourseCacheService.invalidateCacheDetails(parentCourseId);
     });
   }
 }

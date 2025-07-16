@@ -14,7 +14,9 @@ export class LessonController {
       const { moduleId } = req.params;
       const lessonData = req.body;
       const requesterId = req.currentUser?.id;
-      if(!requesterId) { throw new NotAuthorizedError()};
+      if (!requesterId) {
+        throw new NotAuthorizedError();
+      }
 
       const lesson = await LessonService.addLessonToModule(
         { ...lessonData, moduleId },
@@ -48,7 +50,9 @@ export class LessonController {
     try {
       const { lessonId } = req.params;
       const requesterId = req.currentUser?.id;
-      if(!requesterId) { throw new NotAuthorizedError()};
+      if (!requesterId) {
+        throw new NotAuthorizedError();
+      }
 
       const updatedLesson = await LessonService.updateLesson(
         lessonId,
@@ -69,7 +73,9 @@ export class LessonController {
     try {
       const { lessonId } = req.params;
       const requesterId = req.currentUser?.id;
-      if(!requesterId) { throw new NotAuthorizedError()};
+      if (!requesterId) {
+        throw new NotAuthorizedError();
+      }
 
       await LessonService.deleteLesson(lessonId, requesterId);
       res
@@ -88,7 +94,9 @@ export class LessonController {
     try {
       const { ids } = req.body;
       const requesterId = req.currentUser?.id;
-      if(!requesterId) { throw new NotAuthorizedError()};
+      if (!requesterId) {
+        throw new NotAuthorizedError();
+      }
 
       await LessonService.reorderLessons(ids, requesterId);
       res
@@ -108,7 +116,9 @@ export class LessonController {
       const { lessonId } = req.params;
       const { filename } = req.body;
       const requesterId = req.currentUser?.id;
-      if(!requesterId) { throw new NotAuthorizedError()};
+      if (!requesterId) {
+        throw new NotAuthorizedError();
+      }
 
       const uploadData = await LessonService.requestVideoUploadUrl(
         lessonId,

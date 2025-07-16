@@ -13,7 +13,9 @@ export class ModuleController {
       const { courseId } = req.params;
       const { title } = req.body;
       const requesterId = req.currentUser?.id;
-      if(!requesterId) { throw new NotAuthorizedError()};
+      if (!requesterId) {
+        throw new NotAuthorizedError();
+      }
 
       const module = await ModuleService.addModuleToCourse(
         { title, courseId },
@@ -49,7 +51,9 @@ export class ModuleController {
       const { moduleId } = req.params;
       const { title } = req.body;
       const requesterId = req.currentUser?.id;
-      if(!requesterId) { throw new NotAuthorizedError()};
+      if (!requesterId) {
+        throw new NotAuthorizedError();
+      }
 
       const updatedModule = await ModuleService.updateModule(
         moduleId,
@@ -70,7 +74,9 @@ export class ModuleController {
     try {
       const { moduleId } = req.params;
       const requesterId = req.currentUser?.id;
-      if(!requesterId) { throw new NotAuthorizedError()};
+      if (!requesterId) {
+        throw new NotAuthorizedError();
+      }
 
       await ModuleService.deleteModule(moduleId, requesterId);
       res
@@ -89,7 +95,9 @@ export class ModuleController {
     try {
       const { ids } = req.body;
       const requesterId = req.currentUser?.id;
-      if(!requesterId) { throw new NotAuthorizedError()};
+      if (!requesterId) {
+        throw new NotAuthorizedError();
+      }
 
       await ModuleService.reorderModules(ids, requesterId);
       res

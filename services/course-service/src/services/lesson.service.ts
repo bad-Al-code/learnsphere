@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+
 import { MediaClient } from '../clients/media.client';
 import logger from '../config/logger';
 import { db } from '../db';
@@ -8,7 +9,7 @@ import { lessons } from '../db/schema';
 import { BadRequestError, NotFoundError } from '../errors';
 import { CreateLessonDto, UpdateLessonDto } from '../types';
 import { AuthorizationService } from './authorization.service';
-import { CacheService } from './cache.service';
+import { CourseCacheService } from './course-cache.service';
 
 export class LessonService {
   public static async addLessonToModule(
@@ -51,7 +52,7 @@ export class LessonService {
         await LessonRepository.createTextContent(newLesson.id, data.content);
       }
 
-      await CacheService.del(`course:details:${parentModule.courseId}`);
+      await CourseCacheService.invalidateCacheDetails(parentModule.courseId);
 
       return LessonRepository.findByIdWithContent(newLesson.id);
     });
@@ -88,7 +89,8 @@ export class LessonService {
       }
     });
 
-    await CacheService.del(`course:details:${lesson.module.courseId}`);
+    await CourseCacheService.invalidateCacheDetails(lesson.module.courseId);
+
     return this.getLessonDetails(lessonId);
   }
 
@@ -102,7 +104,8 @@ export class LessonService {
 
     await LessonRepository.delete(lessonId);
 
-    await CacheService.del(`course:details:${lesson.module.courseId}`);
+    await CourseCacheService.invalidateCacheDetails(lesson.module.courseId);
+
     logger.info(`Deleted lesson ${lessonId} by user ${requesterId}`);
   }
 
@@ -145,7 +148,8 @@ export class LessonService {
       );
 
       await Promise.all(updatePromises);
-      await CacheService.del(`course:details:${parentModule.courseId}`);
+
+      await CourseCacheService.invalidateCacheDetails(parentModule.courseId);
     });
   }
 

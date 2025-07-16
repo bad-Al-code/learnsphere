@@ -3,7 +3,7 @@ import { redisConnection } from '../config/redis';
 
 const CACHE_TTL_SECONDS = 10 * 60;
 
-export class CacheService {
+export class RedisClient {
   private static get client() {
     return redisConnection.getClient();
   }
