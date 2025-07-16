@@ -18,6 +18,18 @@ It acts as an orchestrator, handling requests from clients, managing its own dat
 
 ---
 
+## Architecture
+
+This service follows a clean, layered architecture to ensure separation of concerns and maintainability:
+
+-   **Controllers**: Handle HTTP request and response logic.
+-   **Services**: Contain the core business logic for each entity (Course, Module, Lesson).
+-   **Repositories**: Encapsulate all database queries using Drizzle ORM.
+-   **Clients**: Abstract all communication with external services (User Service, Media Service).
+-   **Specialized Services**: Handle cross-cutting concerns like Authorization and Caching.
+
+---
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
@@ -159,46 +171,3 @@ pnpm format
 ## API Docuemntation
 
 Once the server is running, interactive API documentation is avaiable at: `http://localhost:8003/api-docs`
-
-The code is generally well-structured, but we can make it more robust, maintainable, and efficient with the following changes:
-
-1. Abstract Repetitive Controller Logic into a Wrapper
-
-- Problem: The CourseController has a lot of repetitive try...catch blocks and boilerplate for handling async operations and passing errors to the errorHandler middleware.
-- Proposed Solution: Create a higher-order function (or "controller wrapper") that wraps around each controller method. This function will handle the try...catch logic and
-  automatically call next(error) if any async operation fails. This will significantly reduce boilerplate and make the controllers cleaner and more focused on the business
-  logic.
-
-2. Centralize and Decouple Cache Invalidation
-
-- Problem: Cache invalidation logic (CacheService.del, CacheService.delByPattern) is currently scattered throughout the CourseService. This makes it hard to track when and
-  why the cache is being cleared. If we add new caching patterns or change existing ones, we have to hunt down and update multiple locations.
-- Proposed Solution:
-  - Create a dedicated CourseCacheService that centralizes all cache-related operations for courses.
-  - This service will encapsulate the logic for creating cache keys and invalidating them.
-  - The CourseService will then call methods on the CourseCacheService (e.g., invalidateCourseDetails(courseId), invalidateCourseList()) instead of directly interacting
-    with the generic CacheService. This improves separation of concerns and makes the caching strategy easier to manage.
-
-3. Refactor Instructor Profile Fetching
-
-- Problem: The logic for fetching instructor profiles from the UserClient is repeated in getCourseDetails, getCoursesByIds, and listCourses. This violates the DRY (Don't
-  Repeat Yourself) principle.
-- Proposed Solution: Create a private helper method within the CourseService, such as \_enrichCoursesWithInstructors, that takes a list of courses, extracts the unique
-  instructor IDs, fetches the profiles, and merges them into the course objects. This will centralize the logic and make the public service methods cleaner.
-
-4. Improve Readability of Authorization Checks
-
-- Problem: The requesterId is extracted from req.currentUser!.id using a non-null assertion (!). While this might be safe if the currentUser middleware always runs before
-  it, it can lead to runtime errors if the middleware chain is ever misconfigured. It also makes the code slightly harder to read.
-- Proposed Solution: In the controllers, explicitly check if req.currentUser exists before accessing the id. If it doesn't, throw a NotAuthorizedError immediately. This
-  makes the authorization requirement explicit and prevents potential TypeError: Cannot read properties of undefined errors. This is already done in the create method, and
-  should be applied consistently.
-
-Implementation Steps
-
-I will implement these changes in the following order:
-
-1.  Refactor Authorization Checks: Start with the simplest change to improve safety and consistency.
-2.  Refactor Instructor Profile Fetching: Centralize the user profile fetching logic.
-3.  Centralize Cache Invalidation: Create the CourseCacheService and update the CourseService.
-4.  Create Controller Wrapper: Implement the async wrapper and apply it to the CourseController.
