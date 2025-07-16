@@ -12,6 +12,12 @@ import { AuthorizationService } from './authorization.service';
 import { CourseCacheService } from './course-cache.service';
 
 export class LessonService {
+  /**
+   * Add lessons to modules.
+   * @param data
+   * @param requesterId
+   * @returns
+   */
   public static async addLessonToModule(
     data: CreateLessonDto,
     requesterId: string
@@ -58,6 +64,11 @@ export class LessonService {
     });
   }
 
+  /**
+   * Get lesson details
+   * @param lessonId
+   * @returns
+   */
   public static async getLessonDetails(lessonId: string) {
     logger.info(`Fetching details for lesson: ${lessonId}`);
 
@@ -69,6 +80,13 @@ export class LessonService {
     return lessonDetails;
   }
 
+  /**
+   * Update Lesson
+   * @param lessonId
+   * @param data
+   * @param requesterId
+   * @returns
+   */
   public static async updateLesson(
     lessonId: string,
     data: UpdateLessonDto,
@@ -94,6 +112,11 @@ export class LessonService {
     return this.getLessonDetails(lessonId);
   }
 
+  /**
+   * Delete Lesson
+   * @param lessonId
+   * @param requesterId
+   */
   public static async deleteLesson(
     lessonId: string,
     requesterId: string
@@ -109,6 +132,12 @@ export class LessonService {
     logger.info(`Deleted lesson ${lessonId} by user ${requesterId}`);
   }
 
+  /**
+   * Reorder Lesson
+   * @param orderedLessonIds
+   * @param requesterId
+   * @returns
+   */
   public static async reorderLessons(
     orderedLessonIds: string[],
     requesterId: string
@@ -153,6 +182,13 @@ export class LessonService {
     });
   }
 
+  /**
+   * Request Video upload url
+   * @param lessonId
+   * @param filename
+   * @param requesterId
+   * @returns
+   */
   public static async requestVideoUploadUrl(
     lessonId: string,
     filename: string,
