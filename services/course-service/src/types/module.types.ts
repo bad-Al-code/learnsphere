@@ -10,4 +10,5 @@ export interface CreateModuleDto {
 
 export interface UpdateModuleDto {
   title: string;
+  order?: number
 }
