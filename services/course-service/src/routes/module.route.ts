@@ -6,6 +6,7 @@
  */
 import { Router } from 'express';
 
+import { LessonController, ModuleController } from '../controllers';
 import { requireAuth } from '../middlewares/require-auth';
 import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
@@ -14,8 +15,6 @@ import {
   createModuleSchema,
   reorderSchema,
 } from '../schemas';
-import { ModuleController } from '../controllers/module.controller';
-import { LessonController } from '../controllers/lesson.controller';
 
 const router = Router();
 

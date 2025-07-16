@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { NotAuthorizedError } from '../errors';
-import { ModuleService } from '../services/module.service';
+import { ModuleService } from '../services';
 
 export class ModuleController {
   public static async create(

@@ -2,8 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import { StatusCodes } from 'http-status-codes';
 import { NotAuthorizedError } from '../errors';
-import { CourseService } from '../services/course.service';
-import { ModuleService } from '../services/module.service';
+import { CourseService, ModuleService } from '../services';
 
 export class CourseController {
   public static async create(

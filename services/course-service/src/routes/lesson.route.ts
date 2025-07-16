@@ -6,6 +6,7 @@
  */
 import { Router } from 'express';
 
+import { LessonController } from '../controllers';
 import { requireAuth } from '../middlewares/require-auth';
 import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
@@ -14,7 +15,6 @@ import {
   reorderSchema,
   videoUploadUrlSchema,
 } from '../schemas';
-import { LessonController } from '../controllers/lesson.controller';
 
 const router = Router();
 

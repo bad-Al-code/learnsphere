@@ -7,17 +7,16 @@
 
 import { Router } from 'express';
 
+import { CourseController, ModuleController } from '../controllers';
 import { requireAuth } from '../middlewares/require-auth';
 import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
 import {
-  createCourseSchema,
-  listCoursesSchema,
   bulkCoursesSchema,
+  createCourseSchema,
   createModuleSchema,
+  listCoursesSchema,
 } from '../schemas/course-schema';
-import { CourseController } from '../controllers/course.controller';
-import { ModuleController } from '../controllers/module.controller';
 
 const router = Router();
 
