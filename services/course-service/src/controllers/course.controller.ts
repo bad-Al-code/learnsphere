@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 
+import { StatusCodes } from 'http-status-codes';
 import { NotAuthorizedError } from '../errors';
 import { CourseService } from '../services/course.service';
-import { StatusCodes } from 'http-status-codes';
 import { ModuleService } from '../services/module.service';
 
 export class CourseController {
@@ -96,7 +96,8 @@ export class CourseController {
   ): Promise<void> {
     try {
       const { courseId } = req.params;
-      const requesterId = req.currentUser!.id;
+      const requesterId = req.currentUser?.id;
+      if(!requesterId) { throw new NotAuthorizedError()};
 
       const course = await CourseService.updateCourse(
         courseId,
@@ -117,7 +118,8 @@ export class CourseController {
   ): Promise<void> {
     try {
       const { courseId } = req.params;
-      const requesterId = req.currentUser!.id;
+      const requesterId = req.currentUser?.id;
+      if(!requesterId) { throw new NotAuthorizedError()};
 
       await CourseService.deleteCourse(courseId, requesterId);
 
@@ -136,7 +138,8 @@ export class CourseController {
   ): Promise<void> {
     try {
       const { courseId } = req.params;
-      const requesterId = req.currentUser!.id;
+      const requesterId = req.currentUser?.id;
+      if(!requesterId) { throw new NotAuthorizedError()};
 
       const course = await CourseService.publishCourse(courseId, requesterId);
 
@@ -153,7 +156,8 @@ export class CourseController {
   ): Promise<void> {
     try {
       const { courseId } = req.params;
-      const requesterId = req.currentUser!.id;
+      const requesterId = req.currentUser?.id;
+      if(!requesterId) { throw new NotAuthorizedError()};
 
       const course = await CourseService.unPublishCourse(courseId, requesterId);
 

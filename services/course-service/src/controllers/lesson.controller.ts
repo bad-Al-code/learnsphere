@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
+import { NotAuthorizedError } from '../errors';
 import { LessonService } from '../services/lesson.service';
 
 export class LessonController {
@@ -12,7 +13,8 @@ export class LessonController {
     try {
       const { moduleId } = req.params;
       const lessonData = req.body;
-      const requesterId = req.currentUser!.id;
+      const requesterId = req.currentUser?.id;
+      if(!requesterId) { throw new NotAuthorizedError()};
 
       const lesson = await LessonService.addLessonToModule(
         { ...lessonData, moduleId },
@@ -45,7 +47,9 @@ export class LessonController {
   ): Promise<void> {
     try {
       const { lessonId } = req.params;
-      const requesterId = req.currentUser!.id;
+      const requesterId = req.currentUser?.id;
+      if(!requesterId) { throw new NotAuthorizedError()};
+
       const updatedLesson = await LessonService.updateLesson(
         lessonId,
         req.body,
@@ -64,7 +68,9 @@ export class LessonController {
   ): Promise<void> {
     try {
       const { lessonId } = req.params;
-      const requesterId = req.currentUser!.id;
+      const requesterId = req.currentUser?.id;
+      if(!requesterId) { throw new NotAuthorizedError()};
+
       await LessonService.deleteLesson(lessonId, requesterId);
       res
         .status(StatusCodes.OK)
@@ -81,7 +87,9 @@ export class LessonController {
   ): Promise<void> {
     try {
       const { ids } = req.body;
-      const requesterId = req.currentUser!.id;
+      const requesterId = req.currentUser?.id;
+      if(!requesterId) { throw new NotAuthorizedError()};
+
       await LessonService.reorderLessons(ids, requesterId);
       res
         .status(StatusCodes.OK)
@@ -99,7 +107,8 @@ export class LessonController {
     try {
       const { lessonId } = req.params;
       const { filename } = req.body;
-      const requesterId = req.currentUser!.id;
+      const requesterId = req.currentUser?.id;
+      if(!requesterId) { throw new NotAuthorizedError()};
 
       const uploadData = await LessonService.requestVideoUploadUrl(
         lessonId,

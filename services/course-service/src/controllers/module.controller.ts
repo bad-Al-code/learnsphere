@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import { ModuleService } from '../services/module.service';
 import { StatusCodes } from 'http-status-codes';
+import { NotAuthorizedError } from '../errors';
+import { ModuleService } from '../services/module.service';
 
 export class ModuleController {
   public static async create(
@@ -11,7 +12,8 @@ export class ModuleController {
     try {
       const { courseId } = req.params;
       const { title } = req.body;
-      const requesterId = req.currentUser!.id;
+      const requesterId = req.currentUser?.id;
+      if(!requesterId) { throw new NotAuthorizedError()};
 
       const module = await ModuleService.addModuleToCourse(
         { title, courseId },
@@ -46,7 +48,9 @@ export class ModuleController {
     try {
       const { moduleId } = req.params;
       const { title } = req.body;
-      const requesterId = req.currentUser!.id;
+      const requesterId = req.currentUser?.id;
+      if(!requesterId) { throw new NotAuthorizedError()};
+
       const updatedModule = await ModuleService.updateModule(
         moduleId,
         { title },
@@ -65,7 +69,9 @@ export class ModuleController {
   ): Promise<void> {
     try {
       const { moduleId } = req.params;
-      const requesterId = req.currentUser!.id;
+      const requesterId = req.currentUser?.id;
+      if(!requesterId) { throw new NotAuthorizedError()};
+
       await ModuleService.deleteModule(moduleId, requesterId);
       res
         .status(StatusCodes.OK)
@@ -82,7 +88,9 @@ export class ModuleController {
   ): Promise<void> {
     try {
       const { ids } = req.body;
-      const requesterId = req.currentUser!.id;
+      const requesterId = req.currentUser?.id;
+      if(!requesterId) { throw new NotAuthorizedError()};
+
       await ModuleService.reorderModules(ids, requesterId);
       res
         .status(StatusCodes.OK)
