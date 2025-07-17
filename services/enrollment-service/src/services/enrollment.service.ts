@@ -1,10 +1,19 @@
 import axios, { isAxiosError } from "axios";
-import { inArray as drizzleArray, and, eq, count, Column } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 
 import logger from "../config/logger";
-import { BadRequestError, ForbiddenError, NotFoundError } from "../errors";
 import { db } from "../db";
+import { EnrollRepository } from "../db/enrollment.repository";
 import { enrollments } from "../db/schema";
+import { BadRequestError, ForbiddenError, NotFoundError } from "../errors";
+import {
+  StudentCourseCompletedPublisher,
+  StudentProgressResetPublisher,
+  StudentProgressUpdatePublisher,
+  UserEnrollmentPublisher,
+  UserEnrollmentReactivatedPublisher,
+  UserEnrollmentSuspendedPublisher
+} from "../events/publisher";
 import {
   ChangeEnrollmentStatus,
   CourseDetails,
@@ -17,15 +26,6 @@ import {
   UserEnrollmentData,
   UserEnrollmentStatus,
 } from "../types";
-import {
-  Publisher,
-  StudentCourseCompletedPublisher,
-  StudentProgressResetPublisher,
-  StudentProgressUpdatePublisher,
-  UserEnrollmentPublisher,
-  UserEnrollmentReactivatedPublisher,
-  UserEnrollmentSuspendedPublisher,
-} from "../events/publisher";
 import { CacheService } from "./cache.service";
 
 export class EnrollmentService {
@@ -102,12 +102,7 @@ export class EnrollmentService {
   }: UserEnrollmentData) {
     logger.info(`Attempting to enroll user ${userId} in course ${courseId}`);
 
-    const existingEnrollment = await db.query.enrollments.findFirst({
-      where: and(
-        eq(enrollments.userId, userId),
-        eq(enrollments.courseId, courseId)
-      ),
-    });
+    const existingEnrollment = await EnrollRepository.findByUserAndCourse(userId, courseId);
 
     if (existingEnrollment) {
       throw new BadRequestError(`User is already enrolled in this course`);
@@ -141,12 +136,7 @@ export class EnrollmentService {
       throw new BadRequestError("Cannot enroll in a course with no lessons.");
     }
 
-    const newEnrollment = (
-      await db
-        .insert(enrollments)
-        .values({ userId, courseId, courseStructure })
-        .returning()
-    )[0];
+    const newEnrollment = await EnrollRepository.create({ userId, courseId, courseStructure })
 
     logger.info(`User ${userId} successfully enrolled in course ${courseId}`);
 
@@ -222,13 +212,7 @@ export class EnrollmentService {
       `Fetching all active and completed enrollments for user ${userId} from db.`
     );
 
-    const userEnrollments = await db.query.enrollments.findMany({
-      where: and(
-        eq(enrollments.userId, userId),
-        drizzleArray(enrollments.status, ["active", "completed"])
-      ),
-      orderBy: (enrollments, { desc }) => [desc(enrollments.lastAccessedAt)],
-    });
+    const userEnrollments = await EnrollRepository.findActiveAndCompletedByUserId(userId);
     if (userEnrollments.length === 0) {
       return [];
     }
@@ -278,12 +262,7 @@ export class EnrollmentService {
       `Marking lesson ${lessonId} as complete for uses ${userId} in course ${courseId}`
     );
 
-    const enrollment = await db.query.enrollments.findFirst({
-      where: and(
-        eq(enrollments.userId, userId),
-        eq(enrollments.courseId, courseId)
-      ),
-    });
+    const enrollment = await EnrollRepository.findByUserAndCourse(userId, courseId);
     if (!enrollment) {
       throw new ForbiddenError();
     }
