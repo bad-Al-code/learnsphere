@@ -1,14 +1,14 @@
-import "dotenv/config";
-import { migrate } from "drizzle-orm/node-postgres/migrator";
+import 'dotenv/config';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
 
-import logger from "../config/logger";
-import { db, pool } from "./index";
+import logger from '../config/logger';
+import { db, pool } from './index';
 
 const runMigrations = async () => {
-  logger.info("Running database migratino");
+  logger.info('Running database migratino');
 
   try {
-    await migrate(db, { migrationsFolder: "src/db/migrations" });
+    await migrate(db, { migrationsFolder: 'src/db/migrations' });
 
     logger.info(`Migrations applied successfully!`);
   } catch (error) {

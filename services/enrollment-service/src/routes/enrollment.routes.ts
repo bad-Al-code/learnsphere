@@ -1,22 +1,22 @@
-import { Request, Response, Router } from "express";
-import { StatusCodes } from "http-status-codes";
+import { Request, Response, Router } from 'express';
+import { StatusCodes } from 'http-status-codes';
 
-import { requireAuth } from "../middlewares/require-auth";
-import { validateRequest } from "../middlewares/validate-request";
+import { requireAuth } from '../middlewares/require-auth';
+import { validateRequest } from '../middlewares/validate-request';
 import {
   createEnrollmentSchema,
   enrollmentIdParamSchema,
   getEnrollmentsSchema,
   manualEnrollmentSchema,
   markProgressSchema,
-} from "../schema/enrollment.schema";
-import { EnrollmentService } from "../services/enrollment.service";
-import { requireRole } from "../middlewares/require-role";
+} from '../schema/enrollment.schema';
+import { EnrollmentService } from '../services/enrollment.service';
+import { requireRole } from '../middlewares/require-role';
 
 const router = Router();
 
 router.post(
-  "/",
+  '/',
   requireAuth,
   validateRequest(createEnrollmentSchema),
   async (req: Request, res: Response) => {
@@ -32,7 +32,7 @@ router.post(
   }
 );
 
-router.get("/my-courses", requireAuth, async (req: Request, res: Response) => {
+router.get('/my-courses', requireAuth, async (req: Request, res: Response) => {
   const userId = req.currentUser!.id;
   const enrollments = await EnrollmentService.getEnrollmentsByUserId(userId);
 
@@ -40,7 +40,7 @@ router.get("/my-courses", requireAuth, async (req: Request, res: Response) => {
 });
 
 router.post(
-  "/progress",
+  '/progress',
   requireAuth,
   validateRequest(markProgressSchema),
   async (req: Request, res: Response) => {
@@ -54,7 +54,7 @@ router.post(
     });
 
     res.status(StatusCodes.OK).json({
-      message: "Progress updated successfully",
+      message: 'Progress updated successfully',
       progress: updatedEnrollment.progress,
       progressPercentage: updatedEnrollment.progressPercentage,
     });
@@ -62,9 +62,9 @@ router.post(
 );
 
 router.post(
-  "/manual",
+  '/manual',
   requireAuth,
-  requireRole(["instructor", "admin"]),
+  requireRole(['instructor', 'admin']),
   validateRequest(manualEnrollmentSchema),
   async (req: Request, res: Response) => {
     const { userId, courseId } = req.body;
@@ -81,9 +81,9 @@ router.post(
 );
 
 router.post(
-  "/:enrollmentId/suspend",
+  '/:enrollmentId/suspend',
   requireAuth,
-  requireRole(["instructor", "admin"]),
+  requireRole(['instructor', 'admin']),
   validateRequest(enrollmentIdParamSchema),
   async (req: Request, res: Response) => {
     const { enrollmentId } = req.params;
@@ -93,14 +93,14 @@ router.post(
 
     res
       .status(StatusCodes.OK)
-      .json({ message: "Enrollment suspended succesfully" });
+      .json({ message: 'Enrollment suspended succesfully' });
   }
 );
 
 router.post(
-  "/:enrollmentId/reinstate",
+  '/:enrollmentId/reinstate',
   requireAuth,
-  requireRole(["instructor", "admin"]),
+  requireRole(['instructor', 'admin']),
   validateRequest(enrollmentIdParamSchema),
   async (req: Request, res: Response) => {
     const { enrollmentId } = req.params;
@@ -110,14 +110,14 @@ router.post(
 
     res
       .status(StatusCodes.OK)
-      .json({ message: "Enrollment reinstated succesfully" });
+      .json({ message: 'Enrollment reinstated succesfully' });
   }
 );
 
 router.get(
-  "/course/:courseId",
+  '/course/:courseId',
   requireAuth,
-  requireRole(["admin", "instructor"]),
+  requireRole(['admin', 'instructor']),
   validateRequest(getEnrollmentsSchema),
   async (req: Request, res: Response) => {
     const { courseId } = req.params;
@@ -136,7 +136,7 @@ router.get(
 );
 
 router.post(
-  "/:enrollmentId/reset-progress",
+  '/:enrollmentId/reset-progress',
   requireAuth,
   validateRequest(enrollmentIdParamSchema),
   async (req: Request, res: Response) => {
@@ -150,7 +150,7 @@ router.post(
 
     res
       .status(StatusCodes.OK)
-      .json({ message: "Course progress has been successfully reset" });
+      .json({ message: 'Course progress has been successfully reset' });
   }
 );
 

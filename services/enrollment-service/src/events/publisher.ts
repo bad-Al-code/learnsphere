@@ -1,12 +1,12 @@
-import logger from "../config/logger";
-import { rabbitMQConnection } from "./connection";
+import logger from '../config/logger';
+import { rabbitMQConnection } from './connection';
 
 export abstract class Publisher<T extends { topic: string; data: any }> {
-  abstract topic: T["topic"];
-  protected exchange = "learnsphere";
-  protected exchangeType = "topic";
+  abstract topic: T['topic'];
+  protected exchange = 'learnsphere';
+  protected exchangeType = 'topic';
 
-  async publish(data: T["data"]): Promise<void> {
+  async publish(data: T['data']): Promise<void> {
     const channel = rabbitMQConnection.getChannel();
     await channel.assertExchange(this.exchange, this.exchangeType, {
       durable: true,
@@ -24,7 +24,7 @@ export abstract class Publisher<T extends { topic: string; data: any }> {
 }
 
 interface UserEnrollmentEvent {
-  topic: "user.enrolled";
+  topic: 'user.enrolled';
   data: {
     userId: string;
     courseId: string;
@@ -34,11 +34,11 @@ interface UserEnrollmentEvent {
 }
 
 export class UserEnrollmentPublisher extends Publisher<UserEnrollmentEvent> {
-  topic: "user.enrolled" = "user.enrolled";
+  topic: 'user.enrolled' = 'user.enrolled';
 }
 
 interface StudentProgressUpdateEvent {
-  topic: "student.progress.updated";
+  topic: 'student.progress.updated';
   data: {
     userId: string;
     courseId: string;
@@ -48,11 +48,11 @@ interface StudentProgressUpdateEvent {
 }
 
 export class StudentProgressUpdatePublisher extends Publisher<StudentProgressUpdateEvent> {
-  topic: "student.progress.updated" = "student.progress.updated";
+  topic: 'student.progress.updated' = 'student.progress.updated';
 }
 
 interface StudentCourseCompletedEvent {
-  topic: "student.course.completed";
+  topic: 'student.course.completed';
   data: {
     userId: string;
     courseId: string;
@@ -62,11 +62,11 @@ interface StudentCourseCompletedEvent {
 }
 
 export class StudentCourseCompletedPublisher extends Publisher<StudentCourseCompletedEvent> {
-  topic: "student.course.completed" = "student.course.completed";
+  topic: 'student.course.completed' = 'student.course.completed';
 }
 
 interface UserEnrollmentSuspendedEvent {
-  topic: "user.enrollment.suspended";
+  topic: 'user.enrollment.suspended';
   data: {
     userId: string;
     courseId: string;
@@ -77,11 +77,11 @@ interface UserEnrollmentSuspendedEvent {
 }
 
 export class UserEnrollmentSuspendedPublisher extends Publisher<UserEnrollmentSuspendedEvent> {
-  topic: "user.enrollment.suspended" = "user.enrollment.suspended";
+  topic: 'user.enrollment.suspended' = 'user.enrollment.suspended';
 }
 
 interface UserEnrollmentReactivatedEvent {
-  topic: "user.enrollment.reactivated";
+  topic: 'user.enrollment.reactivated';
   data: {
     userId: string;
     courseId: string;
@@ -91,11 +91,11 @@ interface UserEnrollmentReactivatedEvent {
 }
 
 export class UserEnrollmentReactivatedPublisher extends Publisher<UserEnrollmentReactivatedEvent> {
-  topic: "user.enrollment.reactivated" = "user.enrollment.reactivated";
+  topic: 'user.enrollment.reactivated' = 'user.enrollment.reactivated';
 }
 
 interface StudentProgressResetEvent {
-  topic: "student.progress.reset";
+  topic: 'student.progress.reset';
   data: {
     userId: string;
     courseId: string;
@@ -105,5 +105,5 @@ interface StudentProgressResetEvent {
 }
 
 export class StudentProgressResetPublisher extends Publisher<StudentProgressResetEvent> {
-  topic: "student.progress.reset" = "student.progress.reset";
+  topic: 'student.progress.reset' = 'student.progress.reset';
 }

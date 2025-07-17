@@ -1,12 +1,14 @@
-import { enrollments, enrollmentStatusEnum } from "../db/schema";
+import { enrollments, enrollmentStatusEnum } from '../db/schema';
 
 export type Enrollment = typeof enrollments.$inferSelect;
 export type NewEnrollment = typeof enrollments.$inferInsert;
-export type UpdateEnrollment = Partial<Omit<Enrollment, 'id' | 'userId' | 'courseId' | 'enrolledAt' | 'updatedAt'>>;
+export type UpdateEnrollment = Partial<
+  Omit<Enrollment, 'id' | 'userId' | 'courseId' | 'enrolledAt' | 'updatedAt'>
+>;
 
 export interface CourseDetails {
   id: string;
-  status: "draft" | "published";
+  status: 'draft' | 'published';
   prerequisiteCourseId?: string | null;
   modules: {
     id: string;
@@ -54,7 +56,7 @@ export interface MarkProgressData {
 
 export interface Requester {
   id: string;
-  role: "student" | "instructor" | "admin";
+  role: 'student' | 'instructor' | 'admin';
 }
 
 export interface ManualEnrollmentData {

@@ -1,8 +1,8 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from 'drizzle-orm';
 
-import { db } from ".";
-import { Enrollment, NewEnrollment, UpdateEnrollment } from "../types";
-import { enrollments } from "./schema";
+import { db } from '.';
+import { Enrollment, NewEnrollment, UpdateEnrollment } from '../types';
+import { enrollments } from './schema';
 
 export class EnrollRepository {
   /**
@@ -11,34 +11,42 @@ export class EnrollRepository {
    * @returns The newly created enrollment object
    */
   public static async create(data: NewEnrollment): Promise<Enrollment> {
-    const [newEnrollment] = await db.insert(enrollments).values(data).returning();
+    const [newEnrollment] = await db
+      .insert(enrollments)
+      .values(data)
+      .returning();
 
     return newEnrollment;
   }
 
   /**
-     * Finds a single enrollment by its unique ID.
-     * @param enrollmentId - The ID of the enrollment.
-     * @returns An enrollment object or undefined if not found.
-     */
-  public static async findById(enrollmentId: string): Promise<Enrollment | undefined> {
+   * Finds a single enrollment by its unique ID.
+   * @param enrollmentId - The ID of the enrollment.
+   * @returns An enrollment object or undefined if not found.
+   */
+  public static async findById(
+    enrollmentId: string
+  ): Promise<Enrollment | undefined> {
     return db.query.enrollments.findFirst({
       where: eq(enrollments.id, enrollmentId),
     });
   }
 
   /**
-    * Finds a single enrollment for a specific user in a specific course.
-    * @param userId - The ID of the user.
-    * @param courseId - The ID of the course.
-    * @returns An enrollment object or undefined if not found.
-    */
+   * Finds a single enrollment for a specific user in a specific course.
+   * @param userId - The ID of the user.
+   * @param courseId - The ID of the course.
+   * @returns An enrollment object or undefined if not found.
+   */
   public static async findByUserAndCourse(
     userId: string,
     courseId: string
   ): Promise<Enrollment | undefined> {
     return db.query.enrollments.findFirst({
-      where: and(eq(enrollments.userId, userId), eq(enrollments.courseId, courseId)),
+      where: and(
+        eq(enrollments.userId, userId),
+        eq(enrollments.courseId, courseId)
+      ),
     });
   }
 
@@ -47,7 +55,9 @@ export class EnrollRepository {
    * @param userId - The ID of the user.
    * @returns An array of the user's enrollments, ordered by most recently accessed.
    */
-  public static async findActiveAndCompletedByUserId(userId: string): Promise<Enrollment[]> {
+  public static async findActiveAndCompletedByUserId(
+    userId: string
+  ): Promise<Enrollment[]> {
     return db.query.enrollments.findMany({
       where: and(
         eq(enrollments.userId, userId),
@@ -58,13 +68,17 @@ export class EnrollRepository {
   }
 
   /**
-    * Finds all enrollments for a given course, with pagination.
-    * @param courseId - The ID of the course.
-    * @param limit - The number of results per page.
-    * @param offset - The number of results to skip.
-    * @returns An array of enrollment objects.
-    */
-  public static async findByCourseId(courseId: string, limit: number, offset: number) {
+   * Finds all enrollments for a given course, with pagination.
+   * @param courseId - The ID of the course.
+   * @param limit - The number of results per page.
+   * @param offset - The number of results to skip.
+   * @returns An array of enrollment objects.
+   */
+  public static async findByCourseId(
+    courseId: string,
+    limit: number,
+    offset: number
+  ) {
     return db.query.enrollments.findMany({
       where: eq(enrollments.courseId, courseId),
       limit,
@@ -74,11 +88,11 @@ export class EnrollRepository {
   }
 
   /**
-    * Updates an enrollment record by its ID.
-    * @param enrollmentId - The ID of the enrollment to update.
-    * @param data - An object with the fields to update.
-    * @returns The updated enrollment object.
-    */
+   * Updates an enrollment record by its ID.
+   * @param enrollmentId - The ID of the enrollment to update.
+   * @param data - An object with the fields to update.
+   * @returns The updated enrollment object.
+   */
   public static async update(
     enrollmentId: string,
     data: UpdateEnrollment

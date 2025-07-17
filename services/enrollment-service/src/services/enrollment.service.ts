@@ -1,19 +1,19 @@
-import axios, { isAxiosError } from "axios";
-import { count, eq } from "drizzle-orm";
+import axios, { isAxiosError } from 'axios';
+import { count, eq } from 'drizzle-orm';
 
-import logger from "../config/logger";
-import { db } from "../db";
-import { EnrollRepository } from "../db/enrollment.repository";
-import { enrollments } from "../db/schema";
-import { BadRequestError, ForbiddenError, NotFoundError } from "../errors";
+import logger from '../config/logger';
+import { db } from '../db';
+import { EnrollRepository } from '../db/enrollment.repository';
+import { enrollments } from '../db/schema';
+import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
 import {
   StudentCourseCompletedPublisher,
   StudentProgressResetPublisher,
   StudentProgressUpdatePublisher,
   UserEnrollmentPublisher,
   UserEnrollmentReactivatedPublisher,
-  UserEnrollmentSuspendedPublisher
-} from "../events/publisher";
+  UserEnrollmentSuspendedPublisher,
+} from '../events/publisher';
 import {
   ChangeEnrollmentStatus,
   CourseDetails,
@@ -25,8 +25,8 @@ import {
   ResetProgressData,
   UserEnrollmentData,
   UserEnrollmentStatus,
-} from "../types";
-import { CacheService } from "./cache.service";
+} from '../types';
+import { CacheService } from './cache.service';
 
 export class EnrollmentService {
   private static async invalidateUserEnrollmentCache(userId: string) {
@@ -48,14 +48,14 @@ export class EnrollmentService {
       const response = await axios.get<CourseDetails>(
         `${courseServiceUrl}/api/courses/${courseId}`
       );
-      if (response.data.status !== "published") {
-        throw new BadRequestError("Enrollment Failed. Course is not published");
+      if (response.data.status !== 'published') {
+        throw new BadRequestError('Enrollment Failed. Course is not published');
       }
 
       return response.data;
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 404) {
-        throw new NotFoundError("Course");
+        throw new NotFoundError('Course');
       }
 
       throw error;
@@ -85,9 +85,12 @@ export class EnrollmentService {
     userId: string,
     courseId: string
   ): Promise<boolean> {
-    const prerequisiteEnrollment = await EnrollRepository.findByUserAndCourse(userId, courseId);
+    const prerequisiteEnrollment = await EnrollRepository.findByUserAndCourse(
+      userId,
+      courseId
+    );
 
-    return prerequisiteEnrollment?.status === "completed";
+    return prerequisiteEnrollment?.status === 'completed';
   }
 
   public static async enrollUserInCourse({
@@ -96,7 +99,10 @@ export class EnrollmentService {
   }: UserEnrollmentData) {
     logger.info(`Attempting to enroll user ${userId} in course ${courseId}`);
 
-    const existingEnrollment = await EnrollRepository.findByUserAndCourse(userId, courseId);
+    const existingEnrollment = await EnrollRepository.findByUserAndCourse(
+      userId,
+      courseId
+    );
 
     if (existingEnrollment) {
       throw new BadRequestError(`User is already enrolled in this course`);
@@ -127,10 +133,14 @@ export class EnrollmentService {
     const courseStructure = this.createCourseStructureSnapshot(course);
 
     if (courseStructure.totalLessons === 0) {
-      throw new BadRequestError("Cannot enroll in a course with no lessons.");
+      throw new BadRequestError('Cannot enroll in a course with no lessons.');
     }
 
-    const newEnrollment = await EnrollRepository.create({ userId, courseId, courseStructure })
+    const newEnrollment = await EnrollRepository.create({
+      userId,
+      courseId,
+      courseStructure,
+    });
 
     logger.info(`User ${userId} successfully enrolled in course ${courseId}`);
 
@@ -187,7 +197,7 @@ export class EnrollmentService {
         };
       }
 
-      logger.error("Failed to batch fetch course from course-service: %o", {
+      logger.error('Failed to batch fetch course from course-service: %o', {
         error: errorDetails,
       });
 
@@ -206,7 +216,8 @@ export class EnrollmentService {
       `Fetching all active and completed enrollments for user ${userId} from db.`
     );
 
-    const userEnrollments = await EnrollRepository.findActiveAndCompletedByUserId(userId);
+    const userEnrollments =
+      await EnrollRepository.findActiveAndCompletedByUserId(userId);
     if (userEnrollments.length === 0) {
       return [];
     }
@@ -224,7 +235,7 @@ export class EnrollmentService {
         lastAccessedAt: enrollment.lastAccessedAt,
         course: courseDetails || {
           id: enrollment.courseId,
-          title: "Course details not available",
+          title: 'Course details not available',
         },
       };
     });
@@ -239,7 +250,7 @@ export class EnrollmentService {
     totalCount: number
   ): string {
     if (totalCount === 0) {
-      return "0.00";
+      return '0.00';
     }
 
     const percentage = (completedCount / totalCount) * 100;
@@ -256,7 +267,10 @@ export class EnrollmentService {
       `Marking lesson ${lessonId} as complete for uses ${userId} in course ${courseId}`
     );
 
-    const enrollment = await EnrollRepository.findByUserAndCourse(userId, courseId);
+    const enrollment = await EnrollRepository.findByUserAndCourse(
+      userId,
+      courseId
+    );
     if (!enrollment) {
       throw new ForbiddenError();
     }
@@ -289,8 +303,8 @@ export class EnrollmentService {
     const updatedEnrollment = await EnrollRepository.update(enrollment.id, {
       progress: { completedLessons: newCompletedLessons },
       progressPercentage: newProgressPercentage,
-      lastAccessedAt: new Date()
-    })
+      lastAccessedAt: new Date(),
+    });
 
     logger.info(
       `Progress updated for user ${userId}. New percentage: ${updatedEnrollment.progressPercentage}`
@@ -335,7 +349,7 @@ export class EnrollmentService {
       return response.data;
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 404) {
-        throw new NotFoundError("Course");
+        throw new NotFoundError('Course');
       }
 
       throw error;
@@ -353,20 +367,27 @@ export class EnrollmentService {
 
     const course = await this.getCourseManualEnrollment(courseId);
     if (
-      requester.role === "instructor" &&
+      requester.role === 'instructor' &&
       course.instructorId !== requester.id
     ) {
       throw new ForbiddenError();
     }
 
-    const existingEnrollment = await EnrollRepository.findByUserAndCourse(userId, courseId);
+    const existingEnrollment = await EnrollRepository.findByUserAndCourse(
+      userId,
+      courseId
+    );
     if (existingEnrollment) {
       throw new BadRequestError(`User is already enrolled in this course`);
     }
 
     const courseStructure = this.createCourseStructureSnapshot(course);
 
-    const newEnrollment = await EnrollRepository.create({ userId, courseId, courseStructure });
+    const newEnrollment = await EnrollRepository.create({
+      userId,
+      courseId,
+      courseStructure,
+    });
 
     logger.info(
       `User ${userId} MANUAL enrolled in course ${courseId} by ${requester.id}`
@@ -396,26 +417,26 @@ export class EnrollmentService {
 
     const enrollment = await EnrollRepository.findById(enrollmentId);
     if (!enrollment) {
-      throw new NotFoundError("Enrollment");
+      throw new NotFoundError('Enrollment');
     }
 
     const course = await this.getCourseManualEnrollment(enrollment.courseId);
     if (
-      requester.role === "instructor" &&
+      requester.role === 'instructor' &&
       course.instructorId !== requester.id
     ) {
       throw new ForbiddenError();
     }
 
     const updated = await EnrollRepository.update(enrollmentId, {
-      status: newStatus
-    })
+      status: newStatus,
+    });
 
     logger.info(
       `Enrollmen ${enrollmentId} status successfully changed to '${newStatus}' by ${requester.id}`
     );
 
-    if (newStatus === "suspended") {
+    if (newStatus === 'suspended') {
       const publisher = new UserEnrollmentSuspendedPublisher();
       await publisher.publish({
         userId: updated.userId,
@@ -423,7 +444,7 @@ export class EnrollmentService {
         enrollmentId: updated.id,
         suspendedAt: updated.updatedAt,
       });
-    } else if (newStatus === "active") {
+    } else if (newStatus === 'active') {
       const publiser = new UserEnrollmentReactivatedPublisher();
       await publiser.publish({
         userId: updated.userId,
@@ -444,7 +465,7 @@ export class EnrollmentService {
   }: UserEnrollmentStatus) {
     return this.changeEnrollmentStatus({
       enrollmentId,
-      newStatus: "suspended",
+      newStatus: 'suspended',
       requester,
     });
   }
@@ -455,7 +476,7 @@ export class EnrollmentService {
   }: UserEnrollmentStatus) {
     return this.changeEnrollmentStatus({
       enrollmentId,
-      newStatus: "active",
+      newStatus: 'active',
       requester,
     });
   }
@@ -496,7 +517,7 @@ export class EnrollmentService {
         };
       }
 
-      logger.error("Failed to batch fetch users from user-service: %o", {
+      logger.error('Failed to batch fetch users from user-service: %o', {
         error: errorDetails,
       });
 
@@ -516,7 +537,7 @@ export class EnrollmentService {
 
     const course = await this.getCourseManualEnrollment(courseId);
     if (
-      requester.role === "instructor" &&
+      requester.role === 'instructor' &&
       course.instructorId !== requester.id
     ) {
       throw new ForbiddenError();
@@ -553,8 +574,8 @@ export class EnrollmentService {
         progressPercentage: enrollment.progressPercentage,
         student: userProfile || {
           userId: enrollment.userId,
-          firstName: "User",
-          lastName: "Not Found",
+          firstName: 'User',
+          lastName: 'Not Found',
         },
       };
     });
@@ -582,7 +603,7 @@ export class EnrollmentService {
 
     const enrollment = await EnrollRepository.findById(enrollmentId);
     if (!enrollment) {
-      throw new NotFoundError("Enrollment");
+      throw new NotFoundError('Enrollment');
     }
 
     if (enrollment.userId !== requesterId) {
@@ -591,9 +612,9 @@ export class EnrollmentService {
 
     const updatedEnrollments = await EnrollRepository.update(enrollmentId, {
       progress: { completedLessons: [] },
-      progressPercentage: "0.00",
-      status: 'active'
-    })
+      progressPercentage: '0.00',
+      status: 'active',
+    });
 
     logger.info(`Successfully reset progress for enrollment ${enrollmentId}`);
 

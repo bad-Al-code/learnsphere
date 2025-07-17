@@ -85,10 +85,7 @@
         "user_course_unique_idx": {
           "name": "user_course_unique_idx",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id",
-            "course_id"
-          ]
+          "columns": ["user_id", "course_id"]
         }
       },
       "policies": {},
@@ -100,11 +97,7 @@
     "public.enrollment_status": {
       "name": "enrollment_status",
       "schema": "public",
-      "values": [
-        "active",
-        "suspended",
-        "completed"
-      ]
+      "values": ["active", "suspended", "completed"]
     }
   },
   "schemas": {},

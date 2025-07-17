@@ -1,12 +1,12 @@
-import jwt from "jsonwebtoken";
-import { NextFunction, Request, Response } from "express";
+import jwt from 'jsonwebtoken';
+import { NextFunction, Request, Response } from 'express';
 
-import logger from "../config/logger";
+import logger from '../config/logger';
 
 interface UserPayload {
   id: string;
   email: string;
-  role: "student" | "instructor" | "admin";
+  role: 'student' | 'instructor' | 'admin';
 }
 
 declare global {
@@ -17,7 +17,7 @@ declare global {
   }
 }
 
-const ignorePaths = ["/api/enrollments/health"];
+const ignorePaths = ['/api/enrollments/health'];
 
 export const currentUser = (
   req: Request,
@@ -43,7 +43,7 @@ export const currentUser = (
       `Current user identified: ${payload.email} (ID: ${payload.id})`
     );
   } catch (err) {
-    logger.warn("Invalid JWT received", { error: (err as Error).message });
+    logger.warn('Invalid JWT received', { error: (err as Error).message });
   }
 
   next();
