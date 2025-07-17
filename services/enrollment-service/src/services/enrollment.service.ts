@@ -1,5 +1,5 @@
 import axios, { isAxiosError } from "axios";
-import { and, count, eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 
 import logger from "../config/logger";
 import { db } from "../db";
@@ -85,13 +85,7 @@ export class EnrollmentService {
     userId: string,
     courseId: string
   ): Promise<boolean> {
-    const prerequisiteEnrollment = await db.query.enrollments.findFirst({
-      where: and(
-        eq(enrollments.userId, userId),
-        eq(enrollments.courseId, courseId)
-      ),
-      columns: { status: true },
-    });
+    const prerequisiteEnrollment = await EnrollRepository.findByUserAndCourse(userId, courseId);
 
     return prerequisiteEnrollment?.status === "completed";
   }
@@ -292,18 +286,11 @@ export class EnrollmentService {
       enrollment.courseStructure.totalLessons
     );
 
-    const updatedEnrollments = await db
-      .update(enrollments)
-      .set({
-        progress: { completedLessons: newCompletedLessons },
-        progressPercentage: newProgressPercentage,
-        lastAccessedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(enrollments.id, enrollment.id))
-      .returning();
-
-    const updatedEnrollment = updatedEnrollments[0];
+    const updatedEnrollment = await EnrollRepository.update(enrollment.id, {
+      progress: { completedLessons: newCompletedLessons },
+      progressPercentage: newProgressPercentage,
+      lastAccessedAt: new Date()
+    })
 
     logger.info(
       `Progress updated for user ${userId}. New percentage: ${updatedEnrollment.progressPercentage}`
@@ -372,23 +359,14 @@ export class EnrollmentService {
       throw new ForbiddenError();
     }
 
-    const existingEnrollment = await db.query.enrollments.findFirst({
-      where: and(
-        eq(enrollments.userId, userId),
-        eq(enrollments.courseId, courseId)
-      ),
-    });
+    const existingEnrollment = await EnrollRepository.findByUserAndCourse(userId, courseId);
     if (existingEnrollment) {
       throw new BadRequestError(`User is already enrolled in this course`);
     }
 
     const courseStructure = this.createCourseStructureSnapshot(course);
-    const newEnrollment = (
-      await db
-        .insert(enrollments)
-        .values({ userId, courseId, courseStructure })
-        .returning()
-    )[0];
+
+    const newEnrollment = await EnrollRepository.create({ userId, courseId, courseStructure });
 
     logger.info(
       `User ${userId} MANUAL enrolled in course ${courseId} by ${requester.id}`
@@ -416,9 +394,7 @@ export class EnrollmentService {
       `Request by ${requester.id} to change enrollment ${enrollmentId} to status ${newStatus}`
     );
 
-    const enrollment = await db.query.enrollments.findFirst({
-      where: eq(enrollments.id, enrollmentId),
-    });
+    const enrollment = await EnrollRepository.findById(enrollmentId);
     if (!enrollment) {
       throw new NotFoundError("Enrollment");
     }
@@ -431,13 +407,9 @@ export class EnrollmentService {
       throw new ForbiddenError();
     }
 
-    const updated = (
-      await db
-        .update(enrollments)
-        .set({ status: newStatus, updatedAt: new Date() })
-        .where(eq(enrollments.id, enrollmentId))
-        .returning()
-    )[0];
+    const updated = await EnrollRepository.update(enrollmentId, {
+      status: newStatus
+    })
 
     logger.info(
       `Enrollmen ${enrollmentId} status successfully changed to '${newStatus}' by ${requester.id}`
@@ -608,11 +580,7 @@ export class EnrollmentService {
       `User ${requesterId} is requesting to reset progress for enrollment ${enrollmentId}`
     );
 
-    const whereClause = eq(enrollments.id, enrollmentId);
-    const enrollment = await db.query.enrollments.findFirst({
-      where: whereClause,
-      columns: { userId: true },
-    });
+    const enrollment = await EnrollRepository.findById(enrollmentId);
     if (!enrollment) {
       throw new NotFoundError("Enrollment");
     }
@@ -621,18 +589,11 @@ export class EnrollmentService {
       throw new ForbiddenError();
     }
 
-    const updatedEnrollments = (
-      await db
-        .update(enrollments)
-        .set({
-          progress: { completedLessons: [] },
-          progressPercentage: "0.00",
-          status: "active",
-          updatedAt: new Date(),
-        })
-        .where(whereClause)
-        .returning()
-    )[0];
+    const updatedEnrollments = await EnrollRepository.update(enrollmentId, {
+      progress: { completedLessons: [] },
+      progressPercentage: "0.00",
+      status: 'active'
+    })
 
     logger.info(`Successfully reset progress for enrollment ${enrollmentId}`);
 
