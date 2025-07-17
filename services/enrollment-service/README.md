@@ -1,32 +1,17 @@
 # LearnSphere - Enrollment Service
 
-This service is the core domain service for the LearnSphere platform, responsible for all logic related to creating, managing, and retrieving courses, modules, and lessons.
-
-It acts as an orchestrator, handling requests from clients, managing its own data, and communicating with other services like the `user-service` (to fetch instructor profiles) and the `media-service` (to facilitate video uploads). It also listens for events from the `media-service` to update lesson content upon successful video processing.
+This service manages the relationship between users and courses.
+It is responsible for enrolling students in courses, tracking their progress, and handling administrative actions related to enrollments like suspensions and reinstatements.
 
 ## Features
 
-- **Hierarchical Content Structure**: Manages a three-level hierarchy of Enrollments -> Modules -> Lessons.
-- **Full CRUD Operations**: Provides complete Create, Read, Update, and Delete operations for all three entities.
-- **Role-Based Authorization**: Endpoints are protected, ensuring only an `instructor` or `admin` can create or modify course content.
-- **Drag-and-Drop Reordering**: Endpoints to handle reordering of modules within a course and lessons within a module.
-- **Publishing Workflow**: Enrollments can exist in a `draft` or `published` state, allowing instructors to build their content privately before making it public.
-- **Inter-Service Communication**: Makes synchronous API calls to other services to enrich its data (e.g., getting instructor profiles).
-- **Event-Driven Updates**: Listens to RabbitMQ for events (e.g., `video.processed`) to asynchronously update its data.
-- **Performance Caching**: Implements a Redis caching layer for expensive queries like fetching full course details and paginated lists.
-- **API Documentation**: A complete and interactive API documentation is available via Swagger/OpenAPI.
-
----
-
-## Architecture
-
-This service follows a clean, layered architecture to ensure separation of concerns and maintainability:
-
-- **Controllers**: Handle HTTP request and response logic.
-- **Services**: Contain the core business logic for each entity (Enrollment, Module, Lesson).
-- **Repositories**: Encapsulate all database queries using Drizzle ORM.
-- **Clients**: Abstract all communication with external services (User Service, Media Service).
-- **Specialized Services**: Handle cross-cutting concerns like Authorization and Caching.
+- **Course Enrollment**: Allows students to enroll in published courses.
+- **Prerequisite Checks**: Enforces course prerequisites, ensuring a user has completed a required course before enrolling in the next one.
+- **Progress Tracking**: Logs which lessons a student has completed and calculates an overall course completion percentage.
+- **Administrative Controls**: Provides endpoints for instructors and admins to manually enroll users, suspend, or reinstate an enrollment.
+- **Event-Driven**: Publishes events for key actions like `user.enrolled`, `student.progress.updated`, and `student.course.completed`.
+- **Inter-Service Communication**: Communicates with the `course-service` to validate course details and with the `user-service` to enrich enrollment data.
+- **Performance Caching**: Uses Redis to cache user enrollment lists.
 
 ---
 
@@ -44,11 +29,11 @@ Before you begin, ensure you have the following installed:
 
 ### 1. Clone the Repository
 
-Clone the main LearnSphere project repository. This service is located in `services/course-service`.
+Clone the main LearnSphere project repository. This service is located in `services/enrollment-service`.
 
 ### 2. Set Up Environment Variables
 
-Navigate to the `services/course-service` directory.
+Navigate to the `services/enrollment-service` directory.
 
 Create a `.env` file by copying the sample file:
 
@@ -58,7 +43,7 @@ cp .env.example .env
 
 Open the `.env` file. You must:
 
-- Provide the correct URLs for the `USER_SERVICE_URL` and `MEDIA_SERVICE_URL`.
+- Provide the correct URLs for the `COURSE_SERVICE_URL` and `USER_SERVICE_URL`.
 - Ensure that `JWT_SECRET` and `COOKIE_PARSER_SECRET` are identical to the ones used in the `auth-service`.
 
 ### 3. Start Dependent Services
@@ -71,7 +56,7 @@ docker compose up -d
 
 This will start the required containers in the background.
 
-_Note: Ensure the auth-service and user-service are also running for full functionality._
+_Note: Ensure the course-service and user-service are also running for full functionality._
 
 ### 4. Install Dependencies
 
@@ -99,7 +84,7 @@ To start the service in development mode with live reloading (via nodemon):
 pnpm dev
 ```
 
-The service will be available at `http://localhost:8003`
+The service will be available at `http://localhost:8004`
 
 ### 2. Running Tests
 
@@ -170,4 +155,4 @@ pnpm format
 
 ## API Docuemntation
 
-Once the server is running, interactive API documentation is avaiable at: `http://localhost:8003/api-docs`
+Once the server is running, interactive API documentation is avaiable at: `http://localhost:8004/api-docs`
