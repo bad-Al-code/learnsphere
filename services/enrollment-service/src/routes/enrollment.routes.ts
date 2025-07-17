@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { requireAuth } from '../middlewares/require-auth';
+import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
 import {
   createEnrollmentSchema,
@@ -11,7 +12,6 @@ import {
   markProgressSchema,
 } from '../schema/enrollment.schema';
 import { EnrollmentService } from '../services/enrollment.service';
-import { requireRole } from '../middlewares/require-role';
 
 const router = Router();
 
@@ -121,7 +121,7 @@ router.get(
   validateRequest(getEnrollmentsSchema),
   async (req: Request, res: Response) => {
     const { courseId } = req.params;
-    const { page, limit } = req.query as any;
+    const { page, limit } = getEnrollmentsSchema.shape.query.parse(req.query);
     const requester = req.currentUser!;
 
     const result = await EnrollmentService.getEnrollmentsByCourseId({

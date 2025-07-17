@@ -64,7 +64,7 @@ export class EnrollmentService {
 
   private static createCourseStructureSnapshot(course: CourseDetails) {
     let totalLessons = 0;
-    let totalModules = course.modules.length;
+    const totalModules = course.modules.length;
     const moduleSnapshots = course.modules.map((module) => {
       const lessonIds = module.lessons.map((lesson) => lesson.id);
       totalLessons += lessonIds.length;
@@ -122,7 +122,7 @@ export class EnrollmentService {
         const prereqCourse = await this.getCourseManualEnrollment(
           course.prerequisiteCourseId
         );
-        throw new ForbiddenError();
+        throw new ForbiddenError(`Enrollment failed. Pleasse complete the prerequistics course: ${prereqCourse}`)
       }
 
       logger.info(
@@ -186,7 +186,7 @@ export class EnrollmentService {
 
       return courseMap;
     } catch (error) {
-      let errorDetails: any = { message: (error as Error).message };
+      let errorDetails: object = { message: (error as Error).message };
       if (isAxiosError(error)) {
         errorDetails = {
           message: error.message,
@@ -207,7 +207,7 @@ export class EnrollmentService {
 
   public static async getEnrollmentsByUserId(userId: string) {
     const cacheKey = `enrollments:user:${userId}`;
-    const cachedEnrollments = await CacheService.get<any[]>(cacheKey);
+    const cachedEnrollments = await CacheService.get<unknown[]>(cacheKey);
     if (cachedEnrollments) {
       return cachedEnrollments;
     }
@@ -506,7 +506,7 @@ export class EnrollmentService {
 
       return userMap;
     } catch (error) {
-      let errorDetails: any = { message: (error as Error).message };
+      let errorDetails: object = { message: (error as Error).message };
       if (isAxiosError(error)) {
         errorDetails = {
           message: error.message,

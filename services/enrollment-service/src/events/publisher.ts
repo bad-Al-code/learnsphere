@@ -1,7 +1,7 @@
 import logger from '../config/logger';
 import { rabbitMQConnection } from './connection';
 
-export abstract class Publisher<T extends { topic: string; data: any }> {
+export abstract class Publisher<T extends { topic: string; data: object }> {
   abstract topic: T['topic'];
   protected exchange = 'learnsphere';
   protected exchangeType = 'topic';
@@ -34,7 +34,7 @@ interface UserEnrollmentEvent {
 }
 
 export class UserEnrollmentPublisher extends Publisher<UserEnrollmentEvent> {
-  topic: 'user.enrolled' = 'user.enrolled';
+  readonly topic: 'user.enrolled' = 'user.enrolled' as const;
 }
 
 interface StudentProgressUpdateEvent {
@@ -48,7 +48,7 @@ interface StudentProgressUpdateEvent {
 }
 
 export class StudentProgressUpdatePublisher extends Publisher<StudentProgressUpdateEvent> {
-  topic: 'student.progress.updated' = 'student.progress.updated';
+  readonly topic: 'student.progress.updated' = 'student.progress.updated' as const;
 }
 
 interface StudentCourseCompletedEvent {
@@ -62,7 +62,7 @@ interface StudentCourseCompletedEvent {
 }
 
 export class StudentCourseCompletedPublisher extends Publisher<StudentCourseCompletedEvent> {
-  topic: 'student.course.completed' = 'student.course.completed';
+  readonly topic: 'student.course.completed' = 'student.course.completed' as const;
 }
 
 interface UserEnrollmentSuspendedEvent {
@@ -77,7 +77,7 @@ interface UserEnrollmentSuspendedEvent {
 }
 
 export class UserEnrollmentSuspendedPublisher extends Publisher<UserEnrollmentSuspendedEvent> {
-  topic: 'user.enrollment.suspended' = 'user.enrollment.suspended';
+  readonly topic: 'user.enrollment.suspended' = 'user.enrollment.suspended' as const;
 }
 
 interface UserEnrollmentReactivatedEvent {
@@ -91,7 +91,7 @@ interface UserEnrollmentReactivatedEvent {
 }
 
 export class UserEnrollmentReactivatedPublisher extends Publisher<UserEnrollmentReactivatedEvent> {
-  topic: 'user.enrollment.reactivated' = 'user.enrollment.reactivated';
+  readonly topic: 'user.enrollment.reactivated' = 'user.enrollment.reactivated' as const;
 }
 
 interface StudentProgressResetEvent {
@@ -105,5 +105,5 @@ interface StudentProgressResetEvent {
 }
 
 export class StudentProgressResetPublisher extends Publisher<StudentProgressResetEvent> {
-  topic: 'student.progress.reset' = 'student.progress.reset';
+  readonly topic: 'student.progress.reset' = 'student.progress.reset' as const;
 }

@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
-import { CustomError } from '../errors';
-import logger from '../config/logger';
 import { StatusCodes } from 'http-status-codes';
+import logger from '../config/logger';
+import { CustomError } from '../errors';
 
 export const errorHandler = (
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   if (err instanceof CustomError) {
     res.status(err.statusCode).json({ errors: err.serializeErrors() });
