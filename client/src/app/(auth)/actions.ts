@@ -141,3 +141,30 @@ export async function signup(values: SignupSchema) {
 
   redirect("/signup/verify-email");
 }
+
+const verifyEmailSchema = z.object({
+  token: z.string(),
+  email: z.string().email(),
+});
+
+export async function verifyEmail(values: z.infer<typeof verifyEmailSchema>) {
+  try {
+    const validatedData = verifyEmailSchema.parse(values);
+
+    const response = await authService.post(
+      "/api/auth/verify-email",
+      validatedData
+    );
+
+    if (!response.ok) {
+      const responseData = await response.json().catch(() => ({}));
+      const errorMessage =
+        responseData.errors?.[0]?.message || "Verification failed.";
+      return { error: errorMessage };
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "An unexpected error occurred." };
+  }
+}
