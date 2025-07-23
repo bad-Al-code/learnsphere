@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
-import { apiClient } from "@/lib/api/client";
 
 const userProfileSchema = z.object({
   userId: z.string(),
@@ -21,16 +20,12 @@ const userProfileSchema = z.object({
 export const userRouter = router({
   getMe: publicProcedure.query(async ({ ctx }) => {
     try {
-      const { data } = await apiClient.get("/api/users/me", {
-        headers: ctx.headers,
-      });
+      const { data } = await ctx.api("user").get("/api/users/me");
+
       return data;
     } catch (error: any) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        return null;
-      }
-
       console.error("Error fetching user:", error.message);
+
       return null;
     }
   }),
