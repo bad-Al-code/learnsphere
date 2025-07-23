@@ -25,20 +25,14 @@ export default function VerifyEmailPage({
 }: VerifyEmailPageProps) {
   return (
     <Suspense fallback={<LoadingCard />}>
-      <VerificationComponent
-        token={searchParams.token}
-        email={searchParams.email}
-      />
+      <VerificationComponent searchParams={searchParams} />
     </Suspense>
   );
 }
-async function VerificationComponent({
-  token,
-  email,
-}: {
-  token?: string;
-  email?: string;
-}) {
+
+async function VerificationComponent({ searchParams }: VerifyEmailPageProps) {
+  const { token, email } = searchParams;
+
   if (!token || !email) {
     return <ErrorCard message="Invalid verification link. Please try again." />;
   }
