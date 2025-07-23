@@ -1,21 +1,28 @@
-import express, { json, Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import express, { json, Request, Response } from 'express';
+import helmet from 'helmet';
+import passport from 'passport';
 import swaggerUi from 'swagger-ui-express';
 
-import { errorHandler } from './middlewares/error-handler';
-import { authRouter, healthRouter } from './routes';
-import { httpLogger } from './middlewares/http-logger';
-import { currentUser } from './middlewares/current-user';
-import helmet from 'helmet';
-import { metricsRecorder } from './middlewares/metrics-recorder';
-import { metricsService } from './controllers/metrics-service';
 import { env } from './config/env';
 import { swaggerSpec } from './config/swagger';
-import passport from 'passport';
+import { metricsService } from './controllers/metrics-service';
+import { currentUser } from './middlewares/current-user';
+import { errorHandler } from './middlewares/error-handler';
+import { httpLogger } from './middlewares/http-logger';
+import { metricsRecorder } from './middlewares/metrics-recorder';
+import { authRouter, healthRouter } from './routes';
 
 const app = express();
 
 app.set('trust proxy', 1);
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  })
+);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
