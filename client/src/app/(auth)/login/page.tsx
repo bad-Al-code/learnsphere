@@ -12,8 +12,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
+import { login } from "../actions";
 
 const formSchema = z.object({
   email: z.email({ error: "Please enter a valid email" }),
@@ -23,6 +26,9 @@ const formSchema = z.object({
 export type FormSchema = z.infer<typeof formSchema>;
 
 export default function LoginPage() {
+  const roter = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: { email: "", password: "" },
@@ -30,8 +36,14 @@ export default function LoginPage() {
 
   function onSubmit(values: FormSchema) {
     console.log(values);
+    setError(null);
 
-    alert("Form submission logic is not implemented yet.");
+    startTransition(async () => {
+      const result = await login(values);
+      if (result?.error) {
+        setError(result.error);
+      }
+    });
   }
 
   return (
@@ -74,8 +86,11 @@ export default function LoginPage() {
                 )}
               />
               <Button type="submit" className="w-full">
-                Login
+                {isPending ? "Logging in..." : "Login"}
               </Button>
+              {error && (
+                <p className="text-sm font-medium text-destructive">{error}</p>
+              )}
             </form>
           </Form>
         </CardContent>
