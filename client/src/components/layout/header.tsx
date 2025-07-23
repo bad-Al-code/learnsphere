@@ -1,6 +1,21 @@
+"use client";
+
+import { logout } from "@/app/(auth)/actions";
+import { useSessionStore } from "@/stores/session-store";
 import Link from "next/link";
+import { useTransition } from "react";
+import { Button } from "../ui/button";
 
 export function Header() {
+  const user = useSessionStore((state) => state.user);
+  const [isPending, startTransition] = useTransition();
+
+  const handleLogout = () => {
+    startTransition(async () => {
+      await logout();
+    });
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
@@ -18,7 +33,24 @@ export function Header() {
           </nav>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-4">
-          {/* Login/Logout button will go here */}
+          <nav>
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <span>Hello, {user.firstName || "User"}</span>
+                <Button
+                  variant="outline"
+                  onClick={handleLogout}
+                  disabled={isPending}
+                >
+                  {isPending ? "Logging out..." : "Logout"}
+                </Button>
+              </div>
+            ) : (
+              <Button asChild>
+                <Link href="/login">Login</Link>
+              </Button>
+            )}
+          </nav>
         </div>
       </div>
     </header>

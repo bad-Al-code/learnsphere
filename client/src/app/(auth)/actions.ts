@@ -1,7 +1,8 @@
 "use server";
 
-import { ApiError, authService } from "@/lib/api";
+import { ApiError, authService, userService } from "@/lib/api";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import z from "zod";
 
@@ -26,4 +27,29 @@ export async function login(values: LoginSchema) {
 
   revalidatePath("/");
   redirect("/");
+}
+
+export async function getCurrentUser() {
+  try {
+    const user = await userService.get("/api/users/me");
+    return user;
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function logout() {
+  try {
+    await authService.post("/api/auth/logout", {});
+  } catch (error) {
+    console.error(
+      "Logout API call failed, proceeding to clear cookies.",
+      error
+    );
+  } finally {
+    (await cookies()).delete("token");
+    (await cookies()).delete("refreshToken");
+    revalidatePath("/");
+    redirect("/login");
+  }
 }
