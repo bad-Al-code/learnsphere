@@ -9,7 +9,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { verifyEmail } from "../actions";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { getCurrentUser, verifyEmail } from "../actions";
 
 interface VerifyEmailPageProps {
   searchParams: {
@@ -18,11 +20,25 @@ interface VerifyEmailPageProps {
   };
 }
 
-export default async function VerifyEmailPage({
+export default function VerifyEmailPage({
   searchParams,
 }: VerifyEmailPageProps) {
-  const { token, email } = searchParams;
-
+  return (
+    <Suspense fallback={<LoadingCard />}>
+      <VerificationComponent
+        token={searchParams.token}
+        email={searchParams.email}
+      />
+    </Suspense>
+  );
+}
+async function VerificationComponent({
+  token,
+  email,
+}: {
+  token?: string;
+  email?: string;
+}) {
   if (!token || !email) {
     return <ErrorCard message="Invalid verification link. Please try again." />;
   }
@@ -31,6 +47,12 @@ export default async function VerifyEmailPage({
 
   if (result.error) {
     return <ErrorCard message={result.error} />;
+  }
+
+  const user = await getCurrentUser();
+
+  if (user) {
+    redirect("/");
   }
 
   return (
@@ -71,6 +93,19 @@ function ErrorCard({ message }: { message: string }) {
             <Link href="/signup">Try Signing Up Again</Link>
           </Button>
         </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function LoadingCard() {
+  return (
+    <div className="flex items-center justify-center min-h-[80vh]">
+      <Card className="w-full max-w-md text-center">
+        <CardHeader>
+          <CardTitle className="text-2xl">Verifying your email...</CardTitle>
+          <CardDescription>Please wait a moment.</CardDescription>
+        </CardHeader>
       </Card>
     </div>
   );
