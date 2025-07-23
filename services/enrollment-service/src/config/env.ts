@@ -8,7 +8,6 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(8004),
 
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  REDIS_URL: z.string().min(1, 'REDIS_URL is required'),
   RABBITMQ_URL: z.string().min(1, 'RABBITMQ_URL is required'),
 
   USER_SERVICE_URL: z.string().min(1, 'USER_SERVICE_URL is requied'),
@@ -33,3 +32,4 @@ if (!parsedEnv.success) {
 }
 
 export const env = parsedEnv.data;
+
