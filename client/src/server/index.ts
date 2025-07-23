@@ -1,5 +1,11 @@
-import { authRouter } from "./routers/auth";
-import { userRouter } from "./routers/user";
+import {
+  authRouter,
+  courseRouter,
+  enrollmentRouter,
+  mediaRouter,
+  notificationRouter,
+  userRouter,
+} from "./routers";
 import { publicProcedure, router } from "./trpc";
 
 export const appRouter = router({
@@ -12,6 +18,10 @@ export const appRouter = router({
 
   auth: authRouter,
   user: userRouter,
+  course: courseRouter,
+  enrollment: enrollmentRouter,
+  media: mediaRouter,
+  notification: notificationRouter,
 });
 
 export type AppRouter = typeof appRouter;

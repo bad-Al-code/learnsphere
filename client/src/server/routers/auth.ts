@@ -1,17 +1,16 @@
 import { z } from "zod";
 
-import { publicProcedure, router } from "../trpc";
-import { apiClient } from "@/lib/api/client";
 import { TRPCError } from "@trpc/server";
+import { publicProcedure, router } from "../trpc";
 
 export const authRouter = router({
   login: publicProcedure
     .input(z.object({ email: z.string().email(), password: z.string().min(1) }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
-        const { data } = await apiClient.post("/api/auth/login", input);
+        const response = await ctx.api("auth").post("/api/auth/login", input);
 
-        return data;
+        return response.data;
       } catch (error: any) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
@@ -21,9 +20,10 @@ export const authRouter = router({
       }
     }),
 
-  logout: publicProcedure.mutation(async () => {
+  logout: publicProcedure.mutation(async ({ ctx }) => {
     try {
-      await apiClient.post("/api/auth/logout");
+      await ctx.api("auth").post("/api/auth/logout");
+
       return { success: true };
     } catch (error: any) {
       throw new TRPCError({
