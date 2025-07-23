@@ -60,6 +60,13 @@ async function apiClient({ path, baseUrl, options = {} }: ApiClientOptions) {
 }
 
 export const authService = {
+  get: (path: string, options: RequestInit = {}) =>
+    apiClient({
+      path,
+      baseUrl: process.env.AUTH_SERVICE_URL!,
+      options: { ...options, method: "GET" },
+    }),
+
   post: (path: string, body: any, options: RequestInit = {}) =>
     apiClient({
       path,
