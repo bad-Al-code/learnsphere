@@ -1,6 +1,7 @@
 import { Request, Response, Router } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
+import { EnrollmentService } from '../controllers/enrollment.service';
 import { requireAuth } from '../middlewares/require-auth';
 import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
@@ -11,7 +12,6 @@ import {
   manualEnrollmentSchema,
   markProgressSchema,
 } from '../schema/enrollment.schema';
-import { EnrollmentService } from '../services/enrollment.service';
 
 const router = Router();
 
