@@ -3,12 +3,22 @@
 import { logout } from "@/app/(auth)/actions";
 import { useSessionStore } from "@/stores/session-store";
 import Link from "next/link";
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import { Button } from "../ui/button";
 
-export function Header() {
-  const user = useSessionStore((state) => state.user);
+type User = {
+  userId: string;
+  firstName: string | null;
+  lastName: string | null;
+} | null;
+
+export function Header({ user: initialUser }: { user: User }) {
+  const { user, setUser } = useSessionStore();
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setUser(initialUser);
+  }, [initialUser, setUser]);
 
   const handleLogout = () => {
     startTransition(async () => {
