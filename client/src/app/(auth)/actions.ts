@@ -92,3 +92,52 @@ export async function logout() {
     redirect("/login");
   }
 }
+
+const signupSchema = z.object({
+  email: z.email(),
+  password: z.string().min(8),
+});
+
+type SignupSchema = z.infer<typeof signupSchema>;
+
+export async function signup(values: SignupSchema) {
+  try {
+    const validatedData = signupSchema.parse(values);
+
+    const response = await authService.post("/api/auth/signup", validatedData);
+
+    if (!response.ok) {
+      const responseData = await response.json().catch(() => ({}));
+      const errorMessage =
+        responseData.errors?.[0]?.message || response.statusText;
+      return { error: errorMessage };
+    }
+
+    const setCookieHeaders = response.headers.getSetCookie();
+
+    if (setCookieHeaders.length > 0) {
+      setCookieHeaders.forEach(async (cookieString) => {
+        const [name, ...parts] = cookieString.split("=");
+        const [value] = parts.join("=").split(";");
+        const optionsString = parts.join("=").substring(value.length + 1);
+
+        const options: any = {};
+        optionsString.split(";").forEach((part) => {
+          const [key, val] = part.trim().split("=");
+          if (key.toLowerCase() === "expires") options.expires = new Date(val);
+          if (key.toLowerCase() === "path") options.path = val;
+          if (key.toLowerCase() === "samesite")
+            options.sameSite = val.toLowerCase() as any;
+          if (key.toLowerCase() === "httponly") options.httpOnly = true;
+          if (key.toLowerCase() === "secure") options.secure = true;
+        });
+
+        (await cookies()).set(name, value, options);
+      });
+    }
+  } catch (error: any) {
+    return { error: error.message || "An unexpected error occurred." };
+  }
+
+  redirect("/signup/verify-email");
+}
