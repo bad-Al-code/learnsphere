@@ -18,9 +18,13 @@ type ApiClientOptions = {
   options?: RequestInit;
 };
 
-async function apiClient({ path, baseUrl, options = {} }: ApiClientOptions) {
-  const cookieStore = cookies();
-  const allCookies = (await cookieStore).getAll();
+async function apiClient({
+  path,
+  baseUrl,
+  options = {},
+}: ApiClientOptions): Promise<Response> {
+  const cookieStore = await cookies();
+  const allCookies = cookieStore.getAll();
   const cookieHeader = allCookies
     .map((cookie) => `${cookie.name}=${cookie.value}`)
     .join("; ");
@@ -41,19 +45,19 @@ async function apiClient({ path, baseUrl, options = {} }: ApiClientOptions) {
       headers,
     });
 
-    const responseData = await response.json().catch(() => ({}));
+    // const responseData = await response.json().catch(() => ({}));
 
-    if (!response.ok) {
-      const errorMessage =
-        responseData.errors?.[0]?.message || response.statusText;
-      throw new ApiError(errorMessage, response.status, responseData);
-    }
+    // if (!response.ok) {
+    //   const errorMessage =
+    //     responseData.errors?.[0]?.message || response.statusText;
+    //   throw new ApiError(errorMessage, response.status, responseData);
+    // }
 
-    return responseData;
+    return response;
   } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    }
+    // if (error instanceof ApiError) {
+    //   throw error;
+    // }
 
     throw new Error("An unexpected network error occurred.");
   }

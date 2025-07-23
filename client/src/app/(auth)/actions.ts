@@ -1,6 +1,6 @@
 "use server";
 
-import { ApiError, authService, userService } from "@/lib/api";
+import { authService, userService } from "@/lib/api";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -17,12 +17,41 @@ export async function login(values: LoginSchema) {
   try {
     const validatedData = loginSchema.parse(values);
 
-    await authService.post("/api/auth/login", validatedData);
-  } catch (error) {
-    if (error instanceof ApiError) {
-      return { error: error.message };
+    const response = await authService.post("/api/auth/login", validatedData);
+    const responseData = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const errorMessage =
+        responseData.errors?.[0]?.message || response.statusText;
+
+      return { error: errorMessage };
     }
-    return { error: "An unexpected error occurred. Please try again." };
+
+    const setCookieHeaders = response.headers.getSetCookie();
+    if (setCookieHeaders.length > 0) {
+      setCookieHeaders.forEach(async (cookieString) => {
+        const [name, ...parts] = cookieString.split("=");
+        const [value] = parts.join("=").split(";");
+
+        const optionsString = parts.join("=").substring(value.length + 1);
+        const options: any = {};
+        optionsString.split(";").forEach((part) => {
+          const [key, val] = part.trim().split("=");
+          if (key.toLowerCase() === "expires") options.expires = new Date(val);
+          if (key.toLowerCase() === "path") options.path = val;
+          if (key.toLowerCase() === "samesite")
+            options.sameSite = val.toLowerCase() as any;
+          if (key.toLowerCase() === "httponly") options.httpOnly = true;
+          if (key.toLowerCase() === "secure") options.secure = true;
+        });
+
+        (await cookies()).set(name, value, options);
+      });
+    }
+  } catch (error: any) {
+    return {
+      error: error.message || "An unexpected error occurred. Please try again.",
+    };
   }
 
   revalidatePath("/");
@@ -31,8 +60,9 @@ export async function login(values: LoginSchema) {
 
 export async function getCurrentUser() {
   try {
-    const user = await userService.get("/api/users/me");
-    return user;
+    const response = await userService.get("/api/users/me");
+    if (!response.ok) return null;
+    return await response.json();
   } catch (error) {
     return null;
   }
@@ -40,10 +70,19 @@ export async function getCurrentUser() {
 
 export async function logout() {
   try {
-    await authService.post("/api/auth/logout", {});
+    const response = await authService.post("/api/auth/logout", {});
+    const setCookieHeaders = response.headers.getSetCookie();
+
+    if (setCookieHeaders.length > 0) {
+      setCookieHeaders.forEach(async (cookieString) => {
+        const [nameWithValue] = cookieString.split(";");
+        const [name, value] = nameWithValue.split("=");
+        (await cookies()).set(name, value, { expires: new Date(0), path: "/" });
+      });
+    }
   } catch (error) {
     console.error(
-      "Logout API call failed, proceeding to clear cookies.",
+      "Logout API call failed, proceeding to clear cookies manually.",
       error
     );
   } finally {
