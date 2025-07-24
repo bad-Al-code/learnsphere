@@ -6,8 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { redirect } from "next/navigation";
+import { AvatarUpload } from "./_components/avatar-upload";
 import { ProfileForm } from "./_components/profile-form";
 
 const getInitials = (firstName: string | null, lastName: string | null) => {
@@ -22,6 +22,8 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
+  const initials = getInitials(user.firstName, user.lastName);
+
   return (
     <div className="container mx-auto py-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -29,12 +31,10 @@ export default async function ProfilePage() {
         <div className="md:col-span-1">
           <Card>
             <CardHeader className="items-center text-center">
-              <Avatar className="h-24 w-24 mb-4">
-                <AvatarImage src={undefined} alt="User avatar" />
-                <AvatarFallback className="text-3xl">
-                  {getInitials(user.firstName, user.lastName)}
-                </AvatarFallback>
-              </Avatar>
+              <AvatarUpload
+                currentAvatarUrl={user.avatarUrls?.large}
+                initials={initials}
+              />
               <CardTitle className="text-2xl">
                 {user.firstName} {user.lastName}
               </CardTitle>

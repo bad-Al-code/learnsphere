@@ -100,4 +100,11 @@ export const userService = {
       baseUrl: process.env.USER_SERVICE_URL!,
       options: { ...options, method: "PUT", body: JSON.stringify(body) },
     }),
+
+  post: (path: string, body: any, options: RequestInit = {}) =>
+    apiClient({
+      path,
+      baseUrl: process.env.USER_SERVICE_URL!,
+      options: { ...options, method: "POST", body: JSON.stringify(body) },
+    }),
 };

@@ -20,6 +20,7 @@ type User = {
   userId: string;
   firstName: string | null;
   lastName: string | null;
+  avatarUrls: { small?: string; medium?: string; large?: string } | null;
 } | null;
 
 const getInitials = (firstName: string | null, lastName: string | null) => {
@@ -68,7 +69,10 @@ export function Header({ user: initialUser }: { user: User }) {
                     className="relative h-10 w-10 rounded-full"
                   >
                     <Avatar>
-                      <AvatarImage src={undefined} alt="User Avatar" />
+                      <AvatarImage
+                        src={user.avatarUrls?.small}
+                        alt="User Avatar"
+                      />
                       <AvatarFallback>
                         {getInitials(user.firstName, user.lastName)}
                       </AvatarFallback>

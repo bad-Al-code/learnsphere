@@ -36,3 +36,20 @@ export async function updateProfile(values: ProfileSchema) {
     return { error: "An unexpected error occurred." };
   }
 }
+
+export async function getAvatarUploadUrl(values: { filename: string }) {
+  try {
+    const response = await userService.post("/api/users/me/avatar-upload-url", {
+      filename: values.filename,
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to get upload URL.");
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error: any) {
+    return { error: error.message || "An unexpected error occurred." };
+  }
+}

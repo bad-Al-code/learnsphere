@@ -4,6 +4,7 @@ type User = {
   userId: string;
   firstName: string | null;
   lastName: string | null;
+  avatarUrls: { small?: string; medium?: string; large?: string } | null;
 } | null;
 
 type SessionState = {
