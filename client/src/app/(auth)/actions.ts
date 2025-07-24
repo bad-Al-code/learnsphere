@@ -242,6 +242,10 @@ export async function resetPassword(values: ResetPasswordSchema) {
 
     return { success: true };
   } catch (error: any) {
+    if (error.digest?.startsWith("NEXT_REDIRECT")) {
+      throw error;
+    }
+
     return { error: error.message || "An unexpected error occurred." };
   }
 }
