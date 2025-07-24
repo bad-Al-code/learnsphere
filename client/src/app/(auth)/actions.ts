@@ -195,3 +195,34 @@ export async function forgotPassword(
     return { error: error.message || "An unexpected error occurred." };
   }
 }
+
+const resetPasswordSchema = z.object({
+  token: z.string(),
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>;
+
+export async function resetPassword(values: ResetPasswordSchema) {
+  const { ...dataToSend } = values;
+
+  try {
+    const validatedData = resetPasswordSchema.parse(dataToSend);
+    const response = await authService.post(
+      "/api/auth/reset-password",
+      validatedData
+    );
+
+    if (!response.ok) {
+      const responseData = await response.json().catch(() => ({}));
+      const errorMessage =
+        responseData.errors?.[0]?.message || "Failed to reset password.";
+      return { error: errorMessage };
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "An unexpected error occurred." };
+  }
+}
