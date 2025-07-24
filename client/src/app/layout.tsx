@@ -30,7 +30,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans  antialiased min-h-screen bg-background`}
       >
         <SessionProvider>
           <div className="relative flex flex-col min-h-screen">

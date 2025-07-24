@@ -119,4 +119,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  code,
+  pre,
+  .font-mono {
+    font-family: var(--font-mono), monospace;
+  }
 }
