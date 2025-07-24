@@ -3,6 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useSessionStore } from "@/stores/session-store";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { getAvatarUploadUrl } from "../actions";
@@ -17,6 +18,7 @@ export function AvatarUpload({
   initials,
 }: AvatarUploadProps) {
   const router = useRouter();
+  const user = useSessionStore((state) => state.user);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -25,19 +27,21 @@ export function AvatarUpload({
   ) => {
     setError(null);
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !user) return;
 
     startTransition(async () => {
       try {
-        // 1. Get the presigned URL from our server
-        const { data, error: urlError } = await getAvatarUploadUrl({
+        const payload = {
           filename: file.name,
-        });
+          uploadType: "avatar" as const,
+          metadata: { userId: user.userId },
+        };
+
+        const { data, error: urlError } = await getAvatarUploadUrl(payload);
         if (urlError || !data?.uploadUrl) {
           throw new Error(urlError || "Could not get upload URL.");
         }
 
-        // 2. Upload the file directly to S3
         const uploadResponse = await fetch(data.uploadUrl, {
           method: "PUT",
           body: file,
@@ -48,8 +52,6 @@ export function AvatarUpload({
           throw new Error("Failed to upload image.");
         }
 
-        // 3. Refresh the page to show the new avatar
-        // Note: There might be a short delay as the backend processes the image.
         router.refresh();
       } catch (err: any) {
         setError(err.message);

@@ -37,14 +37,27 @@ export async function updateProfile(values: ProfileSchema) {
   }
 }
 
-export async function getAvatarUploadUrl(values: { filename: string }) {
+const avatarUploadUrlschema = z.object({
+  filename: z.string(),
+  uploadType: z.literal("avatar"),
+  metadata: z.record(z.string(), z.string()),
+});
+
+type AvataruploadUrlschema = z.infer<typeof avatarUploadUrlschema>;
+
+export async function getAvatarUploadUrl(values: AvataruploadUrlschema) {
   try {
-    const response = await userService.post("/api/users/me/avatar-upload-url", {
-      filename: values.filename,
-    });
+    const validatedData = avatarUploadUrlschema.parse(values);
+    const response = await userService.post(
+      "/api/users/me/avatar-upload-url",
+      validatedData
+    );
 
     if (!response.ok) {
-      throw new Error("Failed to get upload URL.");
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.errors?.[0]?.message || "Failed to get upload URL."
+      );
     }
 
     const data = await response.json();

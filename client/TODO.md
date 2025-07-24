@@ -1,0 +1,1 @@
+- profile form is not cleared after save chagnes, and also dont just show user to changes stuff, give tem a edit button or something then they can change their profile
