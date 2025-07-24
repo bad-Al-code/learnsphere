@@ -11,16 +11,27 @@ import {
 } from "@/components/ui/card";
 import { MailCheck } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { resendVerificationEmail } from "../../actions";
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
 
+  const [cooldown, setCooldown] = useState(0);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => {
+        setCooldown(cooldown - 1);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
 
   const onResend = () => {
     setError(null);
@@ -37,6 +48,8 @@ export default function VerifyEmailPage() {
         setError(result.error);
       } else {
         setSuccess("A new verification email has been sent.");
+
+        setCooldown(60);
       }
     });
   };
@@ -74,8 +87,17 @@ export default function VerifyEmailPage() {
           </p>
         </CardContent>
         <CardFooter className="flex-col items-center justify-center space-y-4">
-          <Button onClick={onResend} disabled={isPending} variant="secondary">
-            {isPending ? "Sending..." : "Resend Verification Email"}
+          <Button
+            onClick={onResend}
+            disabled={isPending || cooldown > 0}
+            variant="secondary"
+            className="w-full"
+          >
+            {isPending
+              ? "Sending..."
+              : cooldown > 0
+              ? `Resend on ${cooldown}s`
+              : "Resend Verification Email"}
           </Button>
           {error && (
             <p className="text-sm font-medium text-destructive">{error}</p>

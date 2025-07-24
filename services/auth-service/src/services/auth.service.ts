@@ -16,13 +16,12 @@ import {
 import { OauthProfile } from '../types/auth.types';
 import axios from 'axios';
 import { env } from '../config/env';
+import { redisConnection } from '../config/redis';
 
 const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
 const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
+const RESEND_VERIFICATION_RATE_LIMIT_SECONDS = 60;
 
-/**
- * Contains all business logic related to user authentication and management.
- */
 export class AuthService {
   /**
    * Finds a user by email. Private helper for this service.
@@ -307,6 +306,16 @@ export class AuthService {
    * @returns An object with the user and new token, or null if the user is already verified or doesn't exist.
    */
   public static async resendVerificationEmail(email: string) {
+    const redisClient = redisConnection.getClient();
+    const rateLimitKey = `resend-verification-lock:${email}`;
+
+    const isLocked = await redisClient.get(rateLimitKey);
+    if (isLocked) {
+      throw new BadRequestError(
+        'Please wait a minute before requesting another verification email.'
+      );
+    }
+
     const user = await this._findUserByEmail(email);
     if (!user || user.isVerified) {
       if (user?.isVerified)
@@ -325,6 +334,10 @@ export class AuthService {
     await UserRepository.updateUser(user.id!, {
       verificationToken: hashedToken,
       verificationTokenExpiresAt,
+    });
+
+    await redisClient.set(rateLimitKey, 'locked', {
+      EX: RESEND_VERIFICATION_RATE_LIMIT_SECONDS,
     });
 
     logger.info(`New verifiation token generated for user: ${user.id}`);
