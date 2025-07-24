@@ -168,3 +168,30 @@ export async function verifyEmail(values: z.infer<typeof verifyEmailSchema>) {
     return { error: error.message || "An unexpected error occurred." };
   }
 }
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+export async function forgotPassword(
+  values: z.infer<typeof forgotPasswordSchema>
+) {
+  try {
+    const validatedData = forgotPasswordSchema.parse(values);
+    const response = await authService.post(
+      "/api/auth/forgot-password",
+      validatedData
+    );
+
+    if (!response.ok) {
+      const responseData = await response.json().catch(() => ({}));
+      const errorMessage =
+        responseData.errors?.[0]?.message || "Failed to send reset link.";
+      return { error: errorMessage };
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "An unexpected error occurred." };
+  }
+}

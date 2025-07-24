@@ -86,7 +86,17 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
+
+              <div className="flex items-center">
+                <Link
+                  href="/forgot-password"
+                  className="ml-auto inline-block text-sm underline"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isPending}>
                 {isPending ? "Logging in..." : "Login"}
               </Button>
               {error && (
