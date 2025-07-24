@@ -276,3 +276,35 @@ export async function resendVerificationEmail(
     return { error: error.message || "An unexpected error occurred." };
   }
 }
+
+const updatePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8),
+});
+
+type UpdatePasswordSchema = z.infer<typeof updatePasswordSchema>;
+
+export async function updatePassword(values: UpdatePasswordSchema) {
+  try {
+    const validatedData = updatePasswordSchema.parse(values);
+    const response = await authService.patch(
+      "/api/auth/update-password",
+      validatedData
+    );
+
+    const responseData = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const errorMessage =
+        responseData.errors?.[0]?.message || "Failed to update password.";
+      return { error: errorMessage };
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    if (error.digest?.startsWith("NEXT_REDIRECT")) {
+      throw error;
+    }
+    return { error: error.message || "An unexpected error occurred." };
+  }
+}

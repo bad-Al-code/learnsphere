@@ -77,6 +77,13 @@ export const authService = {
       baseUrl: process.env.AUTH_SERVICE_URL!,
       options: { ...options, method: "POST", body: JSON.stringify(body) },
     }),
+
+  patch: (path: string, body: any, options: RequestInit = {}) =>
+    apiClient({
+      path,
+      baseUrl: process.env.AUTH_SERVICE_URL!,
+      options: { ...options, method: "PATCH", body: JSON.stringify(body) },
+    }),
 };
 
 export const userService = {
