@@ -135,16 +135,18 @@ export async function signup(values: SignupSchema) {
         (await cookies()).set(name, value, options);
       });
     }
+
+    redirect(
+      `/signup/verify-email?email=${encodeURIComponent(validatedData.email)}`
+    );
   } catch (error: any) {
     return { error: error.message || "An unexpected error occurred." };
   }
-
-  redirect("/signup/verify-email");
 }
 
 const verifyEmailSchema = z.object({
   token: z.string(),
-  email: z.string().email(),
+  email: z.email(),
 });
 
 export async function verifyEmail(values: z.infer<typeof verifyEmailSchema>) {
@@ -198,7 +200,7 @@ export async function forgotPassword(
 
 const resetPasswordSchema = z.object({
   token: z.string(),
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8),
 });
 
@@ -246,6 +248,33 @@ export async function resetPassword(values: ResetPasswordSchema) {
       throw error;
     }
 
+    return { error: error.message || "An unexpected error occurred." };
+  }
+}
+
+const resendVerificationEmailSchema = z.object({
+  email: z.email(),
+});
+
+export async function resendVerificationEmail(
+  values: z.infer<typeof resendVerificationEmailSchema>
+) {
+  try {
+    const validatedData = resendVerificationEmailSchema.parse(values);
+    const response = await authService.post(
+      "/api/auth/resend-verification",
+      validatedData
+    );
+
+    if (!response.ok) {
+      const responseData = await response.json().catch(() => ({}));
+      const errorMessage =
+        responseData.errors?.[0]?.message || "Failed to resend email.";
+      return { error: errorMessage };
+    }
+
+    return { success: true };
+  } catch (error: any) {
     return { error: error.message || "An unexpected error occurred." };
   }
 }
