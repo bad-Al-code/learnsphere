@@ -136,9 +136,7 @@ export async function signup(values: SignupSchema) {
       });
     }
 
-    redirect(
-      `/signup/verify-email?email=${encodeURIComponent(validatedData.email)}`
-    );
+    return { success: true, email: validatedData.email };
   } catch (error: any) {
     return { error: error.message || "An unexpected error occurred." };
   }

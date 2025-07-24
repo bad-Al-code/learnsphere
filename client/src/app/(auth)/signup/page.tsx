@@ -23,6 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
 import { signup } from "../actions";
 
 const formSchema = z.object({
@@ -35,6 +36,7 @@ const formSchema = z.object({
 type FormSchema = z.infer<typeof formSchema>;
 
 export default function SignupPage() {
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -53,6 +55,12 @@ export default function SignupPage() {
 
       if (result?.error) {
         setError(result.error);
+      }
+
+      if (result?.success && result.email) {
+        router.push(
+          `/signup/verify-email?email=${encodeURIComponent(result.email)}`
+        );
       }
     });
   }
