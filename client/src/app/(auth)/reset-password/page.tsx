@@ -71,7 +71,8 @@ function ResetPasswordForm() {
       const result = await resetPassword({ ...values, token, email });
       if (result?.error) {
         setError(result.error);
-      } else {
+      }
+      if (result?.success && result.error) {
         setSuccess(true);
       }
     });

@@ -221,6 +221,25 @@ export async function resetPassword(values: ResetPasswordSchema) {
       return { error: errorMessage };
     }
 
+    console.log("Password reset successful. Attempting auto-login...");
+
+    const loginResult = await login({
+      email: validatedData.email,
+      password: validatedData.password,
+    });
+    if (loginResult?.error) {
+      console.error(
+        "Auto-login failed after password reset:",
+        loginResult.error
+      );
+
+      return {
+        success: true,
+        error:
+          "Could not log you in automatically. Please log in with your new password.",
+      };
+    }
+
     return { success: true };
   } catch (error: any) {
     return { error: error.message || "An unexpected error occurred." };
