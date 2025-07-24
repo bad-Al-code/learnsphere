@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { redirect } from "next/navigation";
+import { ProfileForm } from "./_components/profile-form";
 
 const getInitials = (firstName: string | null, lastName: string | null) => {
   const first = firstName?.[0] || "";
@@ -23,39 +24,47 @@ export default async function ProfilePage() {
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">Your Profile</h1>
-      <Card className="max-w-2xl">
-        <CardHeader>
-          <div className="flex items-center space-x-4">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={undefined} alt="User avatar" />
-              <AvatarFallback>
-                {getInitials(user.firstName, user.lastName)}
-              </AvatarFallback>
-            </Avatar>
-            <div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Left Column for basic info */}
+        <div className="md:col-span-1">
+          <Card>
+            <CardHeader className="items-center text-center">
+              <Avatar className="h-24 w-24 mb-4">
+                <AvatarImage src={undefined} alt="User avatar" />
+                <AvatarFallback className="text-3xl">
+                  {getInitials(user.firstName, user.lastName)}
+                </AvatarFallback>
+              </Avatar>
               <CardTitle className="text-2xl">
                 {user.firstName} {user.lastName}
               </CardTitle>
               <CardDescription>
                 {user.headline || "No headline set."}
               </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <h3 className="font-semibold">Bio</h3>
-            <p className="text-muted-foreground">{user.bio || "No bio set."}</p>
-          </div>
-          <div>
-            <h3 className="font-semibold">Website</h3>
-            <p className="text-muted-foreground">
-              {user.websiteUrl || "No website set."}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground text-center">
+                {user.bio || "No bio set."}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column for editing */}
+        <div className="md:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Edit Profile</CardTitle>
+              <CardDescription>
+                Update your personal information here.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProfileForm userData={user} />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { redirect } from "next/navigation";
-import { UpdatePasswordForm } from "./_components/update-password-form";
+import { UpdatePasswordForm } from "../_components/update-password-form";
 
 export default async function SecurityPage() {
   const user = await getCurrentUser();

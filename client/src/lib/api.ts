@@ -93,4 +93,11 @@ export const userService = {
       baseUrl: process.env.USER_SERVICE_URL!,
       options: { ...options, method: "GET" },
     }),
+
+  put: (path: string, body: any, options: RequestInit = {}) =>
+    apiClient({
+      path,
+      baseUrl: process.env.USER_SERVICE_URL!,
+      options: { ...options, method: "PUT", body: JSON.stringify(body) },
+    }),
 };
