@@ -56,9 +56,14 @@ export function Header({ user: initialUser }: { user: User }) {
                 </Button>
               </div>
             ) : (
-              <Button asChild>
-                <Link href="/login">Login</Link>
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button asChild variant="ghost">
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/signup">Sign Up</Link>
+                </Button>
+              </div>
             )}
           </nav>
         </div>
