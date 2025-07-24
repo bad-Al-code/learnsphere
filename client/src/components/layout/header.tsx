@@ -1,7 +1,17 @@
 "use client";
 
 import { logout } from "@/app/(auth)/actions";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useSessionStore } from "@/stores/session-store";
+import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useTransition } from "react";
 import { Button } from "../ui/button";
@@ -11,6 +21,12 @@ type User = {
   firstName: string | null;
   lastName: string | null;
 } | null;
+
+const getInitials = (firstName: string | null, lastName: string | null) => {
+  const first = firstName?.[0] || "";
+  const last = lastName?.[0] || "";
+  return `${first}${last}`.toUpperCase();
+};
 
 export function Header({ user: initialUser }: { user: User }) {
   const { user, setUser } = useSessionStore();
@@ -45,16 +61,51 @@ export function Header({ user: initialUser }: { user: User }) {
         <div className="flex flex-1 items-center justify-end space-x-4">
           <nav>
             {user ? (
-              <div className="flex items-center space-x-4">
-                <span>Hello, {user.firstName || "User"}</span>
-                <Button
-                  variant="outline"
-                  onClick={handleLogout}
-                  disabled={isPending}
-                >
-                  {isPending ? "Logging out..." : "Logout"}
-                </Button>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full"
+                  >
+                    <Avatar>
+                      <AvatarImage src={undefined} alt="User Avatar" />
+                      <AvatarFallback>
+                        {getInitials(user.firstName, user.lastName)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {user.firstName} {user.lastName}
+                      </p>
+                      {/* <p className="text-xs leading-none text-muted-foreground">user@example.com</p> */}
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                      <UserIcon className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile/security">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Security</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} disabled={isPending}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <div className="flex items-center space-x-2">
                 <Button asChild variant="ghost">
