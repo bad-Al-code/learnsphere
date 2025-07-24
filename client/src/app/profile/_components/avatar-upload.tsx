@@ -38,11 +38,12 @@ export function AvatarUpload({
         };
 
         const { data, error: urlError } = await getAvatarUploadUrl(payload);
-        if (urlError || !data?.uploadUrl) {
+
+        if (urlError || !data?.signedUrl) {
           throw new Error(urlError || "Could not get upload URL.");
         }
 
-        const uploadResponse = await fetch(data.uploadUrl, {
+        const uploadResponse = await fetch(data.signedUrl, {
           method: "PUT",
           body: file,
           headers: { "Content-Type": file.type },
