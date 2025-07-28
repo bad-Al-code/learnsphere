@@ -2,23 +2,23 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 
-import { AuthService } from '../services/auth.service';
-import { BlacklistService } from './blacklist-service';
+import { env } from '../config/env';
+import logger from '../config/logger';
+import passport from '../config/passport';
+import { User } from '../db/database.types';
+import { UnauthenticatedError } from '../errors';
 import {
   UserPasswordResetRequiredPublisher,
   UserRegisteredPublisher,
   UserVerificationRequiredPublisher,
 } from '../events/publisher';
-import { attachCookiesToResponse, sendTokenResponse } from '../utils/token';
-import logger from '../config/logger';
-import { UnauthenticatedError } from '../errors';
-import { UserPayload } from '../types/auth.types';
-import { env } from '../config/env';
-import { RequestContext } from '../types/service.types';
 import { AuditService } from '../services/audit.service';
+import { AuthService } from '../services/auth.service';
 import { SessionService } from '../services/session.service';
-import passport from '../config/passport';
-import { User } from '../db/database.types';
+import { UserPayload } from '../types/auth.types';
+import { RequestContext } from '../types/service.types';
+import { attachCookiesToResponse, sendTokenResponse } from '../utils/token';
+import { BlacklistService } from './blacklist-service';
 
 export class AuthController {
   public static async signup(req: Request, res: Response, next: NextFunction) {
@@ -29,11 +29,8 @@ export class AuthController {
         userAgent: req.headers['user-agent'],
       };
 
-      const { user, verificationToken } = await AuthService.signup(
-        email,
-        password,
-        context
-      );
+      const { user, verificationCode, verificationToken } =
+        await AuthService.signup(email, password, context);
 
       const registeredPublisher = new UserRegisteredPublisher();
       await registeredPublisher.publish({
@@ -44,6 +41,7 @@ export class AuthController {
       const verificationPublisher = new UserVerificationRequiredPublisher();
       await verificationPublisher.publish({
         email: user.email,
+        verificationCode,
         verificationToken,
       });
 
@@ -197,6 +195,7 @@ export class AuthController {
         const publisher = new UserPasswordResetRequiredPublisher();
         await publisher.publish({
           email,
+          resetCode: result.resetCode,
           resetToken: result.resetToken,
         });
       }

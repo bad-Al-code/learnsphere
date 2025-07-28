@@ -42,6 +42,7 @@ interface UserVerificationRequiredEvent {
   topic: 'user.verification.required';
   data: {
     email: string;
+    verificationCode: string;
     verificationToken: string;
   };
 }
@@ -55,6 +56,7 @@ interface UserPasswordResetRequiredEvent {
   topic: 'user.password_reset.required';
   data: {
     email: string;
+    resetCode: string;
     resetToken: string;
   };
 }
