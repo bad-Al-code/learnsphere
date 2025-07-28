@@ -44,6 +44,7 @@ export const auditLogActionEnum = pgEnum('audit_log_action', [
   'PASSWORD_RESET_REQUEST',
   'PASSWORD_RESET_SUCCESS',
   'EMAIL_VERIFICATION_SUCCESS',
+  'EMAIL_VERIFICATION_RESEND',
 ]);
 
 export const auditLogs = pgTable('audit_logs', {

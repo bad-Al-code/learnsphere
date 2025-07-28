@@ -195,7 +195,12 @@ export class AuthController {
   ) {
     try {
       const { email, code, password } = req.body;
-      const result = await AuthService.forgotPassword(email);
+      const context: RequestContext = {
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      };
+
+      const result = await AuthService.forgotPassword(email, context);
 
       if (result) {
         const publisher = new UserPasswordResetRequiredPublisher();
@@ -223,7 +228,12 @@ export class AuthController {
     try {
       const { email, code, token, password } = req.body;
       const codeOrToken = code || token;
-      await AuthService.resetPassword(email, codeOrToken, password);
+      const context: RequestContext = {
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      };
+
+      await AuthService.resetPassword(email, codeOrToken, password, context);
       res.status(StatusCodes.OK).json({
         message: 'Password has been reset successfully.',
       });
@@ -239,7 +249,12 @@ export class AuthController {
   ) {
     try {
       const { email } = req.body;
-      const result = await AuthService.resendVerificationEmail(email);
+      const context: RequestContext = {
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      };
+
+      const result = await AuthService.resendVerificationEmail(email, context);
 
       if (result) {
         const publisher = new UserVerificationRequiredPublisher();

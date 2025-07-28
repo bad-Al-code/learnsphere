@@ -247,7 +247,10 @@ export class AuthService {
    * @param email The user's email.
    * @returns An object with the raw reset token, or null if the user doesn't exist.
    */
-  public static async forgotPassword(email: string) {
+  public static async forgotPassword(
+    email: string,
+    context: RequestContext = {}
+  ) {
     const user = await this._findUserByEmail(email);
     if (!user) {
       logger.warn(`Password reset requested for non-existent email: ${email}`);
@@ -268,6 +271,14 @@ export class AuthService {
 
     logger.info(`Password reset token generated for user: ${user.id}`);
 
+    await AuditService.logEvent({
+      action: 'PASSWORD_RESET_REQUEST',
+      userId: user.id,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      details: { email: user.email },
+    });
+
     return { resetCode, resetToken };
   }
 
@@ -281,7 +292,8 @@ export class AuthService {
   public static async resetPassword(
     email: string,
     resetCodeOrToken: string,
-    newPassword: string
+    newPassword: string,
+    context: RequestContext = {}
   ) {
     const hashedCodeOrToken = TokenUtil.hashToken(resetCodeOrToken);
 
@@ -314,6 +326,14 @@ export class AuthService {
     const publisher = new UserPasswordChangedPublisher();
     await publisher.publish({ userId: user.id, email: user.email });
 
+    await AuditService.logEvent({
+      action: 'PASSWORD_RESET_SUCCESS',
+      userId: user.id,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      details: { email: user.email },
+    });
+
     logger.info(`Password succesfully reset for user ID: ${user.id}`);
   }
 
@@ -322,7 +342,10 @@ export class AuthService {
    * @param email The user's email.
    * @returns An object with the user and new token, or null if the user is already verified or doesn't exist.
    */
-  public static async resendVerificationEmail(email: string) {
+  public static async resendVerificationEmail(
+    email: string,
+    context: RequestContext = {}
+  ) {
     const redisClient = redisConnection.getClient();
     const rateLimitKey = `resend-verification-lock:${email}`;
 
@@ -356,6 +379,14 @@ export class AuthService {
 
     await redisClient.set(rateLimitKey, 'locked', {
       EX: RESEND_VERIFICATION_RATE_LIMIT_SECONDS,
+    });
+
+    await AuditService.logEvent({
+      action: 'EMAIL_VERIFICATION_RESEND',
+      userId: user.id,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      details: { email: user.email },
     });
 
     logger.info(`New verifiation token generated for user: ${user.id}`);
@@ -426,7 +457,8 @@ export class AuthService {
    * @returns The found or newly created user
    */
   public static async findOrCreateOauthUser(
-    profile: OauthProfile
+    profile: OauthProfile,
+    context: RequestContext = {}
   ): Promise<User> {
     const { email, firstName, lastName, avatarUrl } = profile;
 
@@ -468,6 +500,14 @@ export class AuthService {
     if (!fullUser) {
       throw new Error('Failed to create OAuth user');
     }
+
+    await AuditService.logEvent({
+      action: 'SIGNUP_SUCCESS',
+      userId: newUserRecord.id,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      details: { email: newUserRecord.email },
+    });
 
     return fullUser;
   }

@@ -1,0 +1,1 @@
+ALTER TYPE "public"."audit_log_action" ADD VALUE 'EMAIL_VERIFICATION_RESEND';
