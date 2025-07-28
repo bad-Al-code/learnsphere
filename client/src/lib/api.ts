@@ -1,5 +1,5 @@
-import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { getBaseUrl } from "./utils/get-base-url";
 
 export class ApiError extends Error {
   status: number;
@@ -33,11 +33,17 @@ async function apiClient(
 
   let response = await fetch(`${baseUrl}${path}`, { ...options, headers });
 
-  if (response.status === 401 && path !== "/api/auth/refresh") {
-    console.log("Access token expired or invalid. Attempting to refresh...");
+  if (
+    response.status === 401 &&
+    path !== "/api/auth/login" &&
+    path !== "/api/auth/refresh"
+  ) {
+    console.log(
+      "Access token expired. Attempting to refresh via internal API route..."
+    );
     try {
       const refreshResponse = await fetch(
-        `${process.env.AUTH_SERVICE_URL!}/api/auth/refresh`,
+        `${getBaseUrl()}/api/auth/refresh-token`,
         {
           method: "POST",
           headers: { Cookie: cookieHeader },
@@ -45,7 +51,7 @@ async function apiClient(
       );
 
       if (!refreshResponse.ok) {
-        console.error("Failed to refresh token. User must log in again.");
+        console.error("Internal refresh route failed. User must log in again.");
         throw new ApiError(
           "Your session has expired. Please log in again.",
           401,
@@ -53,23 +59,14 @@ async function apiClient(
         );
       }
 
-      console.log("Token refreshed successfully. Retrying original request.");
+      console.log(
+        "Token refreshed successfully via internal route. Retrying original request."
+      );
 
-      const setCookieHeaders = refreshResponse.headers.getSetCookie();
-      setCookieHeaders.forEach(async (cookie) => {
-        const parts = cookie.split(";");
-        const [name, value] = parts[0].split("=");
-        (await cookies()).set(name, value, {
-          httpOnly: true,
-          path: "/",
-        });
-      });
-
+      // Retry the original request. The cookies have been updated in the browser
+      // by the route handler, and our cookie forwarding will pick them up.
       response = await fetch(`${baseUrl}${path}`, { ...options, headers });
     } catch (e) {
-      (await cookies()).delete("token");
-      (await cookies()).delete("refreshToken");
-      revalidatePath("/");
       throw e;
     }
   }
