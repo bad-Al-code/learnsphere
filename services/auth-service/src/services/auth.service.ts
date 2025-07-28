@@ -60,7 +60,8 @@ export class AuthService {
 
     const { rawCode: verificationCode, hashedCode } =
       TokenUtil.generateVerificationCode();
-    const { rawToken: verificationToken } = TokenUtil.generateSecureToken();
+    const { rawToken: verificationToken, hashedToken: secureHashedToken } =
+      TokenUtil.generateSecureToken();
     const verificationTokenExpiresAt =
       TokenUtil.getExpirationDate(TEN_MINUTES_IN_MS);
 
@@ -70,6 +71,7 @@ export class AuthService {
       email,
       passwordHash,
       verificationToken: hashedCode,
+      secureVerificationToken: secureHashedToken,
       verificationTokenExpiresAt,
     };
 
@@ -184,7 +186,8 @@ export class AuthService {
    */
   public static async verifyEmail(
     email: string,
-    verificationCodeOrToken: string
+    verificationCodeOrToken: string,
+    context: RequestContext = {}
   ) {
     const hashedCode = TokenUtil.hashToken(verificationCodeOrToken);
 
@@ -211,6 +214,7 @@ export class AuthService {
     await UserRepository.updateUser(user.id!, {
       isVerified: true,
       verificationToken: null,
+      secureVerificationToken: null,
       verificationTokenExpiresAt: null,
     });
 
@@ -226,6 +230,14 @@ export class AuthService {
         error,
       });
     }
+
+    await AuditService.logEvent({
+      action: 'EMAIL_VERIFICATION_SUCCESS',
+      userId: user.id,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      details: { email: user.email },
+    });
 
     logger.info(`Email successfully verified for user ID: ${user.id}`);
   }
@@ -243,12 +255,14 @@ export class AuthService {
     }
     const { rawCode: resetCode, hashedCode } =
       TokenUtil.generateVerificationCode();
-    const { rawToken: resetToken } = TokenUtil.generateSecureToken();
+    const { rawToken: resetToken, hashedToken: secureHashedToken } =
+      TokenUtil.generateSecureToken();
     const passwordResetTokenExpiresAt =
       TokenUtil.getExpirationDate(TEN_MINUTES_IN_MS);
 
     await UserRepository.updateUser(user.id!, {
       passwordResetToken: hashedCode,
+      securePasswordResetToken: secureHashedToken,
       passwordResetTokenExpiresAt,
     });
 
@@ -292,6 +306,7 @@ export class AuthService {
       passwordHash: newPasswordHash,
       passwordResetToken: null,
       passwordResetTokenExpiresAt: null,
+      securePasswordResetToken: null,
       passwordChangedAt: new Date(),
       updatedAt: new Date(),
     });

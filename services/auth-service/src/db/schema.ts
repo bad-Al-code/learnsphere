@@ -1,12 +1,12 @@
 import { sql } from 'drizzle-orm';
 import {
+  boolean,
+  jsonb,
+  pgEnum,
+  pgTable,
   text,
   timestamp,
   uuid,
-  pgTable,
-  boolean,
-  pgEnum,
-  jsonb,
 } from 'drizzle-orm/pg-core';
 
 export const userRoleEnum = pgEnum('user_role', [
@@ -25,8 +25,10 @@ export const users = pgTable('users', {
   role: userRoleEnum('role').default('student').notNull(),
   isVerified: boolean('is_verified').default(false).notNull(),
   verificationToken: text('verification_token'),
+  secureVerificationToken: text('secure_verification_token'),
   verificationTokenExpiresAt: timestamp('verification_token_expires_at'),
   passwordResetToken: text('password_reset_token'),
+  securePasswordResetToken: text('secure_password_reset_token'),
   passwordResetTokenExpiresAt: timestamp('password_reset_token_expires_at'),
   passwordChangedAt: timestamp('password_changed_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),

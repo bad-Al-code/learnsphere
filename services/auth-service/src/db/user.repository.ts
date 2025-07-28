@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, or } from 'drizzle-orm';
 
 import { db } from '.';
 import { NewUser, User } from './database.types';
@@ -33,12 +33,15 @@ export class UserRepository {
    */
   public static async findByEmailAndVerificationToken(
     email: string,
-    hashedToken: string
+    hashedCodeOrToken: string
   ): Promise<User | undefined> {
     return db.query.users.findFirst({
       where: and(
         eq(users.email, email),
-        eq(users.verificationToken, hashedToken)
+        or(
+          eq(users.verificationToken, hashedCodeOrToken),
+          eq(users.secureVerificationToken, hashedCodeOrToken)
+        )
       ),
     });
   }
@@ -51,12 +54,15 @@ export class UserRepository {
    */
   public static async findByEmailAndPasswordResetToken(
     email: string,
-    hashedToken: string
+    hashedCodeOrToken: string
   ): Promise<User | undefined> {
     return db.query.users.findFirst({
       where: and(
         eq(users.email, email),
-        eq(users.passwordResetToken, hashedToken)
+        or(
+          eq(users.passwordResetToken, hashedCodeOrToken),
+          eq(users.securePasswordResetToken, hashedCodeOrToken)
+        )
       ),
     });
   }

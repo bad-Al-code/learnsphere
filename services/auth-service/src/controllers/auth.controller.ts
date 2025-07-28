@@ -174,7 +174,12 @@ export class AuthController {
     try {
       const { email, code, token } = req.body;
       const codeOrToken = code || token;
-      await AuthService.verifyEmail(email, codeOrToken);
+      const context: RequestContext = {
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      };
+
+      await AuthService.verifyEmail(email, codeOrToken, context);
       res.status(StatusCodes.OK).json({
         message: 'Email verified successfully.',
       });
@@ -216,8 +221,9 @@ export class AuthController {
     next: NextFunction
   ) {
     try {
-      const { email, code, password } = req.body;
-      await AuthService.resetPassword(email, code, password);
+      const { email, code, token, password } = req.body;
+      const codeOrToken = code || token;
+      await AuthService.resetPassword(email, codeOrToken, password);
       res.status(StatusCodes.OK).json({
         message: 'Password has been reset successfully.',
       });

@@ -67,7 +67,6 @@ import { z } from 'zod';
  *       type: object
  *       required:
  *         - email
- *         - code
  *         - password
  *       properties:
  *         email:
@@ -78,6 +77,10 @@ import { z } from 'zod';
  *           type: string
  *           description: The password reset code sent to the user's email.
  *           example: '234234'
+ *         token:
+ *           type: string
+ *           description: The verification token sent to the user's email.
+ *           example: 'asdad....'
  *         password:
  *           type: string
  *           format: password
@@ -166,7 +169,8 @@ export const verifyEmailSchema = z.object({
         .email('Not a valid email'),
       code: z
         .string({ required_error: 'Verification code is required' })
-        .length(6, 'Code must be 6 digits.'),
+        .length(6, 'Code must be 6 digits.')
+        .optional(),
       token: z.string().min(32).optional(),
     })
     .refine((data) => data.code || data.token, {
@@ -193,7 +197,9 @@ export const resetPasswordSchema = z.object({
       .email('Not a valid email'),
     code: z
       .string({ required_error: 'Reset code is required' })
-      .length(6, 'Code must be 6 digits.'),
+      .length(6, 'Code must be 6 digits.')
+      .optional(),
+    token: z.string().min(32).optional(),
     password: z
       .string({ required_error: 'Password is required' })
       .min(8, 'Password must at least 8 characters long')
