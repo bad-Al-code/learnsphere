@@ -1,5 +1,6 @@
 import { Header } from "@/components/layout/header";
 import { SessionProvider } from "@/components/layout/session-provider";
+import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { getCurrentUser } from "./(auth)/actions";
@@ -36,6 +37,7 @@ export default async function RootLayout({
           <div className="relative flex flex-col min-h-screen">
             <Header user={user} />
             <main className="flex-1">{children}</main>
+            <Toaster />
           </div>
         </SessionProvider>
       </body>

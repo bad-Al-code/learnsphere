@@ -75,3 +75,39 @@ export async function getAvatarUploadUrl(values: AvataruploadUrlschema) {
     return { error: error.message || "An unexpected error occurred." };
   }
 }
+
+const notificationsSchema = z.object({
+  notifications: z.object({
+    newCourseAlerts: z.boolean(),
+    weeklyNewsletter: z.boolean(),
+  }),
+});
+
+export async function updateNotificationSettings(values: {
+  newCourseAlerts: boolean;
+  weeklyNewsletter: boolean;
+}) {
+  try {
+    const validatedData = notificationsSchema.parse({ notifications: values });
+
+    const response = await userService.put(
+      "/api/users/me/settings",
+      validatedData
+    );
+
+    if (!response.ok) {
+      const responseData = await response.json().catch(() => ({}));
+      const errorMessage =
+        responseData.errors?.[0]?.message || "Failed to update settings.";
+      return { error: errorMessage };
+    }
+
+    revalidatePath("/settings/notifications");
+    return { success: true };
+  } catch (error: any) {
+    if (error instanceof ApiError) {
+      return { error: error.message };
+    }
+    return { error: "An unexpected error occurred." };
+  }
+}

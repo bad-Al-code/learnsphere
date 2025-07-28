@@ -1,3 +1,4 @@
+import { getCurrentUser } from "@/app/(auth)/actions";
 import {
   Card,
   CardContent,
@@ -5,10 +6,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { redirect } from "next/navigation";
+import { NotificationsForm } from "../../_components/notification-form";
 
-export default function NotificationSettingsPage() {
+export default async function NotificationSettingsPage() {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/login");
+  }
+
+  const settings = user.settings || {
+    notifications: { newCourseAlerts: false, weeklyNewsletter: false },
+  };
   return (
     <Card>
       <CardHeader>
@@ -17,32 +26,8 @@ export default function NotificationSettingsPage() {
           Manage how you receive notifications from LearnSphere.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex items-center justify-between p-4 border rounded-lg">
-          <div className="space-y-1">
-            <Label htmlFor="invoice-email" className="font-semibold">
-              Invoice in email
-            </Label>
-            <p className="text-sm text-muted-foreground">
-              You can receive your invoices in email (to your primary email
-              address) attached as PDF.
-            </p>
-          </div>
-          <Switch id="invoice-email" disabled />
-        </div>
-
-        <div className="flex items-center justify-between p-4 border rounded-lg">
-          <div className="space-y-1">
-            <Label htmlFor="failed-deployments" className="font-semibold">
-              Failed deployments
-            </Label>
-            <p className="text-sm text-muted-foreground">
-              Receive automatic notifications for failed app and static site
-              deployments.
-            </p>
-          </div>
-          <Switch id="failed-deployments" disabled />
-        </div>
+      <CardContent>
+        <NotificationsForm settings={settings} />
       </CardContent>
     </Card>
   );
