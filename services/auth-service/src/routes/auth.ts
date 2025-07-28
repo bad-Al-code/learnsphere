@@ -247,6 +247,12 @@ router.post(
   AuthController.verifyResetCode
 );
 
+router.post(
+  '/verify-reset-token',
+  validateRequest(verifyResetTokenSchema),
+  AuthController.verifyResetToken
+);
+
 /**
  * @openapi
  * /api/auth/reset-password:

@@ -353,6 +353,35 @@ export async function verifyResetCode(
   }
 }
 
+const verifyResetTokenSchema = z.object({
+  email: z.string().email(),
+  token: z.string().min(32),
+});
+
+export async function verifyResetToken(
+  values: z.infer<typeof verifyResetTokenSchema>
+) {
+  try {
+    const validatedData = verifyResetTokenSchema.parse(values);
+    const response = await authService.post(
+      "/api/auth/verify-reset-token",
+      validatedData
+    );
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      const errorMessage =
+        responseData.errors?.[0]?.message || "Failed to verify token.";
+      return { error: errorMessage };
+    }
+
+    return { success: true, token: responseData.token };
+  } catch (error: any) {
+    return { error: error.message || "An unexpected error occurred." };
+  }
+}
+
 const setNewPasswordSchema = z.object({
   token: z.string(),
   password: z.string().min(8),

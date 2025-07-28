@@ -238,6 +238,23 @@ export class AuthController {
     }
   }
 
+  public static async verifyResetToken(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { email, token } = req.body;
+      const singleUseToken = await AuthService.verifyPasswordResetToken(
+        email,
+        token
+      );
+      res.status(StatusCodes.OK).json({ token: singleUseToken });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public static async resetPassword(
     req: Request,
     res: Response,

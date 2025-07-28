@@ -1,8 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
+import { Suspense, useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -27,7 +28,7 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { verifyResetCode } from "../actions";
+import { verifyResetCode, verifyResetToken } from "../actions";
 
 const otpSchema = z.object({
   code: z
@@ -35,11 +36,52 @@ const otpSchema = z.object({
     .min(6, { message: "Your one-time password must be 6 characters." }),
 });
 
-export default function ResetPasswordCodePage() {
-  const router = useRouter();
+// Main component sets up the Suspense boundary
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<LoadingCard message="Loading..." />}>
+      <ResetPasswordFlow />
+    </Suspense>
+  );
+}
+
+// This component is the "traffic cop"
+function ResetPasswordFlow() {
   const searchParams = useSearchParams();
+  const token = searchParams.get("token");
   const email = searchParams.get("email");
 
+  // SCENARIO 1: User clicked the fallback link
+  if (token && email) {
+    return <VerifyResetTokenComponent token={token} email={email} />;
+  }
+
+  // SCENARIO 2: User was redirected here to enter a code
+  if (email) {
+    return <EnterCodeComponent email={email} />;
+  }
+
+  // SCENARIO 3: Invalid state
+  return (
+    <div className="flex items-center justify-center min-h-[80vh]">
+      <Card className="w-full max-w-sm text-center">
+        <CardHeader>
+          <CardTitle>Invalid Link</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Please request a new password reset link.</p>
+          <Button asChild variant="link">
+            <Link href="/forgot-password">Request Again</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// --- UI Component for entering the 6-digit code ---
+function EnterCodeComponent({ email }: { email: string }) {
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -49,12 +91,7 @@ export default function ResetPasswordCodePage() {
   });
 
   async function onSubmit(values: z.infer<typeof otpSchema>) {
-    if (!email) {
-      setError("Email is missing from URL.");
-      return;
-    }
     setError(null);
-
     startTransition(async () => {
       const result = await verifyResetCode({ email, code: values.code });
       if (result.error) {
@@ -65,21 +102,7 @@ export default function ResetPasswordCodePage() {
     });
   }
 
-  if (!email) {
-    return (
-      <div className="flex items-center justify-center min-h-[80vh]">
-        <Card className="w-full max-w-sm text-center">
-          <CardHeader>
-            <CardTitle>Invalid Link</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>Please request a new password reset link.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
+  // This JSX is the same as our previous ResetPasswordCodePage
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
       <Card className="w-full max-w-sm">
@@ -125,6 +148,59 @@ export default function ResetPasswordCodePage() {
             </form>
           </Form>
         </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// --- UI Component for handling the fallback link token ---
+function VerifyResetTokenComponent({
+  token,
+  email,
+}: {
+  token: string;
+  email: string;
+}) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const performVerification = async () => {
+      const result = await verifyResetToken({ email, token });
+      if (result.error) {
+        setError(result.error);
+      } else if (result.success && result.token) {
+        router.push(`/reset-password/confirm?token=${result.token}`);
+      }
+    };
+    performVerification();
+  }, [token, email, router]);
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <Card className="w-full max-w-sm text-center">
+          <CardHeader>
+            <CardTitle>Verification Failed</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>{error}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return <LoadingCard message="Verifying your reset link..." />;
+}
+
+function LoadingCard({ message }: { message: string }) {
+  return (
+    <div className="flex items-center justify-center min-h-[80vh]">
+      <Card className="w-full max-w-md text-center">
+        <CardHeader>
+          <CardTitle className="text-2xl">{message}</CardTitle>
+        </CardHeader>
       </Card>
     </div>
   );

@@ -318,6 +318,41 @@ export class AuthService {
     return singleUseToken;
   }
 
+  public static async verifyPasswordResetToken(
+    email: string,
+    resetToken: string
+  ): Promise<string> {
+    const hashedToken = TokenUtil.hashToken(resetToken);
+
+    const user = await UserRepository.findByEmailAndPasswordResetToken(
+      email,
+      hashedToken
+    );
+    if (!user) {
+      throw new UnauthenticatedError('Password reset failed: Invalid token.');
+    }
+    if (
+      !user.passwordResetTokenExpiresAt ||
+      Date.now() > user.passwordResetTokenExpiresAt.getTime()
+    ) {
+      throw new UnauthenticatedError(
+        'Password reset failed: Token has expired'
+      );
+    }
+
+    const singleUseToken = jwt.sign({ userId: user.id }, env.JWT_SECRET, {
+      expiresIn: '10m',
+    });
+
+    await UserRepository.updateUser(user.id!, {
+      passwordResetToken: null,
+      securePasswordResetToken: null,
+      passwordResetTokenExpiresAt: null,
+    });
+
+    return singleUseToken;
+  }
+
   /**
    * Resets a user's password using a valid reset token.
    * @param token
@@ -342,13 +377,6 @@ export class AuthService {
     const user = await UserRepository.findById(userId);
     if (!user) {
       throw new UnauthenticatedError('Password reset failed: Invalid code.');
-    }
-
-    if (
-      !user.passwordResetTokenExpiresAt ||
-      Date.now() > user.passwordResetTokenExpiresAt.getTime()
-    ) {
-      throw new UnauthenticatedError('Password reset failed: Code has expired');
     }
 
     const newPasswordHash = await Password.toHash(newPassword);

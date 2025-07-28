@@ -197,6 +197,13 @@ export const verifyResetCodeSchema = z.object({
   }),
 });
 
+export const verifyResetTokenSchema = z.object({
+  body: z.object({
+    email: z.string().email('Not a valid email'),
+    token: z.string().min(32, 'Invalid token format.'),
+  }),
+});
+
 export const resetPasswordSchema = z.object({
   body: z.object({
     token: z.string({ required_error: 'Reset token is required' }),
