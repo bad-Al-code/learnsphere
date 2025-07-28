@@ -182,15 +182,15 @@ export class AuthService {
    * @param verificationToken The raw verification token sent to the user.
    * @throws {UnauthenticatedError} If the token is invalid or expired.
    */
-  public static async verifyEmail(email: string, verificationToken: string) {
-    const hashedToken = TokenUtil.hashToken(verificationToken);
+  public static async verifyEmail(email: string, verificationCode: string) {
+    const hashedCode = TokenUtil.hashToken(verificationCode);
 
     const user = await UserRepository.findByEmailAndVerificationToken(
       email,
-      hashedToken
+      hashedCode
     );
     if (!user) {
-      throw new UnauthenticatedError('Verification failed: Invalid token');
+      throw new UnauthenticatedError('Verification failed: Invalid code');
     }
 
     if (
@@ -198,9 +198,9 @@ export class AuthService {
       Date.now() > user.verificationTokenExpiresAt.getTime()
     ) {
       logger.warn(
-        `Attempt to use expired or missing verification token for user: ${user.id}`
+        `Attempt to use expired or missing verification code for user: ${user.id}`
       );
-      throw new UnauthenticatedError('Verification failed: Token has expired.');
+      throw new UnauthenticatedError('Verification failed: Code has expired.');
     }
 
     logger.info(`Verifying email for user ID: ${user.id}`);
@@ -263,26 +263,24 @@ export class AuthService {
    */
   public static async resetPassword(
     email: string,
-    resetToken: string,
+    resetCode: string,
     newPassword: string
   ) {
-    const hashedToken = TokenUtil.hashToken(resetToken);
+    const hashedCode = TokenUtil.hashToken(resetCode);
 
     const user = await UserRepository.findByEmailAndPasswordResetToken(
       email,
-      hashedToken
+      hashedCode
     );
     if (!user) {
-      throw new UnauthenticatedError('Password reset failed: Invalid token.');
+      throw new UnauthenticatedError('Password reset failed: Invalid code.');
     }
 
     if (
       !user.passwordResetTokenExpiresAt ||
       Date.now() > user.passwordResetTokenExpiresAt.getTime()
     ) {
-      throw new UnauthenticatedError(
-        'Password reset failed: Token has expired'
-      );
+      throw new UnauthenticatedError('Password reset failed: Code has expired');
     }
 
     const newPasswordHash = await Password.toHash(newPassword);

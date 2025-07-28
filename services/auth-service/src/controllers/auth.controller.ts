@@ -172,10 +172,10 @@ export class AuthController {
     next: NextFunction
   ) {
     try {
-      const { email, token } = req.body;
-      await AuthService.verifyEmail(email, token);
+      const { email, code } = req.body;
+      await AuthService.verifyEmail(email, code);
       res.status(StatusCodes.OK).json({
-        message: 'Email verification successfully.',
+        message: 'Email verified successfully.',
       });
     } catch (error) {
       next(error);
@@ -188,7 +188,7 @@ export class AuthController {
     next: NextFunction
   ) {
     try {
-      const { email } = req.body;
+      const { email, code, password } = req.body;
       const result = await AuthService.forgotPassword(email);
 
       if (result) {
