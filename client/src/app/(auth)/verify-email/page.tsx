@@ -1,161 +1,229 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
+import { CircleCheck, CircleX, MailCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
-import { verifyEmail } from "../actions";
+  getCurrentUser,
+  resendVerificationEmail,
+  verifyEmail,
+} from "../actions";
 
-const formSchema = z.object({
-  code: z
-    .string()
-    .min(6, { message: "Your one-time code must be 6 characters." }),
-});
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<LoadingCard />}>
+      <VerificationFlow />
+    </Suspense>
+  );
+}
 
-function VerifyEmailForm() {
-  const router = useRouter();
+function VerificationFlow() {
   const searchParams = useSearchParams();
-  const email = searchParams.get("email");
   const token = searchParams.get("token");
+  const email = searchParams.get("email");
 
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [isPending, startTransition] = useTransition();
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { code: "" },
-  });
-
-  useEffect(() => {
-    if (token && email) {
-      startTransition(async () => {
-        const result = await verifyEmail({ email, token });
-        if (result?.error) {
-          setError(result.error);
-        }
-
-        if (result?.success) {
-          setSuccess(true);
-        }
-      });
-    }
-  }, [token, email]);
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!email) {
-      setError("Email not found in URL. Please go back to sign up.");
-      return;
-    }
-    setError(null);
-
-    startTransition(async () => {
-      const result = await verifyEmail({ email, code: values.code });
-      if (result?.error) {
-        setError(result.error);
-        form.reset();
-      }
-      if (result?.success) {
-        setSuccess(true);
-      }
-    });
+  if (token) {
+    return <VerifyTokenComponent token={token} email={email} />;
   }
 
-  if (success) {
-    return (
-      <Card className="w-full max-w-sm text-center">
+  if (email) {
+    return <CheckInboxComponent email={email} />;
+  }
+
+  return (
+    <ErrorCard
+      message="Invalid link. Please return to the signup page."
+      showSignupLink={true}
+    />
+  );
+}
+
+function CheckInboxComponent({ email }: { email: string }) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
+
+  const onResend = () => {
+    setError(null);
+    setSuccess(null);
+    startTransition(async () => {
+      const result = await resendVerificationEmail({ email });
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setSuccess("A new verification email has been sent.");
+        setCooldown(60);
+      }
+    });
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-[80vh]">
+      <Card className="w-full max-w-md text-center">
         <CardHeader>
-          <CardTitle className="text-2xl">Email Verified!</CardTitle>
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+            <MailCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
+          </div>
+          <CardTitle className="mt-4 text-2xl">Check your inbox</CardTitle>
+          <CardDescription>
+            We've sent a verification link to <strong>{email}</strong>.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="mb-4">Your account is now active.</p>
+          <p className="text-sm text-muted-foreground">
+            Enter the 6-digit code from the email to complete your registration.
+          </p>
+          {/* OTP */}
+        </CardContent>
+        <CardFooter className="flex-col items-center justify-center space-y-4">
+          <Button
+            onClick={onResend}
+            disabled={isPending || cooldown > 0}
+            variant="secondary"
+            className="w-full"
+          >
+            {isPending
+              ? "Sending..."
+              : cooldown > 0
+              ? `Resend in ${cooldown}s`
+              : "Resend Verification Email"}
+          </Button>
+          {error && (
+            <p className="text-sm font-medium text-destructive">{error}</p>
+          )}
+          {success && (
+            <p className="text-sm font-medium text-green-600">{success}</p>
+          )}
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}
+
+function VerifyTokenComponent({
+  token,
+  email,
+}: {
+  token: string;
+  email: string | null;
+}) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!email) {
+      setError("Invalid verification link: email is missing.");
+      return;
+    }
+
+    const performVerification = async () => {
+      const result = await verifyEmail({ token, email });
+      if (result.error) {
+        setError(result.error);
+      } else {
+        const user = await getCurrentUser();
+        if (user) {
+          router.push("/");
+        } else {
+          router.push("/verify-email?verified=true");
+        }
+      }
+    };
+    performVerification();
+  }, [token, email, router]);
+
+  const searchParams = useSearchParams();
+  if (searchParams.get("verified") === "true") {
+    return <SuccessCard />;
+  }
+
+  if (error) {
+    return <ErrorCard message={error} />;
+  }
+
+  return <LoadingCard />;
+}
+
+function SuccessCard() {
+  return (
+    <div className="flex items-center justify-center min-h-[80vh]">
+      <Card className="w-full max-w-md text-center">
+        <CardHeader>
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+            <CircleCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
+          </div>
+          <CardTitle className="mt-4 text-2xl">Email Verified!</CardTitle>
+          <CardDescription>
+            Thank you for verifying your email. Your account is now active.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
           <Button asChild>
             <Link href="/login">Proceed to Login</Link>
           </Button>
         </CardContent>
       </Card>
-    );
-  }
-
-  return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl">Verify Your Email</CardTitle>
-        <CardDescription>
-          We sent a 6-digit code to <strong>{email || "your email"}</strong>.
-          Please enter it below.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Verification Code</FormLabel>
-                  <FormControl>
-                    <InputOTP maxLength={6} {...field}>
-                      <InputOTPGroup>
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                        <InputOTPSlot index={3} />
-                        <InputOTPSlot index={4} />
-                        <InputOTPSlot index={5} />
-                      </InputOTPGroup>
-                    </InputOTP>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? "Verifying..." : "Verify"}
-            </Button>
-            {error && (
-              <p className="text-sm font-medium text-destructive text-center">
-                {error}
-              </p>
-            )}
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+    </div>
   );
 }
 
-export default function VerifyEmailPageWrapper() {
+function ErrorCard({
+  message,
+  showSignupLink = false,
+}: {
+  message: string;
+  showSignupLink?: boolean;
+}) {
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
-      <Suspense fallback={<div>Loading...</div>}>
-        <VerifyEmailForm />
-      </Suspense>
+      <Card className="w-full max-w-md text-center">
+        <CardHeader>
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
+            <CircleX className="h-6 w-6 text-red-600 dark:text-red-400" />
+          </div>
+          <CardTitle className="mt-4 text-2xl">Verification Failed</CardTitle>
+          <CardDescription>{message}</CardDescription>
+        </CardHeader>
+        {showSignupLink && (
+          <CardContent>
+            <Button asChild variant="secondary">
+              <Link href="/signup">Return to Sign Up</Link>
+            </Button>
+          </CardContent>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+function LoadingCard() {
+  return (
+    <div className="flex items-center justify-center min-h-[80vh]">
+      <Card className="w-full max-w-md text-center">
+        <CardHeader>
+          <CardTitle className="text-2xl">Verifying...</CardTitle>
+          <CardDescription>Please wait a moment.</CardDescription>
+        </CardHeader>
+      </Card>
     </div>
   );
 }

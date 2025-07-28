@@ -58,9 +58,7 @@ export default function SignupPage() {
       }
 
       if (result?.success && result.email) {
-        router.push(
-          `/signup/verify-email?email=${encodeURIComponent(result.email)}`
-        );
+        router.push(`/verify-email?email=${encodeURIComponent(result.email)}`);
       }
     });
   }
