@@ -86,19 +86,17 @@ export function Header({ user: initialUser }: { user: User }) {
                       <p className="text-sm font-medium leading-none">
                         {user.firstName} {user.lastName}
                       </p>
-                      {/* <p className="text-xs leading-none text-muted-foreground">user@example.com</p> */}
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/profile">
+                    <Link href="/settings/profile">
                       <UserIcon className="mr-2 h-4 w-4" />
                       <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
-
                   <DropdownMenuItem asChild>
-                    <Link href="/profile/security">
+                    <Link href="/settings/security">
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Security</span>
                     </Link>
