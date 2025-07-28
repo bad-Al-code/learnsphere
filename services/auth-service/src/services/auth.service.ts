@@ -182,8 +182,11 @@ export class AuthService {
    * @param verificationToken The raw verification token sent to the user.
    * @throws {UnauthenticatedError} If the token is invalid or expired.
    */
-  public static async verifyEmail(email: string, verificationCode: string) {
-    const hashedCode = TokenUtil.hashToken(verificationCode);
+  public static async verifyEmail(
+    email: string,
+    verificationCodeOrToken: string
+  ) {
+    const hashedCode = TokenUtil.hashToken(verificationCodeOrToken);
 
     const user = await UserRepository.findByEmailAndVerificationToken(
       email,
@@ -263,14 +266,14 @@ export class AuthService {
    */
   public static async resetPassword(
     email: string,
-    resetCode: string,
+    resetCodeOrToken: string,
     newPassword: string
   ) {
-    const hashedCode = TokenUtil.hashToken(resetCode);
+    const hashedCodeOrToken = TokenUtil.hashToken(resetCodeOrToken);
 
     const user = await UserRepository.findByEmailAndPasswordResetToken(
       email,
-      hashedCode
+      hashedCodeOrToken
     );
     if (!user) {
       throw new UnauthenticatedError('Password reset failed: Invalid code.');

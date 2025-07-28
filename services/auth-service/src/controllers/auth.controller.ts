@@ -172,8 +172,9 @@ export class AuthController {
     next: NextFunction
   ) {
     try {
-      const { email, code } = req.body;
-      await AuthService.verifyEmail(email, code);
+      const { email, code, token } = req.body;
+      const codeOrToken = code || token;
+      await AuthService.verifyEmail(email, codeOrToken);
       res.status(StatusCodes.OK).json({
         message: 'Email verified successfully.',
       });
@@ -215,8 +216,8 @@ export class AuthController {
     next: NextFunction
   ) {
     try {
-      const { email, token, password } = req.body;
-      await AuthService.resetPassword(email, token, password);
+      const { email, code, password } = req.body;
+      await AuthService.resetPassword(email, code, password);
       res.status(StatusCodes.OK).json({
         message: 'Password has been reset successfully.',
       });

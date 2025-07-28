@@ -49,6 +49,10 @@ import { z } from 'zod';
  *           type: string
  *           description: The verification code sent to the user's email.
  *           example: '234234'
+ *         token:
+ *           type: string
+ *           description: The verification token sent to the user's email.
+ *           example: 'asdad....'
  *     EmailPayload:
  *       type: object
  *       required:
@@ -155,14 +159,19 @@ export const loginSchema = z.object({
 });
 
 export const verifyEmailSchema = z.object({
-  body: z.object({
-    email: z
-      .string({ required_error: 'Email is required' })
-      .email('Not a valid email'),
-    code: z
-      .string({ required_error: 'Verification code is required' })
-      .length(6, 'Code must be 6 digits.'),
-  }),
+  body: z
+    .object({
+      email: z
+        .string({ required_error: 'Email is required' })
+        .email('Not a valid email'),
+      code: z
+        .string({ required_error: 'Verification code is required' })
+        .length(6, 'Code must be 6 digits.'),
+      token: z.string().min(32).optional(),
+    })
+    .refine((data) => data.code || data.token, {
+      message: 'Either a code or a token must be provided.',
+    }),
 });
 
 export const forgotPasswordSchema = z.object({
