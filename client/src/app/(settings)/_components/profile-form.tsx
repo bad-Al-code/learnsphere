@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SUPPORTED_LANGUAGES } from "@/config/language";
+import { toast } from "sonner";
 import { updateProfile } from "../actions";
 
 const profileSchema = z.object({
@@ -49,8 +50,6 @@ interface ProfileFormProps {
 
 export function ProfileForm({ userData }: ProfileFormProps) {
   const router = useRouter();
-  const [success, setSuccess] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<ProfileFormValues>({
@@ -65,15 +64,14 @@ export function ProfileForm({ userData }: ProfileFormProps) {
   });
 
   async function onSubmit(values: ProfileFormValues) {
-    setError(null);
-    setSuccess(null);
-
     startTransition(async () => {
       const result = await updateProfile(values);
       if (result?.error) {
-        setError(result.error);
+        toast.error("Update Failed", {
+          description: result.error,
+        });
       } else {
-        setSuccess("Profile updated successfully!");
+        toast.success("Profile updated successfully!");
         router.refresh();
       }
     });
@@ -152,13 +150,6 @@ export function ProfileForm({ userData }: ProfileFormProps) {
               </FormItem>
             )}
           />
-
-          {error && (
-            <p className="text-sm font-medium text-destructive">{error}</p>
-          )}
-          {success && (
-            <p className="text-sm font-medium text-green-600">{success}</p>
-          )}
 
           <div className="flex justify-end">
             <Button type="submit" disabled={isPending}>

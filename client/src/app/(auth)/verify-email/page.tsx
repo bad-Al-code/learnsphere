@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/input-otp";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 import {
   getCurrentUser,
@@ -75,8 +76,6 @@ function CheckInboxComponent({ email }: { email: string }) {
   const [isVerifying, startVerifying] = useTransition();
   const [isResending, startResending] = useTransition();
   const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
@@ -92,12 +91,13 @@ function CheckInboxComponent({ email }: { email: string }) {
   });
 
   const onSubmit = (values: z.infer<typeof otpSchema>) => {
-    setError(null);
     startVerifying(async () => {
       const result = await verifyEmail({ email, code: values.code });
 
       if (result.error) {
-        setError(result.error);
+        toast.error("Failed to send email", {
+          description: result.error,
+        });
       } else {
         const user = await getCurrentUser();
         if (user) {
@@ -110,14 +110,14 @@ function CheckInboxComponent({ email }: { email: string }) {
   };
 
   const onResend = () => {
-    setError(null);
-    setSuccess(null);
     startTransition(async () => {
       const result = await resendVerificationEmail({ email });
       if (result.error) {
-        setError(result.error);
+        toast.error("Failed to send email", {
+          description: result.error,
+        });
       } else {
-        setSuccess("A new verification email has been sent.");
+        toast.success("A new verification email has been sent.");
         setCooldown(60);
       }
     });
@@ -160,11 +160,6 @@ function CheckInboxComponent({ email }: { email: string }) {
               <Button type="submit" className="w-full" disabled={isVerifying}>
                 {isVerifying ? "Verifying..." : "Verify Account"}
               </Button>
-              {error && (
-                <p className="text-center text-sm font-medium text-destructive">
-                  {error}
-                </p>
-              )}
             </form>
           </Form>
         </CardContent>
@@ -184,9 +179,6 @@ function CheckInboxComponent({ email }: { email: string }) {
               ? `Resend in ${cooldown}s`
               : "Resend Verification Email"}
           </Button>
-          {success && (
-            <p className="text-sm font-medium text-green-600">{success}</p>
-          )}
         </CardFooter>
       </Card>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   currentPassword: z
@@ -29,8 +30,6 @@ const formSchema = z.object({
 type FormSchema = z.infer<typeof formSchema>;
 
 export function UpdatePasswordForm() {
-  const [success, setSuccess] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<FormSchema>({
@@ -39,15 +38,14 @@ export function UpdatePasswordForm() {
   });
 
   async function onSubmit(values: FormSchema) {
-    setError(null);
-    setSuccess(null);
-
     startTransition(async () => {
       const result = await updatePassword(values);
       if (result?.error) {
-        setError(result.error);
+        toast.error("Update Failed", {
+          description: result.error,
+        });
       } else {
-        setSuccess("Your password has been updated successfully!");
+        toast.success("Your password has been updated successfully!");
         form.reset();
       }
     });
@@ -82,13 +80,6 @@ export function UpdatePasswordForm() {
             </FormItem>
           )}
         />
-
-        {error && (
-          <p className="text-sm font-medium text-destructive">{error}</p>
-        )}
-        {success && (
-          <p className="text-sm font-medium text-green-600">{success}</p>
-        )}
 
         <div className="flex justify-end">
           <Button type="submit" disabled={isPending}>
