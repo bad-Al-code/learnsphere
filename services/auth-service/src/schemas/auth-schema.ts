@@ -184,7 +184,7 @@ export const resetPasswordSchema = z.object({
       .email('Not a valid email'),
     code: z
       .string({ required_error: 'Reset code is required' })
-      .length(5, 'Code must be 6 digits.'),
+      .length(6, 'Code must be 6 digits.'),
     password: z
       .string({ required_error: 'Password is required' })
       .min(8, 'Password must at least 8 characters long')
