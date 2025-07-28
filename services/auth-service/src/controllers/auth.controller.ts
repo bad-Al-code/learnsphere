@@ -45,11 +45,15 @@ export class AuthController {
         verificationToken,
       });
 
-      sendTokenResponse(
+      const { jti } = sendTokenResponse(
         res,
         { id: user.id!, email: user.email, role: user.role },
         StatusCodes.CREATED
       );
+
+      if (jti) {
+        await SessionService.createSession(jti, user.id, context);
+      }
     } catch (error) {
       next(error);
     }

@@ -24,6 +24,7 @@ import {
   updatePasswordSchema,
   verifyEmailSchema,
   verifyResetCodeSchema,
+  verifyResetTokenSchema,
 } from '../schemas/auth-schema';
 
 const router = Router();
