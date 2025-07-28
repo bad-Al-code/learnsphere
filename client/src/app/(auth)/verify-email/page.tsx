@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheck, CircleX, MailCheck } from "lucide-react";
+import { CircleCheck, CircleX } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState, useTransition } from "react";
@@ -15,10 +15,31 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import z from "zod";
+import {
   getCurrentUser,
   resendVerificationEmail,
   verifyEmail,
 } from "../actions";
+
+const otpSchema = z.object({
+  code: z.string().min(6, "Your one-time passwod must be 6 characters."),
+});
 
 export default function VerifyEmailPage() {
   return (
@@ -50,6 +71,9 @@ function VerificationFlow() {
 }
 
 function CheckInboxComponent({ email }: { email: string }) {
+  const router = useRouter();
+  const [isVerifying, startVerifying] = useTransition();
+  const [isResending, startResending] = useTransition();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -61,6 +85,29 @@ function CheckInboxComponent({ email }: { email: string }) {
       return () => clearTimeout(timer);
     }
   }, [cooldown]);
+
+  const form = useForm<z.infer<typeof otpSchema>>({
+    resolver: zodResolver(otpSchema),
+    defaultValues: { code: "" },
+  });
+
+  const onSubmit = (values: z.infer<typeof otpSchema>) => {
+    setError(null);
+    startVerifying(async () => {
+      const result = await verifyEmail({ email, code: values.code });
+
+      if (result.error) {
+        setError(result.error);
+      } else {
+        const user = await getCurrentUser();
+        if (user) {
+          router.push("/");
+        } else {
+          router.push("/login");
+        }
+      }
+    });
+  };
 
   const onResend = () => {
     setError(null);
@@ -75,41 +122,68 @@ function CheckInboxComponent({ email }: { email: string }) {
       }
     });
   };
-
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
-      <Card className="w-full max-w-md text-center">
-        <CardHeader>
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-            <MailCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
-          </div>
-          <CardTitle className="mt-4 text-2xl">Check your inbox</CardTitle>
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Check your inbox</CardTitle>
           <CardDescription>
-            We've sent a verification link to <strong>{email}</strong>.
+            We've sent a 6-digit verification code to <strong>{email}</strong>.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Enter the 6-digit code from the email to complete your registration.
-          </p>
-          {/* OTP */}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="code"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Verification Code</FormLabel>
+                    <FormControl>
+                      <InputOTP maxLength={6} {...field}>
+                        <InputOTPGroup className="w-full justify-center">
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSeparator />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full" disabled={isVerifying}>
+                {isVerifying ? "Verifying..." : "Verify Account"}
+              </Button>
+              {error && (
+                <p className="text-center text-sm font-medium text-destructive">
+                  {error}
+                </p>
+              )}
+            </form>
+          </Form>
         </CardContent>
-        <CardFooter className="flex-col items-center justify-center space-y-4">
+        <CardFooter className="flex-col items-center justify-center space-y-4 border-t pt-6">
+          <p className="text-sm text-muted-foreground">
+            Didn't receive the email?
+          </p>
           <Button
             onClick={onResend}
-            disabled={isPending || cooldown > 0}
+            disabled={isResending || cooldown > 0}
             variant="secondary"
             className="w-full"
           >
-            {isPending
+            {isResending
               ? "Sending..."
               : cooldown > 0
               ? `Resend in ${cooldown}s`
               : "Resend Verification Email"}
           </Button>
-          {error && (
-            <p className="text-sm font-medium text-destructive">{error}</p>
-          )}
           {success && (
             <p className="text-sm font-medium text-green-600">{success}</p>
           )}

@@ -323,3 +323,32 @@ export async function updatePassword(values: UpdatePasswordSchema) {
     return { error: error.message || "An unexpected error occurred." };
   }
 }
+
+const verifyResetCodeSchema = z.object({
+  email: z.string().email(),
+  code: z.string().min(6),
+});
+
+export async function verifyResetCode(
+  values: z.infer<typeof verifyResetCodeSchema>
+) {
+  try {
+    const validatedData = verifyResetCodeSchema.parse(values);
+    const response = await authService.post(
+      "/api/auth/verify-reset-code",
+      validatedData
+    );
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      const errorMessage =
+        responseData.errors?.[0]?.message || "Failed to verify code.";
+      return { error: errorMessage };
+    }
+
+    return { success: true, token: responseData.token };
+  } catch (error: any) {
+    return { error: error.message || "An unexpected error occurred." };
+  }
+}

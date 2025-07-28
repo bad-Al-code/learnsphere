@@ -1,9 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -20,80 +19,61 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { resetPassword } from "../actions";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { verifyResetCode } from "../actions";
 
-const formSchema = z
-  .object({
-    password: z
-      .string()
-      .min(8, { message: "Password must be at least 8 characters long." }),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match.",
-    path: ["confirmPassword"],
-  });
+const otpSchema = z.object({
+  code: z
+    .string()
+    .min(6, { message: "Your one-time password must be 6 characters." }),
+});
 
-export default function ResetPasswordPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ResetPasswordForm />
-    </Suspense>
-  );
-}
-
-function ResetPasswordForm() {
+export default function ResetPasswordCodePage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
   const email = searchParams.get("email");
 
-  const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { password: "", confirmPassword: "" },
+  const form = useForm<z.infer<typeof otpSchema>>({
+    resolver: zodResolver(otpSchema),
+    defaultValues: { code: "" },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!token || !email) {
-      setError("Invalid or missing reset token/email in URL.");
+  async function onSubmit(values: z.infer<typeof otpSchema>) {
+    if (!email) {
+      setError("Email is missing from URL.");
       return;
     }
-
     setError(null);
+
     startTransition(async () => {
-      const result = await resetPassword({ ...values, token, email });
-      if (result?.error) {
+      const result = await verifyResetCode({ email, code: values.code });
+      if (result.error) {
         setError(result.error);
-      }
-      if (result?.success && result.error) {
-        setSuccess(true);
+      } else if (result.success && result.token) {
+        router.push(`/reset-password/confirm?token=${result.token}`);
       }
     });
   }
 
-  if (success) {
+  if (!email) {
     return (
       <div className="flex items-center justify-center min-h-[80vh]">
         <Card className="w-full max-w-sm text-center">
           <CardHeader>
-            <CardTitle className="text-2xl">
-              Password Reset Successfully
-            </CardTitle>
-            <CardDescription>
-              You can now log in with your new password.
-            </CardDescription>
+            <CardTitle>Invalid Link</CardTitle>
           </CardHeader>
           <CardContent>
-            <Button asChild>
-              <Link href="/login">Proceed to Login</Link>
-            </Button>
+            <p>Please request a new password reset link.</p>
           </CardContent>
         </Card>
       </div>
@@ -103,44 +83,44 @@ function ResetPasswordForm() {
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
       <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl">Reset Your Password</CardTitle>
-          <CardDescription>Enter your new password below.</CardDescription>
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Check your email</CardTitle>
+          <CardDescription>
+            Enter the 6-digit code we sent to <strong>{email}</strong>.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
-                name="password"
+                name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>New Password</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm New Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
+                      <InputOTP maxLength={6} {...field}>
+                        <InputOTPGroup className="w-full justify-center">
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSeparator />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? "Resetting..." : "Reset Password"}
+                {isPending ? "Verifying..." : "Continue"}
               </Button>
               {error && (
-                <p className="text-sm font-medium text-destructive">{error}</p>
+                <p className="text-center text-sm font-medium text-destructive">
+                  {error}
+                </p>
               )}
             </form>
           </Form>

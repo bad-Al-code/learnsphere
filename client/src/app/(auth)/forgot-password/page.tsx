@@ -23,6 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
 import { forgotPassword } from "../actions";
 
 const formSchema = z.object({
@@ -30,6 +31,7 @@ const formSchema = z.object({
 });
 
 export default function ForgotPasswordPage() {
+  const router = useRouter();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -46,7 +48,9 @@ export default function ForgotPasswordPage() {
       if (result?.error) {
         setError(result.error);
       } else {
-        setSubmitted(true);
+        router.push(
+          `/reset-password?email=${encodeURIComponent(values.email)}`
+        );
       }
     });
   }
