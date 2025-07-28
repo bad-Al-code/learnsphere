@@ -7,8 +7,9 @@ import { z } from "zod";
 const profileSchema = z.object({
   firstName: z.string().min(1, "First name is required."),
   lastName: z.string().min(1, "Last name is required."),
-  headline: z.string().optional(),
-  bio: z.string().optional(),
+  headline: z.string().optional().nullable(),
+  bio: z.string().optional().nullable(),
+  language: z.string().optional(),
 });
 
 type ProfileSchema = z.infer<typeof profileSchema>;

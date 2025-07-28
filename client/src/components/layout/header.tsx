@@ -18,9 +18,11 @@ import { Button } from "../ui/button";
 
 type User = {
   userId: string;
+  email: string;
   firstName: string | null;
   lastName: string | null;
   avatarUrls: { small?: string; medium?: string; large?: string } | null;
+  settings?: { language?: string };
 } | null;
 
 const getInitials = (firstName: string | null, lastName: string | null) => {

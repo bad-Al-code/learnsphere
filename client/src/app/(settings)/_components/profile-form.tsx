@@ -16,24 +16,33 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { updateProfile } from "../actions";
 
 const profileSchema = z.object({
   firstName: z.string().min(1, "First name is required."),
   lastName: z.string().min(1, "Last name is required."),
-  headline: z.string().optional(),
-  bio: z.string().optional(),
+  headline: z.string().optional().nullable(),
+  bio: z.string().optional().nullable(),
+  language: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 interface ProfileFormProps {
   userData: {
+    email: string;
     firstName: string | null;
     lastName: string | null;
     headline: string | null;
     bio: string | null;
+    settings?: { language?: string };
   };
 }
 
@@ -50,6 +59,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
       lastName: userData.lastName || "",
       headline: userData.headline || "",
       bio: userData.bio || "",
+      language: userData.settings?.language || "en",
     },
   });
 
@@ -63,90 +73,96 @@ export function ProfileForm({ userData }: ProfileFormProps) {
         setError(result.error);
       } else {
         setSuccess("Profile updated successfully!");
-
         router.refresh();
       }
     });
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <h3 className="text-lg font-medium mb-4">Account Settings</h3>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-6 border p-4 rounded-lg"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormItem>
+              <FormLabel>Email address</FormLabel>
+              <FormControl>
+                <Input readOnly disabled value={userData.email} />
+              </FormControl>
+            </FormItem>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="firstName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>First Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
           <FormField
             control={form.control}
-            name="firstName"
+            name="language"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>First Name</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
+                <FormLabel>Language</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a language" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="es">Español</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="lastName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Last Name</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <FormField
-          control={form.control}
-          name="headline"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Headline</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="e.g., Senior Software Engineer at Tech Corp"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="bio"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Bio</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Tell us a little about yourself"
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
-        {error && (
-          <p className="text-sm font-medium text-destructive">{error}</p>
-        )}
-        {success && (
-          <p className="text-sm font-medium text-green-600">{success}</p>
-        )}
+          {error && (
+            <p className="text-sm font-medium text-destructive">{error}</p>
+          )}
+          {success && (
+            <p className="text-sm font-medium text-green-600">{success}</p>
+          )}
 
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isPending}>
-            {isPending ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+          <div className="flex justify-end">
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 }
