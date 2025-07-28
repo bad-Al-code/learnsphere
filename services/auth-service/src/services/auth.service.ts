@@ -1,25 +1,26 @@
 import crypto from 'node:crypto';
 
-import { User } from '../db/database.types';
+import axios from 'axios';
+import { env } from '../config/env';
 import logger from '../config/logger';
-import { BadRequestError, UnauthenticatedError } from '../errors';
-import { TokenUtil } from '../utils/crypto';
-import { Password } from '../utils/password';
+import { redisConnection } from '../config/redis';
+import { User } from '../db/database.types';
 import { UserRepository } from '../db/user.repository';
-import { RequestContext } from '../types/service.types';
-import { AuditService } from './audit.service';
+import { BadRequestError, UnauthenticatedError } from '../errors';
 import {
   UserPasswordChangedPublisher,
   UserRegisteredPublisher,
   UserVerifiedPublisher,
 } from '../events/publisher';
 import { OauthProfile } from '../types/auth.types';
-import axios from 'axios';
-import { env } from '../config/env';
-import { redisConnection } from '../config/redis';
+import { RequestContext } from '../types/service.types';
+import { TokenUtil } from '../utils/crypto';
+import { Password } from '../utils/password';
+import { AuditService } from './audit.service';
 
 const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
 const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
+const TEN_MINUTES_IN_MS = 10 * 60 * 60 * 1000;
 const RESEND_VERIFICATION_RATE_LIMIT_SECONDS = 60;
 
 export class AuthService {
@@ -57,17 +58,16 @@ export class AuthService {
       throw new BadRequestError('Email is already in use.');
     }
 
-    const { rawToken: verificationToken, hashedToken } =
-      TokenUtil.generateHashedToken();
-    const verificationTokenExpiresAt =
-      TokenUtil.getExpirationDate(TWO_HOURS_IN_MS);
+    const { rawCode:verificationCode , hashedCode } = TokenUtil.generateVerificationCode();
+    const { rawToken:verificationToken } =TokenUtil.generateSecureToken();
+    const verificationTokenExpiresAt = TokenUtil.getExpirationDate(TEN_MINUTES_IN_MS);
 
     const passwordHash = await Password.toHash(password);
 
     const newUserRecord = {
       email,
       passwordHash,
-      verificationToken: hashedToken,
+      verificationToken: hashedCode,
       verificationTokenExpiresAt,
     };
 
@@ -83,7 +83,7 @@ export class AuthService {
       details: { email: newUser.email },
     });
 
-    return { user: newUser, verificationToken };
+    return { user: newUser, verificationCode,  verificationToken };
   }
 
   /**
@@ -236,21 +236,20 @@ export class AuthService {
       logger.warn(`Password reset requested for non-existent email: ${email}`);
       return null;
     }
-
-    const { rawToken: resetToken, hashedToken } =
-      TokenUtil.generateHashedToken();
+const { rawCode: resetCode, hashedCode } = TokenUtil.generateVerificationCode();
+    const { rawToken: resetToken} = TokenUtil.generateSecureToken();
     const passwordResetTokenExpiresAt = TokenUtil.getExpirationDate(
-      FIFTEEN_MINUTES_IN_MS
+      TEN_MINUTES_IN_MS
     );
 
     await UserRepository.updateUser(user.id!, {
-      passwordResetToken: hashedToken,
+      passwordResetToken: hashedCode,
       passwordResetTokenExpiresAt,
     });
 
     logger.info(`Password reset token generated for user: ${user.id}`);
 
-    return { resetToken };
+    return { resetCode, resetToken};
   }
 
   /**
@@ -326,13 +325,13 @@ export class AuthService {
       return null;
     }
 
-    const { rawToken: verificationToken, hashedToken } =
-      TokenUtil.generateHashedToken();
+    const { rawCode: verificationToken, hashedCode } =
+      TokenUtil.generateVerificationCode();
     const verificationTokenExpiresAt =
       TokenUtil.getExpirationDate(TWO_HOURS_IN_MS);
 
     await UserRepository.updateUser(user.id!, {
-      verificationToken: hashedToken,
+      verificationToken: hashedCode,
       verificationTokenExpiresAt,
     });
 
