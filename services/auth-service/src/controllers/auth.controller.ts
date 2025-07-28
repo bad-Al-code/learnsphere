@@ -220,23 +220,43 @@ export class AuthController {
     }
   }
 
+  public static async verifyResetCode(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { email, code } = req.body;
+      const singleUseToken = await AuthService.verifyPasswordResetCode(
+        email,
+        code
+      );
+
+      res.status(StatusCodes.OK).json({ token: singleUseToken });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public static async resetPassword(
     req: Request,
     res: Response,
     next: NextFunction
   ) {
     try {
-      const { email, code, token, password } = req.body;
-      const codeOrToken = code || token;
+      const { token, password } = req.body;
       const context: RequestContext = {
         ipAddress: req.ip,
         userAgent: req.headers['user-agent'],
       };
 
-      await AuthService.resetPassword(email, codeOrToken, password, context);
-      res.status(StatusCodes.OK).json({
-        message: 'Password has been reset successfully.',
-      });
+      const user = await AuthService.resetPassword(token, password, context);
+
+      sendTokenResponse(
+        res,
+        { id: user.id!, email: user.email, role: user.role },
+        StatusCodes.OK
+      );
     } catch (error) {
       next(error);
     }

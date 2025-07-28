@@ -10,6 +10,10 @@
 
 import { Router } from 'express';
 
+import { AuthController } from '../controllers/auth.controller';
+import { apiLimiter } from '../middlewares/rate-limiter';
+import { requireAuth } from '../middlewares/require-auth';
+import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
 import {
   forgotPasswordSchema,
@@ -19,11 +23,8 @@ import {
   signupSchema,
   updatePasswordSchema,
   verifyEmailSchema,
+  verifyResetCodeSchema,
 } from '../schemas/auth-schema';
-import { AuthController } from '../controllers/auth.controller';
-import { requireAuth } from '../middlewares/require-auth';
-import { apiLimiter } from '../middlewares/rate-limiter';
-import { requireRole } from '../middlewares/require-role';
 
 const router = Router();
 
@@ -238,6 +239,12 @@ router.post(
   apiLimiter,
   validateRequest(forgotPasswordSchema),
   AuthController.forgotPassword
+);
+
+router.post(
+  '/verify-reset-code',
+  validateRequest(verifyResetCodeSchema),
+  AuthController.verifyResetCode
 );
 
 /**

@@ -190,16 +190,16 @@ export const resendVerificationSchema = z.object({
   }),
 });
 
+export const verifyResetCodeSchema = z.object({
+  body: z.object({
+    email: z.string().email('Not a valid email'),
+    code: z.string().length(6, 'Code must be 6 digits.'),
+  }),
+});
+
 export const resetPasswordSchema = z.object({
   body: z.object({
-    email: z
-      .string({ required_error: 'Email is required' })
-      .email('Not a valid email'),
-    code: z
-      .string({ required_error: 'Reset code is required' })
-      .length(6, 'Code must be 6 digits.')
-      .optional(),
-    token: z.string().min(32).optional(),
+    token: z.string({ required_error: 'Reset token is required' }),
     password: z
       .string({ required_error: 'Password is required' })
       .min(8, 'Password must at least 8 characters long')

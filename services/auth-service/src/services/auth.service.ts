@@ -1,6 +1,7 @@
+import axios from 'axios';
+import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
 
-import axios from 'axios';
 import { env } from '../config/env';
 import logger from '../config/logger';
 import { redisConnection } from '../config/redis';
@@ -282,25 +283,63 @@ export class AuthService {
     return { resetCode, resetToken };
   }
 
+  public static async verifyPasswordResetCode(
+    email: string,
+    resetCode: string
+  ): Promise<string> {
+    const hashedCode = TokenUtil.hashToken(resetCode);
+
+    const user = await UserRepository.findByEmailAndPasswordResetToken(
+      email,
+      hashedCode
+    );
+    if (!user) {
+      throw new UnauthenticatedError('Password reset failed: Invalid code.');
+    }
+    if (
+      !user.passwordResetTokenExpiresAt ||
+      Date.now() > user.passwordResetTokenExpiresAt.getTime()
+    ) {
+      throw new UnauthenticatedError(
+        'Password reset failed: Code has expired.'
+      );
+    }
+
+    const singleUseToken = jwt.sign({ userId: user.id }, env.JWT_SECRET, {
+      expiresIn: TEN_MINUTES_IN_MS,
+    });
+
+    await UserRepository.updateUser(user.id!, {
+      passwordResetToken: null,
+      securePasswordResetToken: null,
+      passwordResetTokenExpiresAt: null,
+    });
+
+    return singleUseToken;
+  }
+
   /**
    * Resets a user's password using a valid reset token.
-   * @param email The user's email.
-   * @param resetToken The raw password reset token.
+   * @param token
    * @param newPassword The user's new plain-text password.
    * @throws {UnauthenticatedError} If the reset token is invalid or expired.
    */
   public static async resetPassword(
-    email: string,
-    resetCodeOrToken: string,
+    token: string,
     newPassword: string,
     context: RequestContext = {}
   ) {
-    const hashedCodeOrToken = TokenUtil.hashToken(resetCodeOrToken);
+    let payload: { userId: string };
+    try {
+      payload = jwt.verify(token, env.JWT_SECRET) as { userId: string };
+    } catch (error) {
+      throw new UnauthenticatedError(
+        'Password reset failed: Token is invalid or expired.'
+      );
+    }
+    const { userId } = payload;
 
-    const user = await UserRepository.findByEmailAndPasswordResetToken(
-      email,
-      hashedCodeOrToken
-    );
+    const user = await UserRepository.findById(userId);
     if (!user) {
       throw new UnauthenticatedError('Password reset failed: Invalid code.');
     }
@@ -316,9 +355,6 @@ export class AuthService {
 
     await UserRepository.updateUser(user.id!, {
       passwordHash: newPasswordHash,
-      passwordResetToken: null,
-      passwordResetTokenExpiresAt: null,
-      securePasswordResetToken: null,
       passwordChangedAt: new Date(),
       updatedAt: new Date(),
     });
@@ -335,6 +371,8 @@ export class AuthService {
     });
 
     logger.info(`Password succesfully reset for user ID: ${user.id}`);
+
+    return user;
   }
 
   /**

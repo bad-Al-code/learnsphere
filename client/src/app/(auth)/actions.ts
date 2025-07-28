@@ -352,3 +352,57 @@ export async function verifyResetCode(
     return { error: error.message || "An unexpected error occurred." };
   }
 }
+
+const setNewPasswordSchema = z.object({
+  token: z.string(),
+  password: z.string().min(8),
+});
+
+export async function setNewPassword(
+  values: z.infer<typeof setNewPasswordSchema>
+) {
+  try {
+    const validatedData = setNewPasswordSchema.parse(values);
+    const response = await authService.post(
+      "/api/auth/reset-password",
+      validatedData
+    );
+
+    if (!response.ok) {
+      const responseData = await response.json().catch(() => ({}));
+      const errorMessage =
+        responseData.errors?.[0]?.message || "Failed to set new password.";
+      return { error: errorMessage };
+    }
+
+    const setCookieHeaders = response.headers.getSetCookie();
+    if (setCookieHeaders.length > 0) {
+      setCookieHeaders.forEach(async (cookieString) => {
+        const [name, ...parts] = cookieString.split("=");
+        const [value] = parts.join("=").split(";");
+
+        const optionsString = parts.join("=").substring(value.length + 1);
+        const options: any = {};
+        optionsString.split(";").forEach((part) => {
+          const [key, val] = part.trim().split("=");
+          if (key.toLowerCase() === "expires") options.expires = new Date(val);
+          if (key.toLowerCase() === "path") options.path = val;
+          if (key.toLowerCase() === "samesite")
+            options.sameSite = val.toLowerCase() as any;
+          if (key.toLowerCase() === "httponly") options.httpOnly = true;
+          if (key.toLowerCase() === "secure") options.secure = true;
+        });
+
+        (await cookies()).set(name, value, options);
+      });
+    }
+  } catch (error: any) {
+    if (error.digest?.startsWith("NEXT_REDIRECT")) {
+      throw error;
+    }
+    return { error: error.message || "An unexpected error occurred." };
+  }
+
+  revalidatePath("/");
+  redirect("/");
+}
