@@ -86,14 +86,14 @@ export function ProfileForm({ userData }: ProfileFormProps) {
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-6 border p-4 rounded-lg"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormItem>
               <FormLabel>Email address</FormLabel>
               <FormControl>
                 <Input readOnly disabled value={userData.email} />
               </FormControl>
             </FormItem>
-          </div>
+          </div> */}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
