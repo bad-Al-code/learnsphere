@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSessionStore } from "@/stores/session-store";
-import { LogOut, Settings, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useTransition } from "react";
 import { Button } from "../ui/button";
@@ -93,12 +93,6 @@ export function Header({ user: initialUser }: { user: User }) {
                     <Link href="/settings/profile">
                       <UserIcon className="mr-2 h-4 w-4" />
                       <span>Profile</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings/security">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Security</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
