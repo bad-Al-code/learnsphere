@@ -12,23 +12,31 @@ const profileSchema = z.object({
   language: z.string().optional(),
 });
 
-type ProfileSchema = z.infer<typeof profileSchema>;
-
-export async function updateProfile(values: ProfileSchema) {
+export async function updateProfile(values: z.infer<typeof profileSchema>) {
   try {
-    const validatedData = profileSchema.parse(values);
+    const { language, ...profileData } = profileSchema.parse(values);
+    const settingsData = { language };
 
-    const response = await userService.put("/api/users/me", validatedData);
+    const apiCalls: Promise<Response>[] = [];
 
-    if (!response.ok) {
-      const responseData = await response.json().catch(() => ({}));
-      const errorMessage =
-        responseData.errors?.[0]?.message || "Failed to update profile.";
-      return { error: errorMessage };
+    apiCalls.push(userService.put("/api/users/me", profileData));
+
+    if (settingsData.language) {
+      apiCalls.push(userService.put("/api/users/me/settings", settingsData));
     }
 
-    revalidatePath("/profile");
+    const responses = await Promise.all(apiCalls);
 
+    for (const response of responses) {
+      if (!response.ok) {
+        const responseData = await response.json().catch(() => ({}));
+        const errorMessage =
+          responseData.errors?.[0]?.message || "Failed to update profile.";
+        return { error: errorMessage };
+      }
+    }
+
+    revalidatePath("/settings/profile");
     return { success: true };
   } catch (error: any) {
     if (error instanceof ApiError) {

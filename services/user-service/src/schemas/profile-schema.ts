@@ -157,12 +157,13 @@ export const bulkUsersSchema = z.object({
   }),
 });
 
+const supportedLanguageCodes = ['en', 'es', 'fr'] as const;
 export const updateSettingsSchema = z.object({
   body: z
     .object({
       theme: z.enum(['light', 'dark']).optional(),
-      language: z.enum(['en', 'es', 'fr']).optional(),
-      Notification: z
+      language: z.enum(supportedLanguageCodes).optional(),
+      notification: z
         .object({
           newCourseAlerts: z.boolean().optional(),
           weeklyNewsletter: z.boolean().optional(),

@@ -1,16 +1,16 @@
 import { sql } from 'drizzle-orm';
 import {
+  jsonb,
+  pgEnum,
   pgTable,
   text,
   timestamp,
   varchar,
-  jsonb,
-  pgEnum,
 } from 'drizzle-orm/pg-core';
 
 export type UserSettings = {
   theme: 'light' | 'dark';
-  language: 'en' | 'es' | 'fr';
+  language: 'en' | 'es' | 'fr' | string;
   notifications: {
     newCourseAlerts: boolean;
     weeklyNewsletter: boolean;
