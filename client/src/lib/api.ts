@@ -1,9 +1,9 @@
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
 export class ApiError extends Error {
   status: number;
   data: any;
-
   constructor(message: string, status: number, data: any) {
     super(message);
     this.name = "ApiError";
@@ -12,17 +12,11 @@ export class ApiError extends Error {
   }
 }
 
-type ApiClientOptions = {
-  path: string;
-  baseUrl: string;
-  options?: RequestInit;
-};
-
-async function apiClient({
-  path,
-  baseUrl,
-  options = {},
-}: ApiClientOptions): Promise<Response> {
+async function apiClient(
+  baseUrl: string,
+  path: string,
+  options: RequestInit = {}
+): Promise<Response> {
   const cookieStore = await cookies();
   const allCookies = cookieStore.getAll();
   const cookieHeader = allCookies
@@ -37,74 +31,61 @@ async function apiClient({
     headers.set("Content-Type", "application/json");
   }
 
-  const url = `${baseUrl}${path}`;
+  let response = await fetch(`${baseUrl}${path}`, { ...options, headers });
 
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
+  if (response.status === 401 && path !== "/api/auth/refresh") {
+    console.log("Access token expired or invalid. Attempting to refresh...");
+    try {
+      const refreshResponse = await fetch(
+        `${process.env.AUTH_SERVICE_URL!}/api/auth/refresh`,
+        {
+          method: "POST",
+          headers: { Cookie: cookieHeader },
+        }
+      );
 
-    // const responseData = await response.json().catch(() => ({}));
+      if (!refreshResponse.ok) {
+        console.error("Failed to refresh token. User must log in again.");
+        throw new ApiError(
+          "Your session has expired. Please log in again.",
+          401,
+          {}
+        );
+      }
 
-    // if (!response.ok) {
-    //   const errorMessage =
-    //     responseData.errors?.[0]?.message || response.statusText;
-    //   throw new ApiError(errorMessage, response.status, responseData);
-    // }
+      console.log("Token refreshed successfully. Retrying original request.");
 
-    return response;
-  } catch (error) {
-    // if (error instanceof ApiError) {
-    //   throw error;
-    // }
+      const setCookieHeaders = refreshResponse.headers.getSetCookie();
+      setCookieHeaders.forEach(async (cookie) => {
+        const parts = cookie.split(";");
+        const [name, value] = parts[0].split("=");
+        (await cookies()).set(name, value, {
+          httpOnly: true,
+          path: "/",
+        });
+      });
 
-    throw new Error("An unexpected network error occurred.");
+      response = await fetch(`${baseUrl}${path}`, { ...options, headers });
+    } catch (e) {
+      (await cookies()).delete("token");
+      (await cookies()).delete("refreshToken");
+      revalidatePath("/");
+      throw e;
+    }
   }
+
+  return response;
 }
 
-export const authService = {
-  get: (path: string, options: RequestInit = {}) =>
-    apiClient({
-      path,
-      baseUrl: process.env.AUTH_SERVICE_URL!,
-      options: { ...options, method: "GET" },
-    }),
+const createApiService = (baseUrl: string) => ({
+  get: (path: string) => apiClient(baseUrl, path, { method: "GET" }),
+  post: (path: string, body: any) =>
+    apiClient(baseUrl, path, { method: "POST", body: JSON.stringify(body) }),
+  put: (path: string, body: any) =>
+    apiClient(baseUrl, path, { method: "PUT", body: JSON.stringify(body) }),
+  patch: (path: string, body: any) =>
+    apiClient(baseUrl, path, { method: "PATCH", body: JSON.stringify(body) }),
+});
 
-  post: (path: string, body: any, options: RequestInit = {}) =>
-    apiClient({
-      path,
-      baseUrl: process.env.AUTH_SERVICE_URL!,
-      options: { ...options, method: "POST", body: JSON.stringify(body) },
-    }),
-
-  patch: (path: string, body: any, options: RequestInit = {}) =>
-    apiClient({
-      path,
-      baseUrl: process.env.AUTH_SERVICE_URL!,
-      options: { ...options, method: "PATCH", body: JSON.stringify(body) },
-    }),
-};
-
-export const userService = {
-  get: (path: string, options: RequestInit = {}) =>
-    apiClient({
-      path,
-      baseUrl: process.env.USER_SERVICE_URL!,
-      options: { ...options, method: "GET" },
-    }),
-
-  put: (path: string, body: any, options: RequestInit = {}) =>
-    apiClient({
-      path,
-      baseUrl: process.env.USER_SERVICE_URL!,
-      options: { ...options, method: "PUT", body: JSON.stringify(body) },
-    }),
-
-  post: (path: string, body: any, options: RequestInit = {}) =>
-    apiClient({
-      path,
-      baseUrl: process.env.USER_SERVICE_URL!,
-      options: { ...options, method: "POST", body: JSON.stringify(body) },
-    }),
-};
+export const authService = createApiService(process.env.AUTH_SERVICE_URL!);
+export const userService = createApiService(process.env.USER_SERVICE_URL!);
