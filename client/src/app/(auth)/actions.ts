@@ -142,12 +142,19 @@ export async function signup(values: SignupSchema) {
   }
 }
 
-const verifyEmailSchema = z.object({
-  token: z.string(),
-  email: z.email(),
-});
+const verifyEmailSchema = z
+  .object({
+    code: z.string().optional(),
+    token: z.string().optional(),
+    email: z.email(),
+  })
+  .refine((data) => data.code || data.token, {
+    message: "Either a code or a token must be provided",
+  });
 
-export async function verifyEmail(values: z.infer<typeof verifyEmailSchema>) {
+type VerifyEmailSchema = z.infer<typeof verifyEmailSchema>;
+
+export async function verifyEmail(values: VerifyEmailSchema) {
   try {
     const validatedData = verifyEmailSchema.parse(values);
 
@@ -163,8 +170,16 @@ export async function verifyEmail(values: z.infer<typeof verifyEmailSchema>) {
       return { error: errorMessage };
     }
 
+    const user = await getCurrentUser();
+    if (user) {
+      redirect("/");
+    }
+
     return { success: true };
   } catch (error: any) {
+    if (error.digest?.startsWith("NEXT_REDIRECT")) {
+      throw error;
+    }
     return { error: error.message || "An unexpected error occurred." };
   }
 }
