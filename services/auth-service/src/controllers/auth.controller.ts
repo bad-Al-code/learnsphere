@@ -238,6 +238,7 @@ export class AuthController {
         const publisher = new UserVerificationRequiredPublisher();
         await publisher.publish({
           email: result.user.email,
+          verificationCode: result.verificationCode,
           verificationToken: result.verificationToken,
         });
       }

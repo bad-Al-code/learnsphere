@@ -58,9 +58,11 @@ export class AuthService {
       throw new BadRequestError('Email is already in use.');
     }
 
-    const { rawCode:verificationCode , hashedCode } = TokenUtil.generateVerificationCode();
-    const { rawToken:verificationToken } =TokenUtil.generateSecureToken();
-    const verificationTokenExpiresAt = TokenUtil.getExpirationDate(TEN_MINUTES_IN_MS);
+    const { rawCode: verificationCode, hashedCode } =
+      TokenUtil.generateVerificationCode();
+    const { rawToken: verificationToken } = TokenUtil.generateSecureToken();
+    const verificationTokenExpiresAt =
+      TokenUtil.getExpirationDate(TEN_MINUTES_IN_MS);
 
     const passwordHash = await Password.toHash(password);
 
@@ -83,7 +85,7 @@ export class AuthService {
       details: { email: newUser.email },
     });
 
-    return { user: newUser, verificationCode,  verificationToken };
+    return { user: newUser, verificationCode, verificationToken };
   }
 
   /**
@@ -236,11 +238,11 @@ export class AuthService {
       logger.warn(`Password reset requested for non-existent email: ${email}`);
       return null;
     }
-const { rawCode: resetCode, hashedCode } = TokenUtil.generateVerificationCode();
-    const { rawToken: resetToken} = TokenUtil.generateSecureToken();
-    const passwordResetTokenExpiresAt = TokenUtil.getExpirationDate(
-      TEN_MINUTES_IN_MS
-    );
+    const { rawCode: resetCode, hashedCode } =
+      TokenUtil.generateVerificationCode();
+    const { rawToken: resetToken } = TokenUtil.generateSecureToken();
+    const passwordResetTokenExpiresAt =
+      TokenUtil.getExpirationDate(TEN_MINUTES_IN_MS);
 
     await UserRepository.updateUser(user.id!, {
       passwordResetToken: hashedCode,
@@ -249,7 +251,7 @@ const { rawCode: resetCode, hashedCode } = TokenUtil.generateVerificationCode();
 
     logger.info(`Password reset token generated for user: ${user.id}`);
 
-    return { resetCode, resetToken};
+    return { resetCode, resetToken };
   }
 
   /**
@@ -325,10 +327,11 @@ const { rawCode: resetCode, hashedCode } = TokenUtil.generateVerificationCode();
       return null;
     }
 
-    const { rawCode: verificationToken, hashedCode } =
+    const { rawCode: verificationCode, hashedCode } =
       TokenUtil.generateVerificationCode();
+    const { rawToken: verificationToken } = TokenUtil.generateSecureToken();
     const verificationTokenExpiresAt =
-      TokenUtil.getExpirationDate(TWO_HOURS_IN_MS);
+      TokenUtil.getExpirationDate(TEN_MINUTES_IN_MS);
 
     await UserRepository.updateUser(user.id!, {
       verificationToken: hashedCode,
@@ -341,7 +344,7 @@ const { rawCode: resetCode, hashedCode } = TokenUtil.generateVerificationCode();
 
     logger.info(`New verifiation token generated for user: ${user.id}`);
 
-    return { user, verificationToken };
+    return { user, verificationCode, verificationToken };
   }
 
   /**
