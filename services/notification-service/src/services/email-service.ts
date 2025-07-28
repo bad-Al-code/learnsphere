@@ -1,13 +1,13 @@
 import { EmailClient } from '../clients/email.client';
-import { generateVerificationEmail } from '../templates/verification.template';
-import { generatePasswordResetEmail } from '../templates/password-reset.template';
-import { generateWelcomeEmail } from '../templates/welcome.template';
 import { generatePasswordChangeNotice } from '../templates/password-change-notice.template';
+import { generatePasswordResetEmail } from '../templates/password-reset.template';
+import { generateVerificationEmail } from '../templates/verification.template';
+import { generateWelcomeEmail } from '../templates/welcome.template';
 import {
-  VerificationEmailData,
-  PasswordResetEmailData,
-  WelcomeEmailData,
   PasswordChangeNoticeData,
+  PasswordResetEmailData,
+  VerificationEmailData,
+  WelcomeEmailData,
 } from '../types';
 
 export class EmailService {
@@ -26,7 +26,10 @@ export class EmailService {
   ): Promise<void> {
     const verificationLink = `http://localhost:3000/verify-email?token=${data.verificationToken}&email=${data.email}`;
 
-    const htmlBody = generateVerificationEmail(verificationLink);
+    const htmlBody = generateVerificationEmail(
+      data.verificationCode,
+      verificationLink
+    );
 
     await this.emailClient.send({
       to: data.email,
@@ -46,7 +49,7 @@ export class EmailService {
   ): Promise<void> {
     const resetLink = `http://localhost:3000/reset-password?token=${data.resetToken}&email=${data.email}`;
 
-    const htmlBody = generatePasswordResetEmail(resetLink);
+    const htmlBody = generatePasswordResetEmail(data.resetCode, resetLink);
 
     await this.emailClient.send({
       to: data.email,

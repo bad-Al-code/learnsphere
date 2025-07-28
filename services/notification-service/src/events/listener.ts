@@ -78,6 +78,7 @@ interface UserVerificationRequiredEvent {
   topic: 'user.verification.required';
   data: {
     email: string;
+    verificationCode: string;
     verificationToken: string;
   };
 }
@@ -94,7 +95,7 @@ export class UserVerificationRequiredListener extends Listener<UserVerificationR
   }
 
   async onMessage(
-    data: { email: string; verificationToken: string },
+    data: UserVerificationRequiredEvent['data'],
     _msg: ConsumeMessage
   ): Promise<void> {
     try {
@@ -116,6 +117,7 @@ interface UserPasswordResetRequiredEvent {
   topic: 'user.password_reset.required';
   data: {
     email: string;
+    resetCode: string;
     resetToken: string;
   };
 }
@@ -132,7 +134,7 @@ export class UserPasswordResetRequiredListener extends Listener<UserPasswordRese
   }
 
   async onMessage(
-    data: { email: string; resetToken: string },
+    data: UserPasswordResetRequiredEvent['data'],
     _msg: ConsumeMessage
   ): Promise<void> {
     try {

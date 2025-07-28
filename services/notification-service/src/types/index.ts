@@ -8,11 +8,13 @@ export interface UserPayload {
 
 export interface VerificationEmailData {
   email: string;
+  verificationCode: string;
   verificationToken: string;
 }
 
 export interface PasswordResetEmailData {
   email: string;
+  resetCode: string;
   resetToken: string;
 }
 
