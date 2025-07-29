@@ -392,12 +392,12 @@ export class AuthController {
   ) {
     passport.authenticate(
       'google',
-      { session: false },
+      {
+        session: false,
+        failureRedirect: `${process.env.CLIENT_URL}/login?error=google-auth-failed`,
+      },
       (err: Error, user: User, _info: object) => {
         if (err || !user) {
-          res
-            .status(StatusCodes.UNAUTHORIZED)
-            .json({ message: 'Google authentication failed.' });
           return;
         }
 
@@ -409,7 +409,8 @@ export class AuthController {
         const { jti } = sendTokenResponse(
           res,
           { id: user.id, email: user.email, role: user.role },
-          StatusCodes.OK
+          StatusCodes.OK,
+          { send: false }
         );
 
         if (jti) {
@@ -421,6 +422,8 @@ export class AuthController {
           });
           SessionService.createSession(jti, user.id, context);
         }
+
+        return res.redirect(env.CLIENT_URL || '/');
       }
     )(req, res, next);
   }

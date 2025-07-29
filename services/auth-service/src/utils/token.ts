@@ -1,9 +1,9 @@
 import { Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
+import { env } from '../config/env';
 import logger from '../config/logger';
 import { AttachCookiesOptions, UserPayload } from '../types/auth.types';
-import { env } from '../config/env';
 
 export const attachCookiesToResponse = (
   res: Response,
@@ -74,7 +74,8 @@ export const attachCookiesToResponse = (
 export const sendTokenResponse = (
   res: Response,
   user: UserPayload,
-  statusCode: number
+  statusCode: number,
+  options: { send: boolean } = { send: true }
 ): { jti: string | null } => {
   logger.info(
     `Attaching access and refresh tokens for user id ${user.id}  to a secure cookie`
@@ -85,10 +86,11 @@ export const sendTokenResponse = (
     refreshToken: true,
   });
 
-  res.status(statusCode).json({
-    message: 'Success',
-    user: { id: user.id, email: user.email, role: user.role },
-  });
-
+  if (options.send) {
+    res.status(statusCode).json({
+      message: 'Success',
+      user: { id: user.id, email: user.email, role: user.role },
+    });
+  }
   return { jti };
 };
