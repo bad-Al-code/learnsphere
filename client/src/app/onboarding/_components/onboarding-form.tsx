@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { completeOnboarding } from "../actions";
+import { completeOnboarding, type OnboardingInput } from "../actions";
 
 const onboardingSchema = z.object({
   headline: z
@@ -26,10 +26,14 @@ const onboardingSchema = z.object({
     .min(1, "A headline is required.")
     .max(100, "Headline is too long."),
   bio: z.string().max(500, "Bio is too long.").optional(),
-  websiteUrl: z.url("Please enter a valid URL.").optional().or(z.literal("")),
+  websiteUrl: z
+    .string()
+    .url("Please enter a valid URL.")
+    .optional()
+    .or(z.literal("")),
 });
 
-type OnboardingFormValues = z.infer<typeof onboardingSchema>;
+type OnboardingFormValues = OnboardingInput;
 
 interface OnboardingFormProps {
   userData: {

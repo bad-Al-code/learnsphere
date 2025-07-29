@@ -8,18 +8,19 @@ const onboardingSchema = z
   .object({
     headline: z.string().min(1),
     bio: z.string().optional(),
-    websiteUrl: z.url().optional().or(z.literal("")),
+    websiteUrl: z.string().url().optional().or(z.literal("")),
   })
   .transform((data) => ({
     ...data,
     websiteUrl: data.websiteUrl === "" ? null : data.websiteUrl,
   }));
 
-export async function completeOnboarding(
-  values: z.infer<typeof onboardingSchema>
-) {
+export type OnboardingInput = z.input<typeof onboardingSchema>;
+export type OnboardingOutput = z.output<typeof onboardingSchema>;
+
+export async function completeOnboarding(values: OnboardingInput) {
   try {
-    const validatedData = onboardingSchema.parse(values);
+    const validatedData: OnboardingOutput = onboardingSchema.parse(values);
 
     const response = await userService.put("/api/users/me", validatedData);
 
@@ -34,7 +35,7 @@ export async function completeOnboarding(
     return { success: true };
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-      return { error: error.message };
+      return { error: error.issues[0]?.message || "Validation failed." };
     }
     return { error: "An unexpected error occurred." };
   }
