@@ -167,23 +167,29 @@ export default function SignupPage() {
                 control={form.control}
                 name="terms"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center space-x-3">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormLabel className="text-sm font-normal">
-                      I agree to the{" "}
-                      <Link
-                        href="/legal/terms"
-                        className="underline"
-                        target="_blank"
-                      >
-                        Terms of Service
-                      </Link>{" "}
-                    </FormLabel>
+                  <FormItem>
+                    <div className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          I agree to the{" "}
+                          <Link
+                            href="/legal/terms"
+                            className="underline"
+                            target="_blank"
+                          >
+                            Terms of Service
+                          </Link>
+                          .
+                        </FormLabel>
+                      </div>
+                    </div>
+                    {/* Move FormMessage outside the flex container to ensure it's on a new line */}
                     <FormMessage />
                   </FormItem>
                 )}
