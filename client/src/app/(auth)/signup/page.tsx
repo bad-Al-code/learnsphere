@@ -8,7 +8,13 @@ import * as z from "zod";
 
 import { GoogleIcon } from "@/components/icons/google";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -74,13 +80,13 @@ export default function SignupPage() {
       <Card className="w-full max-w-md min-w-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Create an Account</CardTitle>
-          {/* <CardDescription>
-            Enter your email and password to sign up.
-          </CardDescription> */}
+          <CardDescription>
+            Choose your preferred sign up method.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4">
-            <Button asChild variant="outline">
+            <Button asChild variant="secondary">
               <Link
                 href={`${process.env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/google`}
               >
