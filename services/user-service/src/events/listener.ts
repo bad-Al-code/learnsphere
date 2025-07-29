@@ -1,7 +1,7 @@
 import { ConsumeMessage } from 'amqplib';
 import logger from '../config/logger';
-import { rabbitMQConnection } from './connection';
 import { ProfileService } from '../services/profile.service';
+import { rabbitMQConnection } from './connection';
 
 interface Event {
   topic: string;
@@ -58,6 +58,8 @@ interface UserRegisteredEvent extends Event {
   data: {
     id: string;
     email: string;
+    firstName?: string;
+    lastName?: string;
   };
 }
 
@@ -72,7 +74,11 @@ export class UserRegisteredListener extends Listener<UserRegisteredEvent> {
     logger.info(`Event data received for topic [${this.topic}]: %o`, data);
 
     try {
-      await ProfileService.createProfile({ userId: data.id });
+      await ProfileService.createProfile({
+        userId: data.id,
+        firstName: data.firstName,
+        lastName: data.lastName,
+      });
     } catch (error) {
       logger.error(`Failed to process user.registerd event`, { data, error });
     }

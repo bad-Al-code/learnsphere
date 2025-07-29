@@ -149,6 +149,8 @@ export const signupSchema = z.object({
       .string({ required_error: 'Password is required' })
       .min(8, 'Password must be at least 8 characters long')
       .max(50, 'Password must be at most 50 characters long'),
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
   }),
 });
 

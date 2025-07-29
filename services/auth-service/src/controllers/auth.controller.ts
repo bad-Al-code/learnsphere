@@ -23,7 +23,7 @@ import { BlacklistService } from './blacklist-service';
 export class AuthController {
   public static async signup(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email, password } = req.body;
+      const { email, password, firstName, lastName } = req.body;
       const context: RequestContext = {
         ipAddress: req.ip,
         userAgent: req.headers['user-agent'],
@@ -36,6 +36,8 @@ export class AuthController {
       await registeredPublisher.publish({
         id: user.id!,
         email: user.email,
+        firstName,
+        lastName,
       });
 
       const verificationPublisher = new UserVerificationRequiredPublisher();
