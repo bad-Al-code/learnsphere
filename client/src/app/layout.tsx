@@ -34,7 +34,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} font-sans  antialiased min-h-screen bg-background`}
       >
         <SessionProvider>
-          <div className="relative flex flex-col min-h-screen">
+          <div className="relative mx-6 flex flex-col min-h-screen">
             <Header user={user} />
             <main className="flex-1">{children}</main>
             <Toaster />

@@ -206,12 +206,7 @@ function VerifyTokenComponent({
       if (result.error) {
         setError(result.error);
       } else {
-        const user = await getCurrentUser();
-        if (user) {
-          router.push("/");
-        } else {
-          router.push("/verify-email?verified=true");
-        }
+        router.push("/onboarding");
       }
     };
     performVerification();

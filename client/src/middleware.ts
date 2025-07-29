@@ -7,7 +7,7 @@ const AUTH_ROUTES = [
   "/signup",
   "/forgot-password",
   "/reset-password",
-  "/verify-email",
+  // "/verify-email",
 ];
 
 export function middleware(request: NextRequest) {
