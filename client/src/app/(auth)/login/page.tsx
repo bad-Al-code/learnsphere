@@ -39,7 +39,6 @@ export default function LoginPage() {
   });
 
   function onSubmit(values: FormSchema) {
-    console.log(values);
     setError(null);
 
     startTransition(async () => {
