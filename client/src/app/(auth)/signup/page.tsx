@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
+import { GoogleIcon } from "@/components/icons/google";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -27,10 +29,15 @@ import { useRouter } from "next/navigation";
 import { signup } from "../actions";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email." }),
+  firstName: z.string().min(1, { message: "First name is required." }),
+  lastName: z.string().min(1, { message: "Last name is required." }),
+  email: z.email({ message: "Please enter a valid email." }),
   password: z
     .string()
     .min(8, { message: "Password must be at least 8 characters long." }),
+  terms: z.boolean().refine((val) => val === true, {
+    message: "You must accept the terms and conditions.",
+  }),
 });
 
 type FormSchema = z.infer<typeof formSchema>;
@@ -43,8 +50,11 @@ export default function SignupPage() {
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
+      terms: false,
     },
   });
 
@@ -73,8 +83,55 @@ export default function SignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="grid grid-cols-1 gap-4">
+            <Button asChild variant="outline">
+              <Link
+                href={`${process.env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/google`}
+              >
+                <GoogleIcon className="mr-2 h-4 w-4" />
+                Sign up with Google
+              </Link>
+            </Button>
+          </div>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t"></span>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <div className="bg-background px-2 text-muted-foreground">OR</div>
+            </div>
+          </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
                 name="email"
@@ -105,6 +162,33 @@ export default function SignupPage() {
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="terms"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center space-x-3">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className="text-sm font-normal">
+                      I agree to the{" "}
+                      <Link
+                        href="/legal/terms"
+                        className="underline"
+                        target="_blank"
+                      >
+                        Terms of Service
+                      </Link>{" "}
+                    </FormLabel>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <Button type="submit" className="w-full" disabled={isPending}>
                 {isPending ? "Signing up..." : "Sign Up"}
               </Button>
