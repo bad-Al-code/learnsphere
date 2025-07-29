@@ -4,11 +4,16 @@ import { userService } from "@/lib/api";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-const onboardingSchema = z.object({
-  headline: z.string().min(1),
-  bio: z.string().optional(),
-  websiteUrl: z.string().url().optional().or(z.literal("")),
-});
+const onboardingSchema = z
+  .object({
+    headline: z.string().min(1),
+    bio: z.string().optional(),
+    websiteUrl: z.url().optional().or(z.literal("")),
+  })
+  .transform((data) => ({
+    ...data,
+    websiteUrl: data.websiteUrl === "" ? null : data.websiteUrl,
+  }));
 
 export async function completeOnboarding(
   values: z.infer<typeof onboardingSchema>
@@ -28,6 +33,9 @@ export async function completeOnboarding(
     revalidatePath("/", "layout");
     return { success: true };
   } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.message };
+    }
     return { error: "An unexpected error occurred." };
   }
 }

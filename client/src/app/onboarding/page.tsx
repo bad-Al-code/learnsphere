@@ -21,8 +21,8 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <div className="container flex items-center justify-center min-h-[90vh]">
-      <Card className="w-full max-w-lg">
+    <div className="flex items-center justify-center min-h-[90vh] ">
+      <Card className="w-full max-w-lg min-w-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Welcome, {user.firstName}!</CardTitle>
           <CardDescription>

@@ -26,11 +26,7 @@ const onboardingSchema = z.object({
     .min(1, "A headline is required.")
     .max(100, "Headline is too long."),
   bio: z.string().max(500, "Bio is too long.").optional(),
-  websiteUrl: z
-    .string()
-    .url("Please enter a valid URL.")
-    .optional()
-    .or(z.literal("")),
+  websiteUrl: z.url("Please enter a valid URL.").optional().or(z.literal("")),
 });
 
 type OnboardingFormValues = z.infer<typeof onboardingSchema>;
@@ -59,7 +55,9 @@ export function OnboardingForm({ userData }: OnboardingFormProps) {
   async function onSubmit(values: OnboardingFormValues) {
     startTransition(async () => {
       const result = await completeOnboarding(values);
+
       if (result?.error) {
+        console.log(result.error);
         toast.error("Update Failed", { description: result.error });
       } else {
         toast.success("Profile completed!");
