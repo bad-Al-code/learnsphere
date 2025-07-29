@@ -60,6 +60,7 @@ interface UserRegisteredEvent extends Event {
     email: string;
     firstName?: string;
     lastName?: string;
+    avatarUrl?: string;
   };
 }
 
@@ -74,10 +75,19 @@ export class UserRegisteredListener extends Listener<UserRegisteredEvent> {
     logger.info(`Event data received for topic [${this.topic}]: %o`, data);
 
     try {
+      const avatarJson = data.avatarUrl
+        ? {
+            small: data.avatarUrl,
+            medium: data.avatarUrl,
+            large: data.avatarUrl,
+          }
+        : undefined;
+
       await ProfileService.createProfile({
         userId: data.id,
         firstName: data.firstName,
         lastName: data.lastName,
+        avatarUrls: avatarJson,
       });
     } catch (error) {
       logger.error(`Failed to process user.registerd event`, { data, error });

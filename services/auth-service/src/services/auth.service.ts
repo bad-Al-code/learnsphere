@@ -540,6 +540,8 @@ export class AuthService {
     const tempPassword = `oauth-${crypto.randomBytes(16).toString('hex')}`;
     const passwordHash = await Password.toHash(tempPassword);
 
+    // It is not necessary, we can leave it to null.
+    // set isVerified to true that all it matter
     const newUserRecord = await UserRepository.create({
       email,
       passwordHash,
