@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { GoogleIcon } from "@/components/icons/google";
+import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -76,9 +77,12 @@ export default function SignupPage() {
   }
 
   return (
-    <div className=" flex items-center justify-center min-h-[80vh]">
+    <div className=" flex flex-col items-center justify-center min-h-[90vh]">
       <Card className="shadow-2xl/20  w-full max-w-md min-w-sm">
-        <CardHeader>
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <Logo />
+          </div>
           <CardTitle className="text-2xl">Create an Account</CardTitle>
           <CardDescription>
             Choose your preferred sign up method.

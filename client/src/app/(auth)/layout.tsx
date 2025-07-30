@@ -14,12 +14,12 @@ export default function AuthLayout({
       >
         <defs>
           <linearGradient>
-            <stop offset="5%" stop-color="#fff"></stop>
-            <stop offset="95%" stop-color="#00f"></stop>
+            <stop offset="5%" stopColor="#fff"></stop>
+            <stop offset="95%" stopColor="#00f"></stop>
           </linearGradient>
           <linearGradient x1="0" x2="0" y1="0" y2="1">
-            <stop offset="5%" stop-color="red"></stop>
-            <stop offset="95%" stop-color="orange"></stop>
+            <stop offset="5%" stopColor="red"></stop>
+            <stop offset="95%" stopColor="orange"></stop>
           </linearGradient>
           <filter id="orange-glow" width="200%" height="200%" x="-50%" y="-50%">
             <feGaussianBlur
@@ -29,8 +29,8 @@ export default function AuthLayout({
             ></feGaussianBlur>
             <feOffset in="blur" result="offsetBlur"></feOffset>
             <feFlood
-              flood-color="orange"
-              flood-opacity="1"
+              floodColor="orange"
+              floodOpacity="1"
               result="offsetColor"
             ></feFlood>
             <feComposite
@@ -62,7 +62,7 @@ export default function AuthLayout({
               rx="6"
               ry="6"
               stroke="orange"
-              stroke-opacity="0.175"
+              strokeOpacity="0.175"
             ></rect>
           </pattern>
         </defs>
