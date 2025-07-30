@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { SUPPORTED_LANGUAGES } from "@/config/language";
 import { toast } from "sonner";
 import { updateProfile } from "../actions";
@@ -62,6 +63,8 @@ export function ProfileForm({ userData }: ProfileFormProps) {
       language: userData.settings?.language || "en",
     },
   });
+
+  const { isDirty } = form.formState;
 
   async function onSubmit(values: ProfileFormValues) {
     startTransition(async () => {
@@ -114,27 +117,35 @@ export function ProfileForm({ userData }: ProfileFormProps) {
 
           <FormField
             control={form.control}
-            name="language"
+            name="headline"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Language</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a language" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {SUPPORTED_LANGUAGES.map((lang) => (
-                      <SelectItem key={lang.code} value={lang.code}>
-                        {lang.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormLabel>Headline</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="e.g., Senior Software Engineer"
+                    {...field}
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="bio"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Bio</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Tell us about yourself"
+                    className="resize-none"
+                    {...field}
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -169,7 +180,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
           />
 
           <div className="flex justify-end">
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending || !isDirty}>
               {isPending ? "Saving..." : "Save Changes"}
             </Button>
           </div>

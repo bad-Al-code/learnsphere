@@ -1,5 +1,4 @@
 import { getCurrentUser } from "@/app/(auth)/actions";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,8 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Github } from "lucide-react";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AvatarUpload } from "../../_components/avatar-upload";
 import { ProfileForm } from "../../_components/profile-form";
@@ -55,7 +52,7 @@ export default async function ProfileSettingsPage() {
           </div>
         </CardContent>
       </Card>
-
+      {/* 
       <Card>
         <CardHeader>
           <CardTitle>Public Profile Details</CardTitle>
@@ -90,8 +87,8 @@ export default async function ProfileSettingsPage() {
             )}
           </div>
         </CardContent>
-      </Card>
-
+      </Card> */}
+      {/* 
       <Card>
         <CardHeader>
           <CardTitle>Connect with Git service</CardTitle>
@@ -108,7 +105,7 @@ export default async function ProfileSettingsPage() {
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 }
