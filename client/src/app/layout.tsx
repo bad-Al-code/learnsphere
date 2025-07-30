@@ -1,20 +1,11 @@
 import { Header } from "@/components/layout/header";
 import { SessionProvider } from "@/components/layout/session-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { getCurrentUser } from "./(auth)/actions";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "LearnSphere",
@@ -31,7 +22,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans  antialiased min-h-screen bg-background`}
+        className={`${GeistSans.variable} ${GeistMono.variable} font-sans  antialiased min-h-screen bg-background`}
       >
         <SessionProvider>
           <div className="relative mx-6 flex flex-col min-h-screen">
