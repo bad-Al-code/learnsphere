@@ -24,6 +24,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { forgotPassword } from "../actions";
 
@@ -85,9 +86,10 @@ export default function ForgotPasswordPage() {
           <div className="flex  mb-4">
             <Logo variant="icon" />
           </div>
-          <CardTitle className="text-2xl">Forgot Password</CardTitle>
+          <CardTitle className="text-2xl">Reset your password</CardTitle>
           <CardDescription>
-            Enter your email and we'll send you a link to reset your password.
+            You'll receive a link to reset your password, if an account with
+            your email exists.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -98,22 +100,40 @@ export default function ForgotPasswordPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Account Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="name@example.com" {...field} />
+                      <Input placeholder="Enter your email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? "Sending..." : "Send Reset Link"}
-              </Button>
+              <div className="flex items-center gap-x-4 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-auto whitespace-nowrap"
+                  onClick={() => router.back()}
+                >
+                  Back
+                </Button>
+
+                <Button type="submit" className="flex-1" disabled={isPending}>
+                  {isPending ? "Sending..." : "Send Reset Link"}
+                </Button>
+              </div>
+
               {error && (
                 <p className="text-sm font-medium text-destructive">{error}</p>
               )}
             </form>
           </Form>
+
+          <div className="mt-6 text-center text-sm">
+            <Link href="/login" className="underline">
+              Login to your account
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
