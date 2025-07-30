@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Github, Linkedin, Twitter } from "lucide-react";
 
 const onboardingSchema = z.object({
   headline: z
@@ -29,7 +30,15 @@ const onboardingSchema = z.object({
     .min(1, "A headline is required.")
     .max(100, "Headline is too long."),
   bio: z.string().max(500, "Bio is too long.").optional(),
-  websiteUrl: z.url("Please enter a valid URL.").optional().or(z.literal("")),
+  websiteUrl: z.url().optional().or(z.literal("")),
+  socialLinks: z
+    .object({
+      twitter: z.string().optional(),
+      linkedin: z.string().optional(),
+      github: z.string().optional(),
+    })
+    .optional()
+    .nullable(),
 });
 
 type OnboardingFormValues = OnboardingInput;
@@ -39,6 +48,11 @@ interface OnboardingFormProps {
     headline: string | null;
     bio: string | null;
     websiteUrl: string | null;
+    socialLinks: {
+      twitter: string | null;
+      linkedin: string | null;
+      github: string | null;
+    };
   };
   onSuccess?: () => void;
 }
@@ -53,6 +67,11 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
       headline: userData.headline || "",
       bio: userData.bio || "",
       websiteUrl: userData.websiteUrl || "",
+      socialLinks: {
+        github: userData.socialLinks?.github || "",
+        linkedin: userData.socialLinks?.linkedin || "",
+        twitter: userData.socialLinks?.twitter || "",
+      },
     },
   });
 
@@ -121,6 +140,72 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
             </FormItem>
           )}
         />
+        <div className="space-y-4">
+          <FormLabel>Social Links (Optional)</FormLabel>
+          <FormField
+            control={form.control}
+            name="socialLinks.github"
+            render={({ field }) => (
+              <FormItem>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Github className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <FormControl>
+                    <Input
+                      placeholder="https://github.com/username"
+                      {...field}
+                      className="pl-10"
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="socialLinks.linkedin"
+            render={({ field }) => (
+              <FormItem>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Linkedin className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <FormControl>
+                    <Input
+                      placeholder="https://linkedin.com/in/username"
+                      {...field}
+                      className="pl-10"
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="socialLinks.twitter"
+            render={({ field }) => (
+              <FormItem>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Twitter className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <FormControl>
+                    <Input
+                      placeholder="https://twitter.com/username"
+                      {...field}
+                      className="pl-10"
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <div className="flex justify-end">
           <Button type="submit" disabled={isPending}>

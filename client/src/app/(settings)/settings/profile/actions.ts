@@ -8,7 +8,15 @@ const onboardingSchema = z
   .object({
     headline: z.string().min(1),
     bio: z.string().optional(),
-    websiteUrl: z.string().url().optional().or(z.literal("")),
+    websiteUrl: z.url("Invalid URL format").optional().or(z.literal("")),
+    socialLinks: z
+      .object({
+        twitter: z.string().optional(),
+        linkedin: z.string().optional(),
+        github: z.string().optional(),
+      })
+      .optional()
+      .nullable(),
   })
   .transform((data) => ({
     ...data,
