@@ -83,15 +83,6 @@ export function ProfileForm({ userData }: ProfileFormProps) {
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-6 border p-4 rounded-lg"
         >
-          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormItem>
-              <FormLabel>Email address</FormLabel>
-              <FormControl>
-                <Input readOnly disabled value={userData.email} />
-              </FormControl>
-            </FormItem>
-          </div> */}
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -120,6 +111,34 @@ export function ProfileForm({ userData }: ProfileFormProps) {
               )}
             />
           </div>
+
+          <FormField
+            control={form.control}
+            name="language"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Language</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a language" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {SUPPORTED_LANGUAGES.map((lang) => (
+                      <SelectItem key={lang.code} value={lang.code}>
+                        {lang.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}

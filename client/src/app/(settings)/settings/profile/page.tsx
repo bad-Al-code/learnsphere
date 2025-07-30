@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Github } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AvatarUpload } from "../../_components/avatar-upload";
 import { ProfileForm } from "../../_components/profile-form";
@@ -51,6 +52,42 @@ export default async function ProfileSettingsPage() {
                 <p>Recommended size: 400x400px.</p>
               </div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Public Profile Details</CardTitle>
+          <CardDescription>
+            This information will be visible to other users on the platform.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="">
+            <h3 className="font-medium text-sm">Headline</h3>
+            <p className="text-muted-foreground">
+              {user.headline || "Not set"}
+            </p>
+          </div>
+          <div>
+            <h3 className="font-medium text-sm">Bio</h3>
+            <p className="text-muted-foreground">{user.bio || "Not set"}</p>
+          </div>
+          <div>
+            <h3 className="font-medium text-sm">Website</h3>
+            {user.websiteUrl ? (
+              <Link
+                href={user.websiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 underline hover:text-blue-700"
+              >
+                {user.websiteUrl}
+              </Link>
+            ) : (
+              <p className="text-muted-foreground">Not set</p>
+            )}
           </div>
         </CardContent>
       </Card>
