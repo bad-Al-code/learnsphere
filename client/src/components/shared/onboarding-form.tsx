@@ -76,11 +76,13 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
   });
 
   async function onSubmit(values: OnboardingFormValues) {
+    console.log(values);
     startTransition(async () => {
       const result = await completeOnboarding(values);
 
       if (result?.error) {
         toast.error("Update Failed");
+        console.log(result.error);
       } else {
         toast.success("Profile completed!");
         if (onSuccess) {
