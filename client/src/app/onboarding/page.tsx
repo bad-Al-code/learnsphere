@@ -1,4 +1,5 @@
 import { getCurrentUser } from "@/app/(auth)/actions";
+import { OnboardingForm } from "@/components/shared/onboarding-form";
 import {
   Card,
   CardContent,
@@ -7,7 +8,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { redirect } from "next/navigation";
-import { OnboardingForm } from "./_components/onboarding-form";
 
 export default async function OnboardingPage() {
   const user = await getCurrentUser();
