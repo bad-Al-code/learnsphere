@@ -1,5 +1,6 @@
 "use client";
 
+import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -52,7 +53,10 @@ export default function LoginPage() {
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
       <Card className="shadow-2xl/20 w-full max-w-sm">
-        <CardHeader>
+        <CardHeader className="text-start">
+          <div className="flex  mb-4">
+            <Logo variant="icon" />
+          </div>
           <CardTitle className="text-2xl">Login</CardTitle>
         </CardHeader>
         <CardContent>

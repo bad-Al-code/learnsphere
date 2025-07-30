@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState, useTransition } from "react";
 
+import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -134,7 +135,10 @@ function CheckInboxComponent({ email }: { email: string }) {
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
       <Card className="w-full max-w-md shadow-2xl/20">
-        <CardHeader className="text-center">
+        <CardHeader className="text-start">
+          <div className="flex  mb-4">
+            <Logo variant="icon" />
+          </div>
           <CardTitle className="text-2xl">Check your inbox</CardTitle>
           <CardDescription>
             We've sent a 6-digit verification code to <strong>{email}</strong>.
@@ -237,7 +241,10 @@ function SuccessCard() {
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
       <Card className="w-full max-w-md text-center">
-        <CardHeader>
+        <CardHeader className="text-start">
+          <div className="flex  mb-4">
+            <Logo variant="icon" />
+          </div>
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
             <CircleCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
           </div>
@@ -266,7 +273,10 @@ function ErrorCard({
   return (
     <div className="flex items-center justify-center min-h-[80vh] ">
       <Card className="w-full max-w-md text-center shadow-2xl/20">
-        <CardHeader>
+        <CardHeader className="text-start">
+          <div className="flex  mb-4">
+            <Logo variant="icon" />
+          </div>
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
             <CircleX className="h-6 w-6 text-red-600 dark:text-red-400" />
           </div>
@@ -289,7 +299,10 @@ function LoadingCard() {
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
       <Card className="w-full max-w-md text-center">
-        <CardHeader>
+        <CardHeader className="text-start">
+          <div className="flex  mb-4">
+            <Logo variant="icon" />
+          </div>
           <CardTitle className="text-2xl">Verifying...</CardTitle>
           <CardDescription>Please wait a moment.</CardDescription>
         </CardHeader>

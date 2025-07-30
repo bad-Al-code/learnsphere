@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { setNewPassword } from "@/app/(auth)/actions";
+import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -71,7 +72,10 @@ function ConfirmResetPasswordForm() {
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
       <Card className="w-full max-w-sm">
-        <CardHeader>
+        <CardHeader className="text-start">
+          <div className="flex  mb-4">
+            <Logo variant="icon" />
+          </div>
           <CardTitle className="text-2xl">Set New Password</CardTitle>
           <CardDescription>Enter your new password below.</CardDescription>
         </CardHeader>

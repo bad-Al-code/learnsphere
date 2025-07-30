@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
+import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -59,7 +60,10 @@ export default function ForgotPasswordPage() {
     return (
       <div className="flex items-center justify-center min-h-[80vh]">
         <Card className="w-full max-w-sm text-center shadow-2xl/20">
-          <CardHeader>
+          <CardHeader className="text-start">
+            <div className="flex  mb-4">
+              <Logo variant="icon" />
+            </div>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
               <MailCheck className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
@@ -77,7 +81,10 @@ export default function ForgotPasswordPage() {
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
       <Card className="w-full max-w-sm">
-        <CardHeader>
+        <CardHeader className="text-start">
+          <div className="flex  mb-4">
+            <Logo variant="icon" />
+          </div>
           <CardTitle className="text-2xl">Forgot Password</CardTitle>
           <CardDescription>
             Enter your email and we'll send you a link to reset your password.

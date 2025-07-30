@@ -7,6 +7,7 @@ import { Suspense, useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
+import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -60,7 +61,10 @@ function ResetPasswordFlow() {
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
       <Card className="w-full max-w-sm text-center shadow-2xl/20">
-        <CardHeader>
+        <CardHeader className="text-start">
+          <div className="flex  mb-4">
+            <Logo variant="icon" />
+          </div>
           <CardTitle>Invalid Link</CardTitle>
         </CardHeader>
         <CardContent>
@@ -99,7 +103,10 @@ function EnterCodeComponent({ email }: { email: string }) {
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
       <Card className="w-full max-w-sm shadow-2xl/20">
-        <CardHeader className="text-center">
+        <CardHeader className="text-start">
+          <div className="flex  mb-4">
+            <Logo variant="icon" />
+          </div>
           <CardTitle className="text-2xl">Check your email</CardTitle>
           <CardDescription>
             Enter the 6-digit code we sent to <strong>{email}</strong>.
@@ -172,7 +179,10 @@ function VerifyResetTokenComponent({
     return (
       <div className="flex items-center justify-center min-h-[80vh]">
         <Card className="w-full max-w-sm text-center shadow-2xl/20">
-          <CardHeader>
+          <CardHeader className="text-start">
+            <div className="flex  mb-4">
+              <Logo variant="icon" />
+            </div>
             <CardTitle>Verification Failed</CardTitle>
           </CardHeader>
           <CardContent>
@@ -190,7 +200,10 @@ function LoadingCard({ message }: { message: string }) {
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
       <Card className="w-full max-w-md text-center shadow-2xl/20">
-        <CardHeader>
+        <CardHeader className="text-start">
+          <div className="flex  mb-4">
+            <Logo variant="icon" />
+          </div>
           <CardTitle className="text-2xl">{message}</CardTitle>
         </CardHeader>
       </Card>
