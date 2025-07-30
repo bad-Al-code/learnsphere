@@ -98,6 +98,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
       } else {
         console.log(result.success);
         toast.success("Profile updated successfully!");
+        form.reset(values);
         router.refresh();
       }
     });
