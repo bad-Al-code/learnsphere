@@ -35,18 +35,21 @@ export default async function ProfileSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
-          <ProfileForm userData={user} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <ProfileForm userData={user} />
+            </div>
 
-          <div>
-            <h3 className="text-lg font-medium">Avatar</h3>
-            <div className="flex items-center gap-x-8 mt-4 p-4 border rounded-lg">
-              <AvatarUpload
-                currentAvatarUrl={user.avatarUrls?.large}
-                initials={initials}
-              />
-              <div className="text-sm text-muted-foreground">
-                <p>Upload a new avatar.</p>
-                <p>Recommended size: 400x400px.</p>
+            <div className="lg:col-span-1">
+              <h3 className="text-lg font-medium mb-4">Avatar</h3>
+              <div className="flex flex-col items-center justify-center text-center p-6 border rounded-lg">
+                <AvatarUpload
+                  currentAvatarUrl={user.avatarUrls?.large}
+                  initials={initials}
+                />
+                <p className="text-sm text-muted-foreground mt-4">
+                  Upload a new profile picture.
+                </p>
               </div>
             </div>
           </div>

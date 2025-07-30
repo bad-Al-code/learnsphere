@@ -107,10 +107,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
     <div>
       <h3 className="text-lg font-medium mb-4">Account Settings</h3>
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-6 border p-4 rounded-lg"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
