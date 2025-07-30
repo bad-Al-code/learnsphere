@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,28 +24,10 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { SUPPORTED_LANGUAGES } from "@/config/language";
+import { profileFormSchema, ProfileFormValues } from "@/lib/schemas/user";
 import { Github, Linkedin, Twitter } from "lucide-react";
 import { toast } from "sonner";
 import { updateProfile } from "../actions";
-
-const profileSchema = z.object({
-  firstName: z.string().min(1, "First name is required.").optional().nullable(),
-  lastName: z.string().min(1, "Last name is required.").optional().nullable(),
-  headline: z.string().optional().nullable(),
-  bio: z.string().optional().nullable(),
-  language: z.string().optional(),
-  websiteUrl: z.url("Invalid URL format").optional().or(z.literal("")),
-  socialLinks: z
-    .object({
-      twitter: z.string().optional(),
-      linkedin: z.string().optional(),
-      github: z.string().optional(),
-    })
-    .optional()
-    .nullable(),
-});
-
-type ProfileFormValues = z.infer<typeof profileSchema>;
 
 interface ProfileFormProps {
   userData: {
@@ -70,7 +51,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileSchema),
+    resolver: zodResolver(profileFormSchema),
     defaultValues: {
       firstName: userData.firstName || "",
       lastName: userData.lastName || "",

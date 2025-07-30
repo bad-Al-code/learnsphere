@@ -1,26 +1,18 @@
 "use server";
 
 import { ApiError, userService } from "@/lib/api";
+import { updateProfileSchema } from "@/lib/schemas/user";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-const profileSchema = z.object({
-  firstName: z.string().min(1, "First name is required.").optional().nullable(),
-  lastName: z.string().min(1, "Last name is required.").optional().nullable(),
-  headline: z.string().optional().nullable(),
-  bio: z.string().optional().nullable(),
-  language: z.string().optional(),
-});
-
-export async function updateProfile(values: z.infer<typeof profileSchema>) {
+export async function updateProfile(
+  values: z.input<typeof updateProfileSchema>
+) {
   try {
-    const { language, ...profileData } = profileSchema.parse(values);
-    const settingsData = { language };
+    const { profileData, settingsData } = updateProfileSchema.parse(values);
 
     const apiCalls: Promise<Response>[] = [];
-
     apiCalls.push(userService.put("/api/users/me", profileData));
-
     if (settingsData.language) {
       apiCalls.push(userService.put("/api/users/me/settings", settingsData));
     }
@@ -36,11 +28,11 @@ export async function updateProfile(values: z.infer<typeof profileSchema>) {
       }
     }
 
-    revalidatePath("/settings/profile");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error: any) {
-    if (error instanceof ApiError) {
-      return { error: error.message };
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
     }
     return { error: "An unexpected error occurred." };
   }

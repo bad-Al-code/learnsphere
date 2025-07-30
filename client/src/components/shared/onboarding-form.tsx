@@ -5,12 +5,8 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import * as z from "zod";
 
-import {
-  OnboardingInput,
-  completeOnboarding,
-} from "@/app/(settings)/settings/profile/actions";
+import { updateProfile as completeOnboarding } from "@/app/(settings)/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -22,26 +18,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { onboardingFormSchema, OnboardingFormValues } from "@/lib/schemas/user";
 import { Github, Linkedin, Twitter } from "lucide-react";
-
-const onboardingSchema = z.object({
-  headline: z
-    .string()
-    .min(1, "A headline is required.")
-    .max(100, "Headline is too long."),
-  bio: z.string().max(500, "Bio is too long.").optional(),
-  websiteUrl: z.url().optional().or(z.literal("")),
-  socialLinks: z
-    .object({
-      twitter: z.string().optional(),
-      linkedin: z.string().optional(),
-      github: z.string().optional(),
-    })
-    .optional()
-    .nullable(),
-});
-
-type OnboardingFormValues = OnboardingInput;
 
 interface OnboardingFormProps {
   userData: {
@@ -62,7 +40,7 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<OnboardingFormValues>({
-    resolver: zodResolver(onboardingSchema),
+    resolver: zodResolver(onboardingFormSchema),
     defaultValues: {
       headline: userData.headline || "",
       bio: userData.bio || "",
@@ -123,6 +101,7 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
                   placeholder="Tell us a little about your learning goals."
                   className="resize-none"
                   {...field}
+                  value={field.value ?? ""}
                 />
               </FormControl>
               <FormMessage />
@@ -136,7 +115,11 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
             <FormItem>
               <FormLabel>Website (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="https://your-portfolio.com" {...field} />
+                <Input
+                  placeholder="https://your-portfolio.com"
+                  {...field}
+                  value={field.value ?? ""}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
