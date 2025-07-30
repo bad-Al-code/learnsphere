@@ -1,8 +1,15 @@
 "use client";
 
+import { GoogleIcon } from "@/components/icons/google";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -57,9 +64,31 @@ export default function LoginPage() {
           <div className="flex  mb-4">
             <Logo variant="icon" />
           </div>
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="text-2xl">Welcome back!</CardTitle>
+          <CardDescription>
+            Sign in to your account to continue.
+          </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="grid grid-cols-1 gap-4">
+            <Button asChild variant="secondary">
+              <Link
+                href={`${process.env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/google`}
+              >
+                <GoogleIcon className="mr-2 h-4 w-4" />
+                Sign In with Google
+              </Link>
+            </Button>
+          </div>
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t"></span>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <div className="bg-background px-2 text-muted-foreground">OR</div>
+            </div>
+          </div>
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -125,6 +154,7 @@ export default function LoginPage() {
               )}
             </form>
           </Form>
+
           <div className="mt-4 text-center text-sm">
             Don't have an account?{" "}
             <Link href="/signup" className="underline">
