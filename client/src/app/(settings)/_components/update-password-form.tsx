@@ -41,9 +41,7 @@ export function UpdatePasswordForm() {
     startTransition(async () => {
       const result = await updatePassword(values);
       if (result?.error) {
-        toast.error("Update Failed", {
-          description: result.error,
-        });
+        toast.error("Update Failed");
       } else {
         toast.success("Your password has been updated successfully!");
         form.reset();

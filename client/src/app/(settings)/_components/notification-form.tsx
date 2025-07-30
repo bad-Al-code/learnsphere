@@ -51,7 +51,7 @@ export function NotificationsForm({ settings }: NotificationsFormProps) {
     startTransition(async () => {
       const result = await updateNotificationSettings(data);
       if (result?.error) {
-        toast.error("Failed to update settings", { description: result.error });
+        toast.error("Failed to update settings");
       } else {
         toast.success("Notification settings updated!");
         router.refresh();

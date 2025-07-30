@@ -88,9 +88,7 @@ function CheckInboxComponent({ email }: { email: string }) {
 
   const onSubmit = (values: z.infer<typeof otpSchema>) => {
     if (!email) {
-      toast.error("Email not found in URL", {
-        description: "Please try signing up again.",
-      });
+      toast.error("Email not found in URL");
 
       return;
     }
@@ -99,9 +97,7 @@ function CheckInboxComponent({ email }: { email: string }) {
       const result = await verifyEmail({ email, code: values.code });
 
       if (result.error) {
-        toast.error("Verification failed", {
-          description: result.error,
-        });
+        toast.error("Verification failed");
 
         form.reset();
       } else if (result?.success) {
@@ -122,9 +118,7 @@ function CheckInboxComponent({ email }: { email: string }) {
     startResending(async () => {
       const result = await resendVerificationEmail({ email });
       if (result.error) {
-        toast.error("Failed to send email", {
-          description: result.error,
-        });
+        toast.error("Failed to send email");
       } else {
         toast.success("A new verification email has been sent.");
         setCooldown(60);

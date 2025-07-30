@@ -67,9 +67,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
     startTransition(async () => {
       const result = await updateProfile(values);
       if (result?.error) {
-        toast.error("Update Failed", {
-          description: result.error,
-        });
+        toast.error("Update Failed");
       } else {
         toast.success("Profile updated successfully!");
         router.refresh();
