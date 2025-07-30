@@ -18,12 +18,14 @@ interface OnboardingModalProps {
   };
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 export default function OnboardingModal({
   user,
   isOpen,
   onClose,
+  onSuccess,
 }: OnboardingModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -37,7 +39,7 @@ export default function OnboardingModal({
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
-          <OnboardingForm userData={user} />
+          <OnboardingForm userData={user} onSuccess={onSuccess} />
         </div>
       </DialogContent>
     </Dialog>

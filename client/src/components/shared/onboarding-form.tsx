@@ -44,9 +44,10 @@ interface OnboardingFormProps {
     bio: string | null;
     websiteUrl: string | null;
   };
+  onSuccess?: () => void;
 }
 
-export function OnboardingForm({ userData }: OnboardingFormProps) {
+export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -64,11 +65,13 @@ export function OnboardingForm({ userData }: OnboardingFormProps) {
       const result = await completeOnboarding(values);
 
       if (result?.error) {
-        console.log(result.error);
-        toast.error("Update Failed", { description: result.error });
+        toast.error("Update Failed");
       } else {
         toast.success("Profile completed!");
-        router.push("/");
+        if (onSuccess) {
+          onSuccess();
+        }
+        router.refresh();
       }
     });
   }

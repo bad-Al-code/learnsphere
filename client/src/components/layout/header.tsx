@@ -11,19 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSessionStore } from "@/stores/session-store";
+import { User } from "@/types/user";
 import { LogOut, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useTransition } from "react";
 import { Button } from "../ui/button";
-
-type User = {
-  userId: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  avatarUrls: { small?: string; medium?: string; large?: string } | null;
-  settings?: { language?: string };
-} | null;
 
 const getInitials = (firstName: string | null, lastName: string | null) => {
   const first = firstName?.[0] || "";

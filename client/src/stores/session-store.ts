@@ -1,15 +1,6 @@
 import { create } from "zustand";
 
-type User = {
-  userId: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  isVerified: boolean;
-  headline: string | null;
-  avatarUrls: { small?: string; medium?: string; large?: string } | null;
-  settings?: { language?: string };
-} | null;
+import { User } from "@/types/user";
 
 type SessionState = {
   user: User;

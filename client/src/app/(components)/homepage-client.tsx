@@ -36,6 +36,7 @@ export function HomepageClient({ user }: HomepageClientProps) {
       user={user}
       isOpen={isModalOpen}
       onClose={() => setIsModalOpen(false)}
+      onSuccess={() => setIsModalOpen(false)}
     />
   );
 }
