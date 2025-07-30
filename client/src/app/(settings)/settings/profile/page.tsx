@@ -6,8 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Github, Linkedin, Twitter } from "lucide-react";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AvatarUpload } from "../../_components/avatar-upload";
 import { ProfileForm } from "../../_components/profile-form";
@@ -54,7 +52,7 @@ export default async function ProfileSettingsPage() {
           </div>
         </CardContent>
       </Card>
-
+      {/* 
       <Card>
         <CardHeader>
           <CardTitle>Public Profile Details</CardTitle>
@@ -128,7 +126,7 @@ export default async function ProfileSettingsPage() {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
       {/* 
       <Card>
         <CardHeader>

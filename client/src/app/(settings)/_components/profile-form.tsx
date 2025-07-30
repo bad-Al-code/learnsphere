@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { SUPPORTED_LANGUAGES } from "@/config/language";
+import { Github, Linkedin, Twitter } from "lucide-react";
 import { toast } from "sonner";
 import { updateProfile } from "../actions";
 
@@ -34,6 +35,15 @@ const profileSchema = z.object({
   headline: z.string().optional().nullable(),
   bio: z.string().optional().nullable(),
   language: z.string().optional(),
+  websiteUrl: z.url("Invalid URL format").optional().or(z.literal("")),
+  socialLinks: z
+    .object({
+      twitter: z.string().optional(),
+      linkedin: z.string().optional(),
+      github: z.string().optional(),
+    })
+    .optional()
+    .nullable(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -45,6 +55,12 @@ interface ProfileFormProps {
     lastName: string | null;
     headline: string | null;
     bio: string | null;
+    websiteUrl: string | null;
+    socialLinks: {
+      github?: string | null;
+      linkedin?: string | null;
+      twitter?: string | null;
+    } | null;
     settings?: { language?: string };
   };
 }
@@ -61,6 +77,12 @@ export function ProfileForm({ userData }: ProfileFormProps) {
       headline: userData.headline || "",
       bio: userData.bio || "",
       language: userData.settings?.language || "en",
+      websiteUrl: userData.websiteUrl || "",
+      socialLinks: {
+        github: userData.socialLinks?.github || "",
+        linkedin: userData.socialLinks?.linkedin || "",
+        twitter: userData.socialLinks?.twitter || "",
+      },
     },
   });
 
@@ -69,9 +91,12 @@ export function ProfileForm({ userData }: ProfileFormProps) {
   async function onSubmit(values: ProfileFormValues) {
     startTransition(async () => {
       const result = await updateProfile(values);
+
       if (result?.error) {
+        console.log(result.error);
         toast.error("Update Failed");
       } else {
+        console.log(result.success);
         toast.success("Profile updated successfully!");
         router.refresh();
       }
@@ -150,6 +175,94 @@ export function ProfileForm({ userData }: ProfileFormProps) {
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="websiteUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Website</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="https://your-portfolio.com"
+                    {...field}
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="space-y-4">
+            <FormLabel>Social Links</FormLabel>
+            <FormField
+              control={form.control}
+              name="socialLinks.github"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Github className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <FormControl>
+                      <Input
+                        placeholder="https://github.com/username"
+                        {...field}
+                        value={field.value ?? ""}
+                        className="pl-10"
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="socialLinks.linkedin"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Linkedin className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <FormControl>
+                      <Input
+                        placeholder="https://linkedin.com/in/username"
+                        {...field}
+                        value={field.value ?? ""}
+                        className="pl-10"
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="socialLinks.twitter"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Twitter className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <FormControl>
+                      <Input
+                        placeholder="https://twitter.com/username"
+                        {...field}
+                        value={field.value ?? ""}
+                        className="pl-10"
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <FormField
             control={form.control}

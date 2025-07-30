@@ -4,11 +4,12 @@ import { userService } from "@/lib/api";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-const onboardingSchema = z
+const updateProfileSchema = z
   .object({
     headline: z.string().min(1),
     bio: z.string().optional(),
     websiteUrl: z.url("Invalid URL format").optional().or(z.literal("")),
+    language: z.string().optional(),
     socialLinks: z
       .object({
         twitter: z.string().optional(),
@@ -18,32 +19,48 @@ const onboardingSchema = z
       .optional()
       .nullable(),
   })
-  .transform((data) => ({
-    ...data,
-    websiteUrl: data.websiteUrl === "" ? null : data.websiteUrl,
-    socialLinks: {
-      github: data.socialLinks?.github || null,
-      linkedin: data.socialLinks?.linkedin || null,
-      twitter: data.socialLinks?.twitter || null,
-    },
-  }));
+  .transform((data) => {
+    const { language, ...profileData } = data;
+    const settingsData = { language };
 
-export type OnboardingInput = z.input<typeof onboardingSchema>;
-export type OnboardingOutput = z.output<typeof onboardingSchema>;
+    const transformedProfileData = {
+      ...profileData,
+      websiteUrl: profileData.websiteUrl === "" ? null : profileData.websiteUrl,
+      socialLinks: {
+        github: profileData.socialLinks?.github || null,
+        linkedin: profileData.socialLinks?.linkedin || null,
+        twitter: profileData.socialLinks?.twitter || null,
+      },
+    };
+
+    return { profileData: transformedProfileData, settingsData };
+  });
+
+export type OnboardingInput = z.input<typeof updateProfileSchema>;
+export type OnboardingOutput = z.output<typeof updateProfileSchema>;
 
 export async function completeOnboarding(values: OnboardingInput) {
   try {
-    const validatedData: OnboardingOutput = onboardingSchema.parse(values);
+    const { profileData, settingsData } = updateProfileSchema.parse(values);
 
-    const response = await userService.put("/api/users/me", validatedData);
+    const apiCalls: Promise<Response>[] = [];
 
-    if (!response.ok) {
-      const responseData = await response.json().catch(() => ({}));
-      const errorMessage =
-        responseData.errors?.[0]?.message || "Failed to update profile.";
-      return { error: errorMessage };
+    apiCalls.push(userService.put("/api/users/me", profileData));
+
+    if (settingsData.language) {
+      apiCalls.push(userService.put("/api/users/me/settings", settingsData));
     }
 
+    const responses = await Promise.all(apiCalls);
+
+    for (const response of responses) {
+      if (!response.ok) {
+        const responseData = await response.json().catch(() => ({}));
+        const errorMessage =
+          responseData.errors?.[0]?.message || "Failed to update profile.";
+        return { error: errorMessage };
+      }
+    }
     revalidatePath("/", "layout");
     return { success: true };
   } catch (error: any) {
