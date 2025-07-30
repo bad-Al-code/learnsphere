@@ -170,15 +170,26 @@ function CheckInboxComponent({ email }: { email: string }) {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isVerifying}>
-                {isVerifying ? "Verifying..." : "Verify Account"}
-              </Button>
+
+              <div className="flex items-center gap-x-4 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-auto whitespace-nowrap"
+                  onClick={() => router.back()}
+                >
+                  Back
+                </Button>
+                <Button type="submit" className="flex-1" disabled={isVerifying}>
+                  {isVerifying ? "Verifying..." : "Verify"}
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>
         <CardFooter className="flex-col items-center justify-center space-y-4 border-t pt-6">
           <p className="text-sm text-muted-foreground">
-            Didn't receive the email?
+            Didn't receive the email? Double check your spam folders.
           </p>
           <Button
             onClick={onResend}
@@ -192,6 +203,12 @@ function CheckInboxComponent({ email }: { email: string }) {
               ? `Resend in ${cooldown}s`
               : "Resend Verification Email"}
           </Button>
+
+          <div className="pt-4 text-center text-sm">
+            <Link href="/signup" className="underline">
+              Sign up for an account
+            </Link>
+          </div>
         </CardFooter>
       </Card>
     </div>
@@ -271,8 +288,8 @@ function ErrorCard({
   showSignupLink?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-center min-h-[80vh] ">
-      <Card className="w-full max-w-md text-center shadow-2xl/20">
+    <div className="flex items-center justify-center min-h-[80vh]">
+      <Card className="w-full max-w-md text-center shadow-2xl/20 ">
         <CardHeader className="text-start">
           <div className="flex  mb-4">
             <Logo variant="icon" />
@@ -285,7 +302,7 @@ function ErrorCard({
         </CardHeader>
         {showSignupLink && (
           <CardContent>
-            <Button asChild variant="secondary">
+            <Button asChild className="w-full" variant="secondary">
               <Link href="/signup">Return to Sign Up</Link>
             </Button>
           </CardContent>
