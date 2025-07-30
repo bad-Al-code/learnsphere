@@ -21,6 +21,11 @@ const onboardingSchema = z
   .transform((data) => ({
     ...data,
     websiteUrl: data.websiteUrl === "" ? null : data.websiteUrl,
+    socialLinks: {
+      github: data.socialLinks?.github || null,
+      linkedin: data.socialLinks?.linkedin || null,
+      twitter: data.socialLinks?.twitter || null,
+    },
   }));
 
 export type OnboardingInput = z.input<typeof onboardingSchema>;

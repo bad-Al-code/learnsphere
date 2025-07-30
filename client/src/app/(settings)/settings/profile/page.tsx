@@ -6,6 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Github, Linkedin, Twitter } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AvatarUpload } from "../../_components/avatar-upload";
 import { ProfileForm } from "../../_components/profile-form";
@@ -52,7 +54,7 @@ export default async function ProfileSettingsPage() {
           </div>
         </CardContent>
       </Card>
-      {/* 
+
       <Card>
         <CardHeader>
           <CardTitle>Public Profile Details</CardTitle>
@@ -86,8 +88,47 @@ export default async function ProfileSettingsPage() {
               <p className="text-muted-foreground">Not set</p>
             )}
           </div>
+          <div>
+            <h3 className="font-medium text-sm">Social Links</h3>
+            <div className="flex items-center space-x-4 mt-2">
+              {user.socialLinks?.github && (
+                <Link
+                  href={user.socialLinks.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Github className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+                </Link>
+              )}
+              {user.socialLinks?.linkedin && (
+                <Link
+                  href={user.socialLinks.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Linkedin className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+                </Link>
+              )}
+              {user.socialLinks?.twitter && (
+                <Link
+                  href={user.socialLinks.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Twitter className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+                </Link>
+              )}
+              {!user.socialLinks?.github &&
+                !user.socialLinks?.linkedin &&
+                !user.socialLinks?.twitter && (
+                  <p className="text-sm text-muted-foreground">
+                    No social links provided.
+                  </p>
+                )}
+            </div>
+          </div>
         </CardContent>
-      </Card> */}
+      </Card>
       {/* 
       <Card>
         <CardHeader>
