@@ -133,7 +133,7 @@ function CheckInboxComponent({ email }: { email: string }) {
 
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md shadow-2xl/20">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Check your inbox</CardTitle>
           <CardDescription>
@@ -264,8 +264,8 @@ function ErrorCard({
   showSignupLink?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
-      <Card className="w-full max-w-md text-center">
+    <div className="flex items-center justify-center min-h-[80vh] ">
+      <Card className="w-full max-w-md text-center shadow-2xl/20">
         <CardHeader>
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
             <CircleX className="h-6 w-6 text-red-600 dark:text-red-400" />

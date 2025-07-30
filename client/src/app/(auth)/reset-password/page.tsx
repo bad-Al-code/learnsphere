@@ -36,7 +36,6 @@ const otpSchema = z.object({
     .min(6, { message: "Your one-time password must be 6 characters." }),
 });
 
-// Main component sets up the Suspense boundary
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={<LoadingCard message="Loading..." />}>
@@ -45,26 +44,22 @@ export default function ResetPasswordPage() {
   );
 }
 
-// This component is the "traffic cop"
 function ResetPasswordFlow() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const email = searchParams.get("email");
 
-  // SCENARIO 1: User clicked the fallback link
   if (token && email) {
     return <VerifyResetTokenComponent token={token} email={email} />;
   }
 
-  // SCENARIO 2: User was redirected here to enter a code
   if (email) {
     return <EnterCodeComponent email={email} />;
   }
 
-  // SCENARIO 3: Invalid state
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
-      <Card className="w-full max-w-sm text-center">
+      <Card className="w-full max-w-sm text-center shadow-2xl/20">
         <CardHeader>
           <CardTitle>Invalid Link</CardTitle>
         </CardHeader>
@@ -79,7 +74,6 @@ function ResetPasswordFlow() {
   );
 }
 
-// --- UI Component for entering the 6-digit code ---
 function EnterCodeComponent({ email }: { email: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -102,10 +96,9 @@ function EnterCodeComponent({ email }: { email: string }) {
     });
   }
 
-  // This JSX is the same as our previous ResetPasswordCodePage
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm shadow-2xl/20">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Check your email</CardTitle>
           <CardDescription>
@@ -153,7 +146,6 @@ function EnterCodeComponent({ email }: { email: string }) {
   );
 }
 
-// --- UI Component for handling the fallback link token ---
 function VerifyResetTokenComponent({
   token,
   email,
@@ -179,7 +171,7 @@ function VerifyResetTokenComponent({
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[80vh]">
-        <Card className="w-full max-w-sm text-center">
+        <Card className="w-full max-w-sm text-center shadow-2xl/20">
           <CardHeader>
             <CardTitle>Verification Failed</CardTitle>
           </CardHeader>
@@ -197,7 +189,7 @@ function VerifyResetTokenComponent({
 function LoadingCard({ message }: { message: string }) {
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
-      <Card className="w-full max-w-md text-center">
+      <Card className="w-full max-w-md text-center shadow-2xl/20">
         <CardHeader>
           <CardTitle className="text-2xl">{message}</CardTitle>
         </CardHeader>

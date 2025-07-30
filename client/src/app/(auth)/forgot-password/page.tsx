@@ -58,7 +58,7 @@ export default function ForgotPasswordPage() {
   if (submitted) {
     return (
       <div className="flex items-center justify-center min-h-[80vh]">
-        <Card className="w-full max-w-sm text-center">
+        <Card className="w-full max-w-sm text-center shadow-2xl/20">
           <CardHeader>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
               <MailCheck className="h-6 w-6 text-blue-600 dark:text-blue-400" />
