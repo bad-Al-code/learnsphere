@@ -7,6 +7,10 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
+import {
+  OnboardingInput,
+  completeOnboarding,
+} from "@/app/(settings)/settings/profile/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -18,7 +22,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { completeOnboarding, type OnboardingInput } from "../actions";
 
 const onboardingSchema = z.object({
   headline: z

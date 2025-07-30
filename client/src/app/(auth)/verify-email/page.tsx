@@ -32,11 +32,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
-import {
-  getCurrentUser,
-  resendVerificationEmail,
-  verifyEmail,
-} from "../actions";
+import { resendVerificationEmail, verifyEmail } from "../actions";
 
 const otpSchema = z.object({
   code: z.string().min(6, "Your one-time passwod must be 6 characters."),
@@ -75,7 +71,6 @@ function CheckInboxComponent({ email }: { email: string }) {
   const router = useRouter();
   const [isVerifying, startVerifying] = useTransition();
   const [isResending, startResending] = useTransition();
-  const [isPending, startTransition] = useTransition();
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
@@ -91,26 +86,39 @@ function CheckInboxComponent({ email }: { email: string }) {
   });
 
   const onSubmit = (values: z.infer<typeof otpSchema>) => {
+    if (!email) {
+      toast.error("Email not found in URL", {
+        description: "Please try signing up again.",
+      });
+
+      return;
+    }
+
     startVerifying(async () => {
       const result = await verifyEmail({ email, code: values.code });
 
       if (result.error) {
-        toast.error("Failed to send email", {
+        toast.error("Verification failed", {
           description: result.error,
         });
-      } else {
-        const user = await getCurrentUser();
-        if (user) {
-          router.push("/");
-        } else {
-          router.push("/login");
-        }
+
+        form.reset();
+      } else if (result?.success) {
+        // const user = await getCurrentUser();
+        // if (user) {
+        //   router.push("/");
+        // } else {
+        //   router.push("/login");
+        // }
+        toast.success("Email verified successfully!");
+
+        router.push("/");
       }
     });
   };
 
   const onResend = () => {
-    startTransition(async () => {
+    startResending(async () => {
       const result = await resendVerificationEmail({ email });
       if (result.error) {
         toast.error("Failed to send email", {
@@ -122,6 +130,7 @@ function CheckInboxComponent({ email }: { email: string }) {
       }
     });
   };
+
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
       <Card className="w-full max-w-md">
@@ -206,7 +215,7 @@ function VerifyTokenComponent({
       if (result.error) {
         setError(result.error);
       } else {
-        router.push("/onboarding");
+        router.push("/");
       }
     };
     performVerification();
