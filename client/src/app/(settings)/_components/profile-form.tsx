@@ -98,8 +98,9 @@ export function ProfileForm({ userData }: ProfileFormProps) {
       } else {
         console.log(result.success);
         toast.success("Profile updated successfully!");
-        form.reset(values);
         router.refresh();
+
+        form.reset(values);
       }
     });
   }
@@ -117,7 +118,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
                 <FormItem>
                   <FormLabel>First Name</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} value={field.value ?? ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -130,7 +131,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
                 <FormItem>
                   <FormLabel>Last Name</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} value={field.value ?? ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

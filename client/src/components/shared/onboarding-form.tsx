@@ -48,11 +48,11 @@ interface OnboardingFormProps {
     headline: string | null;
     bio: string | null;
     websiteUrl: string | null;
-    socialLinks: {
-      twitter: string | null;
-      linkedin: string | null;
-      github: string | null;
-    };
+    socialLinks?: {
+      github?: string | null;
+      linkedin?: string | null;
+      twitter?: string | null;
+    } | null;
   };
   onSuccess?: () => void;
 }
