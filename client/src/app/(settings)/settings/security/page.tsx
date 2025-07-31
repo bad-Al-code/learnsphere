@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { UpdatePasswordForm } from "../../_components/update-password-form";
+import { SessionHistory } from "./_components/session-history";
 
 export default function SecuritySettingsPage() {
   return (
@@ -21,6 +22,19 @@ export default function SecuritySettingsPage() {
         </CardHeader>
         <CardContent>
           <UpdatePasswordForm />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Session history</CardTitle>
+          <CardDescription>
+            This is a list of devices that have logged into your account. Remove
+            any sessions you do not recognize.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SessionHistory />
         </CardContent>
       </Card>
 
