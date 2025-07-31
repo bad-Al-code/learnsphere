@@ -1,15 +1,9 @@
 "use client";
 
 import { format } from "date-fns";
-import {
-  Chrome,
-  Globe,
-  Laptop,
-  LogOut,
-  Smartphone,
-  Tablet,
-} from "lucide-react";
+import { Chrome, Globe } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
+import Flag from "react-world-flags";
 import { toast } from "sonner";
 import { UAParser } from "ua-parser-js";
 
@@ -20,31 +14,18 @@ import {
 } from "@/app/(auth)/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Session } from "@/types/user";
 
-type Session = {
-  jti: string;
-  userId: string;
-  ipAddress: string | null;
-  userAgent: string | null;
-  createdAt: string;
-};
-
-const getDeviceIcon = (device: UAParser.IDevice) => {
-  switch (device.type) {
-    case "mobile":
-      return <Smartphone className="h-5 w-5 text-muted-foreground" />;
-    case "tablet":
-      return <Tablet className="h-5 w-5 text-muted-foreground" />;
-    default:
-      return <Laptop className="h-5 w-5 text-muted-foreground" />;
-  }
-};
-
-const getBrowserIcon = (browser: UAParser.IBrowser) => {
-  const browserName = browser.name || "";
-  if (browserName.includes("Chrome")) {
+const getBrowserIcon = (browserName: string = "") => {
+  if (browserName.includes("Chrome"))
     return <Chrome className="h-5 w-5 text-muted-foreground" />;
-  }
 
   return <Globe className="h-5 w-5 text-muted-foreground" />;
 };
@@ -54,27 +35,32 @@ export function SessionHistory() {
   const [isLoading, startLoading] = useTransition();
   const [isTerminating, startTerminating] = useTransition();
   const [isTerminatingAll, startTerminatingAll] = useTransition();
+  const [limit, setLimit] = useState<number>(10);
 
-  useEffect(() => {
+  const fetchSessions = (currentLimit: number) => {
     startLoading(async () => {
-      const result = await getSessions();
+      const result = await getSessions(currentLimit);
       if (result.success && result.data) {
         setSessions(result.data);
       } else {
-        toast.error(result.error || "Could not load session history");
+        toast.error("Could not load session history", {
+          description: result.error,
+        });
       }
     });
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchSessions(limit);
+  }, [limit]);
 
   const handleTerminate = (sessionId: string) => {
     startTerminating(async () => {
       const result = await terminateSession(sessionId);
       if (result.success) {
         toast.success("Session terminated.");
-        const updatedSessions = await getSessions();
-        if (updatedSessions.success && updatedSessions.data) {
-          setSessions(updatedSessions.data);
-        }
+
+        fetchSessions(limit);
       } else {
         toast.error(result.error || "Failed to terminate session");
       }
@@ -100,74 +86,106 @@ export function SessionHistory() {
     return <p>Loading session history...</p>;
   }
 
-  const hasOtherSessions = sessions.length > 1;
-
   return (
     <div className="space-y-4">
-      <ul className="space-y-2">
-        {sessions.map((session, index) => {
-          const ua = new UAParser(session.userAgent || "");
-          const device = ua.getDevice();
-          const browser = ua.getBrowser();
-          const os = ua.getOS();
-          const isCurrent = index === 0;
+      <div className="flex justify-end">
+        <Select
+          value={String(limit)}
+          onValueChange={(value) => setLimit(Number(value))}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select number of sessions" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="10">Last 10 sessions</SelectItem>
+            <SelectItem value="25">Last 25 sessions</SelectItem>
+            <SelectItem value="50">Last 50 sessions</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-          return (
-            <li
-              key={session.jti}
-              className="flex items-center justify-between p-3 border rounded-lg"
-            >
-              <div className="flex items-center gap-4">
-                {getBrowserIcon(browser)}
-                <div>
-                  <p className="font-medium">
-                    {browser.name || "Unknown Browser"} on{" "}
-                    {os.name || "Unknown OS"}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {session.ipAddress || "IP Not Available"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <p className="text-sm text-muted-foreground hidden md:block">
-                  {format(new Date(session.createdAt), "P p")}
-                </p>
-                {isCurrent ? (
-                  <Badge
-                    variant="secondary"
-                    className="bg-green-100 text-green-800"
-                  >
-                    Current
-                  </Badge>
-                ) : (
-                  <Badge variant="outline">Logged in</Badge>
-                )}
-                {!isCurrent && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleTerminate(session.jti)}
-                    disabled={isTerminating}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log out
-                  </Button>
-                )}
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="border rounded-lg">
+        <div className="grid grid-cols-4 md:grid-cols-6 gap-4 p-4 font-semibold text-sm text-muted-foreground border-b">
+          <div className="col-span-2">Clients</div>
+          <div className="hidden md:block">IP address</div>
+          <div className="hidden md:block">Country</div>
+          <div>Most recent activity</div>
+          <div className="text-right">Status</div>
+        </div>
+        {isLoading ? (
+          <p className="p-4 text-center">Loading sessions...</p>
+        ) : (
+          <ul className="divide-y">
+            {sessions.map((session, index) => {
+              const ua = new UAParser(session.userAgent || "");
+              const browser = ua.getBrowser();
+              const os = ua.getOS();
+              const isCurrent = index === 0;
 
-      {hasOtherSessions && (
-        <div className="border-t pt-4 flex justify-end">
+              return (
+                <li
+                  key={session.jti}
+                  className="grid grid-cols-4 md:grid-cols-6 gap-4 p-4 items-center"
+                >
+                  <div className="col-span-2 flex items-center gap-4">
+                    {getBrowserIcon(browser.name)}
+                    <div>
+                      <p className="font-medium text-sm">
+                        {browser.name || "Unknown Browser"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {os.name || "Unknown OS"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="hidden md:block text-sm text-muted-foreground font-mono">
+                    {session.ipAddress}
+                  </div>
+                  <div className="hidden md:block text-sm flex items-center gap-2">
+                    {session.countryCode ? (
+                      <Flag code={session.countryCode} height="14" />
+                    ) : (
+                      <span>-</span>
+                    )}
+                    <span>{session.country || "Unknown"}</span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {format(new Date(session.createdAt), "P p")}
+                  </div>
+                  <div className="flex justify-end items-center gap-2">
+                    {isCurrent ? (
+                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                        Current
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary">Logged in</Badge>
+                    )}
+                    {!isCurrent && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleTerminate(session.jti)}
+                        disabled={isTerminating}
+                      >
+                        Log out
+                      </Button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {sessions.length > 1 && (
+        <div className="pt-4 flex justify-end">
           <Button
             variant="destructive"
             onClick={handleTerminateAllOthers}
             disabled={isTerminatingAll}
           >
-            {isTerminatingAll ? "Closing sessions..." : "Close other sessions"}
+            {isTerminatingAll ? "Closing..." : "Close other sessions"}
           </Button>
         </div>
       )}

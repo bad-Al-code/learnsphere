@@ -14,3 +14,13 @@ export type User = {
     language?: string;
   };
 } | null;
+
+export type Session = {
+  jti: string;
+  userId: string;
+  ipAddress: string | null;
+  userAgent: string | null;
+  country: string | null;
+  countryCode: string | null;
+  createdAt: string;
+};
