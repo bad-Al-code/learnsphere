@@ -128,7 +128,7 @@ export function AvatarUpload({
               alt="User avatar preview"
               width={800}
               height={800}
-              className="rounded-lg object-cover"
+              className="rounded-md object-cover"
             />
           </div>
         </DialogContent>
