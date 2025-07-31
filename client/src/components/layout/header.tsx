@@ -14,9 +14,10 @@ import { useSessionStore } from "@/stores/session-store";
 import { User } from "@/types/user";
 import { LogOut, Menu, User as UserIcon } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Logo } from "../shared/logo";
 import { Button } from "../ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "../ui/sheet";
 
 const getInitials = (firstName: string | null, lastName: string | null) => {
   const first = firstName?.[0] || "";
@@ -26,6 +27,7 @@ const getInitials = (firstName: string | null, lastName: string | null) => {
 
 export function Header({ user: initialUser }: { user: User }) {
   const { user, setUser } = useSessionStore();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -69,9 +71,102 @@ export function Header({ user: initialUser }: { user: User }) {
         </nav>
 
         <div className="flex sm:hidden col-span-8 items-end justify-end">
-          <Button variant="ghost" size="icon">
-            <Menu className="h-6 w-6" />
-          </Button>
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="left"
+              className="w-64 sm:w-80p px-4 flex justify-between"
+            >
+              <div className="flex flex-col">
+                <SheetHeader>
+                  <Link
+                    href="/"
+                    className="flex items-center mb-4"
+                    onClick={() => setIsSheetOpen(false)}
+                  >
+                    <Logo className="w-28" />
+                  </Link>
+                </SheetHeader>
+
+                <nav className="flex flex-col space-y-4 mt-6 px-4 text-sm font-medium">
+                  <Link
+                    href="/courses"
+                    className="hover:text-foreground/80"
+                    onClick={() => setIsSheetOpen(false)}
+                  >
+                    Courses
+                  </Link>
+                  <Link
+                    href="/blog"
+                    className="hover:text-foreground/80"
+                    onClick={() => setIsSheetOpen(false)}
+                  >
+                    Blog
+                  </Link>
+                  <Link
+                    href="/about"
+                    className="hover:text-foreground/80"
+                    onClick={() => setIsSheetOpen(false)}
+                  >
+                    About
+                  </Link>
+                </nav>
+              </div>
+
+              <div className="my-8">
+                {user ? (
+                  <div className="flex items-center space-x-4">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage
+                        src={user.avatarUrls?.small}
+                        alt="User Avatar"
+                      />
+                      <AvatarFallback>
+                        {getInitials(user.firstName, user.lastName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">
+                        {user.firstName} {user.lastName}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          handleLogout();
+                          setIsSheetOpen(false);
+                        }}
+                        disabled={isPending}
+                        className="text-red-500 p-0"
+                      >
+                        Log out
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col space-y-2">
+                    <Button asChild variant="outline">
+                      <Link href="/login" onClick={() => setIsSheetOpen(false)}>
+                        Login
+                      </Link>
+                    </Button>
+                    <Button asChild>
+                      <Link
+                        href="/signup"
+                        onClick={() => setIsSheetOpen(false)}
+                      >
+                        Sign Up
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
 
         <div className="hidden sm:flex col-span-3 justify-end items-center space-x-4">
