@@ -13,7 +13,7 @@ export default async function SettingsLayout({
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-4 md:py-8">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         <aside className="md:col-span-1">
           <h2 className="text-lg font-semibold mb-4">Settings</h2>
