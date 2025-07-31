@@ -46,7 +46,7 @@ export function UpdatePasswordForm() {
     startTransition(async () => {
       const result = await updatePassword(values);
       if (result?.error) {
-        toast.error("Update Failed");
+        toast.error(result.error || "Update Failed");
       } else {
         toast.success("Your password has been updated successfully!");
         form.reset();
@@ -57,7 +57,6 @@ export function UpdatePasswordForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* --- NEW RESPONSIVE GRID --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
