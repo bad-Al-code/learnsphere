@@ -66,5 +66,7 @@ export const userSessions = pgTable('user_sessions', {
     .notNull(),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
+  country: text('country'),
+  countryCode: text('country_code'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
