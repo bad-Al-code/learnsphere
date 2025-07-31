@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { Chrome, Globe } from "lucide-react";
+import { Chrome, Globe, LogOut } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import Flag from "react-world-flags";
 import { toast } from "sonner";
@@ -105,12 +105,14 @@ export function SessionHistory() {
       </div>
 
       <div className="border rounded-lg">
-        <div className="grid grid-cols-4 md:grid-cols-6 gap-4 p-4 font-semibold text-sm text-muted-foreground border-b">
-          <div className="col-span-2">Clients</div>
-          <div className="hidden md:block">IP address</div>
-          <div className="hidden md:block">Country</div>
-          <div>Most recent activity</div>
-          <div className="text-right">Status</div>
+        <div className="grid grid-cols-4 md:grid-cols-7 gap-4 p-4 font-semibold text-sm text-muted-foreground border-b">
+          <div className="col-span-2 md:col-span-2">Clients</div>
+          <div className="col-start-3 hidden md:block">IP address</div>
+          <div className="col-start-4 hidden md:block">Country</div>
+          <div className="col-start-5 hidden md:block">
+            Most recent activity
+          </div>
+          <div className="col-start-3 md:col-start-6 text-center">Status</div>
         </div>
         {isLoading ? (
           <p className="p-4 text-center">Loading sessions...</p>
@@ -125,7 +127,7 @@ export function SessionHistory() {
               return (
                 <li
                   key={session.jti}
-                  className="grid grid-cols-4 md:grid-cols-6 gap-4 p-4 items-center"
+                  className="grid grid-cols-4 md:grid-cols-7 gap-4 p-4 items-center"
                 >
                   <div className="col-span-2 flex items-center gap-4">
                     {getBrowserIcon(browser.name)}
@@ -138,10 +140,12 @@ export function SessionHistory() {
                       </p>
                     </div>
                   </div>
-                  <div className="hidden md:block text-sm text-muted-foreground font-mono">
+
+                  <div className="hidden md:block col-start-3 text-sm text-muted-foreground  break-all">
                     {session.ipAddress}
                   </div>
-                  <div className="hidden md:block text-sm flex items-center gap-2">
+
+                  <div className="hidden col-start-4 md:block text-sm  items-center gap-2 ">
                     {session.countryCode ? (
                       <Flag code={session.countryCode} height="14" />
                     ) : (
@@ -149,10 +153,12 @@ export function SessionHistory() {
                     )}
                     <span>{session.country || "Unknown"}</span>
                   </div>
-                  <div className="text-sm text-muted-foreground">
+
+                  <div className="hidden md:block col-start-5 text-sm text-muted-foreground  break-all">
                     {format(new Date(session.createdAt), "P p")}
                   </div>
-                  <div className="flex justify-end items-center gap-2">
+
+                  <div className="col-start-4 md:col-start-6 flex justify-center items-center gap-2">
                     {isCurrent ? (
                       <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
                         Current
@@ -160,16 +166,18 @@ export function SessionHistory() {
                     ) : (
                       <Badge variant="secondary">Logged in</Badge>
                     )}
-                    {!isCurrent && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleTerminate(session.jti)}
-                        disabled={isTerminating}
-                      >
-                        Log out
-                      </Button>
-                    )}
+                  </div>
+
+                  <div className="col-start-7">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleTerminate(session.jti)}
+                      disabled={isTerminating}
+                    >
+                      <LogOut className="mr-1 " />
+                      Log out
+                    </Button>
                   </div>
                 </li>
               );
