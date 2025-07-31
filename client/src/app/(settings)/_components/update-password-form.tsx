@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
 
 const formSchema = z.object({
@@ -113,7 +114,13 @@ export function UpdatePasswordForm() {
           />
         </div>
 
-        <div className="flex justify-end pt-2">
+        <div className="flex flex-col md:flex-row justify-end md:items-center gap-2 pt-2">
+          <Link
+            href="/forgot-password"
+            className="text-sm mr-4 mb-2 md:mb-0 text-blue-600 hover:underline text-center md:text-left"
+          >
+            Forgot Password?
+          </Link>
           <Button type="submit" disabled={isPending || !isDirty}>
             {isPending ? "Updating..." : "Update Password"}
           </Button>
