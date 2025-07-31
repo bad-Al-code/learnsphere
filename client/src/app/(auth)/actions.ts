@@ -473,3 +473,22 @@ export async function terminateSession(sessionId: string) {
     return { error: error.message || "An unexpected error occurred." };
   }
 }
+
+export async function terminateAllOtherSessions() {
+  try {
+    const response = await authService.delete(
+      `/api/auth/sessions/all-except-current`
+    );
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      return {
+        error: data.errors?.[0]?.message || "Failed to terminate sessions.",
+      };
+    }
+
+    revalidateTag("sessions");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "An unexpected error occurred." };
+  }
+}

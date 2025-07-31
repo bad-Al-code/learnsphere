@@ -13,7 +13,11 @@ import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { UAParser } from "ua-parser-js";
 
-import { getSessions, terminateSession } from "@/app/(auth)/actions";
+import {
+  getSessions,
+  terminateAllOtherSessions,
+  terminateSession,
+} from "@/app/(auth)/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -49,6 +53,7 @@ export function SessionHistory() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isLoading, startLoading] = useTransition();
   const [isTerminating, startTerminating] = useTransition();
+  const [isTerminatingAll, startTerminatingAll] = useTransition();
 
   useEffect(() => {
     startLoading(async () => {
@@ -76,9 +81,26 @@ export function SessionHistory() {
     });
   };
 
+  const handleTerminateAllOthers = () => {
+    startTerminatingAll(async () => {
+      const result = await terminateAllOtherSessions();
+      if (result.success) {
+        toast.success("All other sessions have been terminated.");
+        const updatedSessions = await getSessions();
+        if (updatedSessions.success && updatedSessions.data) {
+          setSessions(updatedSessions.data);
+        }
+      } else {
+        toast.error(result.error || "Failed to terminate other sessions");
+      }
+    });
+  };
+
   if (isLoading) {
     return <p>Loading session history...</p>;
   }
+
+  const hasOtherSessions = sessions.length > 1;
 
   return (
     <div className="space-y-4">
@@ -137,6 +159,18 @@ export function SessionHistory() {
           );
         })}
       </ul>
+
+      {hasOtherSessions && (
+        <div className="border-t pt-4 flex justify-end">
+          <Button
+            variant="destructive"
+            onClick={handleTerminateAllOthers}
+            disabled={isTerminatingAll}
+          >
+            {isTerminatingAll ? "Closing sessions..." : "Close other sessions"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
