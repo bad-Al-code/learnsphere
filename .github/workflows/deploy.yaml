@@ -1,133 +1,133 @@
 name: LearnSphere CI/CD - Build and Deploy to EKS
 on:
-  push:
-    tags:
-      - "v*"
+    push:
+        tags:
+            - "v*"
 
 env:
-  AWS_REGION: ap-south-1
-  ECR_REGISTRY: 260123625978.dkr.ecr.ap-south-1.amazonaws.com
-  EKS_CLUSTER_NAME: learnsphere-cluster
+    AWS_REGION: ap-south-1
+    ECR_REGISTRY: 260123625978.dkr.ecr.ap-south-1.amazonaws.com
+    EKS_CLUSTER_NAME: learnsphere-cluster
 
 jobs:
-  build-and-push:
-    name: Build and Push Images
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service:
-          - auth-service
-          - user-service
-          - media-service
-          - notification-service
-          - course-service
-          - enrollment-service
+    build-and-push:
+        name: Build and Push Images
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                service:
+                    - auth-service
+                    - user-service
+                    - media-service
+                    - notification-service
+                    - course-service
+                    - enrollment-service
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4.1.0
-        with:
-          aws-access-key-id: ${{ secrets.AWS_CICD_ACCESS_KEY_ID  }}
-          aws-secret-access-key: ${{ secrets.AWS_CICD_SECRET_ACCESS_KEY  }}
-          aws-region: ${{ env.AWS_REGION }}
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v4.1.0
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_CICD_ACCESS_KEY_ID  }}
+                  aws-secret-access-key: ${{ secrets.AWS_CICD_SECRET_ACCESS_KEY  }}
+                  aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+            - name: Login to Amazon ECR
+              id: login-ecr
+              uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
 
-      - name: Build, tag, and push image to Amazon ECR
-        env:
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build \
-            -t ${{ env.ECR_REGISTRY }}/learnsphere/${{ matrix.service }}:${{ env.IMAGE_TAG }} \
-            -f services/${{ matrix.service }}/Dockerfile \
-            services/${{ matrix.service }}
+            - name: Build, tag, and push image to Amazon ECR
+              env:
+                  IMAGE_TAG: ${{ github.sha }}
+              run: |
+                  docker build \
+                    -t ${{ env.ECR_REGISTRY }}/learnsphere/${{ matrix.service }}:${{ env.IMAGE_TAG }} \
+                    -f services/${{ matrix.service }}/Dockerfile \
+                    services/${{ matrix.service }}
 
-          docker push ${{ env.ECR_REGISTRY }}/learnsphere/${{ matrix.service }}:${{ env.IMAGE_TAG }}
+                  docker push ${{ env.ECR_REGISTRY }}/learnsphere/${{ matrix.service }}:${{ env.IMAGE_TAG }}
 
-  deploy:
-    name: Deploy to EKS
-    runs-on: ubuntu-latest
-    needs: build-and-push
+    deploy:
+        name: Deploy to EKS
+        runs-on: ubuntu-latest
+        needs: build-and-push
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_CICD_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_CICD_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_CICD_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_CICD_SECRET_ACCESS_KEY }}
+                  aws-region: ${{ env.AWS_REGION }}
 
-      - name: Set up Kubeconfig for EKS
-        run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
+            - name: Set up Kubeconfig for EKS
+              run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
 
-      - name: Deploy Kubernetes Secrets
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
-          COOKIE_PARSER_SECRET: ${{ secrets.COOKIE_PARSER_SECRET }}
+            - name: Deploy Kubernetes Secrets
+              env:
+                  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+                  JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+                  COOKIE_PARSER_SECRET: ${{ secrets.COOKIE_PARSER_SECRET }}
 
-          AWS_RAW_UPLOADS_BUCKET: ${{ secrets.AWS_RAW_UPLOADS_BUCKET }}
-          AWS_PROCESSED_MEDIA_BUCKET: ${{ secrets.AWS_PROCESSED_MEDIA_BUCKET }}
-          AWS_SQS_QUEUE_URL: ${{ secrets.AWS_SQS_QUEUE_URL }}
-          AWS_MEDIA_SERVICE_ACCESS_KEY_ID: ${{ secrets.AWS_MEDIA_SERVICE_ACCESS_KEY_ID }}
-          AWS_MEDIA_SERVICE_SECRET_ACCESS_KEY: ${{ secrets.AWS_MEDIA_SERVICE_SECRET_ACCESS_KEY }}
+                  AWS_RAW_UPLOADS_BUCKET: ${{ secrets.AWS_RAW_UPLOADS_BUCKET }}
+                  AWS_PROCESSED_MEDIA_BUCKET: ${{ secrets.AWS_PROCESSED_MEDIA_BUCKET }}
+                  AWS_SQS_QUEUE_URL: ${{ secrets.AWS_SQS_QUEUE_URL }}
+                  AWS_MEDIA_SERVICE_ACCESS_KEY_ID: ${{ secrets.AWS_MEDIA_SERVICE_ACCESS_KEY_ID }}
+                  AWS_MEDIA_SERVICE_SECRET_ACCESS_KEY: ${{ secrets.AWS_MEDIA_SERVICE_SECRET_ACCESS_KEY }}
 
-          EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
-          EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
-          EMAIL_USER: ${{ secrets.EMAIL_USER }}
-          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+                  EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+                  EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+                  EMAIL_USER: ${{ secrets.EMAIL_USER }}
+                  EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+                  EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
 
-          AWS_REGION: ${{ env.AWS_REGION }}
+                  AWS_REGION: ${{ env.AWS_REGION }}
 
-        run: |
-          kubectl create secret generic auth-secrets \
-            --from-literal=JWT_SECRET="$JWT_SECRET" \
-            --from-literal=JWT_REFRESH_SECRET="$JWT_REFRESH_SECRET" \
-            --from-literal=COOKIE_PARSER_SECRET="$COOKIE_PARSER_SECRET" \
-            --dry-run=client -o yaml | kubectl apply -f -
+              run: |
+                  kubectl create secret generic auth-secrets \
+                    --from-literal=JWT_SECRET="$JWT_SECRET" \
+                    --from-literal=JWT_REFRESH_SECRET="$JWT_REFRESH_SECRET" \
+                    --from-literal=COOKIE_PARSER_SECRET="$COOKIE_PARSER_SECRET" \
+                    --dry-run=client -o yaml | kubectl apply -f -
 
-          kubectl create secret generic media-service-secrets \
-            --from-literal=AWS_REGION="$AWS_REGION" \
-            --from-literal=AWS_RAW_UPLOADS_BUCKET="$AWS_RAW_UPLOADS_BUCKET" \
-            --from-literal=AWS_PROCESSED_MEDIA_BUCKET="$AWS_PROCESSED_MEDIA_BUCKET" \
-            --from-literal=AWS_SQS_QUEUE_URL="$AWS_SQS_QUEUE_URL" \
-            --from-literal=AWS_ACCESS_KEY_ID="$AWS_MEDIA_SERVICE_ACCESS_KEY_ID" \
-            --from-literal=AWS_SECRET_ACCESS_KEY="$AWS_MEDIA_SERVICE_SECRET_ACCESS_KEY" \
-            --dry-run=client -o yaml | kubectl apply -f -
+                  kubectl create secret generic media-service-secrets \
+                    --from-literal=AWS_REGION="$AWS_REGION" \
+                    --from-literal=AWS_RAW_UPLOADS_BUCKET="$AWS_RAW_UPLOADS_BUCKET" \
+                    --from-literal=AWS_PROCESSED_MEDIA_BUCKET="$AWS_PROCESSED_MEDIA_BUCKET" \
+                    --from-literal=AWS_SQS_QUEUE_URL="$AWS_SQS_QUEUE_URL" \
+                    --from-literal=AWS_ACCESS_KEY_ID="$AWS_MEDIA_SERVICE_ACCESS_KEY_ID" \
+                    --from-literal=AWS_SECRET_ACCESS_KEY="$AWS_MEDIA_SERVICE_SECRET_ACCESS_KEY" \
+                    --dry-run=client -o yaml | kubectl apply -f -
 
-          kubectl create secret generic notification-service-secrets \
-            --from-literal=EMAIL_HOST="$EMAIL_HOST" \
-            --from-literal=EMAIL_PORT="$EMAIL_PORT" \
-            --from-literal=EMAIL_USER="$EMAIL_USER" \
-            --from-literal=EMAIL_FROM="$EMAIL_FROM" \
-            --from-literal=EMAIL_PASS="$EMAIL_PASS" \
-            --dry-run=client -o yaml | kubectl apply -f -
+                  kubectl create secret generic notification-service-secrets \
+                    --from-literal=EMAIL_HOST="$EMAIL_HOST" \
+                    --from-literal=EMAIL_PORT="$EMAIL_PORT" \
+                    --from-literal=EMAIL_USER="$EMAIL_USER" \
+                    --from-literal=EMAIL_FROM="$EMAIL_FROM" \
+                    --from-literal=EMAIL_PASS="$EMAIL_PASS" \
+                    --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Test kubectl connection
-        run: kubectl get nodes
+            - name: Test kubectl connection
+              run: kubectl get nodes
 
-      - name: Substitute Image Tags in K8s Manifests
-        env:
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          find infra/k8s/services -type f -name "*.yaml" -exec \
-            sed -i 's|image: \(learnsphere/.*\)|image: ${{ env.ECR_REGISTRY }}/\1:${{ env.IMAGE_TAG }}|g' {} +
+            - name: Substitute Image Tags in K8s Manifests
+              env:
+                  IMAGE_TAG: ${{ github.sha }}
+              run: |
+                  find infra/k8s/services -type f -name "*.yaml" -exec \
+                    sed -i 's|image: \(learnsphere/.*\)|image: ${{ env.ECR_REGISTRY }}/\1:${{ env.IMAGE_TAG }}|g' {} +
 
-      - name: Deploy All Manifests to EKS
-        run: |
-          kubectl apply -f infra/k8s/base/
-          kubectl apply -f infra/k8s/configmaps/
-          kubectl apply -f infra/k8s/services/
-          kubectl apply -f infra/k8s/ingress-service.yaml
+            - name: Deploy All Manifests to EKS
+              run: |
+                  kubectl apply -f infra/k8s/base/
+                  kubectl apply -f infra/k8s/configmaps/
+                  kubectl apply -f infra/k8s/services/
+                  kubectl apply -f infra/k8s/ingress-service.yaml
