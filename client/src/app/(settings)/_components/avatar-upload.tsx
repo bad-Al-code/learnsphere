@@ -7,10 +7,14 @@ import { toast } from "sonner";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useSessionStore } from "@/stores/session-store";
-import { Dialog } from "@radix-ui/react-dialog";
 import { getAvatarUploadUrl } from "../actions";
 
 interface AvatarUploadProps {
@@ -121,17 +125,20 @@ export function AvatarUpload({
       </div>
 
       {displayUrl && (
-        <DialogContent className="max-w-md">
-          <div className=" flex justify-center">
-            <Image
-              src={displayUrl}
-              alt="User avatar preview"
-              width={800}
-              height={800}
-              className="rounded-md object-cover"
-            />
-          </div>
-        </DialogContent>
+        <>
+          <DialogTitle></DialogTitle>
+          <DialogContent className="max-w-md">
+            <div className=" flex justify-center">
+              <Image
+                src={displayUrl}
+                alt="User avatar preview"
+                width={800}
+                height={800}
+                className="rounded-md object-cover"
+              />
+            </div>
+          </DialogContent>
+        </>
       )}
     </Dialog>
   );
