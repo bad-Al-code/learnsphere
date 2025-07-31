@@ -7,6 +7,8 @@ import type { Metadata } from "next";
 import { getCurrentUser } from "./(auth)/actions";
 import "./globals.css";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "LearnSphere",
   description: "A modern E-learning Platform",

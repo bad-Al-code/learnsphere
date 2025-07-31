@@ -62,6 +62,7 @@ export async function getCurrentUser() {
   try {
     const response = await userService.get("/api/users/me");
     if (!response.ok) return null;
+
     return await response.json();
   } catch (error) {
     return null;

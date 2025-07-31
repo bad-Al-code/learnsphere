@@ -26,6 +26,8 @@ export default async function ProfileSettingsPage() {
 
   const initials = getInitials(user.firstName, user.lastName);
 
+  const avatarUrl = user?.avatarUrls?.large;
+
   return (
     <div className="space-y-8">
       <Card>
@@ -55,7 +57,6 @@ export default async function ProfileSettingsPage() {
             </div>
           </div>
 
-          {/* For small screens: use Tabs */}
           <div className="lg:hidden">
             <Tabs defaultValue="profile" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
