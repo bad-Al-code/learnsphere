@@ -75,14 +75,32 @@ async function apiClient(
 }
 
 const createApiService = (baseUrl: string) => ({
-  get: (path: string) => apiClient(baseUrl, path, { method: "GET" }),
-  post: (path: string, body: any) =>
-    apiClient(baseUrl, path, { method: "POST", body: JSON.stringify(body) }),
-  put: (path: string, body: any) =>
-    apiClient(baseUrl, path, { method: "PUT", body: JSON.stringify(body) }),
-  patch: (path: string, body: any) =>
-    apiClient(baseUrl, path, { method: "PATCH", body: JSON.stringify(body) }),
-  delete: (path: string) => apiClient(baseUrl, path, { method: "DELETE" }),
+  get: (path: string, options: RequestInit = {}) =>
+    apiClient(baseUrl, path, { method: "GET", ...options }),
+
+  post: (path: string, body: any, options: RequestInit = {}) =>
+    apiClient(baseUrl, path, {
+      method: "POST",
+      body: JSON.stringify(body),
+      ...options,
+    }),
+
+  put: (path: string, body: any, options: RequestInit = {}) =>
+    apiClient(baseUrl, path, {
+      method: "PUT",
+      body: JSON.stringify(body),
+      ...options,
+    }),
+
+  patch: (path: string, body: any, options: RequestInit = {}) =>
+    apiClient(baseUrl, path, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+      ...options,
+    }),
+
+  delete: (path: string, options: RequestInit = {}) =>
+    apiClient(baseUrl, path, { method: "DELETE", ...options }),
 });
 
 export const authService = createApiService(process.env.AUTH_SERVICE_URL!);

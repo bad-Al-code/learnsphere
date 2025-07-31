@@ -3,7 +3,6 @@
 import { format } from "date-fns";
 import {
   Chrome,
-  Firefox,
   Globe,
   Laptop,
   LogOut,
@@ -38,14 +37,12 @@ const getDeviceIcon = (device: UAParser.IDevice) => {
 };
 
 const getBrowserIcon = (browser: UAParser.IBrowser) => {
-  switch (browser.name) {
-    case "Chrome":
-      return <Chrome className="h-5 w-5 text-muted-foreground" />;
-    case "Firefox":
-      return <Firefox className="h-5 w-5 text-muted-foreground" />;
-    default:
-      return <Globe className="h-5 w-5 text-muted-foreground" />;
+  const browserName = browser.name || "";
+  if (browserName.includes("Chrome")) {
+    return <Chrome className="h-5 w-5 text-muted-foreground" />;
   }
+
+  return <Globe className="h-5 w-5 text-muted-foreground" />;
 };
 
 export function SessionHistory() {
