@@ -60,7 +60,7 @@ function ResetPasswordFlow() {
 
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
-      <Card className="w-full max-w-sm text-center shadow-2xl/20">
+      <Card className="w-full max-w-md text-center shadow-2xl/20">
         <CardHeader className="text-start">
           <div className="flex  mb-4">
             <Logo variant="icon" />
@@ -102,7 +102,7 @@ function EnterCodeComponent({ email }: { email: string }) {
 
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
-      <Card className="w-full max-w-sm shadow-2xl/20">
+      <Card className="w-full max-w-md shadow-2xl/20">
         <CardHeader className="text-start">
           <div className="flex  mb-4">
             <Logo variant="icon" />
@@ -178,7 +178,7 @@ function VerifyResetTokenComponent({
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[80vh]">
-        <Card className="w-full max-w-sm text-center shadow-2xl/20">
+        <Card className="w-full max-w-md text-center shadow-2xl/20">
           <CardHeader className="text-start">
             <div className="flex  mb-4">
               <Logo variant="icon" />
