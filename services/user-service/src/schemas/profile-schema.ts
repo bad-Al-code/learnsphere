@@ -117,8 +117,8 @@ import { z } from 'zod';
 
 export const updateProfileSchema = z.object({
   body: z.object({
-    firstName: z.string().min(1).max(50).optional(),
-    lastName: z.string().min(1).max(50).optional(),
+    firstName: z.string().min(1).max(50).optional().nullable(),
+    lastName: z.string().max(50).optional().nullable(),
     bio: z.string().max(500).optional(),
     headline: z.string().max(100).optional().nullable(),
     websiteUrl: z
@@ -128,9 +128,9 @@ export const updateProfileSchema = z.object({
       .nullable(),
     socialLinks: z
       .object({
-        twitter: z.string().optional().nullable(), // Add .nullable()
-        linkedin: z.string().optional().nullable(), // Add .nullable()
-        github: z.string().optional().nullable(), // Add .nullable()
+        twitter: z.string().optional().nullable(),
+        linkedin: z.string().optional().nullable(),
+        github: z.string().optional().nullable(),
       })
       .optional()
       .nullable(),

@@ -141,6 +141,7 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
                       placeholder="https://github.com/username"
                       {...field}
                       className="pl-10"
+                      value={field.value ?? ""}
                     />
                   </FormControl>
                 </div>
@@ -162,6 +163,7 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
                       placeholder="https://linkedin.com/in/username"
                       {...field}
                       className="pl-10"
+                      value={field.value ?? ""}
                     />
                   </FormControl>
                 </div>
@@ -183,6 +185,7 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
                       placeholder="https://twitter.com/username"
                       {...field}
                       className="pl-10"
+                      value={field.value ?? ""}
                     />
                   </FormControl>
                 </div>
