@@ -6,7 +6,7 @@ import { env } from '../config/env';
 import logger from '../config/logger';
 import passport from '../config/passport';
 import { User } from '../db/database.types';
-import { UnauthenticatedError } from '../errors';
+import { BadRequestError, UnauthenticatedError } from '../errors';
 import {
   UserPasswordResetRequiredPublisher,
   UserRegisteredPublisher,
@@ -380,6 +380,29 @@ export class AuthController {
       res
         .status(StatusCodes.OK)
         .json({ message: 'Session terminated successfully.' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async terminateAllOtherSessions(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userId = req.currentUser!.dbUser.id;
+      const currentJti = req.currentUser!.tokenPayload.jti;
+
+      if (!currentJti) {
+        throw new BadRequestError('Current session identifier is missing.');
+      }
+
+      await SessionService.terminateAllOtherSessions(userId, currentJti);
+
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'All other sessions have been terminated.' });
     } catch (error) {
       next(error);
     }

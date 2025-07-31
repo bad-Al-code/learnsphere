@@ -334,6 +334,27 @@ router.get('/sessions', requireAuth, AuthController.getSessions);
 
 /**
  * @openapi
+ * /api/auth/sessions/others:
+ *   delete:
+ *     summary: Terminate all other sessions for the current user
+ *     tags: [Account Management]
+ *     description: Logs the current user out of all devices except the one making this request.
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: All other sessions terminated successfully.
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.delete(
+  '/sessions/others',
+  requireAuth,
+  AuthController.terminateAllOtherSessions
+);
+
+/**
+ * @openapi
  * /api/auth/sessions/{sessionId}:
  *   delete:
  *     summary: Terminate a specific user session

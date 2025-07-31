@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq, ne } from 'drizzle-orm';
 import { db } from './index';
 import { userSessions } from './schema';
 
@@ -35,6 +35,17 @@ export class SessionRepository {
 
   public static async deleteById(jti: string): Promise<void> {
     await db.delete(userSessions).where(eq(userSessions.jti, jti));
+  }
+
+  public static async deleteAllForUserExceptCurrent(
+    userId: string,
+    currentJti: string
+  ): Promise<void> {
+    await db
+      .delete(userSessions)
+      .where(
+        and(eq(userSessions.userId, userId), ne(userSessions.jti, currentJti))
+      );
   }
 
   public static async deleteAllForUser(userId: string): Promise<void> {
