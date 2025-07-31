@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSessionStore } from "@/stores/session-store";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { getAvatarUploadUrl } from "../actions";
 
 interface AvatarUploadProps {
@@ -20,7 +21,7 @@ export function AvatarUpload({
   const router = useRouter();
   const user = useSessionStore((state) => state.user);
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -29,35 +30,40 @@ export function AvatarUpload({
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
-    startTransition(async () => {
-      try {
-        const payload = {
-          filename: file.name,
-          uploadType: "avatar" as const,
-          metadata: { userId: user.userId },
-        };
+    setIsPending(true);
 
-        const { data, error: urlError } = await getAvatarUploadUrl(payload);
+    try {
+      const payload = {
+        filename: file.name,
+        uploadType: "avatar" as const,
+        metadata: { userId: user.userId },
+      };
 
-        if (urlError || !data?.signedUrl) {
-          throw new Error(urlError || "Could not get upload URL.");
-        }
+      const { data, error: urlError } = await getAvatarUploadUrl(payload);
 
-        const uploadResponse = await fetch(data.signedUrl, {
-          method: "PUT",
-          body: file,
-          headers: { "Content-Type": file.type },
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image.");
-        }
-
-        router.refresh();
-      } catch (err: any) {
-        setError(err.message);
+      if (urlError || !data?.signedUrl) {
+        toast.error(urlError || "Could not get upload url");
+        throw new Error(urlError || "Could not get upload URL.");
       }
-    });
+
+      const uploadResponse = await fetch(data.signedUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+
+      if (!uploadResponse.ok) {
+        toast.error("Failed to upload image.");
+        throw new Error("Failed to upload image.");
+      }
+
+      toast.success("Image uploaded successfully");
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (
@@ -74,7 +80,8 @@ export function AvatarUpload({
         onChange={handleFileChange}
         className="hidden"
       />
-      <Button asChild variant="outline">
+
+      <Button asChild variant="outline" disabled={isPending}>
         <label htmlFor="avatar-upload" className="cursor-pointer">
           {isPending ? "Uploading..." : "Change Avatar"}
         </label>
