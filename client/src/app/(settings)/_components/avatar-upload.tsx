@@ -1,13 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useSessionStore } from "@/stores/session-store";
+import { Dialog } from "@radix-ui/react-dialog";
 import { getAvatarUploadUrl } from "../actions";
 
 interface AvatarUploadProps {
@@ -78,31 +81,58 @@ export function AvatarUpload({
   const displayUrl = previewUrl || currentAvatarUrl;
 
   return (
-    <div className="flex flex-col items-center space-y-4">
-      <Avatar className="h-24 w-24">
-        <AvatarImage src={displayUrl} alt="User avatar" />
-        <AvatarFallback className="text-3xl">{initials}</AvatarFallback>
-      </Avatar>
+    <Dialog>
+      <div className="flex flex-col items-center space-y-4">
+        <DialogTrigger asChild>
+          <button
+            disabled={!displayUrl}
+            className="rounded-full ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none"
+          >
+            <Avatar className="h-24 w-24 cursor-pointer hover:opacity-80 transition-opacity">
+              <AvatarImage src={displayUrl} alt="User avatar" />
+              <AvatarFallback className="text-3xl">{initials}</AvatarFallback>
+            </Avatar>
+          </button>
+        </DialogTrigger>
 
-      <Input
-        id="avatar-upload"
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        disabled={isPending}
-        className="hidden"
-      />
+        <Input
+          id="avatar-upload"
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          disabled={isPending}
+          className="hidden"
+        />
 
-      <Button asChild variant="outline" disabled={isPending}>
-        <label
-          htmlFor="avatar-upload"
-          className={`cursor-pointer ${isPending ? "cursor-not-allowed" : ""}`}
-        >
-          {isPending ? "Uploading..." : "Change Avatar"}
-        </label>
-      </Button>
+        <Button asChild variant="outline" disabled={isPending}>
+          <label
+            htmlFor="avatar-upload"
+            className={`cursor-pointer ${
+              isPending ? "cursor-not-allowed" : ""
+            }`}
+          >
+            {isPending ? "Uploading..." : "Change Avatar"}
+          </label>
+        </Button>
 
-      {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-    </div>
+        {error && (
+          <p className="text-sm font-medium text-destructive">{error}</p>
+        )}
+      </div>
+
+      {displayUrl && (
+        <DialogContent className="max-w-md">
+          <div className=" flex justify-center">
+            <Image
+              src={displayUrl}
+              alt="User avatar preview"
+              width={800}
+              height={800}
+              className="rounded-lg object-cover"
+            />
+          </div>
+        </DialogContent>
+      )}
+    </Dialog>
   );
 }
