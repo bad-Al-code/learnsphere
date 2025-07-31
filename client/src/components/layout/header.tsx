@@ -12,7 +12,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSessionStore } from "@/stores/session-store";
 import { User } from "@/types/user";
-import { LogOut, Menu, User as UserIcon } from "lucide-react";
+import {
+  ChevronsDownUp,
+  ChevronsUpDown,
+  LogOut,
+  Menu,
+  User as UserIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { Logo } from "../shared/logo";
@@ -28,6 +34,7 @@ const getInitials = (firstName: string | null, lastName: string | null) => {
 export function Header({ user: initialUser }: { user: User }) {
   const { user, setUser } = useSessionStore();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -119,34 +126,65 @@ export function Header({ user: initialUser }: { user: User }) {
 
               <div className="my-8">
                 {user ? (
-                  <div className="flex items-center space-x-4">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage
-                        src={user.avatarUrls?.small}
-                        alt="User Avatar"
-                      />
-                      <AvatarFallback>
-                        {getInitials(user.firstName, user.lastName)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">
-                        {user.firstName} {user.lastName}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        onClick={() => setDropdownOpen(!dropdownOpen)}
+                        className="w-full flex items-center justify-between gap-2 p-2 rounded-md border border-border hover:bg-muted transition text-left"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage
+                              src={user.avatarUrls?.small}
+                              alt="User Avatar"
+                            />
+                            <AvatarFallback>
+                              {getInitials(user.firstName, user.lastName)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium">
+                            {user.firstName} {user.lastName}
+                          </span>
+                        </div>
+                        {dropdownOpen ? (
+                          <ChevronsDownUp className="w-4 h-4" />
+                        ) : (
+                          <ChevronsUpDown className="w-4 h-4" />
+                        )}
+                      </button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent
+                      side="top"
+                      align="center"
+                      className="w-full mt-2"
+                      onCloseAutoFocus={() => setDropdownOpen(false)}
+                      onInteractOutside={() => setDropdownOpen(false)}
+                      onEscapeKeyDown={() => setDropdownOpen(false)}
+                      forceMount
+                    >
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href="/settings/profile"
+                          onClick={() => setIsSheetOpen(false)}
+                        >
+                          <UserIcon className="mr-2 h-4 w-4" />
+                          <span>Profile</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
                         onClick={() => {
                           handleLogout();
                           setIsSheetOpen(false);
                         }}
                         disabled={isPending}
-                        className="text-red-500 p-0"
                       >
-                        Log out
-                      </Button>
-                    </div>
-                  </div>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 ) : (
                   <div className="flex flex-col space-y-2">
                     <Button asChild variant="outline">
