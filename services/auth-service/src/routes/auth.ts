@@ -334,7 +334,7 @@ router.get('/sessions', requireAuth, AuthController.getSessions);
 
 /**
  * @openapi
- * /api/auth/sessions/others:
+ * /api/auth/sessions/all-except-current:
  *   delete:
  *     summary: Terminate all other sessions for the current user
  *     tags: [Account Management]
@@ -348,7 +348,7 @@ router.get('/sessions', requireAuth, AuthController.getSessions);
  *         description: Unauthorized.
  */
 router.delete(
-  '/sessions/others',
+  '/sessions/all-except-current',
   requireAuth,
   AuthController.terminateAllOtherSessions
 );
