@@ -1,3 +1,4 @@
+import axios from 'axios';
 import logger from '../config/logger';
 import { BlacklistService } from '../controllers/blacklist-service';
 import { Session, SessionRepository } from '../db/session.repository';
@@ -16,11 +17,15 @@ export class SessionService {
     context: RequestContext
   ): Promise<void> {
     try {
+      const geoInfo = await this.getGeoInfo(context.ipAddress);
+
       await SessionRepository.create({
         jti,
         userId,
         ipAddress: context.ipAddress || null,
         userAgent: context.userAgent || null,
+        country: geoInfo.country,
+        countryCode: geoInfo.countryCode,
       });
     } catch (error) {
       logger.error('Failed to create user session record', { error, userId });
@@ -69,5 +74,33 @@ export class SessionService {
     logger.info(
       `Terminated all other sessions for user ${userId}, excluding current session ${currentJti}`
     );
+  }
+
+  private static async getGeoInfo(
+    ipAddress?: string
+  ): Promise<{ country: string | null; countryCode: string | null }> {
+    if (
+      !ipAddress ||
+      ipAddress === '::1' ||
+      ipAddress.startsWith('127.') ||
+      ipAddress.startsWith('192.168.')
+    ) {
+      return { country: null, countryCode: null };
+    }
+
+    logger.info(`Getting the geoLocation for IPAddress: ${ipAddress}`);
+    try {
+      const response = await axios.get(
+        `http://ip-api.com/json/${ipAddress}?fields=country,countryCode`
+      );
+
+      return {
+        country: response.data.country || null,
+        countryCode: response.data.countryCode || null,
+      };
+    } catch (error) {
+      logger.warn(`Failed to fetch GeoIP info for IP: ${ipAddress}`, { error });
+      return { country: null, countryCode: null };
+    }
   }
 }
