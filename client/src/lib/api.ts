@@ -82,6 +82,7 @@ const createApiService = (baseUrl: string) => ({
     apiClient(baseUrl, path, { method: "PUT", body: JSON.stringify(body) }),
   patch: (path: string, body: any) =>
     apiClient(baseUrl, path, { method: "PATCH", body: JSON.stringify(body) }),
+  delete: (path: string) => apiClient(baseUrl, path, { method: "DELETE" }),
 });
 
 export const authService = createApiService(process.env.AUTH_SERVICE_URL!);

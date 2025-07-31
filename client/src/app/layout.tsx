@@ -10,6 +10,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "LearnSphere",
   description: "A modern E-learning Platform",
+  icons: "../../assets/logo/Theme=Dark.svg",
 };
 
 export default async function RootLayout({

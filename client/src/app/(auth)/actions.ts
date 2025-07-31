@@ -1,7 +1,7 @@
 "use server";
 
 import { authService, userService } from "@/lib/api";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import z from "zod";
@@ -436,4 +436,40 @@ export async function setNewPassword(
 
   revalidatePath("/");
   redirect("/");
+}
+
+export async function getSessions(limit: number = 10) {
+  try {
+    const response = await authService.get(
+      `/api/auth/sessions?limit=${limit}`,
+      {
+        next: { tags: ["sessions"] },
+      }
+    );
+
+    if (!response.ok) {
+      return { error: "Failed to fetch sessions." };
+    }
+
+    const data = await response.json();
+    return { success: true, data: data.sessions };
+  } catch (error: any) {
+    return { error: error.message || "An unexpected error occurred." };
+  }
+}
+
+export async function terminateSession(sessionId: string) {
+  try {
+    const response = await authService.delete(
+      `/api/auth/sessions/${sessionId}`
+    );
+    if (!response.ok) {
+      return { error: "Failed to terminate session." };
+    }
+
+    revalidateTag("sessions");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "An unexpected error occurred." };
+  }
 }
