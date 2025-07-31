@@ -128,9 +128,9 @@ export const updateProfileSchema = z.object({
       .nullable(),
     socialLinks: z
       .object({
-        twitter: z.string().optional(),
-        linkedin: z.string().optional(),
-        github: z.string().optional(),
+        twitter: z.string().optional().nullable(), // Add .nullable()
+        linkedin: z.string().optional().nullable(), // Add .nullable()
+        github: z.string().optional().nullable(), // Add .nullable()
       })
       .optional()
       .nullable(),
