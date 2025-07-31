@@ -1,10 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { getCurrentUser } from "@/app/(auth)/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +22,7 @@ export function AvatarUpload({
   const router = useRouter();
   const user = useSessionStore((state) => state.user);
   const [error, setError] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const handleFileChange = async (
@@ -31,6 +31,9 @@ export function AvatarUpload({
     setError(null);
     const file = event.target.files?.[0];
     if (!file || !user) return;
+
+    const tempUrl = URL.createObjectURL(file);
+    setPreviewUrl(tempUrl);
 
     startTransition(async () => {
       try {
@@ -53,42 +56,31 @@ export function AvatarUpload({
           throw new Error("Failed to upload image.");
         }
 
-        toast.info("Upload complete. Processing image...");
+        toast.success("Avatar uploaded successfully!");
 
-        const poll = async (retries: number): Promise<void> => {
-          if (retries <= 0) {
-            toast.error("Profile did not update in time.", {
-              description: "Please refresh the page manually in a few moments.",
-            });
-            return;
-          }
-
-          const updatedUser = await getCurrentUser();
-
-          if (
-            updatedUser?.avatarUrls?.large &&
-            updatedUser.avatarUrls.large !== currentAvatarUrl
-          ) {
-            toast.success("Avatar updated successfully!");
-            router.refresh();
-            return;
-          }
-
-          setTimeout(() => poll(retries - 1), 2000);
-        };
-
-        await poll(10);
+        router.refresh();
       } catch (err: any) {
-        toast.error("Upload failed", { description: err.message });
+        toast.error(err.message || "Upload failed");
+        setPreviewUrl(null);
         setError(err.message);
       }
     });
   };
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  const displayUrl = previewUrl || currentAvatarUrl;
+
   return (
     <div className="flex flex-col items-center space-y-4">
       <Avatar className="h-24 w-24">
-        <AvatarImage src={currentAvatarUrl} alt="User avatar" />
+        <AvatarImage src={displayUrl} alt="User avatar" />
         <AvatarFallback className="text-3xl">{initials}</AvatarFallback>
       </Avatar>
 
