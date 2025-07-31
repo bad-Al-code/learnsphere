@@ -1,6 +1,6 @@
-import { SessionRepository, Session } from '../db/session.repository';
-import { RequestContext } from '../types/service.types';
 import logger from '../config/logger';
+import { Session, SessionRepository } from '../db/session.repository';
+import { RequestContext } from '../types/service.types';
 
 export class SessionService {
   /**
@@ -31,8 +31,11 @@ export class SessionService {
    * @param userId The ID of the user.
    * @returns An array of session objects.
    */
-  public static async getUserSessions(userId: string): Promise<Session[]> {
-    return SessionRepository.findByUserId(userId);
+  public static async getUserSessions(
+    userId: string,
+    limit?: number
+  ): Promise<Session[]> {
+    return SessionRepository.findByUserId(userId, limit);
   }
 
   /**

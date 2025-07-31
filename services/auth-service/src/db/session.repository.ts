@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { db } from './index';
 import { userSessions } from './schema';
 
@@ -16,10 +16,21 @@ export class SessionRepository {
     });
   }
 
-  public static async findByUserId(userId: string): Promise<Session[]> {
-    return db.query.userSessions.findMany({
-      where: eq(userSessions.userId, userId),
-    });
+  public static async findByUserId(
+    userId: string,
+    limit?: number
+  ): Promise<Session[]> {
+    const query = db
+      .select()
+      .from(userSessions)
+      .where(eq(userSessions.userId, userId))
+      .orderBy(desc(userSessions.createdAt));
+
+    if (limit) {
+      return query.limit(limit);
+    }
+
+    return query;
   }
 
   public static async deleteById(jti: string): Promise<void> {

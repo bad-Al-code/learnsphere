@@ -356,7 +356,12 @@ export class AuthController {
   ) {
     try {
       const userId = req.currentUser!.dbUser.id;
-      const sessions = await SessionService.getUserSessions(userId);
+      const limit = req.query.limit
+        ? parseInt(req.query.limit as string, 10)
+        : 10;
+
+      const sessions = await SessionService.getUserSessions(userId, limit);
+
       res.status(StatusCodes.OK).json({ sessions });
     } catch (error) {
       next(error);
