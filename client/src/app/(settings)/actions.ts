@@ -165,7 +165,6 @@ export async function searchUsers({
     }
 
     const result = await response.json();
-    console.log(result);
     return result;
   } catch (error: any) {
     console.error("Error searching users:", error);
@@ -174,5 +173,23 @@ export async function searchUsers({
       results: [],
       pagination: { currentPage: 1, totalPages: 0, totalResults: 0 },
     };
+  }
+}
+
+export async function getUserById(userId: string) {
+  try {
+    const response = await userService.get(`/api/users/${userId}`);
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+
+      throw new Error(data.errors?.[0]?.message || "Failed to fetch user.");
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error: any) {
+    console.error(`Error fetching user ${userId}:`, error);
+    return null;
   }
 }
