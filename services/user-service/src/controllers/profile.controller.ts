@@ -1,12 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { z } from 'zod';
 
 import axios, { AxiosError } from 'axios';
 import { env } from '../config/env';
 import logger from '../config/logger';
 import { NotAuthorizedError } from '../errors';
-import { searchProfileSchema } from '../schemas/profile-schema';
 import { ProfileService } from '../services/profile.service';
 
 export class ProfileController {
@@ -103,10 +101,18 @@ export class ProfileController {
     next: NextFunction
   ) {
     try {
-      const { q, page, limit } = req.query as unknown as z.infer<
-        typeof searchProfileSchema
-      >['query'];
-      const searchResult = await ProfileService.searchProfiles(q, page, limit);
+      const { q, page, limit } = req.query;
+
+      const searchQuery = q ? String(q) : '';
+      const pageNumber = page ? parseInt(String(page), 10) : 1;
+      const limitNumber = limit ? parseInt(String(limit), 10) : 10;
+
+      const searchResult = await ProfileService.searchProfiles(
+        searchQuery,
+        pageNumber,
+        limitNumber
+      );
+
       res.status(StatusCodes.OK).json(searchResult);
     } catch (error) {
       next(error);
