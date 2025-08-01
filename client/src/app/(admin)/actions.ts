@@ -166,3 +166,57 @@ export async function searchAllCourses({
     };
   }
 }
+
+export async function getCourseDetailsForAdmin(courseId: string) {
+  try {
+    const response = await courseService.get(`/api/courses/${courseId}`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch course details.");
+    }
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+async function performCourseAction(
+  courseId: string,
+  action: "publish" | "unpublish" | "delete"
+) {
+  try {
+    let response;
+    if (action === "delete") {
+      response = await courseService.delete(`/api/courses/${courseId}`);
+    } else {
+      response = await courseService.post(
+        `/api/courses/${courseId}/${action}`,
+        {}
+      );
+    }
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(
+        data.errors?.[0]?.message || `Failed to ${action} course.`
+      );
+    }
+
+    revalidatePath(`/admin/courses/${courseId}`);
+    revalidatePath("/admin/courses");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function publishCourse(courseId: string) {
+  return performCourseAction(courseId, "publish");
+}
+
+export async function unpublishCourse(courseId: string) {
+  return performCourseAction(courseId, "unpublish");
+}
+
+export async function deleteCourse(courseId: string) {
+  return performCourseAction(courseId, "delete");
+}
