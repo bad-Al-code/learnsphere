@@ -1,4 +1,4 @@
-import { count, eq, inArray } from 'drizzle-orm';
+import { count, eq, ilike, inArray } from 'drizzle-orm';
 
 import { db } from '..';
 import { Course, NewCourse, UpdateCourse } from '../../types';
@@ -144,5 +144,42 @@ export class CourseRepository {
   public static async getTotalCount(): Promise<number> {
     const [{ value }] = await db.select({ value: count() }).from(courses);
     return value;
+  }
+
+  /**
+   * Searches all courses by title with optional pagination.
+   *
+   * Performs a case-insensitive search on course titles and returns paginated results
+   * along with the total number of matched records.
+   *
+   * @param {string} query - The search term to filter course titles (optional).
+   * @param {number} limit - The maximum number of results to return.
+   * @param {number} offset - The number of results to skip for pagination.
+   * @returns {Promise<{ totalResults: number; results: any[] }>}
+   * An object containing the total count of matching courses and the result set.
+   */ public static async searchAll(
+    query: string,
+    limit: number,
+    offset: number
+  ) {
+    const whereClause = query ? ilike(courses.title, `${query}$`) : undefined;
+
+    const totalQuery = db
+      .select({ value: count() })
+      .from(courses)
+      .where(whereClause);
+    const resultQuery = db.query.courses.findMany({
+      where: whereClause,
+      limit,
+      offset,
+      orderBy: (courses, { desc }) => [desc(courses.createdAt)],
+    });
+
+    const [[{ value: totalResults }], results] = await Promise.all([
+      totalQuery,
+      resultQuery,
+    ]);
+
+    return { totalResults, results };
   }
 }

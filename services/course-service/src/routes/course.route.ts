@@ -133,6 +133,75 @@ router.get(
 
 /**
  * @openapi
+ * /api/courses/admin-search:
+ *   get:
+ *     summary: Admin search for courses with pagination and optional query
+ *     tags: [Courses]
+ *     description: Retrieve a paginated list of all courses, optionally filtered by a search query. Admin access only.
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Search term to filter courses by title.
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *           minimum: 1
+ *         required: false
+ *         description: Page number for pagination.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *           minimum: 1
+ *         required: false
+ *         description: Number of courses to return per page.
+ *     responses:
+ *       200:
+ *         description: Paginated list of courses with instructor information.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     description: Enriched course details (course + instructor)
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     currentPage:
+ *                       type: integer
+ *                       example: 1
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 5
+ *                     totalResults:
+ *                       type: integer
+ *                       example: 42
+ *       401:
+ *         description: Unauthorized. User not logged in.
+ *       403:
+ *         description: Forbidden. User lacks admin privileges.
+ */
+router.get(
+  '/admin-search',
+  requireAuth,
+  requireRole(['admin']),
+  CourseController.searchForAdmin
+);
+
+/**
+ * @openapi
  * /api/courses/{courseId}:
  *   get:
  *     summary: Get full details of a single course, including all modules and lessons

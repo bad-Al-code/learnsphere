@@ -186,4 +186,27 @@ export class CourseController {
       next(error);
     }
   }
+
+  public static async searchForAdmin(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const query = req.query.q ? String(req.query.q) : '';
+      const page = req.query.page ? parseInt(String(req.query.page), 10) : 1;
+      const limit = req.query.limit
+        ? parseInt(String(req.query.limit), 10)
+        : 10;
+
+      const result = await CourseService.listAllCoursesForAdmin(
+        query,
+        page,
+        limit
+      );
+      res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

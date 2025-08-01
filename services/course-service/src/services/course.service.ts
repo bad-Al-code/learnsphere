@@ -237,4 +237,50 @@ export class CourseService {
     const totalCourses = await CourseRepository.getTotalCount();
     return { totalCourses };
   }
+
+  /**
+   * Retrieves a paginated list of all courses for admin users, optionally filtered by a search query.
+   *
+   * This includes:
+   * - Case-insensitive title search via `CourseRepository.searchAll`
+   * - Pagination support (page & limit)
+   * - Enriched course data with instructor information
+   *
+   * @param {string} query - Search keyword to filter course titles (optional).
+   * @param {number} page - Current page number (1-indexed).
+   * @param {number} limit - Number of results per page.
+   * @returns {Promise<{
+   *   results:[],
+   *   pagination: {
+   *     currentPage: number,
+   *     totalPages: number,
+   *     totalResults: number
+   *   }
+   * }>} Paginated list of courses with instructor details and metadata.
+   */
+  public static async listAllCoursesForAdmin(
+    query: string,
+    page: number,
+    limit: number
+  ) {
+    const offset = (page - 1) * limit;
+    const { totalResults, results } = await CourseRepository.searchAll(
+      query,
+      limit,
+      offset
+    );
+
+    const resultsWithInstructors =
+      await this._enrichCourseWithInstructors(results);
+
+    const totalPages = Math.ceil(totalResults / limit);
+    return {
+      results: resultsWithInstructors,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalResults,
+      },
+    };
+  }
 }
