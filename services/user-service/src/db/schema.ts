@@ -17,6 +17,13 @@ export type UserSettings = {
   };
 };
 
+export type InstructorApplicationData = {
+  expertise: string;
+  experience: string;
+  motivation: string;
+  submittedAt: string;
+};
+
 export const userStatusEnum = pgEnum('user_status', [
   'active',
   'pending_instructor_review',
@@ -40,6 +47,10 @@ export const profiles = pgTable('profiles', {
     linkedin?: string;
     github?: string;
   }>(),
+
+  instructorApplicationData: jsonb(
+    'instructor_application_data'
+  ).$type<InstructorApplicationData>(),
 
   fcmTokens: text('fcm_tokens')
     .array()

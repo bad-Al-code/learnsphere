@@ -2,12 +2,12 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { z } from 'zod';
 
-import { ProfileService } from '../services/profile.service';
-import logger from '../config/logger';
 import axios, { AxiosError } from 'axios';
-import { searchProfileSchema } from '../schemas/profile-schema';
-import { NotAuthorizedError } from '../errors';
 import { env } from '../config/env';
+import logger from '../config/logger';
+import { NotAuthorizedError } from '../errors';
+import { searchProfileSchema } from '../schemas/profile-schema';
+import { ProfileService } from '../services/profile.service';
 
 export class ProfileController {
   public static async getMyProfile(
@@ -180,8 +180,9 @@ export class ProfileController {
   ) {
     try {
       const userId = req.currentUser!.id;
+      const applicationData = req.body;
 
-      await ProfileService.applyForInstructor(userId);
+      await ProfileService.applyForInstructor(userId, applicationData);
 
       res
         .status(StatusCodes.OK)

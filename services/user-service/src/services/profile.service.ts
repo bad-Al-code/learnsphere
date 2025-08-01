@@ -1,12 +1,12 @@
 import logger from '../config/logger';
-import { BadRequestError, NotFoundError } from '../errors';
 import {
-  ProfileRepository,
   NewProfile,
-  UpdateProfile,
   Profile,
+  ProfileRepository,
+  UpdateProfile,
 } from '../db/profile.repository';
-import { UserSettings } from '../db/schema';
+import { InstructorApplicationData, UserSettings } from '../db/schema';
+import { BadRequestError, NotFoundError } from '../errors';
 import { UserRoleUpdatedPublisher } from '../events/publisher';
 
 export class ProfileService {
@@ -169,17 +169,29 @@ export class ProfileService {
    * @param userId The ID of user applying.
    @throws { BadRequestError} If the user is already an instructor or has a pending application
    */
-  public static async applyForInstructor(userId: string): Promise<void> {
+  public static async applyForInstructor(
+    userId: string,
+    applicationData: Omit<InstructorApplicationData, 'submittedAt'>
+  ): Promise<void> {
     const profile = await this.getPrivateProfileById(userId);
 
     if (profile.status === 'pending_instructor_review') {
       throw new BadRequestError(`You already have a pending application.`);
     }
 
+    const fullApplicationData: InstructorApplicationData = {
+      ...applicationData,
+      submittedAt: new Date().toISOString(),
+    };
+
     await ProfileRepository.update(userId, {
       status: 'pending_instructor_review',
+      instructorApplicationData: fullApplicationData,
     });
-    logger.info(`User ${userId} has applied to become an instructor`);
+
+    logger.info(
+      `User ${userId} has applied to become an instructor with new details.`
+    );
   }
 
   /**

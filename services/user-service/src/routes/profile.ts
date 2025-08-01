@@ -11,10 +11,12 @@
 
 import { Router } from 'express';
 
+import { ProfileController } from '../controllers/profile.controller';
 import { requireAuth } from '../middlewares/require-auth';
 import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
 import {
+  applyForInstructorSchema,
   avatarUploadUrlSchema,
   bulkUsersSchema,
   fcmTokenSchema,
@@ -22,7 +24,6 @@ import {
   updateProfileSchema,
   updateSettingsSchema,
 } from '../schemas/profile-schema';
-import { ProfileController } from '../controllers/profile.controller';
 
 const router = Router();
 
@@ -180,6 +181,7 @@ router.put(
 router.post(
   '/me/apply-for-instructor',
   requireAuth,
+  validateRequest(applyForInstructorSchema),
   ProfileController.applyForInstructor
 );
 

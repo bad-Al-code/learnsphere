@@ -113,6 +113,22 @@ import { z } from 'zod';
  *        type: apiKey
  *        in: cookie
  *        name: token
+ *     ApplyForInstructorPayload:
+ *       type: object
+ *       required: [expertise, experience, motivation]
+ *       properties:
+ *         expertise:
+ *           type: string
+ *           description: "The user's primary area of teaching expertise."
+ *           example: "Web Development with React"
+ *         experience:
+ *           type: string
+ *           description: "A summary of the user's professional or teaching experience."
+ *           example: "10+ years as a senior software engineer."
+ *         motivation:
+ *           type: string
+ *           description: "A short text explaining why the user wants to become an instructor."
+ *           example: "I am passionate about sharing my knowledge with the next generation of developers."
  */
 
 export const updateProfileSchema = z.object({
@@ -176,5 +192,19 @@ export const updateSettingsSchema = z.object({
 export const fcmTokenSchema = z.object({
   body: z.object({
     token: z.string().min(1, 'FCM token is required'),
+  }),
+});
+
+export const applyForInstructorSchema = z.object({
+  body: z.object({
+    expertise: z
+      .string()
+      .min(5, 'Please provide more detail about your expertise.'),
+    experience: z
+      .string()
+      .min(10, 'Please describe your experience in more detail.'),
+    motivation: z
+      .string()
+      .min(20, 'Please tell us more about your motivation to teach.'),
   }),
 });
