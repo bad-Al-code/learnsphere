@@ -1,7 +1,7 @@
 import { count, eq, inArray } from 'drizzle-orm';
 
 import { db } from '..';
-import { NewCourse, Course, UpdateCourse } from '../../types';
+import { Course, NewCourse, UpdateCourse } from '../../types';
 import { courses } from '../schema';
 
 export class CourseRepository {
@@ -135,5 +135,14 @@ export class CourseRepository {
    */
   public static async delete(courseId: string): Promise<void> {
     await db.delete(courses).where(eq(courses.id, courseId));
+  }
+
+  /**
+   * Retrieves the total number of courses in the database.
+   * @returns {Promise<number>} The total count of courses.
+   */
+  public static async getTotalCount(): Promise<number> {
+    const [{ value }] = await db.select({ value: count() }).from(courses);
+    return value;
   }
 }

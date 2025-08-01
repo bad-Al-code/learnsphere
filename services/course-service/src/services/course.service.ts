@@ -224,4 +224,17 @@ export class CourseService {
 
     return updatedCourse;
   }
+
+  /**
+   * Retrieves basic statistics related to courses.
+   *
+   * Currently returns:
+   * - Total number of courses in the system.
+   *
+   * @returns {Promise<{ totalCourses: number }>} An object containing the total course count.
+   */
+  public static async getCourseStats() {
+    const totalCourses = await CourseRepository.getTotalCount();
+    return { totalCourses };
+  }
 }

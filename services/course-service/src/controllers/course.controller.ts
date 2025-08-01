@@ -173,4 +173,17 @@ export class CourseController {
       next(error);
     }
   }
+
+  public static async getStats(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const stats = await CourseService.getCourseStats();
+      res.status(StatusCodes.OK).json(stats);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
