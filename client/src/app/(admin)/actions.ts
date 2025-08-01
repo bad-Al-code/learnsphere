@@ -1,7 +1,7 @@
 "use server";
 
 import { userService } from "@/lib/api";
-import { updateProfileSchema } from "@/lib/schemas/user";
+import { profileFormSchema } from "@/lib/schemas/user";
 import { revalidatePath } from "next/cache";
 import z from "zod";
 
@@ -44,12 +44,37 @@ export async function reinstateUser(userId: string) {
   return performUserAction(userId, "reinstate");
 }
 
+const adminUpdateProfileSchema = profileFormSchema
+  .pick({
+    firstName: true,
+    lastName: true,
+    headline: true,
+    bio: true,
+    websiteUrl: true,
+    socialLinks: true,
+  })
+  .transform((data) => {
+    const nullifyEmpty = (value: string | null | undefined) =>
+      value === "" ? null : value;
+
+    return {
+      ...data,
+      websiteUrl: nullifyEmpty(data.websiteUrl),
+      socialLinks: {
+        github: nullifyEmpty(data.socialLinks?.github),
+        linkedin: nullifyEmpty(data.socialLinks?.linkedin),
+        twitter: nullifyEmpty(data.socialLinks?.twitter),
+      },
+    };
+  });
+
 export async function updateUserAsAdmin(
   userId: string,
-  values: z.input<typeof updateProfileSchema>
+  values: z.input<typeof adminUpdateProfileSchema>
 ) {
   try {
-    const validatedData = updateProfileSchema.parse(values);
+    const validatedData = adminUpdateProfileSchema.parse(values);
+    console.log(validatedData);
 
     const response = await userService.put(
       `/api/users/${userId}`,
