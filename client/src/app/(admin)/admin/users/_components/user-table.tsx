@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
@@ -39,7 +40,7 @@ export function UserTable({ users, totalPages }: UserTableProps) {
     return `${pathname}?${params.toString()}`;
   };
 
-  const handleSearch = useDebouncedCallback((term: string) => {
+  const performSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
     if (term) {
@@ -48,16 +49,32 @@ export function UserTable({ users, totalPages }: UserTableProps) {
       params.delete("query");
     }
     router.replace(`${pathname}?${params.toString()}`);
-  }, 300);
+  };
+
+  const handleSearchOnChange = useDebouncedCallback(performSearch, 300);
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const term = formData.get("query") as string;
+    performSearch(term);
+  };
 
   return (
     <div className="space-y-4">
-      <Input
-        placeholder="Search by name..."
-        onChange={(e) => handleSearch(e.target.value)}
-        defaultValue={searchParams.get("query") || ""}
-        className="max-w-sm"
-      />
+      <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
+        <div className="relative w-full max-w-sm">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            name="query"
+            placeholder="Search by name..."
+            onChange={(e) => handleSearchOnChange(e.target.value)}
+            defaultValue={searchParams.get("query") || ""}
+            className="pl-8"
+          />
+        </div>
+        <Button type="submit">Search</Button>
+      </form>
 
       <div className="border rounded-lg">
         <Table>
