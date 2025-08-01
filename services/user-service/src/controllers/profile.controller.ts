@@ -21,7 +21,10 @@ export class ProfileController {
         throw new NotAuthorizedError();
       }
       const profile = await ProfileService.getPrivateProfileById(userId);
-      res.status(StatusCodes.OK).json(profile);
+
+      const responsePayload = { ...profile, role: req.currentUser?.role };
+
+      res.status(StatusCodes.OK).json(responsePayload);
     } catch (error) {
       next(error);
     }
