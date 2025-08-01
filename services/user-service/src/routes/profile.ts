@@ -415,6 +415,29 @@ router.post(
 
 /**
  * @openapi
+ * /api/users/{id}/decline-instructor:
+ *   post:
+ *     summary: "[Admin] Decline a user's instructor application"
+ *     tags: [Admin]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *     responses:
+ *       '200':
+ *         description: Application declined successfully.
+ */
+router.post(
+  '/:id/decline-instructor',
+  requireAuth,
+  requireRole(['admin']),
+  ProfileController.declineInstructor
+);
+
+/**
+ * @openapi
  * /api/users/{id}/suspend:
  *   post:
  *     summary: "[Admin] Suspend a user's account"

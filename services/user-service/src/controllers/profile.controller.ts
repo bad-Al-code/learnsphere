@@ -215,6 +215,22 @@ export class ProfileController {
     }
   }
 
+  public static async declineInstructor(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id } = req.params;
+      await ProfileService.declineInstructor(id);
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'Instructor application has been declined.' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public static async suspendUser(
     req: Request,
     res: Response,

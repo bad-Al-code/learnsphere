@@ -227,6 +227,36 @@ export class ProfileService {
   }
 
   /**
+   * [Admin] Declines a pending instructor application.
+   * @param userId The ID of the user whose application is being declined.
+   * @returns The updaed profile
+   */
+  public static async declineInstructor(userId: string): Promise<Profile> {
+    const profile = await this.getPrivateProfileById(userId);
+
+    if (profile.status !== 'pending_instructor_review') {
+      throw new BadRequestError(
+        'User does not have a pending instructor application.'
+      );
+    }
+
+    const updatedProfile = await ProfileRepository.update(userId, {
+      status: 'active',
+      instructorApplicationData: null,
+    });
+
+    if (!updatedProfile) {
+      throw new NotFoundError('Profile');
+    }
+
+    logger.info(
+      `Instructor application for user ${userId} has been declined by an admin.`
+    );
+
+    return updatedProfile;
+  }
+
+  /**
    * [Admin] Suspends a user's account.
    * A suspended user should not be able to log in.
    * @param userId The ID of the user to suspend.
