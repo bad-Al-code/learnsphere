@@ -87,13 +87,27 @@ export function UserActions({ user }: UserActionsProps) {
 
       {/* --- Reinstate User Button --- */}
       {user.status === "suspended" && (
-        <Button
-          onClick={() => handleAction(reinstateUser)}
-          disabled={isPending}
-          variant="outline"
-        >
-          Reinstate User
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button disabled={isPending} variant="secondary">
+              Reinstate User
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will reinstate the user's account.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => handleAction(reinstateUser)}>
+                Confirm Reinstate
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
     </div>
   );
