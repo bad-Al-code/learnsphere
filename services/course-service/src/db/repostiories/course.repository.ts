@@ -162,7 +162,7 @@ export class CourseRepository {
     limit: number,
     offset: number
   ) {
-    const whereClause = query ? ilike(courses.title, `${query}$`) : undefined;
+    const whereClause = query ? ilike(courses.title, `%${query}%`) : undefined;
 
     const totalQuery = db
       .select({ value: count() })
