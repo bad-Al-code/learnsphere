@@ -425,5 +425,28 @@ router.post(
   ProfileController.suspendUser
 );
 
+/**
+ * @openapi
+ * /api/users/{id}/reinstate:
+ *   post:
+ *     summary: "[Admin] Reinstate a suspended user's account"
+ *     tags: [Admin]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *     responses:
+ *       '200':
+ *         description: User reinstated successfully.
+ */
+router.post(
+  '/:id/reinstate',
+  requireAuth,
+  requireRole(['admin']),
+  ProfileController.reinstateUser
+);
+
 router.get('/:id/fcm-tokens', ProfileController.getFcmTokens);
 export { router as profileRouter };

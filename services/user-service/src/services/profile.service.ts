@@ -251,6 +251,31 @@ export class ProfileService {
     return updatedProfile;
   }
 
+  public static async reinstateUser(userId: string): Promise<Profile> {
+    const profile = await this.getPrivateProfileById(userId);
+
+    if (profile.status !== 'suspended') {
+      throw new BadRequestError('User is not currently suspended,');
+    }
+
+    const newStatus = profile.instructorApplicationData
+      ? 'instructor'
+      : 'active';
+
+    const updatedProfile = await ProfileRepository.update(userId, {
+      status: newStatus,
+    });
+    if (!updatedProfile) {
+      throw new NotFoundError('Profile');
+    }
+
+    logger.info(
+      `User account ${userId} has been reinstated by an admin to status: ${newStatus}`
+    );
+
+    return updatedProfile;
+  }
+
   /**
    * Associates a new FCM device token with a user's profile.
    * @param userId The ID of the user.

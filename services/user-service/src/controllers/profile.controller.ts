@@ -233,6 +233,22 @@ export class ProfileController {
     }
   }
 
+  public static async reinstateUser(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id } = req.params;
+      await ProfileService.reinstateUser(id);
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'User has been reinstated successfully.' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public static async addFcmToken(
     req: Request,
     res: Response,
