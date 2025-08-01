@@ -1,6 +1,6 @@
 "use server";
 
-import { userService } from "@/lib/api";
+import { courseService, userService } from "@/lib/api";
 import { profileFormSchema } from "@/lib/schemas/user";
 import { revalidatePath } from "next/cache";
 import z from "zod";
@@ -97,5 +97,43 @@ export async function updateUserAsAdmin(
       return { error: error.issues[0].message };
     }
     return { error: "An unexpected error occurred." };
+  }
+}
+
+export async function getUserStats() {
+  try {
+    const response = await userService.get("/api/users/stats");
+    if (!response.ok) {
+      console.log(response);
+      return { totalUsers: 0, pendingApplications: 0 };
+    }
+
+    const result = await response.json();
+
+    console.log(result);
+
+    return result;
+  } catch (error) {
+    console.error("Failed to fetch user stats:", error);
+    return { totalUsers: 0, pendingApplications: 0 };
+  }
+}
+
+export async function getCourseStats() {
+  try {
+    const response = await courseService.get("/api/courses/stats");
+    if (!response.ok) {
+      console.log(response);
+      return { totalCourses: 0 };
+    }
+
+    const result = await response.json();
+
+    console.log(result);
+
+    return result;
+  } catch (error) {
+    console.error("Failed to fetch user stats:", error);
+    return { totalUsers: 0, pendingApplications: 0 };
   }
 }

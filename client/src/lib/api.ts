@@ -105,3 +105,4 @@ const createApiService = (baseUrl: string) => ({
 
 export const authService = createApiService(process.env.AUTH_SERVICE_URL!);
 export const userService = createApiService(process.env.USER_SERVICE_URL!);
+export const courseService = createApiService(process.env.COURSE_SERVICE_URL!);

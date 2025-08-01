@@ -1,12 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, School, Users } from "lucide-react";
+import { getCourseStats, getUserStats } from "../actions";
 
-export default function AdminDashboardPage() {
-  const stats = {
-    totalUsers: 1250,
-    totalCourses: 78,
-    pendingApplications: 5,
-  };
+export default async function AdminDashboardPage() {
+  const [userStats, courseStats] = await Promise.all([
+    getUserStats(),
+    getCourseStats(),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -21,7 +21,7 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {stats.totalUsers.toLocaleString()}
+              {userStats.totalUsers.toLocaleString()}
             </div>
           </CardContent>
         </Card>
@@ -33,7 +33,7 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {stats.totalCourses.toLocaleString()}
+              {courseStats.totalCourses.toLocaleString()}
             </div>
           </CardContent>
         </Card>
@@ -46,7 +46,7 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              +{stats.pendingApplications.toLocaleString()}
+              +{userStats.pendingApplications.toLocaleString()}
             </div>
           </CardContent>
         </Card>
