@@ -27,7 +27,7 @@ export class CourseService {
 
     return courses.map((course) => ({
       ...course,
-      instrctor: instructorProfile.get(course.instructorId),
+      instructor: instructorProfile.get(course.instructorId),
     }));
   }
 
