@@ -26,6 +26,7 @@ export type InstructorApplicationData = {
 
 export const userStatusEnum = pgEnum('user_status', [
   'active',
+  'instructor',
   'pending_instructor_review',
   'suspended',
 ]);

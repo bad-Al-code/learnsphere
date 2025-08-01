@@ -7,7 +7,7 @@ import { InstructorApplicationModal } from "../shared/instructor-appliaction-mod
 export function InstructorApplyButton() {
   const user = useSessionStore((state) => state.user);
 
-  if (!user || user.role === "instructor" || user.role === "admin") {
+  if (!user || user.status === "instructor" || user.role === "admin") {
     return null;
   }
 

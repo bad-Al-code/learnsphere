@@ -211,7 +211,7 @@ export class ProfileService {
     }
 
     const updatedProfile = await ProfileRepository.update(userId, {
-      status: 'active',
+      status: 'instructor',
     });
     if (!this.updateProfile) {
       throw new NotFoundError('Profile');

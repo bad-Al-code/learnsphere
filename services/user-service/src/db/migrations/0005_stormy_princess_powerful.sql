@@ -1,0 +1,1 @@
+ALTER TYPE "public"."user_status" ADD VALUE 'instructor' BEFORE 'pending_instructor_review';
