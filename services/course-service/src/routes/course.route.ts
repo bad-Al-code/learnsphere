@@ -101,6 +101,38 @@ router.post(
 
 /**
  * @openapi
+ * /api/courses/stats:
+ *   get:
+ *     summary: Get course statistics
+ *     tags: [Courses]
+ *     description: Returns high-level statistics about courses. Requires admin access.
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: Course statistics retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalCourses:
+ *                   type: number
+ *                   example: 120
+ *       '401':
+ *         description: Unauthorized. Missing or invalid token.
+ *       '403':
+ *         description: Forbidden. Admin role required.
+ */
+router.get(
+  '/stats',
+  requireAuth,
+  requireRole(['admin']),
+  CourseController.getStats
+);
+
+/**
+ * @openapi
  * /api/courses/{courseId}:
  *   get:
  *     summary: Get full details of a single course, including all modules and lessons
@@ -250,38 +282,6 @@ router.post(
   requireRole(['admin', 'instructor']),
   validateRequest(createModuleSchema),
   ModuleController.create
-);
-
-/**
- * @openapi
- * /api/courses/stats:
- *   get:
- *     summary: Get course statistics
- *     tags: [Courses]
- *     description: Returns high-level statistics about courses. Requires admin access.
- *     security:
- *       - cookieAuth: []
- *     responses:
- *       '200':
- *         description: Course statistics retrieved successfully.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 totalCourses:
- *                   type: number
- *                   example: 120
- *       '401':
- *         description: Unauthorized. Missing or invalid token.
- *       '403':
- *         description: Forbidden. Admin role required.
- */
-router.get(
-  '/stats',
-  requireAuth,
-  requireRole(['admin']),
-  CourseController.getStats
 );
 
 export { router as courseRouter };

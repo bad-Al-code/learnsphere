@@ -74,7 +74,6 @@ export async function updateUserAsAdmin(
 ) {
   try {
     const validatedData = adminUpdateProfileSchema.parse(values);
-    console.log(validatedData);
 
     const response = await userService.put(
       `/api/users/${userId}`,
@@ -104,13 +103,10 @@ export async function getUserStats() {
   try {
     const response = await userService.get("/api/users/stats");
     if (!response.ok) {
-      console.log(response);
       return { totalUsers: 0, pendingApplications: 0 };
     }
 
     const result = await response.json();
-
-    console.log(result);
 
     return result;
   } catch (error) {
@@ -123,13 +119,10 @@ export async function getCourseStats() {
   try {
     const response = await courseService.get("/api/courses/stats");
     if (!response.ok) {
-      console.log(response);
       return { totalCourses: 0 };
     }
 
     const result = await response.json();
-
-    console.log(result);
 
     return result;
   } catch (error) {

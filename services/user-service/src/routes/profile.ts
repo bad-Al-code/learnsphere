@@ -247,6 +247,25 @@ router.delete(
 
 /**
  * @openapi
+ * /api/users/stats:
+ *   get:
+ *     summary: "[Admin] Get platform statistics"
+ *     tags: [Admin]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An object containing platform stats.
+ */
+router.get(
+  '/stats',
+  requireAuth,
+  requireRole(['admin']),
+  ProfileController.getStats
+);
+
+/**
+ * @openapi
  * /api/users/search:
  *   get:
  *     summary: Search for user profiles
@@ -446,25 +465,6 @@ router.post(
   requireAuth,
   requireRole(['admin']),
   ProfileController.reinstateUser
-);
-
-/**
- * @openapi
- * /api/users/stats:
- *   get:
- *     summary: "[Admin] Get platform statistics"
- *     tags: [Admin]
- *     security:
- *       - cookieAuth: []
- *     responses:
- *       '200':
- *         description: An object containing platform stats.
- */
-router.get(
-  '/stats',
-  requireAuth,
-  requireRole(['admin']),
-  ProfileController.getStats
 );
 
 router.get('/:id/fcm-tokens', ProfileController.getFcmTokens);
