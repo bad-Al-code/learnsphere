@@ -1,4 +1,4 @@
-import { sql, count, eq, ilike, inArray, or } from 'drizzle-orm';
+import { count, eq, ilike, inArray, or, sql } from 'drizzle-orm';
 
 import { db } from '.';
 import { profiles, UserSettings } from './schema';
@@ -120,6 +120,7 @@ export class ProfileRepository {
         lastName: profiles.lastName,
         avatarUrls: profiles.avatarUrls,
         headline: profiles.headline,
+        status: profiles.status,
       })
       .from(profiles)
       .where(whereClause)
