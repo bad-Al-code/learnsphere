@@ -5,6 +5,8 @@ export type User = {
   lastName: string | null;
   isVerified: boolean;
   headline: string | null;
+  role: "student" | "instructor" | "admin";
+  status: "active" | "pending_instructor_review" | "suspended";
   avatarUrls: {
     small?: string;
     medium?: string;

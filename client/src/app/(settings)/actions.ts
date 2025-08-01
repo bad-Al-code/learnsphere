@@ -103,3 +103,26 @@ export async function updateNotificationSettings(values: {
     return { error: "An unexpected error occurred." };
   }
 }
+
+export async function applyForInstructor() {
+  try {
+    const response = await userService.post(
+      "/api/users/me/apply-for-instructor",
+      {}
+    );
+    const responseData = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const errorMessage =
+        responseData.errors?.[0]?.message || "Failed to submit application.";
+
+      return { error: errorMessage };
+    }
+
+    revalidatePath("/", "layout");
+
+    return { success: true, message: responseData.message };
+  } catch (error: any) {
+    return { error: "An unexpected error occurred." };
+  }
+}

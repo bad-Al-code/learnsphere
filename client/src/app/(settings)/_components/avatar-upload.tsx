@@ -127,7 +127,7 @@ export function AvatarUpload({
       {displayUrl && (
         <>
           <DialogTitle></DialogTitle>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md p-0.5 shadow-2xl/20">
             <div className=" flex justify-center">
               <Image
                 src={displayUrl}

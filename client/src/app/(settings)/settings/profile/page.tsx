@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { redirect } from "next/navigation";
 import { AvatarUpload } from "../../_components/avatar-upload";
 import { ProfileForm } from "../../_components/profile-form";
+import { InstructorApplication } from "./_components/instructor-application";
 
 const getInitials = (firstName: string | null, lastName: string | null) => {
   const first = firstName?.[0] || "";
@@ -26,8 +27,6 @@ export default async function ProfileSettingsPage() {
 
   const initials = getInitials(user.firstName, user.lastName);
 
-  const avatarUrl = user?.avatarUrls?.large;
-
   return (
     <div className="space-y-8">
       <Card>
@@ -38,8 +37,9 @@ export default async function ProfileSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
+          {/* Desktop Layout */}
           <div className="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-8">
               <ProfileForm userData={user} />
             </div>
 
@@ -54,14 +54,21 @@ export default async function ProfileSettingsPage() {
                   Upload a new profile picture.
                 </p>
               </div>
+
+              <InstructorApplication
+                userStatus={user.status}
+                userRole={user.role}
+              />
             </div>
           </div>
 
-          <div className="lg:hidden">
+          {/* Mobile Layout */}
+          <div className="lg:hidden space-y-6">
             <Tabs defaultValue="profile" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="profile">Profile</TabsTrigger>
                 <TabsTrigger value="avatar">Avatar</TabsTrigger>
+                <TabsTrigger value="instructor">Instructor</TabsTrigger>
               </TabsList>
 
               <TabsContent value="profile">
@@ -69,18 +76,22 @@ export default async function ProfileSettingsPage() {
               </TabsContent>
 
               <TabsContent value="avatar">
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Avatar</h3>
-                  <div className="flex flex-col items-center justify-center text-center p-6 border rounded-lg">
-                    <AvatarUpload
-                      currentAvatarUrl={user.avatarUrls?.large}
-                      initials={initials}
-                    />
-                    <p className="text-sm text-muted-foreground mt-4">
-                      Upload a new profile picture.
-                    </p>
-                  </div>
+                <h3 className="text-lg font-medium mb-4">Avatar</h3>
+                <div className="flex flex-col items-center justify-center text-center p-6 border rounded-lg">
+                  <AvatarUpload
+                    currentAvatarUrl={user.avatarUrls?.large}
+                    initials={initials}
+                  />
+                  <p className="text-sm text-muted-foreground mt-4">
+                    Upload a new profile picture.
+                  </p>
                 </div>
+              </TabsContent>
+              <TabsContent value="instructor">
+                <InstructorApplication
+                  userRole={user.role}
+                  userStatus={user.status}
+                />
               </TabsContent>
             </Tabs>
           </div>
