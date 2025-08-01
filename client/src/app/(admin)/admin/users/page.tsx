@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Suspense } from "react";
 import { UserTable } from "./_components/user-table";
 
 interface ManageUsersPageProps {
@@ -15,14 +16,9 @@ interface ManageUsersPageProps {
   };
 }
 
-export default async function ManageUsersPage({
+export default function ManageUsersPage({
   searchParams,
 }: ManageUsersPageProps) {
-  const query = searchParams?.query || "";
-  const currentPage = Number(searchParams?.page) || 1;
-
-  const searchResult = await searchUsers({ query, page: currentPage });
-
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold">Manage Users</h1>
@@ -34,12 +30,25 @@ export default async function ManageUsersPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <UserTable
-            users={searchResult.results}
-            totalPages={searchResult.pagination.totalPages}
-          />
+          <Suspense fallback={<p>Loading users...</p>}>
+            <UsersDataComponent searchParams={searchParams} />
+          </Suspense>
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+async function UsersDataComponent({ searchParams }: ManageUsersPageProps) {
+  const query = searchParams?.query || "";
+  const currentPage = Number(searchParams?.page) || 1;
+
+  const searchResult = await searchUsers({ query, page: currentPage });
+
+  return (
+    <UserTable
+      users={searchResult.results}
+      totalPages={searchResult.pagination.totalPages}
+    />
   );
 }
