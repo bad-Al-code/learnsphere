@@ -51,7 +51,7 @@ export function Header({ user: initialUser }: { user: User }) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto w-full grid grid-cols-12 items-center h-16  gap-4">
-        <div className="col-span-4 sm:col-span-2 flex items-center">
+        <div className="col-span-4 sm:col-span-3 flex items-center">
           <Link href="/" className="flex items-center space-x-2">
             <Logo className="w-32" />
           </Link>
@@ -125,7 +125,7 @@ export function Header({ user: initialUser }: { user: User }) {
                 </nav>
               </div>
 
-              <div className="my-8">
+              <div className="my-4">
                 {user ? (
                   <>
                     <InstructorApplyButton />
@@ -211,10 +211,12 @@ export function Header({ user: initialUser }: { user: User }) {
           </Sheet>
         </div>
 
-        <div className="hidden sm:flex col-span-4 justify-end items-center space-x-2">
+        <div className="hidden sm:flex col-span-3 justify-end items-center space-x-2">
           {user ? (
             <>
-              <InstructorApplyButton />
+              <div className="ml-2">
+                <InstructorApplyButton />
+              </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button

@@ -61,7 +61,6 @@ export function InstructorApplicationModal({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogTitle></DialogTitle>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Become an Instructor</DialogTitle>
