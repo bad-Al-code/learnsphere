@@ -1,7 +1,9 @@
 "use server";
 
 import { userService } from "@/lib/api";
+import { updateProfileSchema } from "@/lib/schemas/user";
 import { revalidatePath } from "next/cache";
+import z from "zod";
 
 async function performUserAction(
   userId: string,
@@ -40,4 +42,35 @@ export async function suspendUser(userId: string) {
 
 export async function reinstateUser(userId: string) {
   return performUserAction(userId, "reinstate");
+}
+
+export async function updateUserAsAdmin(
+  userId: string,
+  values: z.input<typeof updateProfileSchema>
+) {
+  try {
+    const validatedData = updateProfileSchema.parse(values);
+
+    const response = await userService.put(
+      `/api/users/${userId}`,
+      validatedData
+    );
+
+    const responseData = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const errorMessage =
+        responseData.errors?.[0]?.message || "Failed to update profile.";
+      return { error: errorMessage };
+    }
+
+    revalidatePath(`/admin/users/${userId}`);
+    revalidatePath("/admin/users");
+    return { success: true };
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+    return { error: "An unexpected error occurred." };
+  }
 }

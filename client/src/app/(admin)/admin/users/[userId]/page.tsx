@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -12,6 +13,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { AdminEditProfileForm } from "./_components/admin-edit-profile-form";
 import { UserActions } from "./_components/user-actions";
 
 const getInitials = (firstName?: string | null, lastName?: string | null) => {
@@ -96,6 +98,18 @@ async function UserDetailComponent({ userId }: { userId: string }) {
         <CardFooter className="border-t pt-4">
           <UserActions user={user} />
         </CardFooter>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit User Profile</CardTitle>
+          <CardDescription>
+            Modify the user's profile details below. Changes are permanent.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AdminEditProfileForm user={user} />
+        </CardContent>
       </Card>
     </div>
   );
