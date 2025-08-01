@@ -1,7 +1,11 @@
 "use server";
 
 import { ApiError, userService } from "@/lib/api";
-import { updateProfileSchema } from "@/lib/schemas/user";
+import {
+  InstructorApplicationFormValues,
+  instructorApplicationSchema,
+  updateProfileSchema,
+} from "@/lib/schemas/user";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -104,11 +108,15 @@ export async function updateNotificationSettings(values: {
   }
 }
 
-export async function applyForInstructor() {
+export async function applyForInstructor(
+  values: InstructorApplicationFormValues
+) {
   try {
+    const validatedData = instructorApplicationSchema.parse(values);
+
     const response = await userService.post(
       "/api/users/me/apply-for-instructor",
-      {}
+      validatedData
     );
     const responseData = await response.json().catch(() => ({}));
 
@@ -123,6 +131,9 @@ export async function applyForInstructor() {
 
     return { success: true, message: responseData.message };
   } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
     return { error: "An unexpected error occurred." };
   }
 }

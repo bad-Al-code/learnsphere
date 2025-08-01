@@ -48,3 +48,15 @@ export const onboardingFormSchema = profileFormSchema.pick({
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>;
 export type OnboardingFormValues = z.infer<typeof onboardingFormSchema>;
+
+export const instructorApplicationSchema = z.object({
+  expertise: z.string().min(5, "Please provide more detail."),
+  experience: z
+    .string()
+    .min(10, "Please describe your experience in more detail."),
+  motivation: z.string().min(20, "Please tell us more about your motivation."),
+});
+
+export type InstructorApplicationFormValues = z.infer<
+  typeof instructorApplicationSchema
+>;
