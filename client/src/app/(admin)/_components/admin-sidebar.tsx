@@ -16,19 +16,22 @@ export function AdminSidebar() {
 
   return (
     <nav className="flex flex-col space-y-2">
-      {navItems.map((item) => (
-        <Button
-          key={item.href}
-          asChild
-          variant={pathname === item.href ? "secondary" : "ghost"}
-          className="w-full justify-start"
-        >
-          <Link href={item.href}>
-            <item.icon className="mr-2 h-4 w-4" />
-            {item.label}
-          </Link>
-        </Button>
-      ))}
+      {navItems.map((item) => {
+        const isActive = pathname === item.href;
+        return (
+          <Button
+            key={item.href}
+            asChild
+            variant={isActive ? "secondary" : "ghost"}
+            className="w-full justify-start truncate"
+          >
+            <Link href={item.href} className="flex items-center space-x-2">
+              <item.icon className="h-4 w-4" />
+              <span className="truncate">{item.label}</span>
+            </Link>
+          </Button>
+        );
+      })}
     </nav>
   );
 }

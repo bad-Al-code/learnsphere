@@ -7,12 +7,7 @@ import { toast } from "sonner";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useSessionStore } from "@/stores/session-store";
 import { getAvatarUploadUrl } from "../actions";
@@ -126,7 +121,6 @@ export function AvatarUpload({
 
       {displayUrl && (
         <>
-          <DialogTitle></DialogTitle>
           <DialogContent className="max-w-md p-0.5 shadow-2xl/20">
             <div className=" flex justify-center">
               <Image
