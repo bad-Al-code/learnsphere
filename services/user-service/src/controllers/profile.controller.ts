@@ -301,4 +301,18 @@ export class ProfileController {
       next(error);
     }
   }
+
+  public static async getStats(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const stats = await ProfileService.getPlatformStats();
+
+      res.status(StatusCodes.OK).json(stats);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

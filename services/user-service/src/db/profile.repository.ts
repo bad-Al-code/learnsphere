@@ -186,4 +186,32 @@ export class ProfileRepository {
       WHERE "user_id" = ${userId}
     `);
   }
+
+  /**
+   * Retrieves application state statistics, including:
+   * - Total number of users in the system
+   * - Number of users with pending instructor applications
+   *
+   * @returns {Promise<{totalUsers: number; pendingApplications: number}>} An object containing user and application counts.
+   */
+  public static async getState(): Promise<{
+    totalUsers: number;
+    pendingApplications: number;
+  }> {
+    const totalUserQuery = db.select({ value: count() }).from(profiles);
+    const pendingApplicationsQuery = db
+      .select({ value: count() })
+      .from(profiles)
+      .where(eq(profiles.status, 'pending_instructor_review'));
+
+    const [totalUsersResult, pendingApplicationsResult] = await Promise.all([
+      totalUserQuery,
+      pendingApplicationsQuery,
+    ]);
+
+    return {
+      totalUsers: totalUsersResult[0].value,
+      pendingApplications: pendingApplicationsResult[0].value,
+    };
+  }
 }

@@ -303,4 +303,8 @@ export class ProfileService {
 
     await ProfileRepository.removeFcmToken(userId, token);
   }
+
+  public static async getPlatformStats() {
+    return ProfileRepository.getState();
+  }
 }
