@@ -384,6 +384,56 @@ router.delete(
 
 /**
  * @openapi
+ * /api/users/{id}:
+ *   get:
+ *     summary: Get user details by ID
+ *     tags: [Authentication]
+ *     description: Returns basic details of a user. Requires admin access.
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the user to fetch.
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       '200':
+ *         description: User details retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   format: uuid
+ *                 email:
+ *                   type: string
+ *                   format: email
+ *                 role:
+ *                   type: string
+ *                 isVerified:
+ *                   type: boolean
+ *       '401':
+ *         description: Unauthorized. Missing or invalid session token.
+ *       '403':
+ *         description: Forbidden. Admin role required.
+ *       '404':
+ *         description: User not found.
+ */
+
+router.get(
+  '/users/:id',
+  requireAuth,
+  requireRole(['admin']),
+  AuthController.getUserDetailsById
+);
+
+/**
+ * @openapi
  * /api/auth/test-auth:
  *   get:
  *     summary: Test authentication and role middleware

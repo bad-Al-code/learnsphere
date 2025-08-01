@@ -6,7 +6,9 @@ import { env } from '../config/env';
 import logger from '../config/logger';
 import passport from '../config/passport';
 import { User } from '../db/database.types';
+import { UserRepository } from '../db/user.repository';
 import { BadRequestError, UnauthenticatedError } from '../errors';
+import { NotFoundError } from '../errors/not-found-error';
 import {
   UserPasswordResetRequiredPublisher,
   UserRegisteredPublisher,
@@ -466,5 +468,26 @@ export class AuthController {
     } catch (error) {
       next(error);
     }
+  }
+
+  public static async getUserDetailsById(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id } = req.params;
+      const user = await UserRepository.findById(id);
+      if (!user) {
+        throw new NotFoundError('User');
+      }
+
+      res.status(StatusCodes.OK).json({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified,
+      });
+    } catch (error) {}
   }
 }
