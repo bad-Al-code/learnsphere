@@ -1,6 +1,6 @@
 "use server";
 
-import { ApiError, userService } from "@/lib/api";
+import { ApiError, authService, userService } from "@/lib/api";
 import {
   InstructorApplicationFormValues,
   instructorApplicationSchema,
@@ -178,18 +178,42 @@ export async function searchUsers({
 
 export async function getUserById(userId: string) {
   try {
-    const response = await userService.get(`/api/users/${userId}`);
+    const profileResponse = await userService.get(`/api/users/${userId}`);
 
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
+    if (!profileResponse.ok) {
+      const data = await profileResponse.json().catch(() => ({}));
 
-      throw new Error(data.errors?.[0]?.message || "Failed to fetch user.");
+      throw new Error(
+        data.errors?.[0]?.message || "Failed to fetch user profile."
+      );
     }
 
-    const result = await response.json();
-    return result;
+    const profileData = await profileResponse.json();
+
+    let authData = { role: null };
+    try {
+      const authResponse = await authService.get(`/api/auth/users/${userId}`);
+
+      if (authResponse.ok) {
+        authData = await authResponse.json();
+      } else {
+        console.warn(
+          `Could not fetch auth data for user ${userId}. Role will be unavailable.`
+        );
+      }
+    } catch (authError) {
+      console.warn(`Auth service call failed for user ${userId}:`, authError);
+    }
+
+    const mergedUser = {
+      ...profileData,
+      role: authData.role,
+    };
+
+    return mergedUser;
   } catch (error: any) {
-    console.error(`Error fetching user ${userId}:`, error);
+    console.error(`Critical error fetching user ${userId}:`, error);
+
     return null;
   }
 }
