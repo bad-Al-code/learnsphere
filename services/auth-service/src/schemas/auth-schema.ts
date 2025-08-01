@@ -21,6 +21,12 @@ import { z } from 'zod';
  *           description: The user's password (min 8 characters).
  *           minLength: 8
  *           example: 'password123'
+ *         firstName:
+ *           type: string
+ *           example: 'John'
+ *         lastName:
+ *           type: string
+ *           example: 'Doe'
  *     UserLogin:
  *       type: object
  *       required:
@@ -39,7 +45,6 @@ import { z } from 'zod';
  *       type: object
  *       required:
  *         - email
- *         - token
  *       properties:
  *         email:
  *           type: string
@@ -68,6 +73,7 @@ import { z } from 'zod';
  *       required:
  *         - email
  *         - password
+ *         - token
  *       properties:
  *         email:
  *           type: string
@@ -87,6 +93,48 @@ import { z } from 'zod';
  *           description: The user's new password (min 8 characters).
  *           minLength: 8
  *           example: 'newSecurePassword456'
+ *     VerifyResetCode:
+ *       type: object
+ *       required:
+ *         - email
+ *         - code
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: 'test.user@example.com'
+ *         code:
+ *           type: string
+ *           example: '234234'
+ *     VerifyResetToken:
+ *       type: object
+ *       required:
+ *         - email
+ *         - token
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: 'test.user@example.com'
+ *         token:
+ *           type: string
+ *           description: The reset token sent to the user's email.
+ *           example: 'asdad....'
+ *     UpdatePassword:
+ *       type: object
+ *       required:
+ *         - currentPassword
+ *         - newPassword
+ *       properties:
+ *         currentPassword:
+ *           type: string
+ *           format: password
+ *           example: 'myOldPassword123'
+ *         newPassword:
+ *           type: string
+ *           format: password
+ *           description: The user's new password (min 8 characters).
+ *           example: 'myNewSecurePassword456'
  *     UserResponse:
  *       type: object
  *       properties:
@@ -123,21 +171,6 @@ import { z } from 'zod';
  *               field:
  *                 type: string
  *                 description: The field that caused the error (optional).
- *     UpdatePassword:
- *       type: object
- *       required:
- *         - currentPassword
- *         - newPassword
- *       properties:
- *         currentPassword:
- *           type: string
- *           format: password
- *           example: 'myOldPassword123'
- *         newPassword:
- *           type: string
- *           format: password
- *           description: The user's new password (min 8 characters).
- *           example: 'myNewSecurePassword456'
  */
 
 export const signupSchema = z.object({

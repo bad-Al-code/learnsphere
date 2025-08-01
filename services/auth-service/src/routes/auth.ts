@@ -242,11 +242,76 @@ router.post(
   AuthController.forgotPassword
 );
 
+/**
+ * @openapi
+ * /api/auth/verify-reset-code:
+ *   post:
+ *     summary: Verify the password reset code
+ *     tags: [Authentication]
+ *     description: Validates the 6-digit password reset code sent to the user's email.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/VerifyResetCode'
+ *     responses:
+ *       '200':
+ *         description: Code verified successfully. A token may be returned for resetting the password.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Reset code verified successfully.
+ *                 token:
+ *                   type: string
+ *                   description: A token for securely resetting the password.
+ *                   example: 'reset-token-xyz...'
+ *       '400':
+ *         description: Invalid or expired code.
+ *       '404':
+ *         description: Email not found.
+ */
+
 router.post(
   '/verify-reset-code',
   validateRequest(verifyResetCodeSchema),
   AuthController.verifyResetCode
 );
+
+/**
+ * @openapi
+ * /api/auth/verify-reset-token:
+ *   post:
+ *     summary: Verify the password reset token
+ *     tags: [Authentication]
+ *     description: Validates the reset token sent to the user's email to authorize password reset.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/VerifyResetToken'
+ *     responses:
+ *       '200':
+ *         description: Token is valid. A single-use token is returned for resetting the password.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: A single-use token for password reset.
+ *                   example: 'reset-single-use-token-xyz'
+ *       '400':
+ *         description: Invalid or expired token.
+ *       '404':
+ *         description: Email not found.
+ */
 
 router.post(
   '/verify-reset-token',
