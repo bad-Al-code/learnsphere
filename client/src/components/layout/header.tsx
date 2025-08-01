@@ -24,6 +24,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Logo } from "../shared/logo";
 import { Button } from "../ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "../ui/sheet";
+import { InstructorApplyButton } from "./instructor-apply-button";
 
 const getInitials = (firstName: string | null, lastName: string | null) => {
   const first = firstName?.[0] || "";
@@ -47,12 +48,10 @@ export function Header({ user: initialUser }: { user: User }) {
     });
   };
 
-  const avatarUrl = user?.avatarUrls?.small;
-
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto w-full grid grid-cols-12 items-center h-16  gap-4">
-        <div className="col-span-4 sm:col-span-3 flex items-center">
+        <div className="col-span-4 sm:col-span-2 flex items-center">
           <Link href="/" className="flex items-center space-x-2">
             <Logo className="w-32" />
           </Link>
@@ -128,65 +127,68 @@ export function Header({ user: initialUser }: { user: User }) {
 
               <div className="my-8">
                 {user ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        onClick={() => setDropdownOpen(!dropdownOpen)}
-                        className="w-full flex items-center justify-between gap-2 p-2 rounded-md border border-border hover:bg-muted transition text-left"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage
-                              src={user.avatarUrls?.small}
-                              alt="User Avatar"
-                            />
-                            <AvatarFallback>
-                              {getInitials(user.firstName, user.lastName)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm font-medium">
-                            {user.firstName} {user.lastName}
-                          </span>
-                        </div>
-                        {dropdownOpen ? (
-                          <ChevronsDownUp className="w-4 h-4" />
-                        ) : (
-                          <ChevronsUpDown className="w-4 h-4" />
-                        )}
-                      </button>
-                    </DropdownMenuTrigger>
-
-                    <DropdownMenuContent
-                      side="top"
-                      align="center"
-                      className="w-full mt-2"
-                      onCloseAutoFocus={() => setDropdownOpen(false)}
-                      onInteractOutside={() => setDropdownOpen(false)}
-                      onEscapeKeyDown={() => setDropdownOpen(false)}
-                      forceMount
-                    >
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href="/settings/profile"
-                          onClick={() => setIsSheetOpen(false)}
+                  <>
+                    <InstructorApplyButton />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="mt-2" asChild>
+                        <button
+                          onClick={() => setDropdownOpen(!dropdownOpen)}
+                          className="w-full flex items-center justify-between gap-2 p-2 rounded-md border border-border hover:bg-muted transition text-left"
                         >
-                          <UserIcon className="mr-2 h-4 w-4" />
-                          <span>Profile</span>
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          handleLogout();
-                          setIsSheetOpen(false);
-                        }}
-                        disabled={isPending}
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage
+                                src={user.avatarUrls?.small}
+                                alt="User Avatar"
+                              />
+                              <AvatarFallback>
+                                {getInitials(user.firstName, user.lastName)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm font-medium">
+                              {user.firstName} {user.lastName}
+                            </span>
+                          </div>
+                          {dropdownOpen ? (
+                            <ChevronsDownUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronsUpDown className="w-4 h-4" />
+                          )}
+                        </button>
+                      </DropdownMenuTrigger>
+
+                      <DropdownMenuContent
+                        side="top"
+                        align="center"
+                        className="w-full mt-2"
+                        onCloseAutoFocus={() => setDropdownOpen(false)}
+                        onInteractOutside={() => setDropdownOpen(false)}
+                        onEscapeKeyDown={() => setDropdownOpen(false)}
+                        forceMount
                       >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Log out</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/settings/profile"
+                            onClick={() => setIsSheetOpen(false)}
+                          >
+                            <UserIcon className="mr-2 h-4 w-4" />
+                            <span>Profile</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => {
+                            handleLogout();
+                            setIsSheetOpen(false);
+                          }}
+                          disabled={isPending}
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          <span>Log out</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </>
                 ) : (
                   <div className="flex flex-col space-y-2">
                     <Button asChild variant="outline">
@@ -209,47 +211,50 @@ export function Header({ user: initialUser }: { user: User }) {
           </Sheet>
         </div>
 
-        <div className="hidden sm:flex col-span-3 justify-end items-center space-x-4">
+        <div className="hidden sm:flex col-span-4 justify-end items-center space-x-2">
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-10 w-10 rounded-full"
-                >
-                  <Avatar>
-                    <AvatarImage
-                      src={user.avatarUrls?.small}
-                      alt="User Avatar"
-                    />
-                    <AvatarFallback>
-                      {getInitials(user.firstName, user.lastName)}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {user.firstName} {user.lastName}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/settings/profile">
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} disabled={isPending}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <>
+              <InstructorApplyButton />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full"
+                  >
+                    <Avatar>
+                      <AvatarImage
+                        src={user.avatarUrls?.small}
+                        alt="User Avatar"
+                      />
+                      <AvatarFallback>
+                        {getInitials(user.firstName, user.lastName)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {user.firstName} {user.lastName}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings/profile">
+                      <UserIcon className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} disabled={isPending}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           ) : (
             <div className="flex items-center space-x-2">
               <Button asChild variant="ghost">
