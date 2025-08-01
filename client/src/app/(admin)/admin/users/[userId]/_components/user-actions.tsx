@@ -2,6 +2,7 @@
 
 import {
   approveInstructor,
+  declineInstructor,
   reinstateUser,
   suspendUser,
 } from "@/app/(admin)/actions";
@@ -48,15 +49,41 @@ export function UserActions({ user }: UserActionsProps) {
 
   return (
     <div className="flex items-center gap-2">
-      {/* --- Approve Instructor Button --- */}
+      {/* --- APPROVE/DECLINE FLOW --- */}
       {user.status === "pending_instructor_review" && (
-        <Button
-          onClick={() => handleAction(approveInstructor)}
-          disabled={isPending}
-          variant="default"
-        >
-          Approve Instructor
-        </Button>
+        <>
+          <Button
+            onClick={() => handleAction(approveInstructor)}
+            disabled={isPending}
+            variant="default"
+          >
+            Approve Instructor
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" disabled={isPending}>
+                Decline
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will decline the user's instructor application and set
+                  their status back to active.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => handleAction(declineInstructor)}
+                >
+                  Confirm Decline
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
       )}
 
       {/* --- Suspend User Button --- */}

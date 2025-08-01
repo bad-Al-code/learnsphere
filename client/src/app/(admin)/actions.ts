@@ -7,12 +7,13 @@ import z from "zod";
 
 async function performUserAction(
   userId: string,
-  action: "approve" | "suspend" | "reinstate"
+  action: "approve" | "suspend" | "reinstate" | "decline"
 ) {
   const endpointMap = {
     approve: `/api/users/${userId}/approve-instructor`,
     suspend: `/api/users/${userId}/suspend`,
     reinstate: `/api/users/${userId}/reinstate`,
+    decline: `/api/users/${userId}/decline-instructor`,
   };
 
   try {
@@ -34,6 +35,10 @@ async function performUserAction(
 
 export async function approveInstructor(userId: string) {
   return performUserAction(userId, "approve");
+}
+
+export async function declineInstructor(userId: string) {
+  return performUserAction(userId, "decline");
 }
 
 export async function suspendUser(userId: string) {
