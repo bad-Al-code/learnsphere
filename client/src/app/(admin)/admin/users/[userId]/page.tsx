@@ -1,11 +1,18 @@
 import { getUserById } from "@/app/(settings)/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { UserActions } from "./_components/user-actions";
 
 const getInitials = (firstName?: string | null, lastName?: string | null) => {
   const first = firstName?.[0] || "";
@@ -85,6 +92,10 @@ async function UserDetailComponent({ userId }: { userId: string }) {
             <div className="col-span-2 text-sm">{user.bio || "N/A"}</div>
           </div>
         </CardContent>
+
+        <CardFooter className="border-t pt-4">
+          <UserActions user={user} />
+        </CardFooter>
       </Card>
     </div>
   );
