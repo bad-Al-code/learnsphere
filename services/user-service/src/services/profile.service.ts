@@ -167,6 +167,7 @@ export class ProfileService {
   /**
    * Allows a user to submit an application to become an instructor.
    * @param userId The ID of user applying.
+   * @param applicationData The details of their application.
    @throws { BadRequestError} If the user is already an instructor or has a pending application
    */
   public static async applyForInstructor(

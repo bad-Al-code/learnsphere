@@ -108,11 +108,6 @@ import { z } from 'zod';
  *           type: string
  *           description: The FCM device token provided by the client application.
  *           example: 'c2_...:APA91b...'
- *   securitySchemes:
- *      cookieAuth:
- *        type: apiKey
- *        in: cookie
- *        name: token
  *     ApplyForInstructorPayload:
  *       type: object
  *       required: [expertise, experience, motivation]
@@ -129,6 +124,11 @@ import { z } from 'zod';
  *           type: string
  *           description: "A short text explaining why the user wants to become an instructor."
  *           example: "I am passionate about sharing my knowledge with the next generation of developers."
+ *   securitySchemes:
+ *     cookieAuth:
+ *       type: apiKey
+ *       in: cookie
+ *       name: token
  */
 
 export const updateProfileSchema = z.object({
