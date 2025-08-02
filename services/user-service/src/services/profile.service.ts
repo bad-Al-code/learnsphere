@@ -265,10 +265,12 @@ export class ProfileService {
       throw new NotFoundError('Profile');
     }
 
-    const publisher = new UserRoleUpdatedPublisher();
-    await publisher.publish({
+    const userEmail = await this.fetchUserEmail(userId);
+    const rolePublisher = new UserRoleUpdatedPublisher();
+    await rolePublisher.publish({
       userId: userId,
       newRole: 'instructor',
+      userEmail,
     });
 
     try {
