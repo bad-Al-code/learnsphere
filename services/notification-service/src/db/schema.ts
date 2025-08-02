@@ -1,13 +1,13 @@
+import { sql } from 'drizzle-orm';
 import {
-  pgTable,
-  uuid,
-  text,
-  timestamp,
   boolean,
   jsonb,
   pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
 } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
 
 export const notifications = pgTable('notifications', {
   id: uuid('id')
@@ -34,4 +34,16 @@ export const emailOutbox = pgTable('email_outbox', {
   status: emailStatusEnum('satus').notNull(),
   errorMessage: text('error_message'),
   sentAt: timestamp('sent_at').defaultNow().notNull(),
+});
+
+export const userRoleEnum = pgEnum('user_role', [
+  'student',
+  'instructor',
+  'admin',
+]);
+
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey(),
+  role: userRoleEnum('role').default('student').notNull(),
+  email: text('email').notNull().unique(),
 });

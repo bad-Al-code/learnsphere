@@ -15,6 +15,13 @@
       "when": 1752304284810,
       "tag": "0001_skinny_hitman",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1754126602719,
+      "tag": "0002_cheerful_fixer",
+      "breakpoints": true
     }
   ]
 }
