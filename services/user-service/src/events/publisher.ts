@@ -35,3 +35,32 @@ interface UserRoleUpdatedEvent {
 export class UserRoleUpdatedPublisher extends Publisher<UserRoleUpdatedEvent> {
   readonly topic = 'user.role.updated' as const;
 }
+
+interface InstructorApplicationSubmittedEvent {
+  topic: 'instructor.application.submitted';
+  data: {
+    userId: string;
+    userName: string;
+    applicationData: {
+      expertise: string;
+    };
+    submittedAt: string;
+  };
+}
+
+export class InstructorApplicationSubmittedPublisher extends Publisher<InstructorApplicationSubmittedEvent> {
+  readonly topic: 'instructor.application.submitted' =
+    'instructor.application.submitted' as const;
+}
+
+interface InstructorApplicationDeclinedEvent {
+  topic: 'instructor.application.declined';
+  data: {
+    userId: string;
+    reason?: string;
+  };
+}
+
+export class InstructorApplicationDeclinedPublisher extends Publisher<InstructorApplicationDeclinedEvent> {
+  readonly topic = 'instructor.application.declined' as const;
+}

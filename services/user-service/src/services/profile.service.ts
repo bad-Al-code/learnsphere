@@ -7,7 +7,11 @@ import {
 } from '../db/profile.repository';
 import { InstructorApplicationData, UserSettings } from '../db/schema';
 import { BadRequestError, NotFoundError } from '../errors';
-import { UserRoleUpdatedPublisher } from '../events/publisher';
+import {
+  InstructorApplicationDeclinedPublisher,
+  InstructorApplicationSubmittedPublisher,
+  UserRoleUpdatedPublisher,
+} from '../events/publisher';
 
 export class ProfileService {
   /**
@@ -193,6 +197,22 @@ export class ProfileService {
       instructorApplicationData: fullApplicationData,
     });
 
+    try {
+      const publisher = new InstructorApplicationSubmittedPublisher();
+      await publisher.publish({
+        userId: profile.userId,
+        userName: `${profile.firstName} ${profile.lastName}`,
+        applicationData: {
+          expertise: applicationData.expertise,
+        },
+        submittedAt: fullApplicationData.submittedAt,
+      });
+    } catch (error) {
+      logger.error('Failed to publish instructor.application.submitted event', {
+        error,
+      });
+    }
+
     logger.info(
       `User ${userId} has applied to become an instructor with new details.`
     );
@@ -255,6 +275,15 @@ export class ProfileService {
     logger.info(
       `Instructor application for user ${userId} has been declined by an admin.`
     );
+
+    try {
+      const publisher = new InstructorApplicationDeclinedPublisher();
+      await publisher.publish({ userId });
+    } catch (error) {
+      logger.error('Failed to publish instructor.application.declined event', {
+        error,
+      });
+    }
 
     return updatedProfile;
   }
