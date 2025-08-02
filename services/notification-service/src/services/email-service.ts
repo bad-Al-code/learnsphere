@@ -1,4 +1,7 @@
 import { EmailClient } from '../clients/email.client';
+import { generateApplicationApprovedEmail } from '../templates/application-approved.template';
+import { generateApplicationDeclinedEmail } from '../templates/application-declined.template';
+import { generateApplicationSubmittedAdminEmail } from '../templates/application-submitted.template';
 import { generatePasswordChangeNotice } from '../templates/password-change-notice.template';
 import { generatePasswordResetEmail } from '../templates/password-reset.template';
 import { generateVerificationEmail } from '../templates/verification.template';
@@ -94,6 +97,60 @@ export class EmailService {
       text: `This is a notification that the password for your account (${data.email}) has been changed. If you did not make this change, please contact support immediately.`,
       html: htmlBody,
       type: 'password_changed',
+    });
+  }
+
+  public async sendApplicationApprovedEmail(data: {
+    email: string;
+    userName: string;
+  }) {
+    const loginLink = 'http://localhost:3000/login';
+    const htmlBody = generateApplicationApprovedEmail(data.userName, loginLink);
+
+    await this.emailClient.send({
+      to: data.email,
+      subject: "Congratulations! You're a LearnSphere Instructor",
+      html: htmlBody,
+      type: 'instructor_approved',
+      text: `You now have access to the instructor dashboard where you can start creating courses and sharing your knowledge. Go to dashboard ${loginLink}`,
+    });
+  }
+
+  public async sendApplicationDeclinedEmail(data: {
+    email: string;
+    userName: string;
+  }) {
+    const htmlBody = generateApplicationDeclinedEmail(data.userName);
+
+    await this.emailClient.send({
+      to: data.email,
+      subject: 'Update on your LearnSphere Instructor Application',
+      html: htmlBody,
+      type: 'instructor_rejected',
+      text: "Thank you for your interest in becoming an instructor on LearnSphere. After careful review, we've determined that we are unable to approve your application at this time.",
+    });
+  }
+
+  public async sendApplicationSubmittedAdminEmail(data: {
+    adminEmail: string;
+    userName: string;
+    expertise: string;
+    userId: string;
+  }) {
+    const userAdminLink = `http://localhost:3000/admin/users/${data.userId}`;
+
+    const htmlBody = generateApplicationSubmittedAdminEmail(
+      data.userName,
+      data.expertise,
+      userAdminLink
+    );
+
+    await this.emailClient.send({
+      to: data.adminEmail,
+      subject: `New Instructor Application: ${data.userName}`,
+      html: htmlBody,
+      text: `New Instructor application from ${data.userName}. View here: ${userAdminLink}`,
+      type: 'admin_notification',
     });
   }
 }

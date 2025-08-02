@@ -7,6 +7,7 @@ import { env } from './config/env';
 import logger from './config/logger';
 import { rabbitMQConnection } from './events/connection';
 import {
+  InstructorApplicationApprovedListener,
   InstructorApplicationDeclinedListener,
   InstructorApplicationSubmittedListener,
   UserPasswordChangedListener,
@@ -28,8 +29,9 @@ const start = async () => {
     new UserPasswordResetRequiredListener(emailService).listen();
     new UserPasswordChangedListener(emailService).listen();
     new UserVerifiedListener(emailService).listen();
-    new InstructorApplicationSubmittedListener().listen();
-    new InstructorApplicationDeclinedListener().listen();
+    new InstructorApplicationSubmittedListener(emailService).listen();
+    new InstructorApplicationDeclinedListener(emailService).listen();
+    new InstructorApplicationApprovedListener(emailService).listen();
 
     const server = http.createServer(app);
 

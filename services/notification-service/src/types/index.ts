@@ -32,7 +32,14 @@ export interface EmailOptions {
   subject: string;
   text: string;
   html: string;
-  type: 'verification' | 'password_reset' | 'welcome' | 'password_changed';
+  type:
+    | 'verification'
+    | 'password_reset'
+    | 'welcome'
+    | 'password_changed'
+    | 'instructor_approved'
+    | 'instructor_rejected'
+    | 'admin_notification';
 }
 
 export type Notification = typeof notifications.$inferSelect;

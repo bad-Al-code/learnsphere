@@ -308,6 +308,12 @@ export class InstructorApplicationSubmittedListener extends Listener<InstructorA
     'instructor.application.submitted' as const;
   queueGroupName: string = 'notification-service-admin-alerts';
 
+  private emailService: EmailService;
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
+
   async onMessage(
     data: {
       userId: string;
@@ -320,14 +326,25 @@ export class InstructorApplicationSubmittedListener extends Listener<InstructorA
     try {
       logger.info(`New instructor application submited by ${data.userName}`);
 
-      const adminUseId = '87550f08-e9e8-476a-b7bc-f6a1d63883a7';
+      // TODO: Replace with real admin lookup
+      const adminEmails = ['your-admin-email@example.com'];
+      const adminUserId = 'ADMIN_USER_ID_PLACEHOLDER';
 
       await NotificationService.createNotification({
-        recipientId: adminUseId,
+        recipientId: adminUserId,
         type: 'ADMIN_ALERT',
         content: `${data.userName} has applied to become an instructor in "${data.applicationData.expertise}".`,
         linkUrl: `/admin/users/${data.userId}`,
       });
+
+      for (const adminEmail of adminEmails) {
+        await this.emailService.sendApplicationSubmittedAdminEmail({
+          adminEmail,
+          userName: data.userName,
+          expertise: data.applicationData.expertise,
+          userId: data.userId,
+        });
+      }
     } catch (error) {
       logger.error(`Error handling instructor.application.submitted event`, {
         data,
@@ -341,6 +358,8 @@ interface InstructorApplicationDeclinedEvent {
   topic: 'instructor.application.declined';
   data: {
     userId: string;
+    userEmail: string;
+    userName: string;
     reason?: string;
   };
 }
@@ -348,6 +367,12 @@ interface InstructorApplicationDeclinedEvent {
 export class InstructorApplicationDeclinedListener extends Listener<InstructorApplicationDeclinedEvent> {
   readonly topic = 'instructor.application.declined' as const;
   queueGroupName = 'notification-service-user-alerts';
+
+  private emailService: EmailService;
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
 
   async onMessage(
     data: InstructorApplicationDeclinedEvent['data'],
@@ -364,10 +389,66 @@ export class InstructorApplicationDeclinedListener extends Listener<InstructorAp
         content: `Unfortunately, your recent instructor application was not approved at this time.`,
         linkUrl: '/settings/profile',
       });
+
+      const userEmail = 'use-email@example.com'; // placeholder
+      const userName = 'user-name'; // placeholder
+
+      await this.emailService.sendApplicationDeclinedEmail({
+        email: data.userEmail,
+        userName: data.userName,
+      });
     } catch (error) {
       logger.error('Error handling instructor.application.declined event', {
         data,
         error,
+      });
+    }
+  }
+}
+
+interface InstructorApplicationApprovedEvent {
+  topic: 'instructor.application.approved';
+  data: { userId: string; userEmail: string; userName: string };
+}
+
+export class InstructorApplicationApprovedListener extends Listener<InstructorApplicationApprovedEvent> {
+  readonly topic = 'instructor.application.approved' as const;
+  queueGroupName = 'notification-service-user-alerts';
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
+
+  async onMessage(
+    data: InstructorApplicationApprovedEvent['data'],
+    _msg: ConsumeMessage
+  ) {
+    logger.info(
+      `Sending application approved notification to user ${data.userId}`
+    );
+
+    try {
+      await NotificationService.createNotification({
+        recipientId: data.userId,
+        type: 'APPLICATION_STATUS',
+        content:
+          'Congratulations! Your instructor application has been approved.',
+        linkUrl: '/dashboard/instructor',
+      });
+
+      await this.emailService.sendApplicationApprovedEmail({
+        email: data.userEmail,
+        userName: data.userName,
+      });
+    } catch (err) {
+      let error = err as Error;
+      logger.error('Error handling instructor.application.approved event: %o', {
+        userId: data.userId,
+        error: error.message,
+        stack: error.stack,
+        name: error.name,
       });
     }
   }
