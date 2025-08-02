@@ -87,7 +87,7 @@ export function Header({ user: initialUser }: { user: User }) {
             </SheetTrigger>
             <SheetContent
               side="left"
-              className="w-64 sm:w-80p px-4 flex justify-between"
+              className="w-64 sm:w-80p px-4 flex justify-between bg-background/95  backdrop-blur supports-[backdrop-filter]:bg-background/60"
             >
               <div className="flex flex-col">
                 <SheetHeader>
@@ -130,7 +130,7 @@ export function Header({ user: initialUser }: { user: User }) {
                   <>
                     <InstructorApplyButton />
                     <DropdownMenu>
-                      <DropdownMenuTrigger className="mt-2" asChild>
+                      <DropdownMenuTrigger className="mt-2 " asChild>
                         <button
                           onClick={() => setDropdownOpen(!dropdownOpen)}
                           className="w-full flex items-center justify-between gap-2 p-2 rounded-md border border-border hover:bg-muted transition text-left"
@@ -160,7 +160,7 @@ export function Header({ user: initialUser }: { user: User }) {
                       <DropdownMenuContent
                         side="top"
                         align="center"
-                        className="w-full mt-2"
+                        className="w-full mt-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/6"
                         onCloseAutoFocus={() => setDropdownOpen(false)}
                         onInteractOutside={() => setDropdownOpen(false)}
                         onEscapeKeyDown={() => setDropdownOpen(false)}
@@ -218,7 +218,10 @@ export function Header({ user: initialUser }: { user: User }) {
                 <InstructorApplyButton />
               </div>
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger
+                  asChild
+                  className=" bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+                >
                   <Button
                     variant="ghost"
                     className="relative h-10 w-10 rounded-full"
@@ -234,7 +237,11 @@ export function Header({ user: initialUser }: { user: User }) {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuContent
+                  className="w-56  bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+                  align="end"
+                  forceMount
+                >
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">

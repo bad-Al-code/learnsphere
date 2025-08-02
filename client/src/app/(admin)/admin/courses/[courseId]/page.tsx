@@ -48,7 +48,7 @@ async function CourseDetailComponent({ courseId }: { courseId: string }) {
         <CourseActions courseId={course.id} status={course.status} />
       </div>
 
-      <Card>
+      <Card className="">
         <CardHeader>
           <CardTitle>Course Details</CardTitle>
         </CardHeader>
