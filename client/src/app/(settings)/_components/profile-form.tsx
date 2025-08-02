@@ -55,6 +55,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
     defaultValues: {
       firstName: userData.firstName || "",
       lastName: userData.lastName || "",
+      email: userData.email,
       headline: userData.headline || "",
       bio: userData.bio || "",
       language: userData.settings?.language || "en",
@@ -90,6 +91,25 @@ export function ProfileForm({ userData }: ProfileFormProps) {
       <h3 className="text-lg font-medium mb-4">Account Settings</h3>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email address</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    {...field}
+                    value={field.value ?? ""}
+                    disabled
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}

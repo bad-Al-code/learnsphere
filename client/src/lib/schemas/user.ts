@@ -9,6 +9,7 @@ export const socialLinksSchema = z.object({
 export const profileFormSchema = z.object({
   firstName: z.string().min(1, "First name is required.").optional().nullable(),
   lastName: z.string().optional().nullable(),
+  email: z.string(),
   headline: z
     .string()
     .min(1, "A headline is required.")
