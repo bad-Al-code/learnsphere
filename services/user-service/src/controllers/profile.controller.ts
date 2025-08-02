@@ -106,12 +106,13 @@ export class ProfileController {
       const searchQuery = q ? String(q) : '';
       const pageNumber = page ? parseInt(String(page), 10) : 1;
       const limitNumber = limit ? parseInt(String(limit), 10) : 10;
+      const statusFilter = status ? String(status) : undefined;
 
       const searchResult = await ProfileService.searchProfiles(
         searchQuery,
         pageNumber,
         limitNumber,
-        status as string | undefined
+        statusFilter
       );
 
       res.status(StatusCodes.OK).json(searchResult);

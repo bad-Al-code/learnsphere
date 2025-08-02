@@ -2,7 +2,7 @@
 
 import { courseService, userService } from "@/lib/api";
 import { profileFormSchema } from "@/lib/schemas/user";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_noStore } from "next/cache";
 import z from "zod";
 
 async function performUserAction(
@@ -226,26 +226,32 @@ export async function deleteCourse(courseId: string) {
   return performCourseAction(courseId, "delete");
 }
 
-export async function searchUsers({
-  query = "",
-  page = 1,
-  limit = 10,
-  status = "",
-}: {
+interface SearchUsersArgs {
   query?: string;
   page?: number;
   limit?: number;
   status?: string;
-}) {
+}
+
+export async function searchUsers(args: SearchUsersArgs) {
+  unstable_noStore();
+  const query = args.query || "";
+  const page = args.page || 1;
+  const limit = args.limit || 10;
+  const status = args.status || "";
+
   try {
     const params = new URLSearchParams({
       q: query,
       page: String(page),
       limit: String(limit),
     });
+
     if (status) {
       params.set("status", status);
     }
+
+    console.log("SearchParams: ", params.toString());
 
     const response = await userService.get(
       `/api/users/search?${params.toString()}`
@@ -258,7 +264,7 @@ export async function searchUsers({
     }
 
     const result = await response.json();
-    console.log(result);
+    console.log("SearchUser Response: ", result);
     return result;
   } catch (error: any) {
     console.error("Error searching users:", error);

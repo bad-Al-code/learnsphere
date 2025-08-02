@@ -1,7 +1,7 @@
 import { and, count, eq, ilike, inArray, or, sql } from 'drizzle-orm';
 
 import { db } from '.';
-import { profiles, UserSettings } from './schema';
+import { profiles, UserSettings, userStatusEnum } from './schema';
 
 export type Profile = typeof profiles.$inferSelect;
 export type NewProfile = typeof profiles.$inferInsert;
@@ -117,7 +117,10 @@ export class ProfileRepository {
       );
     }
     if (status) {
-      conditions.push(eq(profiles.status, status as any));
+      const validStatuses = userStatusEnum.enumValues;
+      if (validStatuses.includes(status as any)) {
+        conditions.push(eq(profiles.status, status as any));
+      }
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;

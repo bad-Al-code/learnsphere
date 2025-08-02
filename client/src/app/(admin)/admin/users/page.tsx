@@ -5,21 +5,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Suspense } from "react";
 import { searchUsers } from "../../actions";
 import { UserTable } from "./_components/user-table";
 
 interface ManageUsersPageProps {
-  searchParams?: {
-    query?: string;
-    page?: string;
-    status?: string;
-  };
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
-export default function ManageUsersPage({
+export default async function ManageUsersPage({
   searchParams,
 }: ManageUsersPageProps) {
+  const query =
+    typeof searchParams.query === "string" ? searchParams.query : "";
+  const currentPage =
+    typeof searchParams.page === "string" ? Number(searchParams.page) : 1;
+  const status =
+    typeof searchParams.status === "string" ? searchParams.status : "";
+
+  const searchResult = await searchUsers({ query, page: currentPage, status });
+
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold">Manage Users</h1>
@@ -31,26 +35,12 @@ export default function ManageUsersPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Suspense fallback={<p>Loading users...</p>}>
-            <UsersDataComponent searchParams={searchParams} />
-          </Suspense>
+          <UserTable
+            users={searchResult.results}
+            totalPages={searchResult.pagination.totalPages}
+          />
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-async function UsersDataComponent({ searchParams }: ManageUsersPageProps) {
-  const query = searchParams?.query || "";
-  const currentPage = Number(searchParams?.page) || 1;
-  const status = searchParams?.status || "";
-
-  const searchResult = await searchUsers({ query, page: currentPage, status });
-
-  return (
-    <UserTable
-      users={searchResult.results}
-      totalPages={searchResult.pagination.totalPages}
-    />
   );
 }
