@@ -1,1 +1,0 @@
-ALTER TABLE "profiles" ADD COLUMN "fcm_tokens" text[] DEFAULT ARRAY[]::text[] NOT NULL;

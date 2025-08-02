@@ -1,1 +1,0 @@
-ALTER TABLE "profiles" ADD COLUMN "instructor_application_data" jsonb;
