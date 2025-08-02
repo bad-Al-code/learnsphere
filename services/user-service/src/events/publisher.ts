@@ -64,3 +64,16 @@ interface InstructorApplicationDeclinedEvent {
 export class InstructorApplicationDeclinedPublisher extends Publisher<InstructorApplicationDeclinedEvent> {
   readonly topic = 'instructor.application.declined' as const;
 }
+
+interface InstructorApplicationApprovedEvent {
+  topic: 'instructor.application.approved';
+  data: {
+    userId: string;
+    userEmail: string;
+    userName: string;
+  };
+}
+
+export class InstructorApplicationApprovedPublisher extends Publisher<InstructorApplicationApprovedEvent> {
+  readonly topic = 'instructor.application.approved' as const;
+}

@@ -8,6 +8,7 @@ import {
 import { InstructorApplicationData, UserSettings } from '../db/schema';
 import { BadRequestError, NotFoundError } from '../errors';
 import {
+  InstructorApplicationApprovedPublisher,
   InstructorApplicationDeclinedPublisher,
   InstructorApplicationSubmittedPublisher,
   UserRoleUpdatedPublisher,
@@ -245,6 +246,20 @@ export class ProfileService {
       userId: userId,
       newRole: 'instructor',
     });
+
+    try {
+      const publisher = new InstructorApplicationApprovedPublisher();
+      await publisher.publish({
+        userId: updatedProfile!.userId,
+        // TODO: update getPrivateProfileByID to join with the auth user's email
+        userEmail: 'user-email@example.com',
+        userName: `${updatedProfile?.firstName}`,
+      });
+    } catch (error: unknown) {
+      logger.error('Failed to publish instructor.application.approved event', {
+        error,
+      });
+    }
 
     return updatedProfile!;
   }
