@@ -40,6 +40,7 @@ import { z } from 'zod';
  *             large:
  *               type: string
  *               format: url
+ *
  *     UpdateProfilePayload:
  *       type: object
  *       properties:
@@ -55,6 +56,7 @@ import { z } from 'zod';
  *         headline:
  *           type: string
  *           example: 'Building the future, one line of code at a time.'
+ *
  *     AvatarUploadUrlRequest:
  *       type: object
  *       required:
@@ -63,6 +65,7 @@ import { z } from 'zod';
  *         filename:
  *           type: string
  *           example: 'my-avatar.jpg'
+ *
  *     AvatarUploadUrlResponse:
  *       type: object
  *       properties:
@@ -73,6 +76,7 @@ import { z } from 'zod';
  *         key:
  *           type: string
  *           description: The object key for the uploaded file in the storage bucket.
+ *
  *     BulkUserRequest:
  *       type: object
  *       required:
@@ -83,6 +87,10 @@ import { z } from 'zod';
  *           items:
  *             type: string
  *             format: uuid
+ *           example:
+ *             - "f2e56d52-5be2-4f8c-8ae5-8fd4c0c513ee"
+ *             - "28b2f2e0-90b5-4ac6-a87f-1f3d72f06e84"
+ *
  *     UserSettings:
  *       type: object
  *       properties:
@@ -99,6 +107,7 @@ import { z } from 'zod';
  *               type: boolean
  *             weeklyNewsletter:
  *               type: boolean
+ *
  *     FcmTokenPayload:
  *       type: object
  *       required:
@@ -108,22 +117,148 @@ import { z } from 'zod';
  *           type: string
  *           description: The FCM device token provided by the client application.
  *           example: 'c2_...:APA91b...'
+ *
  *     ApplyForInstructorPayload:
  *       type: object
  *       required: [expertise, experience, motivation]
  *       properties:
  *         expertise:
  *           type: string
- *           description: "The user's primary area of teaching expertise."
  *           example: "Web Development with React"
  *         experience:
  *           type: string
- *           description: "A summary of the user's professional or teaching experience."
  *           example: "10+ years as a senior software engineer."
  *         motivation:
  *           type: string
- *           description: "A short text explaining why the user wants to become an instructor."
  *           example: "I am passionate about sharing my knowledge with the next generation of developers."
+ *
+ *     UpdateProfileSchema:
+ *       type: object
+ *       properties:
+ *         firstName:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
+ *           example: "Alice"
+ *         lastName:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
+ *           example: "Smith"
+ *         bio:
+ *           type: string
+ *           maxLength: 500
+ *           example: "Full-stack engineer with a passion for clean code."
+ *         headline:
+ *           type: string
+ *           maxLength: 100
+ *           nullable: true
+ *           example: "Building scalable backend systems."
+ *         websiteUrl:
+ *           type: string
+ *           format: url
+ *           nullable: true
+ *           example: "https://alice.dev"
+ *         socialLinks:
+ *           type: object
+ *           nullable: true
+ *           properties:
+ *             twitter:
+ *               type: string
+ *               nullable: true
+ *               example: "https://twitter.com/alice"
+ *             linkedin:
+ *               type: string
+ *               nullable: true
+ *               example: "https://linkedin.com/in/alice"
+ *             github:
+ *               type: string
+ *               nullable: true
+ *               example: "https://github.com/alice"
+ *
+ *     AvatarUploadUrlSchema:
+ *       type: object
+ *       required:
+ *         - filename
+ *       properties:
+ *         filename:
+ *           type: string
+ *           example: "profile-pic.png"
+ *
+ *     SearchProfileSchema:
+ *       type: object
+ *       properties:
+ *         q:
+ *           type: string
+ *         page:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         limit:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         status:
+ *           type: string
+ *
+ *     BulkUsersSchema:
+ *       type: object
+ *       required:
+ *         - userIds
+ *       properties:
+ *         userIds:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
+ *
+ *     UpdateSettingsSchema:
+ *       type: object
+ *       properties:
+ *         theme:
+ *           type: string
+ *           enum: [light, dark]
+ *         language:
+ *           type: string
+ *           enum: [en, es, fr]
+ *         notification:
+ *           type: object
+ *           properties:
+ *             newCourseAlerts:
+ *               type: boolean
+ *             weeklyNewsletter:
+ *               type: boolean
+ *
+ *     FcmTokenSchema:
+ *       type: object
+ *       required:
+ *         - token
+ *       properties:
+ *         token:
+ *           type: string
+ *           example: "c2_...:APA91b..."
+ *
+ *     ApplyForInstructorSchema:
+ *       type: object
+ *       required:
+ *         - expertise
+ *         - experience
+ *         - motivation
+ *       properties:
+ *         expertise:
+ *           type: string
+ *           minLength: 5
+ *           example: "Web Development with React"
+ *         experience:
+ *           type: string
+ *           minLength: 10
+ *           example: "10+ years as a full-stack developer"
+ *         motivation:
+ *           type: string
+ *           minLength: 20
+ *           example: "I want to share my experience and help others grow in tech."
+ *
  *   securitySchemes:
  *     cookieAuth:
  *       type: apiKey
@@ -164,6 +299,7 @@ export const searchProfileSchema = z.object({
     q: z.string().optional(),
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(100).default(10),
+    status: z.string().optional(),
   }),
 });
 
@@ -174,6 +310,7 @@ export const bulkUsersSchema = z.object({
 });
 
 const supportedLanguageCodes = ['en', 'es', 'fr'] as const;
+
 export const updateSettingsSchema = z.object({
   body: z
     .object({

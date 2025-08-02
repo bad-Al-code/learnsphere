@@ -1,4 +1,4 @@
-import { count, eq, ilike, inArray, or, sql } from 'drizzle-orm';
+import { and, count, eq, ilike, inArray, or, sql } from 'drizzle-orm';
 
 import { db } from '.';
 import { profiles, UserSettings } from './schema';
@@ -97,16 +97,30 @@ export class ProfileRepository {
    * @param query The search query string.
    * @param page The current page number.
    * @param limit The number of results per page.
+   * @param status An optional status to filter by.
    * @returns A paginated result object.
    */
-  public static async search(query: string, page: number, limit: number) {
+  public static async search(
+    query: string,
+    page: number,
+    limit: number,
+    status?: string
+  ) {
     const offset = (page - 1) * limit;
-    const whereClause = query
-      ? or(
+    const conditions = [];
+    if (query) {
+      conditions.push(
+        or(
           ilike(profiles.firstName, `%${query}%`),
           ilike(profiles.lastName, `%${query}%`)
         )
-      : undefined;
+      );
+    }
+    if (status) {
+      conditions.push(eq(profiles.status, status as any));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
     const totalQuery = db
       .select({ value: count() })

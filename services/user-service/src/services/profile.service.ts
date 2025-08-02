@@ -99,17 +99,20 @@ export class ProfileService {
    * @param query The search term.
    * @param page The page number for pagination.
    * @param limit The number of results per page.
+   * @param status An optional status to filter by.
    * @returns A paginated search result object.
    */
   public static async searchProfiles(
     query: string = '',
     page: number,
-    limit: number
+    limit: number,
+    status?: string
   ) {
     const { totalResults, results } = await ProfileRepository.search(
       query,
       page,
-      limit
+      limit,
+      status
     );
     const totalPages = Math.ceil(totalResults / limit);
 

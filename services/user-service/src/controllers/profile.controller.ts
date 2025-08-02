@@ -101,7 +101,7 @@ export class ProfileController {
     next: NextFunction
   ) {
     try {
-      const { q, page, limit } = req.query;
+      const { q, page, limit, status } = req.query;
 
       const searchQuery = q ? String(q) : '';
       const pageNumber = page ? parseInt(String(page), 10) : 1;
@@ -110,7 +110,8 @@ export class ProfileController {
       const searchResult = await ProfileService.searchProfiles(
         searchQuery,
         pageNumber,
-        limitNumber
+        limitNumber,
+        status as string | undefined
       );
 
       res.status(StatusCodes.OK).json(searchResult);
