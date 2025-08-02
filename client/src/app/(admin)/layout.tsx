@@ -22,12 +22,12 @@ export default async function AdminLayout({
       </div>
 
       {/* Desktop Sidebar */}
-      <div className="hidden md:grid grid-cols-12 gap-6">
-        <aside className="md:col-span-2">
+      <div className="hidden md:grid md:grid-cols-12 lg:grid-cols-12 gap-6">
+        <aside className="md:col-span-3 lg:col-span-2">
           {/* <h2 className="text-lg font-semibold mb-4">Admin Panel</h2> */}
           <AdminSidebar />
         </aside>
-        <main className="md:col-span-10">{children}</main>
+        <main className="md:col-span-9">{children}</main>
       </div>
 
       {/* Mobile content area */}
