@@ -33,6 +33,7 @@ export const userStatusEnum = pgEnum('user_status', [
 
 export const profiles = pgTable('profiles', {
   userId: text('user_id').primaryKey(),
+  email: text('email').notNull().unique(),
   firstName: varchar('first_name', { length: 50 }),
   lastName: varchar('last_name', { length: 50 }),
   bio: text('bio'),

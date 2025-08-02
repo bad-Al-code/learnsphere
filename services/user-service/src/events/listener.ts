@@ -85,6 +85,7 @@ export class UserRegisteredListener extends Listener<UserRegisteredEvent> {
 
       await ProfileService.createProfile({
         userId: data.id,
+        email: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
         avatarUrls: avatarJson,

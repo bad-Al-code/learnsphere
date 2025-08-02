@@ -199,12 +199,11 @@ export class ProfileService {
 
     try {
       const publisher = new InstructorApplicationSubmittedPublisher();
-      const userEmail = await this.fetchUserEmail(userId);
 
       await publisher.publish({
         userId: profile.userId,
         userName: `${profile.firstName} ${profile.lastName}`,
-        userEmail,
+        userEmail: profile.email,
         applicationData: {
           expertise: applicationData.expertise,
         },
@@ -219,27 +218,6 @@ export class ProfileService {
     logger.info(
       `User ${userId} has applied to become an instructor with new details.`
     );
-  }
-
-  private static async fetchUserEmail(userId: string): Promise<string> {
-    // This is a placeholder. The real solution is data replication.
-    // For now, this call would fail. We'll fix this properly in the next step.
-    // This highlights the architectural problem perfectly.
-    console.warn(`
-        ================================================================
-        WARNING: Making a temporary, non-ideal, cross-service API call.
-        This should be replaced by listening to user.registered events.
-        ================================================================
-    `);
-    try {
-      const authServiceUrl = process.env.AUTH_SERVICE_URL;
-      // NOTE: This requires the user-service to have an auth token for itself, or an admin token.
-      // This is complex, so we will hardcode for now and fix with data replication.
-      return 'hardcoded-email-for-now@example.com';
-    } catch (error) {
-      logger.error(`Failed to fetch email for user ${userId}`, { error });
-      return 'unknown-email@example.com';
-    }
   }
 
   /**
@@ -260,18 +238,17 @@ export class ProfileService {
     const updatedProfile = await ProfileRepository.update(userId, {
       status: 'instructor',
     });
-    if (!this.updateProfile) {
+    if (!updatedProfile) {
       throw new NotFoundError('Profile');
     }
 
     try {
       const publisher = new InstructorApplicationApprovedPublisher();
-      const userEmail = await this.fetchUserEmail(userId);
 
       await publisher.publish({
-        userId: updatedProfile!.userId,
-        userEmail,
-        userName: `${updatedProfile?.firstName}`,
+        userId: updatedProfile.userId,
+        userEmail: updatedProfile.email,
+        userName: `${updatedProfile.firstName} ${updatedProfile.lastName}`,
       });
     } catch (error: unknown) {
       logger.error('Failed to publish instructor.application.approved event', {
@@ -311,12 +288,11 @@ export class ProfileService {
 
     try {
       const publisher = new InstructorApplicationDeclinedPublisher();
-      const userEmail = await this.fetchUserEmail(userId);
 
       await publisher.publish({
-        userId,
-        userEmail,
-        userName: `${profile.firstName} ${profile.lastName}`,
+        userId: updatedProfile.userId,
+        userEmail: updatedProfile.email,
+        userName: `${updatedProfile.firstName} ${updatedProfile.lastName}`,
       });
     } catch (error) {
       logger.error('Failed to publish instructor.application.declined event', {
