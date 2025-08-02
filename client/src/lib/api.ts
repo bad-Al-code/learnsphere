@@ -1,5 +1,4 @@
 import { cookies } from "next/headers";
-import { getBaseUrl } from "./utils/get-base-url";
 
 export class ApiError extends Error {
   status: number;
@@ -31,46 +30,7 @@ async function apiClient(
     headers.set("Content-Type", "application/json");
   }
 
-  let response = await fetch(`${baseUrl}${path}`, { ...options, headers });
-
-  if (
-    response.status === 401 &&
-    path !== "/api/auth/login" &&
-    path !== "/api/auth/refresh"
-  ) {
-    console.log(
-      "Access token expired. Attempting to refresh via internal API route..."
-    );
-    try {
-      const refreshResponse = await fetch(
-        `${getBaseUrl()}/api/auth/refresh-token`,
-        {
-          method: "POST",
-          headers: { Cookie: cookieHeader },
-        }
-      );
-
-      if (!refreshResponse.ok) {
-        console.error("Internal refresh route failed. User must log in again.");
-        throw new ApiError(
-          "Your session has expired. Please log in again.",
-          401,
-          {}
-        );
-      }
-
-      console.log(
-        "Token refreshed successfully via internal route. Retrying original request."
-      );
-
-      // Retry the original request. The cookies have been updated in the browser
-      // by the route handler, and our cookie forwarding will pick them up.
-      response = await fetch(`${baseUrl}${path}`, { ...options, headers });
-    } catch (e) {
-      throw e;
-    }
-  }
-
+  const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
   return response;
 }
 

@@ -1,5 +1,6 @@
 import { Header } from "@/components/layout/header";
 import { SessionProvider } from "@/components/layout/session-provider";
+import { SessionRefresher } from "@/components/layout/session-refresher";
 import { Toaster } from "@/components/ui/sonner";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
@@ -39,6 +40,7 @@ export default async function RootLayout({
             <Toaster />
           </div>
         </SessionProvider>
+        <SessionRefresher />
       </body>
     </html>
   );
