@@ -292,3 +292,83 @@ export class UserVerifiedListener extends Listener<UserVerifiedEvent> {
     }
   }
 }
+
+interface InstructorApplicationSubmittedEvent {
+  topic: 'instructor.application.submitted';
+  data: {
+    userId: string;
+    userName: string;
+    applicationData: { expertise: string };
+    submittedAt: string;
+  };
+}
+
+export class InstructorApplicationSubmittedListener extends Listener<InstructorApplicationSubmittedEvent> {
+  readonly topic: 'instructor.application.submitted' =
+    'instructor.application.submitted' as const;
+  queueGroupName: string = 'notification-service-admin-alerts';
+
+  async onMessage(
+    data: {
+      userId: string;
+      userName: string;
+      applicationData: { expertise: string };
+      submittedAt: string;
+    },
+    msg: ConsumeMessage
+  ): Promise<void> {
+    try {
+      logger.info(`New instructor application submited by ${data.userName}`);
+
+      const adminUseId = '87550f08-e9e8-476a-b7bc-f6a1d63883a7';
+
+      await NotificationService.createNotification({
+        recipientId: adminUseId,
+        type: 'ADMIN_ALERT',
+        content: `${data.userName} has applied to become an instructor in "${data.applicationData.expertise}".`,
+        linkUrl: `/admin/users/${data.userId}`,
+      });
+    } catch (error) {
+      logger.error(`Error handling instructor.application.submitted event`, {
+        data,
+        error,
+      });
+    }
+  }
+}
+
+interface InstructorApplicationDeclinedEvent {
+  topic: 'instructor.application.declined';
+  data: {
+    userId: string;
+    reason?: string;
+  };
+}
+
+export class InstructorApplicationDeclinedListener extends Listener<InstructorApplicationDeclinedEvent> {
+  readonly topic = 'instructor.application.declined' as const;
+  queueGroupName = 'notification-service-user-alerts';
+
+  async onMessage(
+    data: InstructorApplicationDeclinedEvent['data'],
+    _msg: ConsumeMessage
+  ): Promise<void> {
+    try {
+      logger.info(
+        `Sending application declined notification to user ${data.userId}`
+      );
+
+      await NotificationService.createNotification({
+        recipientId: data.userId,
+        type: 'APPLICATION_STATUS',
+        content: `Unfortunately, your recent instructor application was not approved at this time.`,
+        linkUrl: '/settings/profile',
+      });
+    } catch (error) {
+      logger.error('Error handling instructor.application.declined event', {
+        data,
+        error,
+      });
+    }
+  }
+}

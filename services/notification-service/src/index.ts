@@ -1,18 +1,20 @@
 import 'dotenv/config';
 import http from 'node:http';
 
+import { app } from './app';
+import { EmailClient } from './clients/email.client';
+import { env } from './config/env';
 import logger from './config/logger';
 import { rabbitMQConnection } from './events/connection';
 import {
+  InstructorApplicationDeclinedListener,
+  InstructorApplicationSubmittedListener,
   UserPasswordChangedListener,
   UserPasswordResetRequiredListener,
   UserVerificationRequiredListener,
   UserVerifiedListener,
 } from './events/listener';
-import { EmailClient } from './clients/email.client';
 import { EmailService } from './services/email-service';
-import { env } from './config/env';
-import { app } from './app';
 import { WebSocketService } from './services/websocket.service';
 
 const start = async () => {
@@ -26,6 +28,8 @@ const start = async () => {
     new UserPasswordResetRequiredListener(emailService).listen();
     new UserPasswordChangedListener(emailService).listen();
     new UserVerifiedListener(emailService).listen();
+    new InstructorApplicationSubmittedListener().listen();
+    new InstructorApplicationDeclinedListener().listen();
 
     const server = http.createServer(app);
 
