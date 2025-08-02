@@ -225,3 +225,47 @@ export async function unpublishCourse(courseId: string) {
 export async function deleteCourse(courseId: string) {
   return performCourseAction(courseId, "delete");
 }
+
+export async function searchUsers({
+  query = "",
+  page = 1,
+  limit = 10,
+  status = "",
+}: {
+  query?: string;
+  page?: number;
+  limit?: number;
+  status?: string;
+}) {
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      page: String(page),
+      limit: String(limit),
+    });
+    if (status) {
+      params.set("status", status);
+    }
+
+    const response = await userService.get(
+      `/api/users/search?${params.toString()}`
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+
+      throw new Error(data.errors?.[0]?.message || "Failed to search users.");
+    }
+
+    const result = await response.json();
+    console.log(result);
+    return result;
+  } catch (error: any) {
+    console.error("Error searching users:", error);
+
+    return {
+      results: [],
+      pagination: { currentPage: 1, totalPages: 0, totalResults: 0 },
+    };
+  }
+}

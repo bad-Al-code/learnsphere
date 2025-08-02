@@ -138,44 +138,6 @@ export async function applyForInstructor(
   }
 }
 
-export async function searchUsers({
-  query = "",
-  page = 1,
-  limit = 10,
-}: {
-  query?: string;
-  page?: number;
-  limit?: number;
-}) {
-  try {
-    const params = new URLSearchParams({
-      q: query,
-      page: String(page),
-      limit: String(limit),
-    });
-
-    const response = await userService.get(
-      `/api/users/search?${params.toString()}`
-    );
-
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-
-      throw new Error(data.errors?.[0]?.message || "Failed to search users.");
-    }
-
-    const result = await response.json();
-    return result;
-  } catch (error: any) {
-    console.error("Error searching users:", error);
-
-    return {
-      results: [],
-      pagination: { currentPage: 1, totalPages: 0, totalResults: 0 },
-    };
-  }
-}
-
 export async function getUserById(userId: string) {
   try {
     const profileResponse = await userService.get(`/api/users/${userId}`);

@@ -33,6 +33,7 @@ export function UserTable({ users, totalPages }: UserTableProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentPage = Number(searchParams.get("page")) || 1;
+  const currentStatus = searchParams.get("status");
 
   const createPageURL = (pageNumber: number | string) => {
     const params = new URLSearchParams(searchParams);
@@ -62,6 +63,16 @@ export function UserTable({ users, totalPages }: UserTableProps) {
 
   return (
     <div className="space-y-4">
+      {currentStatus && (
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-muted-foreground">Filtering by status:</span>
+          <Badge variant="secondary">{currentStatus}</Badge>
+          <Button asChild variant="link" className="p-0 h-auto">
+            <Link href="/admin/users">Clear filter</Link>
+          </Button>
+        </div>
+      )}
+
       <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />

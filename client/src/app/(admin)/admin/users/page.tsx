@@ -1,4 +1,3 @@
-import { searchUsers } from "@/app/(settings)/actions";
 import {
   Card,
   CardContent,
@@ -7,12 +6,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Suspense } from "react";
+import { searchUsers } from "../../actions";
 import { UserTable } from "./_components/user-table";
 
 interface ManageUsersPageProps {
   searchParams?: {
     query?: string;
     page?: string;
+    status?: string;
   };
 }
 
@@ -42,8 +43,9 @@ export default function ManageUsersPage({
 async function UsersDataComponent({ searchParams }: ManageUsersPageProps) {
   const query = searchParams?.query || "";
   const currentPage = Number(searchParams?.page) || 1;
+  const status = searchParams?.status || "";
 
-  const searchResult = await searchUsers({ query, page: currentPage });
+  const searchResult = await searchUsers({ query, page: currentPage, status });
 
   return (
     <UserTable
