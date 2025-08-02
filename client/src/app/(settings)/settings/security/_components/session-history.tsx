@@ -10,6 +10,7 @@ import { UAParser } from "ua-parser-js";
 import {
   getSessions,
   terminateAllOtherSessions,
+  terminateCurrentSession,
   terminateSession,
 } from "@/app/(auth)/actions";
 import { Badge } from "@/components/ui/badge";
@@ -54,15 +55,19 @@ export function SessionHistory() {
     fetchSessions(limit);
   }, [limit]);
 
-  const handleTerminate = (sessionId: string) => {
+  const handleTerminate = (sessionId: string, isCurrent?: boolean) => {
     startTerminating(async () => {
-      const result = await terminateSession(sessionId);
-      if (result.success) {
-        toast.success("Session terminated.");
-
-        fetchSessions(limit);
+      if (isCurrent) {
+        await terminateCurrentSession(sessionId);
       } else {
-        toast.error(result.error || "Failed to terminate session");
+        const result = await terminateSession(sessionId);
+        if (result.success) {
+          toast.success("Session terminated.");
+
+          fetchSessions(limit);
+        } else {
+          toast.error(result.error || "Failed to terminate session");
+        }
       }
     });
   };
@@ -172,7 +177,7 @@ export function SessionHistory() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleTerminate(session.jti)}
+                      onClick={() => handleTerminate(session.jti, isCurrent)}
                       disabled={isTerminating}
                     >
                       <LogOut className="mr-1 " />

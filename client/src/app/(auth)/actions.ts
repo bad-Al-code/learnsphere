@@ -475,6 +475,26 @@ export async function terminateSession(sessionId: string) {
   }
 }
 
+export async function terminateCurrentSession(sessionId: string) {
+  try {
+    const response = await authService.delete(
+      `/api/auth/sessions/${sessionId}`
+    );
+    if (!response.ok) {
+      console.error(
+        "Failed to terminate session on backend, proceeding with client logout."
+      );
+    }
+  } catch (error: any) {
+    console.error("Error terminating session on backend:", error.message);
+  } finally {
+    (await cookies()).delete("token");
+    (await cookies()).delete("refreshToken");
+    revalidatePath("/", "layout");
+    redirect("/login");
+  }
+}
+
 export async function terminateAllOtherSessions() {
   try {
     const response = await authService.delete(
