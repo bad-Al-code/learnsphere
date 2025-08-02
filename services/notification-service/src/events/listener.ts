@@ -1,6 +1,7 @@
 import { ConsumeMessage } from 'amqplib';
 
 import logger from '../config/logger';
+import { UserRepository } from '../db/user.respository';
 import { EmailService } from '../services/email-service';
 import { NotificationService } from '../services/notification.service';
 import { rabbitMQConnection } from './connection';
@@ -195,6 +196,50 @@ export class UserRegisteredWelcomeListener extends Listener<UserRegisteredEvent>
   }
 }
 
+export class UserSyncRegisteredListener extends Listener<UserRegisteredEvent> {
+  readonly topic = 'user.registered' as const;
+  queueGroupName = 'notification-service-user-sync';
+
+  async onMessage(data: UserRegisteredEvent['data'], _msg: ConsumeMessage) {
+    try {
+      logger.info(`Syncing new user: ${data.id}`);
+      await UserRepository.upsert({
+        id: data.id,
+        email: data.email,
+        role: 'student',
+      });
+    } catch (error) {
+      logger.error('Failed to sync registered user', { data, error });
+    }
+  }
+}
+
+interface UserRoleUpdatedEvent {
+  topic: 'user.role.updated';
+  data: { userId: string; newRole: 'student' | 'instructor' | 'admin' };
+}
+
+export class UserSyncRoleUpdatedListener extends Listener<UserRoleUpdatedEvent> {
+  readonly topic = 'user.role.updated' as const;
+  queueGroupName = 'notification-service-user-sync';
+
+  async onMessage(data: UserRoleUpdatedEvent['data'], _msg: ConsumeMessage) {
+    try {
+      logger.info(`Syncing role update for user: ${data.userId}`);
+      const user = await UserRepository.findById(data.userId);
+      if (user) {
+        await UserRepository.upsert({
+          id: data.userId,
+          email: user.email,
+          role: data.newRole,
+        });
+      }
+    } catch (error) {
+      logger.error('Failed to sync user role update', { data, error });
+    }
+  }
+}
+
 interface UserPasswordChangedEvent extends Event {
   topic: 'user.password.changed';
   data: {
@@ -326,20 +371,18 @@ export class InstructorApplicationSubmittedListener extends Listener<InstructorA
     try {
       logger.info(`New instructor application submited by ${data.userName}`);
 
-      // TODO: Replace with real admin lookup
-      const adminEmails = ['your-admin-email@example.com'];
-      const adminUserId = 'ADMIN_USER_ID_PLACEHOLDER';
+      const admins = await UserRepository.findAllAdmins();
 
-      await NotificationService.createNotification({
-        recipientId: adminUserId,
-        type: 'ADMIN_ALERT',
-        content: `${data.userName} has applied to become an instructor in "${data.applicationData.expertise}".`,
-        linkUrl: `/admin/users/${data.userId}`,
-      });
+      for (const admin of admins) {
+        await NotificationService.createNotification({
+          recipientId: admin.id,
+          type: 'ADMIN_ALERT',
+          content: `${data.userName} has applied to become an instructor in "${data.applicationData.expertise}".`,
+          linkUrl: `/admin/users/${data.userId}`,
+        });
 
-      for (const adminEmail of adminEmails) {
         await this.emailService.sendApplicationSubmittedAdminEmail({
-          adminEmail,
+          adminEmail: admin.email,
           userName: data.userName,
           expertise: data.applicationData.expertise,
           userId: data.userId,
@@ -383,20 +426,20 @@ export class InstructorApplicationDeclinedListener extends Listener<InstructorAp
         `Sending application declined notification to user ${data.userId}`
       );
 
-      await NotificationService.createNotification({
-        recipientId: data.userId,
-        type: 'APPLICATION_STATUS',
-        content: `Unfortunately, your recent instructor application was not approved at this time.`,
-        linkUrl: '/settings/profile',
-      });
+      const user = await UserRepository.findById(data.userId);
+      if (user) {
+        await NotificationService.createNotification({
+          recipientId: data.userId,
+          type: 'APPLICATION_STATUS',
+          content: `Unfortunately, your recent instructor application was not approved at this time.`,
+          linkUrl: '/settings/profile',
+        });
 
-      const userEmail = 'use-email@example.com'; // placeholder
-      const userName = 'user-name'; // placeholder
-
-      await this.emailService.sendApplicationDeclinedEmail({
-        email: data.userEmail,
-        userName: data.userName,
-      });
+        await this.emailService.sendApplicationDeclinedEmail({
+          email: user.email,
+          userName: data.userName,
+        });
+      }
     } catch (error) {
       logger.error('Error handling instructor.application.declined event', {
         data,

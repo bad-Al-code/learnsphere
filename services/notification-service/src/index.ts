@@ -12,6 +12,8 @@ import {
   InstructorApplicationSubmittedListener,
   UserPasswordChangedListener,
   UserPasswordResetRequiredListener,
+  UserSyncRegisteredListener,
+  UserSyncRoleUpdatedListener,
   UserVerificationRequiredListener,
   UserVerifiedListener,
 } from './events/listener';
@@ -32,6 +34,8 @@ const start = async () => {
     new InstructorApplicationSubmittedListener(emailService).listen();
     new InstructorApplicationDeclinedListener(emailService).listen();
     new InstructorApplicationApprovedListener(emailService).listen();
+    new UserSyncRegisteredListener().listen();
+    new UserSyncRoleUpdatedListener().listen();
 
     const server = http.createServer(app);
 
