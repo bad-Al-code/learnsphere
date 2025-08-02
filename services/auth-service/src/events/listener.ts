@@ -3,6 +3,7 @@ import logger from '../config/logger';
 import { SessionRepository } from '../db/session.repository';
 import { AuthService } from '../services/auth.service';
 import { rabbitMQConnection } from './connection';
+import { UserRoleUpdatedPublisher } from './publisher';
 
 interface Event {
   topic: string;
@@ -77,6 +78,9 @@ export class UserRoleUpdatedListener extends Listener<UserRoleUpdatedEvent> {
       logger.info(
         `Successfully updated role for user ${data.userId} to ${data.newRole}`
       );
+
+      const publisher = new UserRoleUpdatedPublisher();
+      await publisher.publish({ userId: data.userId, newRole: data.newRole });
 
       logger.info(
         `Invalidating all session for user ${data.userId} to force role refresh.`

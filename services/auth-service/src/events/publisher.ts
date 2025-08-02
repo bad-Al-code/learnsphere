@@ -91,3 +91,15 @@ interface UserVerifiedEvent {
 export class UserVerifiedPublisher extends Publisher<UserVerifiedEvent> {
   readonly topic = 'user.verified' as const;
 }
+
+interface UserRoleUpdatedEvent {
+  topic: 'user.role.updated';
+  data: {
+    userId: string;
+    newRole: 'student' | 'instructor' | 'admin';
+  };
+}
+
+export class UserRoleUpdatedPublisher extends Publisher<UserRoleUpdatedEvent> {
+  readonly topic = 'user.role.updated' as const;
+}
