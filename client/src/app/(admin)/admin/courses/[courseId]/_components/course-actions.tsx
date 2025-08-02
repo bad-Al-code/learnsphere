@@ -37,7 +37,7 @@ export function CourseActions({ courseId, status }: CourseActionsProps) {
     startTransition(async () => {
       const result = await action(courseId);
       if (result.error) {
-        toast.error("Action Failed", { description: result.error });
+        toast.error(result.error || "Action Failed");
       } else {
         toast.success(successMessage);
       }
@@ -48,7 +48,7 @@ export function CourseActions({ courseId, status }: CourseActionsProps) {
     startTransition(async () => {
       const result = await deleteCourse(courseId);
       if (result.error) {
-        toast.error("Delete Failed", { description: result.error });
+        toast.error(result.error || "Delete Failed");
       } else {
         toast.success("Course deleted successfully.");
         router.push("/admin/courses");
