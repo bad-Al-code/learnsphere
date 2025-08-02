@@ -50,13 +50,3 @@ learnsphere/
 │       └── production/
 └── README.md
 ```
-
-## Development Roadmap
-
-1. **Phase1: The Foundation**: Set up the local development using WSL2, Docker and a multi-node kind kuberenetes cluster.
-2. **Phase 2: The Authentication & User Core**: Build the decoupled `auth-service` and `user-service` integrated with Postgres, Redis, and RabbitMQ.
-3. **Phase 3: The Business Logic**: Develop the `course-service` and `enrollment-service` to handle the core e-learning functionality.
-4. **Phase 4: The Media Pipeline**: Implement the `video-processing-service` for asynchronouse HLS transcoding.
-5. **Phase 4: The AI superpower**: Buidl tje `ai-qna-service` for semantic search and AI-driven content generation.
-6. **Phase 6: The Grand Finale**: Provide production infrastructure on AWS with terraform and build a full CI/CD pipeline with GitHub Actions.
-7. **Phase 7: The Frontend**: Develop the user-facing React application.
