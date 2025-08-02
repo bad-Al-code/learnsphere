@@ -41,6 +41,7 @@ interface InstructorApplicationSubmittedEvent {
   data: {
     userId: string;
     userName: string;
+    userEmail: string;
     applicationData: {
       expertise: string;
     };
@@ -57,6 +58,8 @@ interface InstructorApplicationDeclinedEvent {
   topic: 'instructor.application.declined';
   data: {
     userId: string;
+    userName: string;
+    userEmail: string;
     reason?: string;
   };
 }

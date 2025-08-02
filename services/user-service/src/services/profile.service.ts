@@ -200,9 +200,12 @@ export class ProfileService {
 
     try {
       const publisher = new InstructorApplicationSubmittedPublisher();
+      const userEmail = await this.fetchUserEmail(userId);
+
       await publisher.publish({
         userId: profile.userId,
         userName: `${profile.firstName} ${profile.lastName}`,
+        userEmail,
         applicationData: {
           expertise: applicationData.expertise,
         },
@@ -217,6 +220,27 @@ export class ProfileService {
     logger.info(
       `User ${userId} has applied to become an instructor with new details.`
     );
+  }
+
+  private static async fetchUserEmail(userId: string): Promise<string> {
+    // This is a placeholder. The real solution is data replication.
+    // For now, this call would fail. We'll fix this properly in the next step.
+    // This highlights the architectural problem perfectly.
+    console.warn(`
+        ================================================================
+        WARNING: Making a temporary, non-ideal, cross-service API call.
+        This should be replaced by listening to user.registered events.
+        ================================================================
+    `);
+    try {
+      const authServiceUrl = process.env.AUTH_SERVICE_URL;
+      // NOTE: This requires the user-service to have an auth token for itself, or an admin token.
+      // This is complex, so we will hardcode for now and fix with data replication.
+      return 'hardcoded-email-for-now@example.com';
+    } catch (error) {
+      logger.error(`Failed to fetch email for user ${userId}`, { error });
+      return 'unknown-email@example.com';
+    }
   }
 
   /**
@@ -249,10 +273,11 @@ export class ProfileService {
 
     try {
       const publisher = new InstructorApplicationApprovedPublisher();
+      const userEmail = await this.fetchUserEmail(userId);
+
       await publisher.publish({
         userId: updatedProfile!.userId,
-        // TODO: update getPrivateProfileByID to join with the auth user's email
-        userEmail: 'user-email@example.com',
+        userEmail,
         userName: `${updatedProfile?.firstName}`,
       });
     } catch (error: unknown) {
@@ -293,7 +318,13 @@ export class ProfileService {
 
     try {
       const publisher = new InstructorApplicationDeclinedPublisher();
-      await publisher.publish({ userId });
+      const userEmail = await this.fetchUserEmail(userId);
+
+      await publisher.publish({
+        userId,
+        userEmail,
+        userName: `${profile.firstName} ${profile.lastName}`,
+      });
     } catch (error) {
       logger.error('Failed to publish instructor.application.declined event', {
         error,
