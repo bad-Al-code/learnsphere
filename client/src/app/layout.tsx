@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import { getCurrentUser } from "./(auth)/actions";
+import { ThemeFavicon } from "./(components)/theme-favicon";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -24,9 +25,13 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link id="favicon" rel="icon" href="/icons/theme-light.svg" />
+      </head>
       <body
         className={`${GeistSans.variable} ${GeistMono.variable} font-sans  antialiased min-h-screen bg-background`}
       >
+        <ThemeFavicon />
         <SessionProvider>
           <div className="relative mx-6 flex flex-col min-h-screen">
             <Header user={user} />
