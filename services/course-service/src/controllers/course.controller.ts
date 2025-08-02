@@ -95,15 +95,15 @@ export class CourseController {
   ): Promise<void> {
     try {
       const { courseId } = req.params;
-      const requesterId = req.currentUser?.id;
-      if (!requesterId) {
+      const requester = req.currentUser;
+      if (!requester) {
         throw new NotAuthorizedError();
       }
 
       const course = await CourseService.updateCourse(
         courseId,
         req.body,
-        requesterId
+        requester
       );
 
       res.status(StatusCodes.OK).json(course);
@@ -119,12 +119,12 @@ export class CourseController {
   ): Promise<void> {
     try {
       const { courseId } = req.params;
-      const requesterId = req.currentUser?.id;
-      if (!requesterId) {
+      const requester = req.currentUser;
+      if (!requester) {
         throw new NotAuthorizedError();
       }
 
-      await CourseService.deleteCourse(courseId, requesterId);
+      await CourseService.deleteCourse(courseId, requester);
 
       res
         .status(StatusCodes.OK)
@@ -141,12 +141,12 @@ export class CourseController {
   ): Promise<void> {
     try {
       const { courseId } = req.params;
-      const requesterId = req.currentUser?.id;
-      if (!requesterId) {
+      const requester = req.currentUser;
+      if (!requester) {
         throw new NotAuthorizedError();
       }
 
-      const course = await CourseService.publishCourse(courseId, requesterId);
+      const course = await CourseService.publishCourse(courseId, requester);
 
       res.status(StatusCodes.OK).json(course);
     } catch (error) {
@@ -161,12 +161,12 @@ export class CourseController {
   ): Promise<void> {
     try {
       const { courseId } = req.params;
-      const requesterId = req.currentUser?.id;
-      if (!requesterId) {
+      const requester = req.currentUser;
+      if (!requester) {
         throw new NotAuthorizedError();
       }
 
-      const course = await CourseService.unPublishCourse(courseId, requesterId);
+      const course = await CourseService.unPublishCourse(courseId, requester);
 
       res.status(StatusCodes.OK).json(course);
     } catch (error) {

@@ -6,6 +6,7 @@ import {
   Course,
   CourseWithInstructor,
   CreateCourseDto,
+  Requester,
   UpdateCourseDto,
 } from '../types';
 import { AuthorizationService } from './authorization.service';
@@ -135,16 +136,16 @@ export class CourseService {
   public static async updateCourse(
     courseId: string,
     data: UpdateCourseDto,
-    requesterId: string
+    requester: Requester
   ) {
-    await AuthorizationService.verifyCourseOwnership(courseId, requesterId);
+    await AuthorizationService.verifyCourseOwnership(courseId, requester);
 
     const updatedCourse = await CourseRepository.update(courseId, data);
 
     await CourseCacheService.invalidateCacheDetails(courseId);
     await CourseCacheService.invalidateCourseList();
 
-    logger.info(`Updated Course ${courseId} by user ${requesterId}`);
+    logger.info(`Updated Course ${courseId} by user ${requester.id}`);
 
     return updatedCourse;
   }
@@ -156,16 +157,16 @@ export class CourseService {
    */
   public static async deleteCourse(
     courseId: string,
-    requesterId: string
+    requester: Requester
   ): Promise<void> {
-    await AuthorizationService.verifyCourseOwnership(courseId, requesterId);
+    await AuthorizationService.verifyCourseOwnership(courseId, requester);
 
     await CourseRepository.delete(courseId);
 
     await CourseCacheService.invalidateCacheDetails(courseId);
     await CourseCacheService.invalidateCourseList();
 
-    logger.info(`Deleted course ${courseId} by user ${requesterId}`);
+    logger.info(`Deleted course ${courseId} by user ${requester.id}`);
   }
 
   /**
@@ -173,8 +174,8 @@ export class CourseService {
    * @param courseId - The ID of the course to publish.
    * @param requesterId - The ID of the user making the request.
    */
-  public static async publishCourse(courseId: string, requesterId: string) {
-    await AuthorizationService.verifyCourseOwnership(courseId, requesterId);
+  public static async publishCourse(courseId: string, requester: Requester) {
+    await AuthorizationService.verifyCourseOwnership(courseId, requester);
 
     const course = await CourseRepository.findById(courseId);
 
@@ -191,7 +192,7 @@ export class CourseService {
     await CourseCacheService.invalidateCacheDetails(courseId);
     await CourseCacheService.invalidateCourseList();
 
-    logger.info(`Published course ${courseId} by user ${requesterId}`);
+    logger.info(`Published course ${courseId} by user ${requester.id}`);
 
     return updatedCourse;
   }
@@ -201,8 +202,8 @@ export class CourseService {
    * @param courseId - The ID of the course to unpublish.
    * @param requesterId - The ID of the user making the request.
    */
-  public static async unPublishCourse(courseId: string, requesterId: string) {
-    await AuthorizationService.verifyCourseOwnership(courseId, requesterId);
+  public static async unPublishCourse(courseId: string, requester: Requester) {
+    await AuthorizationService.verifyCourseOwnership(courseId, requester);
 
     const course = await CourseRepository.findById(courseId);
     if (course?.status === 'draft') {
@@ -210,7 +211,7 @@ export class CourseService {
       return course;
     }
 
-    logger.info(`Unpulishing course ${courseId} by user ${requesterId}`);
+    logger.info(`Unpulishing course ${courseId} by user ${requester.id}`);
 
     const updatedCourse = await CourseRepository.updateStatus(
       courseId,
@@ -220,7 +221,7 @@ export class CourseService {
     await CourseCacheService.invalidateCacheDetails(courseId);
     await CourseCacheService.invalidateCourseList();
 
-    logger.info(`Unpublished course ${courseId} by user ${requesterId}`);
+    logger.info(`Unpublished course ${courseId} by user ${requester.id}`);
 
     return updatedCourse;
   }

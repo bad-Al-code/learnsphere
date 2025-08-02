@@ -4,6 +4,7 @@ import {
   ModuleRepository,
 } from '../db/repostiories';
 import { ForbiddenError, NotFoundError } from '../errors';
+import { Requester } from '../types';
 
 export class AuthorizationService {
   /**
@@ -14,15 +15,19 @@ export class AuthorizationService {
    */
   public static async verifyCourseOwnership(
     courseId: string,
-    requesterId: string
+    requester: Requester
   ): Promise<void> {
+    if (requester.role === 'admin') {
+      return;
+    }
+
     const course = await CourseRepository.findById(courseId);
 
     if (!course) {
       throw new NotFoundError('Course');
     }
 
-    if (course.instructorId !== requesterId) {
+    if (course.instructorId !== requester.id) {
       throw new ForbiddenError();
     }
   }
@@ -35,15 +40,19 @@ export class AuthorizationService {
    */
   public static async verifyModuleOwnership(
     moduleId: string,
-    requesterId: string
+    requester: Requester
   ): Promise<void> {
+    if (requester.role === 'admin') {
+      return;
+    }
+
     const parentModule = await ModuleRepository.findById(moduleId);
 
     if (!parentModule) {
       throw new NotFoundError('Module');
     }
 
-    if (parentModule.course.instructorId !== requesterId) {
+    if (parentModule.course.instructorId !== requester.id) {
       throw new ForbiddenError();
     }
   }
@@ -56,15 +65,19 @@ export class AuthorizationService {
    */
   public static async verifyLessonOwnership(
     lessonId: string,
-    requesterId: string
+    requester: Requester
   ): Promise<void> {
+    if (requester.role === 'admin') {
+      return;
+    }
+
     const lesson = await LessonRepository.findById(lessonId);
 
     if (!lesson) {
       throw new NotFoundError('Lesson');
     }
 
-    if (lesson.module.course.instructorId !== requesterId) {
+    if (lesson.module.course.instructorId !== requester.id) {
       throw new ForbiddenError();
     }
   }

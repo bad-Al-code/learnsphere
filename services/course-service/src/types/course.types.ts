@@ -25,3 +25,8 @@ export type CourseWithInstructor = Course & {
     lastName?: string | null;
   } | null;
 };
+
+export interface Requester {
+  id: string;
+  role: 'student' | 'instructor' | 'admin';
+}
