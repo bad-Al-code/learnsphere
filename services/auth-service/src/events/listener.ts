@@ -1,8 +1,10 @@
 import { ConsumeMessage } from 'amqplib';
 import logger from '../config/logger';
 import { SessionRepository } from '../db/session.repository';
+import { UserRepository } from '../db/user.repository';
 import { AuthService } from '../services/auth.service';
 import { rabbitMQConnection } from './connection';
+import { UserRoleUpdatedPublisher } from './publisher';
 
 interface Event {
   topic: string;
@@ -73,10 +75,23 @@ export class UserRoleUpdatedListener extends Listener<UserRoleUpdatedEvent> {
     logger.info(`User role update event received for user: ${data.userId}`);
 
     try {
+      const user = await UserRepository.findById(data.userId);
+      if (!user) {
+        logger.warn(`Role update event for non-existent user: ${data.userId}`);
+        return;
+      }
+
       await AuthService.updateUserRole(data.userId, data.newRole);
       logger.info(
         `Successfully updated role for user ${data.userId} to ${data.newRole}`
       );
+
+      const publisher = new UserRoleUpdatedPublisher();
+      await publisher.publish({
+        userId: data.userId,
+        newRole: data.newRole,
+        userEmail: user.email,
+      });
 
       logger.info(
         `Invalidating all session for user ${data.userId} to force role refresh.`

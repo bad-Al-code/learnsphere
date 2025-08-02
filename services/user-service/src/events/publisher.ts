@@ -24,19 +24,6 @@ export abstract class Publisher<T extends { topic: string; data: unknown }> {
   }
 }
 
-interface UserRoleUpdatedEvent {
-  topic: 'user.role.updated';
-  data: {
-    userId: string;
-    newRole: 'student' | 'instructor' | 'admin';
-    userEmail: string;
-  };
-}
-
-export class UserRoleUpdatedPublisher extends Publisher<UserRoleUpdatedEvent> {
-  readonly topic = 'user.role.updated' as const;
-}
-
 interface InstructorApplicationSubmittedEvent {
   topic: 'instructor.application.submitted';
   data: {

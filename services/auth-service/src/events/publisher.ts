@@ -97,6 +97,7 @@ interface UserRoleUpdatedEvent {
   data: {
     userId: string;
     newRole: 'student' | 'instructor' | 'admin';
+    userEmail: string;
   };
 }
 

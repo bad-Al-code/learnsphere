@@ -11,7 +11,6 @@ import {
   InstructorApplicationApprovedPublisher,
   InstructorApplicationDeclinedPublisher,
   InstructorApplicationSubmittedPublisher,
-  UserRoleUpdatedPublisher,
 } from '../events/publisher';
 
 export class ProfileService {
@@ -264,14 +263,6 @@ export class ProfileService {
     if (!this.updateProfile) {
       throw new NotFoundError('Profile');
     }
-
-    const userEmail = await this.fetchUserEmail(userId);
-    const rolePublisher = new UserRoleUpdatedPublisher();
-    await rolePublisher.publish({
-      userId: userId,
-      newRole: 'instructor',
-      userEmail,
-    });
 
     try {
       const publisher = new InstructorApplicationApprovedPublisher();

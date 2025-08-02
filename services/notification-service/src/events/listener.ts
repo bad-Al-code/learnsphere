@@ -216,7 +216,11 @@ export class UserSyncRegisteredListener extends Listener<UserRegisteredEvent> {
 
 interface UserRoleUpdatedEvent {
   topic: 'user.role.updated';
-  data: { userId: string; newRole: 'student' | 'instructor' | 'admin' };
+  data: {
+    userId: string;
+    newRole: 'student' | 'instructor' | 'admin';
+    userEmail: string;
+  };
 }
 
 export class UserSyncRoleUpdatedListener extends Listener<UserRoleUpdatedEvent> {
@@ -226,14 +230,12 @@ export class UserSyncRoleUpdatedListener extends Listener<UserRoleUpdatedEvent> 
   async onMessage(data: UserRoleUpdatedEvent['data'], _msg: ConsumeMessage) {
     try {
       logger.info(`Syncing role update for user: ${data.userId}`);
-      const user = await UserRepository.findById(data.userId);
-      if (user) {
-        await UserRepository.upsert({
-          id: data.userId,
-          email: user.email,
-          role: data.newRole,
-        });
-      }
+
+      await UserRepository.upsert({
+        id: data.userId,
+        email: data.userEmail,
+        role: data.newRole,
+      });
     } catch (error) {
       logger.error('Failed to sync user role update', { data, error });
     }
