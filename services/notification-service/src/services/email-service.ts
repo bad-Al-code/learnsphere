@@ -1,4 +1,5 @@
 import { EmailClient } from '../clients/email.client';
+import { generateApplicationSubmittedUserEmail } from '../templates/appliaction-submitted-user';
 import { generateApplicationApprovedEmail } from '../templates/application-approved.template';
 import { generateApplicationDeclinedEmail } from '../templates/application-declined.template';
 import { generateApplicationSubmittedAdminEmail } from '../templates/application-submitted.template';
@@ -151,6 +152,20 @@ export class EmailService {
       html: htmlBody,
       text: `New Instructor application from ${data.userName}. View here: ${userAdminLink}`,
       type: 'admin_notification',
+    });
+  }
+
+  public async sendApplicationSubmittedUserEmail(data: {
+    email: string;
+    userName: string;
+  }) {
+    const htmlBody = generateApplicationSubmittedUserEmail(data.userName);
+    await this.emailClient.send({
+      to: data.email,
+      subject: "We've Received Your Instructor Application",
+      html: htmlBody,
+      text: 'Thank you for your application to become an instructor on LearnSphere! We have received it and our team will review it shortly.',
+      type: 'user_notification',
     });
   }
 }

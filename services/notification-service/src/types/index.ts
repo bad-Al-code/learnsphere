@@ -39,7 +39,8 @@ export interface EmailOptions {
     | 'password_changed'
     | 'instructor_approved'
     | 'instructor_rejected'
-    | 'admin_notification';
+    | 'admin_notification'
+    | 'user_notification';
 }
 
 export type Notification = typeof notifications.$inferSelect;

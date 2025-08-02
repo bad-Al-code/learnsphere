@@ -344,6 +344,7 @@ interface InstructorApplicationSubmittedEvent {
   topic: 'instructor.application.submitted';
   data: {
     userId: string;
+    userEmail: string;
     userName: string;
     applicationData: { expertise: string };
     submittedAt: string;
@@ -363,6 +364,7 @@ export class InstructorApplicationSubmittedListener extends Listener<InstructorA
 
   async onMessage(
     data: {
+      userEmail: string;
       userId: string;
       userName: string;
       applicationData: { expertise: string };
@@ -383,11 +385,24 @@ export class InstructorApplicationSubmittedListener extends Listener<InstructorA
           linkUrl: `/admin/users/${data.userId}`,
         });
 
-        await this.emailService.sendApplicationSubmittedAdminEmail({
-          adminEmail: admin.email,
+        // await this.emailService.sendApplicationSubmittedAdminEmail({
+        //   adminEmail: admin.email,
+        //   userName: data.userName,
+        //   expertise: data.applicationData.expertise,
+        //   userId: data.userId,
+        // });
+
+        await NotificationService.createNotification({
+          recipientId: data.userId,
+          type: 'APPLICATION_STATUS',
+          content:
+            'Your instructor application has been submitted and is now under review.',
+          linkUrl: '/settings/profile',
+        });
+
+        await this.emailService.sendApplicationSubmittedUserEmail({
+          email: data.userEmail,
           userName: data.userName,
-          expertise: data.applicationData.expertise,
-          userId: data.userId,
         });
       }
     } catch (error) {
