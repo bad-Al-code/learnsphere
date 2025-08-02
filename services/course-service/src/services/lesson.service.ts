@@ -7,7 +7,7 @@ import { LessonRepository } from '../db/repostiories/lesson.repository';
 import { ModuleRepository } from '../db/repostiories/module.repository';
 import { lessons } from '../db/schema';
 import { BadRequestError, NotFoundError } from '../errors';
-import { CreateLessonDto, UpdateLessonDto } from '../types';
+import { CreateLessonDto, Requester, UpdateLessonDto } from '../types';
 import { AuthorizationService } from './authorization.service';
 import { CourseCacheService } from './course-cache.service';
 
@@ -20,14 +20,11 @@ export class LessonService {
    */
   public static async addLessonToModule(
     data: CreateLessonDto,
-    requesterId: string
+    requester: Requester
   ) {
     logger.info(`Adding lesson "${data.title}" to module ${data.moduleId}`);
 
-    await AuthorizationService.verifyModuleOwnership(
-      data.moduleId,
-      requesterId
-    );
+    await AuthorizationService.verifyModuleOwnership(data.moduleId, requester);
 
     const parentModule = await ModuleRepository.findById(data.moduleId);
     if (!parentModule) {
@@ -90,9 +87,9 @@ export class LessonService {
   public static async updateLesson(
     lessonId: string,
     data: UpdateLessonDto,
-    requesterId: string
+    requester: Requester
   ) {
-    await AuthorizationService.verifyLessonOwnership(lessonId, requesterId);
+    await AuthorizationService.verifyLessonOwnership(lessonId, requester);
 
     const lesson = await LessonRepository.findById(lessonId);
     if (!lesson) throw new NotFoundError('Lesson');
@@ -119,17 +116,17 @@ export class LessonService {
    */
   public static async deleteLesson(
     lessonId: string,
-    requesterId: string
+    requester: Requester
   ): Promise<void> {
     const lesson = await LessonRepository.findById(lessonId);
     if (!lesson) throw new NotFoundError('Lesson');
-    await AuthorizationService.verifyLessonOwnership(lessonId, requesterId);
+    await AuthorizationService.verifyLessonOwnership(lessonId, requester);
 
     await LessonRepository.delete(lessonId);
 
     await CourseCacheService.invalidateCacheDetails(lesson.module.courseId);
 
-    logger.info(`Deleted lesson ${lessonId} by user ${requesterId}`);
+    logger.info(`Deleted lesson ${lessonId} by user ${requester}`);
   }
 
   /**
@@ -140,7 +137,7 @@ export class LessonService {
    */
   public static async reorderLessons(
     orderedLessonIds: string[],
-    requesterId: string
+    requester: Requester
   ): Promise<void> {
     if (orderedLessonIds.length === 0) return;
 
@@ -157,7 +154,7 @@ export class LessonService {
         throw new Error('Lesson relation corrupted.');
       await AuthorizationService.verifyModuleOwnership(
         parentModule.id,
-        requesterId
+        requester
       );
 
       const allFromSameModule = allLessons.every(
@@ -192,9 +189,9 @@ export class LessonService {
   public static async requestVideoUploadUrl(
     lessonId: string,
     filename: string,
-    requesterId: string
+    requester: Requester
   ) {
-    await AuthorizationService.verifyLessonOwnership(lessonId, requesterId);
+    await AuthorizationService.verifyLessonOwnership(lessonId, requester);
 
     const lesson = await LessonRepository.findById(lessonId);
     if (!lesson) {

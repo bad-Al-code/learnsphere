@@ -6,19 +6,16 @@ import { CourseRepository } from '../db/repostiories';
 import { ModuleRepository } from '../db/repostiories/module.repository';
 import { modules } from '../db/schema';
 import { BadRequestError, NotFoundError } from '../errors';
-import { CreateModuleDto, UpdateModuleDto } from '../types';
+import { CreateModuleDto, Requester, UpdateModuleDto } from '../types';
 import { AuthorizationService } from './authorization.service';
 import { CourseCacheService } from './course-cache.service';
 
 export class ModuleService {
   public static async addModuleToCourse(
     data: CreateModuleDto,
-    requesterId: string
+    requester: Requester
   ) {
-    await AuthorizationService.verifyCourseOwnership(
-      data.courseId,
-      requesterId
-    );
+    await AuthorizationService.verifyCourseOwnership(data.courseId, requester);
 
     logger.info(`Adding module "${data.title}" to course ${data.courseId}`);
 
@@ -58,9 +55,9 @@ export class ModuleService {
   public static async updateModule(
     moduleId: string,
     data: UpdateModuleDto,
-    requesterId: string
+    requester: Requester
   ) {
-    await AuthorizationService.verifyModuleOwnership(moduleId, requesterId);
+    await AuthorizationService.verifyModuleOwnership(moduleId, requester);
 
     const updatedModule = await ModuleRepository.update(moduleId, data);
     const parentCourseId = (await ModuleRepository.findById(moduleId))!.course
@@ -71,23 +68,23 @@ export class ModuleService {
     return updatedModule;
   }
 
-  public static async deleteModule(moduleId: string, requesterId: string) {
+  public static async deleteModule(moduleId: string, requester: Requester) {
     const parentModule = await ModuleRepository.findById(moduleId);
     if (!parentModule) {
       throw new NotFoundError('Module');
     }
-    await AuthorizationService.verifyModuleOwnership(moduleId, requesterId);
+    await AuthorizationService.verifyModuleOwnership(moduleId, requester);
 
     await ModuleRepository.delete(moduleId);
 
     await CourseCacheService.invalidateCacheDetails(parentModule.courseId);
 
-    logger.info(`Deleted module ${moduleId} by user ${requesterId}`);
+    logger.info(`Deleted module ${moduleId} by user ${requester}`);
   }
 
   public static async reorderModules(
     orderModuleIds: string[],
-    requesterId: string
+    requester: Requester
   ): Promise<void> {
     if (orderModuleIds.length === 0) {
       return;
@@ -104,7 +101,7 @@ export class ModuleService {
       const parentCourseId = allModules[0].course.id;
       await AuthorizationService.verifyCourseOwnership(
         parentCourseId,
-        requesterId
+        requester
       );
 
       const allModulesFromSameCourse = allModules.every(

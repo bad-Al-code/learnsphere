@@ -13,14 +13,14 @@ export class LessonController {
     try {
       const { moduleId } = req.params;
       const lessonData = req.body;
-      const requesterId = req.currentUser?.id;
-      if (!requesterId) {
+      const requester = req.currentUser;
+      if (!requester) {
         throw new NotAuthorizedError();
       }
 
       const lesson = await LessonService.addLessonToModule(
         { ...lessonData, moduleId },
-        requesterId
+        requester
       );
 
       res.status(StatusCodes.CREATED).json(lesson);
@@ -49,15 +49,16 @@ export class LessonController {
   ): Promise<void> {
     try {
       const { lessonId } = req.params;
-      const requesterId = req.currentUser?.id;
-      if (!requesterId) {
+      const requester = req.currentUser;
+
+      if (!requester) {
         throw new NotAuthorizedError();
       }
 
       const updatedLesson = await LessonService.updateLesson(
         lessonId,
         req.body,
-        requesterId
+        requester
       );
       res.status(StatusCodes.OK).json(updatedLesson);
     } catch (error) {
@@ -72,12 +73,12 @@ export class LessonController {
   ): Promise<void> {
     try {
       const { lessonId } = req.params;
-      const requesterId = req.currentUser?.id;
-      if (!requesterId) {
+      const requester = req.currentUser;
+      if (!requester) {
         throw new NotAuthorizedError();
       }
 
-      await LessonService.deleteLesson(lessonId, requesterId);
+      await LessonService.deleteLesson(lessonId, requester);
       res
         .status(StatusCodes.OK)
         .json({ message: 'Lesson deleted successfully' });
@@ -93,12 +94,12 @@ export class LessonController {
   ): Promise<void> {
     try {
       const { ids } = req.body;
-      const requesterId = req.currentUser?.id;
-      if (!requesterId) {
+      const requester = req.currentUser;
+      if (!requester) {
         throw new NotAuthorizedError();
       }
 
-      await LessonService.reorderLessons(ids, requesterId);
+      await LessonService.reorderLessons(ids, requester);
       res
         .status(StatusCodes.OK)
         .json({ message: 'Lessons reordered successfully' });
@@ -115,15 +116,15 @@ export class LessonController {
     try {
       const { lessonId } = req.params;
       const { filename } = req.body;
-      const requesterId = req.currentUser?.id;
-      if (!requesterId) {
+      const requester = req.currentUser;
+      if (!requester) {
         throw new NotAuthorizedError();
       }
 
       const uploadData = await LessonService.requestVideoUploadUrl(
         lessonId,
         filename,
-        requesterId
+        requester
       );
 
       res.status(StatusCodes.OK).json(uploadData);

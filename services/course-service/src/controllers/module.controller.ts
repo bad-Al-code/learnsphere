@@ -12,14 +12,14 @@ export class ModuleController {
     try {
       const { courseId } = req.params;
       const { title } = req.body;
-      const requesterId = req.currentUser?.id;
-      if (!requesterId) {
+      const requester = req.currentUser;
+      if (!requester) {
         throw new NotAuthorizedError();
       }
 
       const module = await ModuleService.addModuleToCourse(
         { title, courseId },
-        requesterId
+        requester
       );
 
       res.status(StatusCodes.CREATED).json(module);
@@ -50,15 +50,15 @@ export class ModuleController {
     try {
       const { moduleId } = req.params;
       const { title } = req.body;
-      const requesterId = req.currentUser?.id;
-      if (!requesterId) {
+      const requester = req.currentUser;
+      if (!requester) {
         throw new NotAuthorizedError();
       }
 
       const updatedModule = await ModuleService.updateModule(
         moduleId,
         { title },
-        requesterId
+        requester
       );
       res.status(StatusCodes.OK).json(updatedModule);
     } catch (error) {
@@ -73,12 +73,12 @@ export class ModuleController {
   ): Promise<void> {
     try {
       const { moduleId } = req.params;
-      const requesterId = req.currentUser?.id;
-      if (!requesterId) {
+      const requester = req.currentUser;
+      if (!requester) {
         throw new NotAuthorizedError();
       }
 
-      await ModuleService.deleteModule(moduleId, requesterId);
+      await ModuleService.deleteModule(moduleId, requester);
       res
         .status(StatusCodes.OK)
         .json({ message: 'Module deleted successfully' });
@@ -94,12 +94,12 @@ export class ModuleController {
   ): Promise<void> {
     try {
       const { ids } = req.body;
-      const requesterId = req.currentUser?.id;
-      if (!requesterId) {
+      const requester = req.currentUser;
+      if (!requester) {
         throw new NotAuthorizedError();
       }
 
-      await ModuleService.reorderModules(ids, requesterId);
+      await ModuleService.reorderModules(ids, requester);
       res
         .status(StatusCodes.OK)
         .json({ message: 'Modules reordered successfully' });
