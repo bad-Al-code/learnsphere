@@ -87,7 +87,7 @@ export function Header({ user: initialUser }: { user: User }) {
             </SheetTrigger>
             <SheetContent
               side="left"
-              className="w-64 sm:w-80p px-4 flex justify-between bg-background/95  backdrop-blur supports-[backdrop-filter]:bg-background/60"
+              className="w-64 sm:w-80p px-4 flex justify-between bg-background/95  backdrop-blur supports-[backdrop-filter]:bg-background/50"
             >
               <div className="flex flex-col">
                 <SheetHeader>
