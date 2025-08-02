@@ -16,7 +16,7 @@ export default async function AdminDashboardPage() {
       {/* Stat Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Link href="/admin/users">
-          <Card className="hover:bg-muted/50 transition-colors">
+          <Card className="hover:bg-muted transition-colors">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -30,7 +30,7 @@ export default async function AdminDashboardPage() {
         </Link>
 
         <Link href="/admin/courses">
-          <Card className="hover:bg-muted/50 transition-colors">
+          <Card className="hover:bg-muted transition-colors">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Total Courses
@@ -46,7 +46,7 @@ export default async function AdminDashboardPage() {
         </Link>
 
         <Link href="/admin/users?status=pending_instructor_review">
-          <Card className="hover:bg-muted/50 transition-colors">
+          <Card className="hover:bg-muted transition-colors">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Pending Instructor Applications
