@@ -61,10 +61,7 @@ export function CourseActions({ courseId, status }: CourseActionsProps) {
       {status === "draft" ? (
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button
-              // onClick={() => handleAction(publishCourse, "Course published!")}
-              disabled={isPending}
-            >
+            <Button variant="default" disabled={isPending}>
               Publish
             </Button>
           </AlertDialogTrigger>
@@ -129,7 +126,10 @@ export function CourseActions({ courseId, status }: CourseActionsProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive hover:bg-destructive/90 cursor-pointer"
+            >
               Confirm Delete
             </AlertDialogAction>
           </AlertDialogFooter>
