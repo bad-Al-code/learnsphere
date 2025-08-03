@@ -103,7 +103,7 @@ export function CourseActions({ courseId, status }: CourseActionsProps) {
                   handleAction(unpublishCourse, "Course unpublished")
                 }
               >
-                Confirm Publish
+                Confirm Unpublish
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
