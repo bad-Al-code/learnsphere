@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
+import { ThemeProvider } from "next-themes";
 import { getCurrentUser } from "./(auth)/actions";
 import { ThemeFavicon } from "./(components)/theme-favicon";
 import "./globals.css";
@@ -34,11 +35,18 @@ export default async function RootLayout({
       >
         <ThemeFavicon />
         <SessionProvider>
-          <div className="relative mx-6 flex flex-col min-h-screen">
-            <Header user={user} />
-            <main className="flex-1">{children}</main>
-            <Toaster />
-          </div>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <div className="relative mx-6 flex flex-col min-h-screen">
+              <Header user={user} />
+              <main className="flex-1">{children}</main>
+              <Toaster />
+            </div>
+          </ThemeProvider>
         </SessionProvider>
         <SessionRefresher />
       </body>

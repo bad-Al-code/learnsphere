@@ -22,6 +22,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { Logo } from "../shared/logo";
+import { ModeToggle } from "../shared/mode-toggle";
 import { Button } from "../ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "../ui/sheet";
 import { InstructorApplyButton } from "./instructor-apply-button";
@@ -79,6 +80,8 @@ export function Header({ user: initialUser }: { user: User }) {
         </nav>
 
         <div className="flex sm:hidden col-span-8 items-end justify-end">
+          <ModeToggle />
+
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -217,6 +220,7 @@ export function Header({ user: initialUser }: { user: User }) {
               <div className="ml-2">
                 <InstructorApplyButton />
               </div>
+              <ModeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger
                   asChild
