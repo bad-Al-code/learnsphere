@@ -34,7 +34,7 @@ const formSchema = z.object({
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const [submitted, setSubmitted] = useState(false);
+  const [submitted, _setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
