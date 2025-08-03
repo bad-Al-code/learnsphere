@@ -37,19 +37,6 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
     };
   }, [src]);
 
-  const handleTogglePlay = () => {
-    const videoNode = videoRef.current;
-    if (!videoNode) return;
-
-    if (videoNode.paused) {
-      videoNode.play();
-      setIsPlaying(true);
-    } else {
-      videoNode.pause();
-      setIsPlaying(false);
-    }
-  };
-
   useEffect(() => {
     const videoNode = videoRef.current;
     if (!videoNode) return;
@@ -66,42 +53,44 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
     };
   }, []);
 
-  const handleMouseEnter = () => {
-    if (isPlaying) {
-      setShowControls(true);
+  const handleTogglePlay = () => {
+    const videoNode = videoRef.current;
+    if (!videoNode) return;
+
+    if (videoNode.paused) {
+      videoNode.play();
+    } else {
+      videoNode.pause();
     }
   };
 
+  const handleMouseEnter = () => {
+    if (isPlaying) setShowControls(true);
+  };
+
   const handleMouseLeave = () => {
-    if (isPlaying) {
-      setShowControls(false);
-    }
+    if (isPlaying) setShowControls(false);
   };
 
   return (
     <div className="w-full group">
       <AspectRatio
         ratio={16 / 9}
-        className="bg-black rounded-lg overflow-hidden relative"
+        className=" rounded-sm overflow-hidden relative"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <video
-          ref={videoRef}
-          onClick={handleTogglePlay}
-          className="w-full h-full cursor-pointer"
-        />
+        <video ref={videoRef} className="w-full h-full rounded-sm" />
 
-        {(showControls || !isPlaying) && (
-          <div className="absolute inset-0 flex items-center justify-center transition-opacity">
-            <button
-              onClick={handleTogglePlay}
-              className="p-4 bg-black/50 rounded-full text-white hover:bg-black/60 transition-colors"
-            >
-              {isPlaying ? <Pause size={32} /> : <Play size={32} />}
-            </button>
-          </div>
-        )}
+        <div className="absolute inset-0 " onClick={handleTogglePlay}>
+          {(showControls || !isPlaying) && (
+            <div className="absolute inset-0 flex items-center justify-center bg-opacity-90 transition-opacity">
+              <button className="p-4 bg-black/50 rounded-full text-white hover:bg-black/60 transition-colors  cursor-pointer">
+                {isPlaying ? <Pause size={32} /> : <Play size={32} />}
+              </button>
+            </div>
+          )}
+        </div>
       </AspectRatio>
     </div>
   );
