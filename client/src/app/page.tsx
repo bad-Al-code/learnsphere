@@ -1,8 +1,10 @@
+import { VideoPlayer } from "@/components/shared/video-player";
 import { getCurrentUser } from "./(auth)/actions";
 import { HomepageClient } from "./(components)/homepage-client";
 
 export default async function Home() {
   const user = await getCurrentUser();
+  const testVideoUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
 
   return (
     <>
@@ -11,6 +13,10 @@ export default async function Home() {
         <p className="mt-4">
           This is the homepage. Explore our courses and start learning!
         </p>
+
+        <div className="container mt-4 max-w-4xl mx-auto">
+          <VideoPlayer src={testVideoUrl} />
+        </div>
       </main>
 
       <HomepageClient user={user} />

@@ -27,6 +27,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "geist": "^1.4.2",
+    "hls.js": "^1.6.7",
     "input-otp": "^1.4.2",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
@@ -47,6 +48,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/hls.js": "^1.0.0",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^20",
     "@types/react": "^19",
