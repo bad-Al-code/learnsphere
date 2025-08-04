@@ -1,8 +1,8 @@
 import { eq, inArray } from 'drizzle-orm';
 
+import { Lesson, NewLesson, UpdateLessonDto } from '../../types';
 import { db } from '../index';
 import { lessons, textLessonContent } from '../schema';
-import { NewLesson, Lesson, UpdateLessonDto } from '../../types';
 
 export class LessonRepository {
   /**
@@ -35,7 +35,7 @@ export class LessonRepository {
   public static async findByIdWithContent(lessonId: string) {
     return db.query.lessons.findFirst({
       where: eq(lessons.id, lessonId),
-      with: { textContent: true },
+      with: { textContent: true, module: true },
     });
   }
 

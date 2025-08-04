@@ -8,7 +8,6 @@ export async function checkEnrollmentStatus(courseId: string) {
     if (!response.ok) return null;
 
     const result = await response.json();
-    console.log(result);
 
     return result;
   } catch (error) {
@@ -20,7 +19,9 @@ export async function getLessonDetails(lessonId: string) {
   try {
     const response = await courseService.get(`/api/lessons/${lessonId}`);
     if (!response.ok) return null;
-    return await response.json();
+
+    const result = await response.json();
+    return result;
   } catch (error) {
     console.error(`Error fetching lesson details for ${lessonId}:`, error);
     return null;
