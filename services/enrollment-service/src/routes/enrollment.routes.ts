@@ -128,6 +128,37 @@ router.post(
 
 /**
  * @openapi
+ * /api/enrollments/check/{courseId}:
+ *   get:
+ *     summary: Check if the current user is enrolled in a specific course
+ *     tags: [Student Enrollments]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the course to check enrollment for
+ *     responses:
+ *       '200':
+ *         description: The user is actively enrolled in the course.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Enrollment'
+ *       '404':
+ *         description: Enrollment not found or inactive
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.get('/check/:courseId', requireAuth, EnrollmentService.checkEnrollment);
+
+/**
+ * @openapi
  * /api/enrollments/{enrollmentId}/reset-progress:
  *   post:
  *     summary: Reset the progress for an enrollment (student's own)

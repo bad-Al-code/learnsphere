@@ -1,5 +1,7 @@
 import axios, { isAxiosError } from 'axios';
 import { count, eq } from 'drizzle-orm';
+import { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
 
 import logger from '../config/logger';
 import { db } from '../db';
@@ -93,6 +95,29 @@ export class EnrollmentService {
     return prerequisiteEnrollment?.status === 'completed';
   }
 
+  public static async checkEnrollment(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userId = req.currentUser!.id;
+      const { courseId } = req.params;
+      const enrollment = await EnrollRepository.findByUserAndCourse(
+        userId,
+        courseId
+      );
+
+      if (!enrollment || enrollment.status !== 'active') {
+        throw new NotFoundError('Enrollment');
+      }
+
+      res.status(StatusCodes.OK).json(enrollment);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public static async enrollUserInCourse({
     userId,
     courseId,
@@ -122,7 +147,9 @@ export class EnrollmentService {
         const prereqCourse = await this.getCourseManualEnrollment(
           course.prerequisiteCourseId
         );
-        throw new ForbiddenError(`Enrollment failed. Pleasse complete the prerequistics course: ${prereqCourse}`)
+        throw new ForbiddenError(
+          `Enrollment failed. Pleasse complete the prerequistics course: ${prereqCourse}`
+        );
       }
 
       logger.info(
