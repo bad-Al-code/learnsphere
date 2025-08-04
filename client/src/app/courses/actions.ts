@@ -1,6 +1,8 @@
 "use server";
 
-import { courseService } from "@/lib/api";
+import { courseService, enrollmentService } from "@/lib/api";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "../(auth)/actions";
 
 export async function getPublicCourses({
   page = 1,
@@ -43,7 +45,6 @@ export async function getCourseDetails(courseId: string) {
     }
 
     const result = await response.json();
-    console.log(result);
 
     return result;
   } catch (error) {
@@ -51,4 +52,32 @@ export async function getCourseDetails(courseId: string) {
 
     return null;
   }
+}
+
+export async function enrollInCourse(courseId: string) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: "You must log in to enroll." };
+  }
+
+  try {
+    const response = await enrollmentService.post(`/api/enrollments`, {
+      courseId: courseId,
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+
+      throw new Error(
+        data.errors?.[0]?.message || "Failed to enroll in the course."
+      );
+    }
+
+    const result = await response.json();
+    console.log(result);
+  } catch (error: any) {
+    return { error: error.message };
+  }
+
+  redirect(`/learn/${courseId}`);
 }

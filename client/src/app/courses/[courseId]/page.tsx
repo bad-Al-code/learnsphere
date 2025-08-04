@@ -1,9 +1,7 @@
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Curriculum } from "../_components/curriculum";
+import { EnrollButton } from "../_components/enroll-button";
 import { getCourseDetails } from "../actions";
 
 const getInitials = (firstName?: string | null, lastName?: string | null) => {
@@ -72,11 +70,7 @@ export default async function CourseDetailPage({
 
             <div className="space-y-2">
               <h2 className="text-xl md:text-2xl font-bold">Free</h2>
-              <Button asChild size="lg" className="w-full">
-                <Link href={`/login?from=/courses/${course.id}`}>
-                  Enroll Now
-                </Link>
-              </Button>
+              <EnrollButton courseId={course.id} />
             </div>
 
             <div className="text-sm text-muted-foreground space-y-2 border-t pt-4">
