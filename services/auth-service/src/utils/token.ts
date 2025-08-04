@@ -25,9 +25,11 @@ export const attachCookiesToResponse = (
       { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] }
     );
 
+    const oneDay = 24 * 60 * 60 * 1000;
+
     const accessTokenCookieOptions = {
       httpOnly: true,
-      expires: new Date(Date.now() + 15 * 60 * 1000),
+      expires: new Date(Date.now() + oneDay * 1),
       // secure: process.env.NODE_ENV === "production",
       secure: env.NODE_ENV === 'production',
       signed: true,
