@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/card";
 import { Suspense } from "react";
 import { CourseCard } from "./_components/course-card";
+import { PaginationControls } from "./_components/pagination-controls";
 import { getPublicCourses } from "./actions";
 
 interface CoursesPageProps {
@@ -41,6 +42,8 @@ async function CoursesList({ searchParams }: CoursesPageProps) {
           <CourseCard key={course.id} course={course} />
         ))}
       </div>
+
+      <PaginationControls totalPages={pagination.totalPages} />
     </>
   );
 }

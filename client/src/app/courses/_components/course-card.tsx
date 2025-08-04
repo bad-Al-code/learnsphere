@@ -18,7 +18,7 @@ const getInitials = (firstName?: string | null, lastName?: string | null) => {
 export function CourseCard({ course }: { course: Course }) {
   return (
     <Link href={`/courses/${course.id}`}>
-      <Card className="h-full flex flex-col hover:border-primary/50 transition-all">
+      <Card className="h-full flex flex-col hover:border-primary/30 transition-all">
         <CardHeader>
           <CardTitle className="line-clam2"> {course.title}</CardTitle>
         </CardHeader>
