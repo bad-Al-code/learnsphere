@@ -137,9 +137,20 @@ function EnterCodeComponent({ email }: { email: string }) {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? "Verifying..." : "Continue"}
-              </Button>
+
+              <div className="flex items-center gap-x-4 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-auto whitespace-nowrap"
+                  onClick={() => router.back()}
+                >
+                  Back
+                </Button>
+                <Button type="submit" className="flex-1" disabled={isPending}>
+                  {isPending ? "Verifying..." : "Continue"}
+                </Button>
+              </div>
               {error && (
                 <p className="text-center text-sm font-medium text-destructive">
                   {error}

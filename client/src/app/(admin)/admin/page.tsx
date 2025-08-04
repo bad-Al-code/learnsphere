@@ -69,7 +69,8 @@ export default async function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Recent activity feed will be displayed here.
+              Recent activity feed will be displayed here.{" "}
+              <code className="font-bold">WIP</code>
             </p>
           </CardContent>
         </Card>

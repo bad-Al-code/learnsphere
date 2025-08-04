@@ -76,7 +76,7 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
     <div className="w-full group">
       <AspectRatio
         ratio={16 / 9}
-        className=" rounded-sm overflow-hidden relative"
+        className="bg-foreground dark:bg-foreground/10 rounded-sm overflow-hidden relative"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >

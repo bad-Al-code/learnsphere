@@ -1,5 +1,4 @@
 import { Header } from "@/components/layout/header";
-import { SessionProvider } from "@/components/layout/session-provider";
 import { SessionRefresher } from "@/components/layout/session-refresher";
 import { Toaster } from "@/components/ui/sonner";
 import { GeistMono } from "geist/font/mono";
@@ -34,20 +33,18 @@ export default async function RootLayout({
         className={`${GeistSans.variable} ${GeistMono.variable} font-sans  antialiased min-h-screen bg-background`}
       >
         <ThemeFavicon />
-        <SessionProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <div className="relative mx-6 flex flex-col min-h-screen">
-              <Header user={user} />
-              <main className="flex-1">{children}</main>
-              <Toaster />
-            </div>
-          </ThemeProvider>
-        </SessionProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <div className="relative mx-6 flex flex-col min-h-screen">
+            <Header user={user} />
+            <main className="flex-1">{children}</main>
+            <Toaster />
+          </div>
+        </ThemeProvider>
         <SessionRefresher />
       </body>
     </html>

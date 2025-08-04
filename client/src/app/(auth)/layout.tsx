@@ -10,7 +10,7 @@ export default function AuthLayout({
       {/* Background SVG */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="mask-80 animate-show pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover object-center"
+        className="animate-show pointer-events-none absolute inset-0 -z-10 h-full w-full bg-none mask-radial-from-muted-foreground"
       >
         <defs>
           <linearGradient>
@@ -62,7 +62,7 @@ export default function AuthLayout({
               rx="6"
               ry="6"
               stroke="orange"
-              strokeOpacity="0.175"
+              strokeOpacity="0.25"
             ></rect>
           </pattern>
         </defs>

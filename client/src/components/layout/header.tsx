@@ -270,6 +270,7 @@ export function Header({ user: initialUser }: { user: User }) {
             </>
           ) : (
             <div className="flex items-center space-x-2">
+              <ModeToggle />
               <Button asChild variant="ghost">
                 <Link href="/login">Login</Link>
               </Button>

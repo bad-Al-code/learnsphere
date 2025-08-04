@@ -13,7 +13,7 @@ export default function AdminCourseDetailPage({
   params: { courseId: string };
 }) {
   return (
-    <Suspense fallback={<p>Loading course details...</p>}>
+    <Suspense fallback={<CourseDetailsSkeleton />}>
       <CourseDetailComponent courseId={params.courseId} />
     </Suspense>
   );
@@ -106,6 +106,25 @@ async function CourseDetailComponent({ courseId }: { courseId: string }) {
           </ul>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function CourseDetailsSkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <div className="h-10 w-full max-w-sm bg-muted rounded-md animate-pulse"></div>
+        <div className="h-10 w-20 bg-muted rounded-md animate-pulse"></div>
+      </div>
+      <div className="border rounded-lg">
+        <div className="h-12 w-full bg-muted rounded-t-md animate-pulse"></div>
+        <div className="space-y-2 p-4">
+          <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
+          <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
+          <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
+        </div>
+      </div>
     </div>
   );
 }

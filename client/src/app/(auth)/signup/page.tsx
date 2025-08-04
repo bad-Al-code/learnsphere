@@ -100,14 +100,15 @@ export default function SignupPage() {
             </Button>
           </div>
 
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t"></span>
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <div className="bg-background px-2 text-muted-foreground">OR</div>
-            </div>
+          <div className="flex items-center my-4 space-x-2">
+            <div className="w-full bg-foreground/20 border-b mask-l-from-0%"></div>
+
+            <span className="text-xs justify-center items-center uppercase">
+              or
+            </span>
+            <div className="w-full bg-foreground/20 border-b mask-r-from-0"></div>
           </div>
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">

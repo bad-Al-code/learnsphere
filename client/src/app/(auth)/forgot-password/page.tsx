@@ -119,7 +119,7 @@ export default function ForgotPasswordPage() {
                 </Button>
 
                 <Button type="submit" className="flex-1" disabled={isPending}>
-                  {isPending ? "Sending..." : "Send Reset Link"}
+                  {isPending ? "Sending..." : "Reset Password"}
                 </Button>
               </div>
 

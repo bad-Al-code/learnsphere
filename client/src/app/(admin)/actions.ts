@@ -251,8 +251,6 @@ export async function searchUsers(args: SearchUsersArgs) {
       params.set("status", status);
     }
 
-    console.log("SearchParams: ", params.toString());
-
     const response = await userService.get(
       `/api/users/search?${params.toString()}`
     );
@@ -264,7 +262,6 @@ export async function searchUsers(args: SearchUsersArgs) {
     }
 
     const result = await response.json();
-    console.log("SearchUser Response: ", result);
     return result;
   } catch (error: any) {
     console.error("Error searching users:", error);
