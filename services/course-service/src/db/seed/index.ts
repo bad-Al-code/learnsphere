@@ -22,11 +22,16 @@ const hardcodedInstructorIds = [
 ];
 
 const realHlsUrls = [
-  'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-  'https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/gear4/prog_index.m3u8',
+  'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8',
+  'https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8',
+  'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.mp4/.m3u8',
   'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
+  'https://moctobpltc-i.akamaihd.net/hls/live/571329/eight/playlist.m3u8',
   'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
-  'https://mojenjem.com/hls/movie.m3u8',
+  'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+  'https://test-streams.mux.dev/dai-discontinuity-deltatre/manifest.m3u8',
+  'https://ireplay.tv/test/blender.m3u8',
+  'https://res.cloudinary.com/dannykeane/video/upload/sp_full_hd/q_80:qmax_90,ac_none/v1/dk-memoji-dark.m3u8',
 ];
 
 async function seedCourses(): Promise<string[]> {
