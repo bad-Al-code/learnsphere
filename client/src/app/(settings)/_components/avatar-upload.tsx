@@ -121,16 +121,14 @@ export function AvatarUpload({
 
       {displayUrl && (
         <>
-          <DialogContent className="max-w-md p-0.5 shadow-2xl/20">
-            <div className=" flex justify-center">
-              <Image
-                src={displayUrl}
-                alt="User avatar preview"
-                width={800}
-                height={800}
-                className="rounded-md object-cover"
-              />
-            </div>
+          <DialogContent className="p-0.5 shadow-2xl/20">
+            <Image
+              src={displayUrl}
+              alt="User avatar preview"
+              width={800}
+              height={800}
+              className="rounded-md object-cover"
+            />
           </DialogContent>
         </>
       )}

@@ -41,6 +41,7 @@ export const updateProfileSchema = profileFormSchema.transform((data) => {
 });
 
 export const onboardingFormSchema = profileFormSchema.pick({
+  email: true,
   headline: true,
   bio: true,
   websiteUrl: true,

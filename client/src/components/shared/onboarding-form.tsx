@@ -23,6 +23,7 @@ import { Github, Linkedin, Twitter } from "lucide-react";
 
 interface OnboardingFormProps {
   userData: {
+    email: string;
     headline: string | null;
     bio: string | null;
     websiteUrl: string | null;
@@ -42,6 +43,7 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
   const form = useForm<OnboardingFormValues>({
     resolver: zodResolver(onboardingFormSchema),
     defaultValues: {
+      email: userData.email,
       headline: userData.headline || "",
       bio: userData.bio || "",
       websiteUrl: userData.websiteUrl || "",
@@ -58,7 +60,7 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
       const result = await completeOnboarding(values);
 
       if (result?.error) {
-        toast.error("Update Failed");
+        toast.error(result.error || "Update Failed");
       } else {
         toast.success("Profile completed!");
         if (onSuccess) {

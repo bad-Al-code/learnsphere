@@ -12,6 +12,7 @@ import { OnboardingForm } from "./onboarding-form";
 interface OnboardingModalProps {
   user: {
     firstName: string | null;
+    email: string;
     headline: string | null;
     bio: string | null;
     websiteUrl: string | null;
