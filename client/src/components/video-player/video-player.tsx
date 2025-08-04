@@ -211,7 +211,11 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
         onMouseLeave={handleMouseLeave}
         onClick={handleTogglePlay}
       >
-        <video ref={videoRef} className="w-full h-full rounded-sm" />
+        <video
+          ref={videoRef}
+          controls={false}
+          className="w-full h-full rounded-sm"
+        />
 
         <div
           className={cn(
