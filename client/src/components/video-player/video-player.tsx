@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import Hls from "hls.js";
 import { Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { ProgressBar } from "./progress-bar";
+import { Controls } from "./control";
 
 interface VideoPlayerProps {
   src: string;
@@ -17,6 +17,8 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
   const [showControls, setShowControls] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
     let hls: Hls | null = null;
@@ -78,6 +80,43 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
     };
   }, []);
 
+  useEffect(() => {
+    const videoNode = videoRef.current;
+    if (!videoNode) return;
+
+    const onVolumeChange = () => {
+      setVolume(videoNode.volume);
+      setIsMuted(videoNode.muted);
+    };
+
+    videoNode.addEventListener("volumechange", onVolumeChange);
+
+    return () => {
+      videoNode.removeEventListener("volumechange", onVolumeChange);
+    };
+  }, []);
+
+  const handleVolumeChange = (newVolume: number) => {
+    const videoNode = videoRef.current;
+    if (!videoNode) return;
+
+    videoNode.volume = newVolume;
+    setVolume(newVolume);
+
+    if (newVolume > 0 && isMuted) {
+      videoNode.muted = false;
+      setIsMuted(false);
+    }
+  };
+
+  const handleMuteToggle = () => {
+    const videoNode = videoRef.current;
+    if (!videoNode) return;
+
+    videoNode.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
+
   const handleSeek = (time: number) => {
     const videoNode = videoRef.current;
     if (videoNode) {
@@ -137,18 +176,16 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
         </div>
       </AspectRatio>
 
-      <div
-        className={cn(
-          "absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent transition-opacity",
-          isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"
-        )}
-      >
-        <ProgressBar
-          currentTime={currentTime}
-          duration={duration}
-          onSeek={handleSeek}
-        />
-      </div>
+      <Controls
+        isPlaying={isPlaying}
+        volume={volume}
+        isMuted={isMuted}
+        currentTime={currentTime}
+        duration={duration}
+        onSeek={handleSeek}
+        onVolumeChange={handleVolumeChange}
+        onMuteToggle={handleMuteToggle}
+      />
     </div>
   );
 }
