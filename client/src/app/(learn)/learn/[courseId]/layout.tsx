@@ -1,6 +1,7 @@
-import { checkEnrollmentStatus, getCourseDetails } from "@/app/courses/actions";
+import { getCourseDetails } from "@/app/courses/actions";
 import { redirect } from "next/navigation";
 import { CourseSidebar } from "../../_components/course-sidebar";
+import { checkEnrollmentStatus } from "../../actions";
 
 export default async function LearnLayout({
   children,

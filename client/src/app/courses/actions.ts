@@ -81,19 +81,3 @@ export async function enrollInCourse(courseId: string) {
 
   redirect(`/learn/${courseId}`);
 }
-
-export async function checkEnrollmentStatus(courseId: string) {
-  try {
-    const response = await enrollmentService.get(
-      `/api/enrollments/check/${courseId}`
-    );
-    if (!response.ok) return null;
-
-    const result = await response.json();
-    console.log(result);
-
-    return result;
-  } catch (error) {
-    return null;
-  }
-}
