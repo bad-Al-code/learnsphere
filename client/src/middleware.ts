@@ -6,7 +6,7 @@ const AUTH_ROUTES = [
   "/signup",
   "/forgot-password",
   "/reset-password",
-  "/verify-email",
+  // "/verify-email",
 ];
 const PROTECTED_ROUTES = ["/settings", "/courses"];
 

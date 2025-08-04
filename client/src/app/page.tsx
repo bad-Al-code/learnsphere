@@ -1,4 +1,4 @@
-import { VideoPlayer } from "@/components/shared/video-player";
+import { VideoPlayer } from "@/components/video-player/video-player";
 import { getCurrentUser } from "./(auth)/actions";
 import { HomepageClient } from "./(components)/homepage-client";
 
