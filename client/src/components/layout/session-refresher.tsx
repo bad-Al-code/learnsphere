@@ -27,7 +27,7 @@ export function SessionRefresher() {
         const payload = jwtDecode<JwtPayload>(token);
         const expiresAt = payload.exp * 1000;
         const now = Date.now();
-        const threshold = REFRESH_THRESHOLD_MINUTES * 60 * 1000;
+        const threshold = REFRESH_THRESHOLD_MINUTES * 60 * 60 * 1000;
 
         if (expiresAt - now < threshold) {
           console.log("Token is nearing expiration. Attempting refresh...");
