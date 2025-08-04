@@ -1,16 +1,16 @@
 import { faker } from '@faker-js/faker';
-import { db } from '.';
-import { rabbitMQConnection } from '../events/connection';
-import { UserRegisteredPublisher } from '../events/publisher';
-import { users } from './schema';
+import { db } from '..';
+import { rabbitMQConnection } from '../../events/connection';
+import { UserRegisteredPublisher } from '../../events/publisher';
+import { users } from '../schema';
 
-type ROLE = 'student' | 'instructor';
+type ROLE = 'admin' | 'student' | 'instructor';
 
 function getRandomRole(): ROLE {
-  return faker.helpers.arrayElement(['instructor']);
+  return faker.helpers.arrayElement(['student']);
 }
 
-async function seedUsers(count = 10) {
+async function seedUsers(count = 50) {
   await rabbitMQConnection.connect();
 
   for (let i = 0; i < count; i++) {
@@ -41,9 +41,16 @@ async function seedUsers(count = 10) {
       avatarUrl,
     });
 
-    console.log(`${count} users seeded and events emitted.`);
-
-    console.log(user.id);
+    console.log(`User ${i + 1} created: ${user.email}`);
   }
+
+  await rabbitMQConnection.close();
+
+  console.log('All users seeded and events emitted.');
+  process.exit(0);
 }
-seedUsers().catch(console.error);
+
+seedUsers().catch((err) => {
+  console.error('Error seeding users:', err);
+  process.exit(1);
+});
