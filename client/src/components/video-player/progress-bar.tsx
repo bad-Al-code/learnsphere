@@ -34,17 +34,18 @@ export function ProgressBar({
   };
 
   return (
-    <div className="w-full flex flex-col gap-3 text-white group">
-      <div className="flex justify-end text-xs px-1 gap-1">
+    <div className="w-full flex flex-col gap-1 text-white group">
+      <div className="flex justify-end text-xs font-mono tabular-nums px-1 gap-1">
         <span>{formatTime(currentTime)}</span> /
         <span>{formatTime(duration)}</span>
       </div>
+
       <Slider
         value={[currentTime]}
         max={duration}
         step={1}
         onValueChange={handleSeek}
-        className="group/slider h-2 [&_[role=slider]]:slider-thumb [&_[data-slider-track]]:slider-track [&_[data-slider-range]]:slider-range"
+        className="flex-auto"
       />
     </div>
   );

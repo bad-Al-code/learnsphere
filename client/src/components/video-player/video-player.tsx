@@ -11,34 +11,60 @@ interface VideoPlayerProps {
   src: string;
 }
 
+interface QualityLevel {
+  height: number;
+  name: string;
+  index: number;
+}
+
 export function VideoPlayer({ src }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [qualityLevels, setQualityLevels] = useState<QualityLevel[]>([]);
+  const [currentQuality, setCurrentQuality] = useState(-1);
+
+  const hlsRef = useRef<Hls | null>(null);
 
   useEffect(() => {
-    let hls: Hls | null = null;
     const videoNode = videoRef.current;
     if (!videoNode) return;
 
     if (Hls.isSupported()) {
-      hls = new Hls();
+      const hls = new Hls();
+      hlsRef.current = hls;
       hls.attachMedia(videoNode);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        // videoNode.play();
+
+      hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+        const levels = data.levels.map((level, index) => ({
+          height: level.height,
+          name: `${level.height}p`,
+          index: index,
+        }));
+        levels.unshift({ height: 0, name: "Auto", index: -1 });
+        setQualityLevels(levels);
       });
+
+      hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
+        setCurrentQuality(data.level);
+      });
+
       hls.loadSource(src);
     } else if (videoNode.canPlayType("application/vnd.apple.mpegurl")) {
       videoNode.src = src;
     }
 
     return () => {
-      if (hls) {
-        hls.destroy();
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
       }
     };
   }, [src]);
@@ -96,6 +122,37 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
     };
   }, []);
 
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, []);
+
+  const handleQualityChange = (levelIndex: number) => {
+    if (hlsRef.current) {
+      hlsRef.current.nextLevel = levelIndex;
+      setCurrentQuality(levelIndex);
+    }
+  };
+
+  const handleFullscreenToggle = () => {
+    const playerContainer = playerContainerRef.current;
+    if (!playerContainer) return;
+
+    if (!isFullscreen) {
+      if (playerContainer.requestFullscreen) {
+        playerContainer.requestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
   const handleVolumeChange = (newVolume: number) => {
     const videoNode = videoRef.current;
     if (!videoNode) return;
@@ -146,7 +203,7 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
   };
 
   return (
-    <div className="w-full group relative">
+    <div className="w-full group relative" ref={playerContainerRef}>
       <AspectRatio
         ratio={16 / 9}
         className="bg-black rounded-sm overflow-hidden "
@@ -185,6 +242,12 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
         onSeek={handleSeek}
         onVolumeChange={handleVolumeChange}
         onMuteToggle={handleMuteToggle}
+        onPlayToggle={handleTogglePlay}
+        isFullscreen={isFullscreen}
+        onFullscreenToggle={handleFullscreenToggle}
+        qualityLevels={qualityLevels}
+        currentQuality={currentQuality}
+        onQualityChange={handleQualityChange}
       />
     </div>
   );
