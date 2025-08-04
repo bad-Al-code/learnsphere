@@ -219,7 +219,7 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
 
         <div
           className={cn(
-            "absolute inset-0 flex items-center justify-center transition-opacity bg-black/10 pointer-events-none",
+            "absolute inset-0 flex items-center justify-center transition-opacity bg-black/0 pointer-events-none",
             isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"
           )}
         >

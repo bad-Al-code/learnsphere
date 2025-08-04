@@ -1,6 +1,8 @@
+import { LessonControls } from "@/app/(learn)/_components/lesson-controls";
+import { getCourseDetails } from "@/app/courses/actions";
 import { VideoPlayer } from "@/components/video-player/video-player";
 import { notFound, redirect } from "next/navigation";
-import { getLessonDetails } from "../../../actions";
+import { getEnrollmentProgress, getLessonDetails } from "../../../actions";
 
 interface LessonPageProps {
   params: {
@@ -12,9 +14,13 @@ interface LessonPageProps {
 export default async function LessonPage({ params }: LessonPageProps) {
   const { courseId, lessonId } = params;
 
-  const lesson = await getLessonDetails(lessonId);
+  const [lesson, course, enrollment] = await Promise.all([
+    getLessonDetails(lessonId),
+    getCourseDetails(courseId),
+    getEnrollmentProgress(courseId),
+  ]);
 
-  if (!lesson) {
+  if (!lesson || !course || !enrollment) {
     notFound();
   }
 
@@ -42,7 +48,11 @@ export default async function LessonPage({ params }: LessonPageProps) {
       </div>
 
       <div className="border-t p-4">
-        <p>Lesson Controls (Next/Prev, Mark as Complete) will go here.</p>
+        <LessonControls
+          course={course}
+          currentLessonId={lessonId}
+          enrollment={enrollment}
+        />
       </div>
     </div>
   );
