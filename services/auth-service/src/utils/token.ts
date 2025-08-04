@@ -26,10 +26,11 @@ export const attachCookiesToResponse = (
     );
 
     const oneDay = 24 * 60 * 60 * 1000;
+    const sevenDay = 7 * oneDay;
 
     const accessTokenCookieOptions = {
       httpOnly: true,
-      expires: new Date(Date.now() + oneDay * 1),
+      expires: new Date(Date.now() + sevenDay),
       // secure: process.env.NODE_ENV === "production",
       secure: env.NODE_ENV === 'production',
       signed: true,
@@ -55,10 +56,11 @@ export const attachCookiesToResponse = (
     );
 
     const oneDay = 24 * 60 * 60 * 1000;
+    const thirtyDay = 30 * oneDay;
 
     const refreshTokenCookieOptions = {
       httpOnly: true,
-      expires: new Date(Date.now() + oneDay * 7),
+      expires: new Date(Date.now() + thirtyDay),
       // secure: process.env.NODE_ENV === "production",
       secure: env.NODE_ENV === 'production',
       signed: true,
