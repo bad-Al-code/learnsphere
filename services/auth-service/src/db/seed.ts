@@ -4,7 +4,13 @@ import { rabbitMQConnection } from '../events/connection';
 import { UserRegisteredPublisher } from '../events/publisher';
 import { users } from './schema';
 
-async function seedUsers(count = 500) {
+type ROLE = 'student' | 'instructor';
+
+function getRandomRole(): ROLE {
+  return faker.helpers.arrayElement(['instructor']);
+}
+
+async function seedUsers(count = 10) {
   await rabbitMQConnection.connect();
 
   for (let i = 0; i < count; i++) {
@@ -19,7 +25,7 @@ async function seedUsers(count = 500) {
       .values({
         email,
         passwordHash,
-        role: 'student',
+        role: getRandomRole(),
         isVerified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -36,6 +42,8 @@ async function seedUsers(count = 500) {
     });
 
     console.log(`${count} users seeded and events emitted.`);
+
+    console.log(user.id);
   }
 }
 seedUsers().catch(console.error);
