@@ -97,7 +97,11 @@ export function CategoryList({ categories }: CategoryListProps) {
         <div className="absolute right-0 top-0 h-full flex items-center  pl-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="secondary">
+              <Button
+                size="icon"
+                variant="secondary"
+                className=" border text-sm px-3 h-6"
+              >
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
