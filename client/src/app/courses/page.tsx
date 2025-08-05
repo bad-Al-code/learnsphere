@@ -5,6 +5,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Suspense } from "react";
+import { CategoryList } from "./_components/category-list";
 import { CourseCard } from "./_components/course-card";
 import { PaginationControls } from "./_components/pagination-controls";
 import { getPublicCourses } from "./actions";
@@ -16,6 +17,7 @@ interface CoursesPageProps {
 export default function CoursePage({ searchParams }: CoursesPageProps) {
   return (
     <div className="container mx-auto py-8">
+      <CategoryList />
       <Suspense fallback={<CoursesSkeleton />}>
         <CoursesList searchParams={searchParams} />
       </Suspense>

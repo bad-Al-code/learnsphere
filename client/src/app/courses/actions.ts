@@ -7,15 +7,20 @@ import { getCurrentUser } from "../(auth)/actions";
 export async function getPublicCourses({
   page = 1,
   limit = 12,
+  categoryId,
 }: {
   page?: number;
   limit?: number;
+  categoryId?: string;
 }) {
   try {
     const params = new URLSearchParams({
       page: String(page),
       limit: String(limit),
     });
+    if (categoryId) {
+      params.set("categoryId", categoryId);
+    }
 
     const response = await courseService.get(
       `/api/courses?${params.toString()}`
@@ -93,5 +98,17 @@ export async function getCategoryOptions() {
   } catch (error) {
     console.error("Error fetching category options:", error);
     return [];
+  }
+}
+
+export async function getCategoryBySlug(slug: string) {
+  try {
+    const response = await courseService.get(`/api/categories/slug/${slug}`);
+
+    if (!response.ok) return null;
+
+    return await response.json();
+  } catch (error) {
+    return null;
   }
 }
