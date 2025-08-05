@@ -7,12 +7,17 @@ import { z } from 'zod';
  *     CategoryPayload:
  *       type: object
  *       required:
- *         - name
+ *         - body
  *       properties:
- *         name:
- *           type: string
- *           minLength: 3
- *           example: "Programming"
+ *         body:
+ *           type: object
+ *           required:
+ *             - name
+ *           properties:
+ *             name:
+ *               type: string
+ *               minLength: 3
+ *               example: "Programming"
  *
  *     CategoryResponse:
  *       type: object
@@ -35,5 +40,7 @@ import { z } from 'zod';
  */
 
 export const categorySchema = z.object({
-  name: z.string().min(3, 'Category name must be at least 3 characters long'),
+  body: z.object({
+    name: z.string().min(3, 'Category name must be at least 3 characters long'),
+  }),
 });
