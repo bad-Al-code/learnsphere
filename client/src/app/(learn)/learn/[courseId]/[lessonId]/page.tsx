@@ -29,7 +29,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full ">
       <div className="flex-1 p-4 md:p-6 lg:p-8 space-y-6">
         <h1 className="text-2xl md:text-3xl font-bold">{lesson.title}</h1>
 

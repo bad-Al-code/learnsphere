@@ -23,11 +23,11 @@ export default async function LearnLayout({
   }
 
   return (
-    <div className="h-full flex">
-      <div className="hidden md:flex h-full w-80 flex-col fixed inset-y-0 z-50">
+    <div className="container mx-auto flex h-full ">
+      <div className="hidden md:flex w-80 flex-col h-full  fixed   ">
         <CourseSidebar course={course} />
       </div>
-      <main className="md:pl-80 h-full w-full">{children}</main>
+      <main className="md:pl-80 w-full">{children}</main>
     </div>
   );
 }
