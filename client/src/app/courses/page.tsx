@@ -17,7 +17,7 @@ export default async function CoursePage({ searchParams }: CoursesPageProps) {
       <h1 className="text-4xl font-bold mb-4">Explore Courses</h1>
 
       <Suspense fallback={<CategoryListSkeleton />}>
-        <CategoryList categories={categories} />
+        <CategoryListWrapper />
       </Suspense>
 
       <Suspense fallback={<CoursesSkeleton />}>
@@ -25,4 +25,10 @@ export default async function CoursePage({ searchParams }: CoursesPageProps) {
       </Suspense>
     </div>
   );
+}
+
+export async function CategoryListWrapper() {
+  const categories = await getCategoryOptions();
+
+  return <CategoryList categories={categories} />;
 }
