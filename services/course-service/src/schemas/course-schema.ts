@@ -185,3 +185,20 @@ export const bulkCoursesSchema = z.object({
       .nonempty('At least one course ID is required'),
   }),
 });
+
+export const courseLevelEnum = z.enum([
+  'beginner',
+  'intermediate',
+  'advanced',
+  'all-levels',
+]);
+
+export type CourseLevelEnum = z.infer<typeof courseLevelEnum>;
+
+export const createCoursePayloadSchema = z.object({
+  title: z.string().min(3),
+  categoryId: z.string().uuid(),
+  level: courseLevelEnum,
+});
+
+export const updateCoursePayloadSchema = createCoursePayloadSchema.partial();

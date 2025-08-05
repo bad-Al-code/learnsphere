@@ -1,0 +1,2 @@
+CREATE TYPE "public"."course_level" AS ENUM('beginner', 'intermediate', 'advanced', 'all-levels');--> statement-breakpoint
+ALTER TABLE "courses" ADD COLUMN "level" "course_level" DEFAULT 'all-levels' NOT NULL;

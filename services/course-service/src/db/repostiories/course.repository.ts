@@ -1,7 +1,7 @@
 import { and, count, eq, ilike, inArray } from 'drizzle-orm';
 
 import { db } from '..';
-import { Course, NewCourse, UpdateCourse } from '../../types';
+import { Course, CourseLevel, NewCourse, UpdateCourse } from '../../types';
 import { courses } from '../schema';
 
 export class CourseRepository {
@@ -68,16 +68,22 @@ export class CourseRepository {
    * Lists all published courses with pagination.
    * @param limit - The number of results per page.
    * @param offset - The number of results to skip.
+   * @param categoryId The Id of the category.
+   * @param level Level of the course.
    * @returns An object containing the paginated results and the total count.
    */
   public static async listPublished(
     limit: number,
     offset: number,
-    categoryId?: string
+    categoryId?: string,
+    level?: CourseLevel
   ) {
     const conditions = [eq(courses.status, 'published')];
     if (categoryId) {
       conditions.push(eq(courses.categoryId, categoryId));
+    }
+    if (level) {
+      conditions.push(eq(courses.level, level));
     }
 
     const whereClause = and(...conditions);

@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { NotAuthorizedError } from '../errors';
 import { CourseService, ModuleService } from '../services';
+import { CourseLevel } from '../types';
 
 export class CourseController {
   public static async create(
@@ -80,8 +81,14 @@ export class CourseController {
       const page = parseInt(req.query.page as string, 10) || 1;
       const limit = parseInt(req.query.limit as string, 10) || 12;
       const categoryId = req.query.categoryId as string | undefined;
+      const level = req.query.level as CourseLevel | undefined;
 
-      const result = await CourseService.listCourses(page, limit, categoryId);
+      const result = await CourseService.listCourses(
+        page,
+        limit,
+        categoryId,
+        level
+      );
 
       res.status(StatusCodes.OK).json(result);
     } catch (error) {

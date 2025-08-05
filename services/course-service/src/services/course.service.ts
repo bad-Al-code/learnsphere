@@ -4,6 +4,7 @@ import { CourseRepository } from '../db/repostiories';
 import { NotFoundError } from '../errors';
 import {
   Course,
+  CourseLevel,
   CourseWithInstructor,
   CreateCourseDto,
   Requester,
@@ -104,7 +105,8 @@ export class CourseService {
   public static async listCourses(
     page: number,
     limit: number,
-    categoryId?: string
+    categoryId?: string,
+    level?: CourseLevel
   ) {
     logger.info(
       `Fetching courses list from DB for page: ${page}, limit: ${limit}`
@@ -113,7 +115,7 @@ export class CourseService {
     const offset = (page - 1) * limit;
 
     const { totalResults, results: courseList } =
-      await CourseRepository.listPublished(limit, offset, categoryId);
+      await CourseRepository.listPublished(limit, offset, categoryId, level);
 
     const resultWithInstructors =
       await this._enrichCourseWithInstructors(courseList);

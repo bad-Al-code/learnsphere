@@ -16,6 +16,12 @@ export const categories = pgTable('categories', {
 });
 
 export const courseStatusEnum = pgEnum('course_status', ['draft', 'published']);
+export const courseLevelEnum = pgEnum('course_level', [
+  'beginner',
+  'intermediate',
+  'advanced',
+  'all-levels',
+]);
 
 export const courses = pgTable('courses', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -23,6 +29,7 @@ export const courses = pgTable('courses', {
   description: text('description'),
   instructorId: uuid('instructor_id').notNull(),
   status: courseStatusEnum('status').default('draft').notNull(),
+  level: courseLevelEnum('level').default('all-levels').notNull(),
   prerequisiteCourseId: uuid('prerequisite_course_id').references(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (): any => courses.id

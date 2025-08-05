@@ -43,6 +43,13 @@
       "when": 1754386170947,
       "tag": "0005_nosy_blob",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1754418877963,
+      "tag": "0006_nebulous_shocker",
+      "breakpoints": true
     }
   ]
 }
