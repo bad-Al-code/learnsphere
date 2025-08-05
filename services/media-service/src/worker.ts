@@ -1,6 +1,7 @@
 import logger from './config/logger';
 import { ProcessorFactory } from './workers/processor.factory';
 import { AvatarProcessor } from './workers/processors/avatar-processor';
+import { ThumbnailProcessor } from './workers/processors/thumbnail-processor';
 import { VideoProcessor } from './workers/processors/video-processor';
 import { SqsWorker } from './workers/sqs-worker';
 
@@ -8,7 +9,11 @@ const startWorker = (): void => {
   try {
     logger.info(`Initializing SQS Worker and its dependencies...`);
 
-    const processors = [new AvatarProcessor(), new VideoProcessor()];
+    const processors = [
+      new AvatarProcessor(),
+      new VideoProcessor(),
+      new ThumbnailProcessor(),
+    ];
 
     const processorFactory = new ProcessorFactory(processors);
     const worker = new SqsWorker(processorFactory);

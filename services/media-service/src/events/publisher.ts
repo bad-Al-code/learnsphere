@@ -62,3 +62,16 @@ interface VideoProcessedEvent {
 export class VideoProcessedPublisher extends Publisher<VideoProcessedEvent> {
   readonly topic: 'video.processed' = 'video.processed' as const;
 }
+
+interface CourseThumbnailProcessedEvent {
+  topic: 'course.thumbnail.processed';
+  data: {
+    courseId: string;
+    imageUrl: string;
+  };
+}
+
+export class CourseThumbnailProcessedPublisher extends Publisher<CourseThumbnailProcessedEvent> {
+  readonly topic: 'course.thumbnail.processed' =
+    'course.thumbnail.processed' as const;
+}
