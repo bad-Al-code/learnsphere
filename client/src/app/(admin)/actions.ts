@@ -372,6 +372,7 @@ export async function getCourseThumbnailUploadUrl(
 
     return { success: true, data };
   } catch (error: any) {
+    console.log(error);
     return { error: error.message };
   }
 }

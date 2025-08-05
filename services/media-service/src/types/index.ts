@@ -2,7 +2,7 @@ import { mediaAssets } from '../db/schema';
 
 export interface UploadUrlParams {
   filename: string;
-  uploadType: 'avatar' | 'video';
+  uploadType: 'avatar' | 'video' | 'course_thumbnail';
   metadata: Record<string, string>;
 }
 

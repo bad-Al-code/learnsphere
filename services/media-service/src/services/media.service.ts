@@ -1,8 +1,8 @@
-import logger from '../config/logger';
-import { env } from '../config/env';
 import { S3ClientService } from '../clients/s3.client';
-import { UploadUrlParams, SignedUrlResponse } from '../types';
+import { env } from '../config/env';
+import logger from '../config/logger';
 import { MediaRepository } from '../db/media.repository';
+import { SignedUrlResponse, UploadUrlParams } from '../types';
 
 export class MediaService {
   /**
@@ -25,11 +25,19 @@ export class MediaService {
           throw new Error('userId is required for avatar uploads');
         key = `uploads/avatars/${metadata.userId}/${Date.now()}-${filename}`;
         break;
+
       case 'video':
         if (!metadata.lessonId)
           throw new Error('lessonId is required for video uploads');
         key = `uploads/videos/${metadata.lessonId}/${Date.now()}-${filename}`;
         break;
+
+      case 'course_thumbnail':
+        if (!metadata.courseId)
+          throw new Error('courseId is required for thumbnail uploads');
+        key = `uploads/thumbnails/${metadata.courseId}/${Date.now()}-${filename}`;
+        break;
+
       default:
         throw new Error('Invalid upload type');
     }

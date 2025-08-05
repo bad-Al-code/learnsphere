@@ -1,11 +1,11 @@
 import { sql } from 'drizzle-orm';
 import {
-  pgTable,
-  pgEnum,
-  uuid,
-  text,
   jsonb,
+  pgEnum,
+  pgTable,
+  text,
   timestamp,
+  uuid,
 } from 'drizzle-orm/pg-core';
 
 export const mediaStatusEnum = pgEnum('media_status', [
@@ -15,7 +15,11 @@ export const mediaStatusEnum = pgEnum('media_status', [
   'failed',
 ]);
 
-export const uploadTypeEnum = pgEnum('upload_type', ['avatar', 'video']);
+export const uploadTypeEnum = pgEnum('upload_type', [
+  'avatar',
+  'video',
+  'course_thumbnail',
+]);
 
 export const mediaAssets = pgTable('media_assets', {
   id: uuid('id')
