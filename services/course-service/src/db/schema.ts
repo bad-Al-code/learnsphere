@@ -1,13 +1,19 @@
+import { relations } from 'drizzle-orm';
 import {
-  pgTable,
-  uuid,
-  text,
-  varchar,
-  timestamp,
   integer,
   pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+
+export const categories = pgTable('categories', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }).notNull().unique(),
+  slug: varchar('slug', { length: 255 }).notNull().unique(),
+});
 
 export const courseStatusEnum = pgEnum('course_status', ['draft', 'published']);
 
@@ -21,6 +27,9 @@ export const courses = pgTable('courses', {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (): any => courses.id
   ),
+  categoryId: uuid('category_id').references(() => categories.id, {
+    onDelete: 'set null',
+  }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -56,8 +65,16 @@ export const textLessonContent = pgTable('text_lesson_content', {
   content: text('content').notNull(),
 });
 
-export const courseRelations = relations(courses, ({ many }) => ({
+export const categoryRelations = relations(categories, ({ many }) => ({
+  courses: many(courses),
+}));
+
+export const courseRelations = relations(courses, ({ many, one }) => ({
   modules: many(modules),
+  category: one(categories, {
+    fields: [courses.categoryId],
+    references: [categories.id],
+  }),
 }));
 
 export const moduleRelations = relations(modules, ({ one, many }) => ({

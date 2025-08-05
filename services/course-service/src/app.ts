@@ -1,19 +1,20 @@
-import express, { json } from 'express';
 import cookieParser from 'cookie-parser';
+import express, { json } from 'express';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 
+import { env } from './config/env';
+import { swaggerSpec } from './config/swagger';
+import { currentUser } from './middlewares/current-user';
+import { errorHandler } from './middlewares/error-handler';
+import { httpLogger } from './middlewares/http-logger';
 import {
+  categoryRouter,
   courseRouter,
   healthRouter,
   lessonRouter,
   moduleRouter,
 } from './routes';
-import { currentUser } from './middlewares/current-user';
-import { errorHandler } from './middlewares/error-handler';
-import { httpLogger } from './middlewares/http-logger';
-import { env } from './config/env';
-import { swaggerSpec } from './config/swagger';
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use('/api/courses', healthRouter);
 app.use('/api/courses', courseRouter);
 app.use('/api/modules', moduleRouter);
 app.use('/api/lessons', lessonRouter);
+app.use('/api/categories', categoryRouter);
 
 app.use(errorHandler);
 
