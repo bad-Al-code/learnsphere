@@ -43,4 +43,39 @@ export class MediaClient {
       throw new Error('Could not create video upload URL.');
     }
   }
+
+  /**
+   * Request a signed upload URL for a course thumbnail.
+   * @param courseId - ID of the course
+   * @param filename - Name of the image file to upload
+   * @returns A promise resolving to the signed upload URL and file URL
+   * @throws Will throw an error if the media-service request fails
+   */
+  public static async requestCourseThumbnailUploadUrl(
+    courseId: string,
+    filename: string
+  ): Promise<UploadUrlResponse> {
+    logger.info(
+      `Requesting video upload URL from media-service for lesson: ${courseId}`
+    );
+    try {
+      const response = await axios.post(
+        `${this.mediaServiceUrl}/api/media/request-upload-url`,
+        {
+          filename,
+          uploadType: 'course_thumbnail',
+          metadata: { courseId: courseId },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      logger.error('Error contacting media-service for video upload URL', {
+        error:
+          error instanceof axios.AxiosError ? error.message : String(error),
+      });
+
+      throw new Error('Could not create video upload URL.');
+    }
+  }
 }

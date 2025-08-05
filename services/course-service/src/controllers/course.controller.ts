@@ -1,8 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { StatusCodes } from 'http-status-codes';
+import { MediaClient } from '../clients/media.client';
 import { NotAuthorizedError } from '../errors';
-import { CourseService, ModuleService } from '../services';
+import {
+  AuthorizationService,
+  CourseService,
+  ModuleService,
+} from '../services';
 import { CourseLevel } from '../types';
 
 export class CourseController {
@@ -213,6 +218,29 @@ export class CourseController {
         limit
       );
       res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getThumbnailUploadUrl(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseId } = req.params;
+      const { filename } = req.body;
+      const requester = req.currentUser!;
+
+      await AuthorizationService.verifyCourseOwnership(courseId, requester);
+
+      const uploadData = await MediaClient.requestCourseThumbnailUploadUrl(
+        courseId,
+        filename
+      );
+
+      res.status(StatusCodes.OK).json(uploadData);
     } catch (error) {
       next(error);
     }

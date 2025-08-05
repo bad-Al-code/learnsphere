@@ -353,4 +353,58 @@ router.post(
   ModuleController.create
 );
 
+/**
+ * @openapi
+ * /courses/{courseId}/thumbnail-upload-url:
+ *   post:
+ *     summary: Get signed thumbnail upload URL
+ *     description: Request a pre-signed URL to upload a course thumbnail.
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the course
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - filename
+ *             properties:
+ *               filename:
+ *                 type: string
+ *                 description: Name of the image file to be uploaded
+ *     responses:
+ *       200:
+ *         description: Signed upload URL and file URL
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 uploadUrl:
+ *                   type: string
+ *                 fileUrl:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal Server Error
+ */
+router.post(
+  '/:courseId/thumbnail-upload-url',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  CourseController.getThumbnailUploadUrl
+);
+
 export { router as courseRouter };

@@ -1,9 +1,10 @@
 import { ConsumeMessage } from 'amqplib';
-import logger from '../config/logger';
-import { rabbitMQConnection } from './connection';
-import { db } from '../db';
-import { lessons } from '../db/schema';
 import { eq } from 'drizzle-orm';
+import logger from '../config/logger';
+import { db } from '../db';
+import { courses, lessons } from '../db/schema';
+import { CourseCacheService } from '../services';
+import { rabbitMQConnection } from './connection';
 
 interface Event {
   topic: string;
@@ -87,6 +88,44 @@ export class VideoProcessedListener extends Listener<VideoProcessedEvent> {
       });
 
       throw error;
+    }
+  }
+}
+
+interface CourseThumbnailProcessedEvent {
+  topic: 'course.thumbnail.processed';
+  data: {
+    courseId: string;
+    imageUrl: string;
+  };
+}
+
+export class CourseThumbnailProcessedListener extends Listener<CourseThumbnailProcessedEvent> {
+  readonly topic = 'course.thumbnail.processed' as const;
+  queueGroupName = 'course-service-thumbnail';
+
+  async onMessage(
+    data: CourseThumbnailProcessedEvent['data'],
+    _msg: ConsumeMessage
+  ) {
+    logger.info(
+      `Thumbnail processed event received for course: ${data.courseId}`
+    );
+
+    try {
+      await db
+        .update(courses)
+        .set({ imageUrl: data.imageUrl })
+        .where(eq(courses.id, data.courseId));
+
+      await CourseCacheService.invalidateCacheDetails(data.courseId);
+
+      logger.info(`Course ${data.courseId} updated with new thumbnail URL.`);
+    } catch (error) {
+      logger.error(`Failed to update course with thumbnail URL`, {
+        data,
+        error,
+      });
     }
   }
 }
