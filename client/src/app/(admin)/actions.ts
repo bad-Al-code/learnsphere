@@ -1,8 +1,9 @@
 "use server";
 
 import { courseService, userService } from "@/lib/api";
+import { categorySchema } from "@/lib/schemas/category";
 import { profileFormSchema } from "@/lib/schemas/user";
-import { revalidatePath, unstable_noStore } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_noStore } from "next/cache";
 import z from "zod";
 
 async function performUserAction(
@@ -270,5 +271,81 @@ export async function searchUsers(args: SearchUsersArgs) {
       results: [],
       pagination: { currentPage: 1, totalPages: 0, totalResults: 0 },
     };
+  }
+}
+
+export async function getCategories() {
+  try {
+    const response = await courseService.get("/api/categories", {
+      next: { tags: ["categories"] },
+    });
+    if (!response.ok) throw new Error("Failed to fetch categories.");
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function createCategory(values: z.infer<typeof categorySchema>) {
+  try {
+    const validatedData = categorySchema.parse(values);
+
+    const response = await courseService.post("/api/categories", validatedData);
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+
+      throw new Error(
+        data.errors?.[0]?.message || "Failed to create category."
+      );
+    }
+    revalidateTag("categories");
+
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function updateCategory(
+  id: string,
+  values: z.infer<typeof categorySchema>
+) {
+  try {
+    const validatedData = categorySchema.parse(values);
+
+    const response = await courseService.put(
+      `/api/categories/${id}`,
+      validatedData
+    );
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+
+      throw new Error(
+        data.errors?.[0]?.message || "Failed to update category."
+      );
+    }
+    revalidateTag("categories");
+
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function deleteCategory(id: string) {
+  try {
+    const response = await courseService.delete(`/api/categories/${id}`);
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+
+      throw new Error(
+        data.errors?.[0]?.message || "Failed to delete category."
+      );
+    }
+    revalidateTag("categories");
+
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
   }
 }

@@ -10,7 +10,7 @@ const router = Router();
 /**
  * @openapi
  * tags:
- *   name: Categories
+ *   name: Categories [Admin]
  *   description: Endpoints for managing course categories
  */
 
