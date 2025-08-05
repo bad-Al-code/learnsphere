@@ -81,3 +81,17 @@ export async function enrollInCourse(courseId: string) {
 
   redirect(`/learn/${courseId}`);
 }
+
+export async function getCategoryOptions() {
+  try {
+    const response = await courseService.get(`/api/categories/list`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch categories.");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching category options:", error);
+    return [];
+  }
+}

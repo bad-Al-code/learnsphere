@@ -10,9 +10,31 @@ const router = Router();
 /**
  * @openapi
  * tags:
- *   name: Categories [Admin]
+ *   name: Categories
  *   description: Endpoints for managing course categories
  */
+
+/**
+ * @openapi
+ * /categories/list:
+ *   get:
+ *     summary: List all categories
+ *     tags: [Categories]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: A list of all categories.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/CategoryResponse'
+ *       '401':
+ *         description: Unauthorized. Missing or invalid session token.
+ */
+router.get('/list', requireAuth, CategoryController.getAll);
 
 router.use(requireAuth, requireRole(['admin']));
 
