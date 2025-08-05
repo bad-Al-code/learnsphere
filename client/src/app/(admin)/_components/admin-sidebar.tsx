@@ -2,20 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Home, Users } from "lucide-react";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const navItems = [
-  { href: "/admin", label: "Dashboard", value: "dashboard", icon: Home },
-  { href: "/admin/users", label: "Users", value: "users", icon: Users },
-  {
-    href: "/admin/courses",
-    label: "Courses",
-    value: "courses",
-    icon: BookOpen,
-  },
-];
+import { navItems } from "./navItem";
 
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -29,10 +19,10 @@ export function AdminSidebar() {
       {/* Mobile: Tabs */}
       <div className="md:hidden mb-4">
         <Tabs defaultValue={activeTab} className="w-full">
-          <TabsList className="grid grid-cols-3">
+          <TabsList className="flex overflow-x-auto no-scrollbar">
             {navItems.map((item) => (
               <TabsTrigger key={item.value} value={item.value} asChild>
-                <Link href={item.href} className="flex items-center gap-1">
+                <Link href={item.href} className="flex items-center gap-1 px-2">
                   <item.icon className="h-4 w-4" />
                   {item.label}
                 </Link>
