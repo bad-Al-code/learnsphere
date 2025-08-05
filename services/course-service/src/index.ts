@@ -1,12 +1,15 @@
 import 'dotenv/config';
 
 import { app } from './app';
-import logger from './config/logger';
-import { rabbitMQConnection } from './events/connection';
-import { redisConnection } from './config/redis';
-import { VideoProcessedListener } from './events/listener';
-import { checkDatabaseConnection } from './db';
 import { env } from './config/env';
+import logger from './config/logger';
+import { redisConnection } from './config/redis';
+import { checkDatabaseConnection } from './db';
+import { rabbitMQConnection } from './events/connection';
+import {
+  CourseThumbnailProcessedListener,
+  VideoProcessedListener,
+} from './events/listener';
 
 const startServer = async () => {
   try {
@@ -15,6 +18,7 @@ const startServer = async () => {
     await checkDatabaseConnection();
 
     new VideoProcessedListener().listen();
+    new CourseThumbnailProcessedListener().listen();
 
     const PORT = env.PORT || 8001;
 

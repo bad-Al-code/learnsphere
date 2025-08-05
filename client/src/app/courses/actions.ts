@@ -35,7 +35,6 @@ export async function getPublicCourses({
     }
 
     const result = await response.json();
-    console.log(result);
 
     return result;
   } catch (error) {
@@ -83,9 +82,6 @@ export async function enrollInCourse(courseId: string) {
         data.errors?.[0]?.message || "Failed to enroll in the course."
       );
     }
-
-    const result = await response.json();
-    console.log(result);
   } catch (error: any) {
     return { error: error.message };
   }

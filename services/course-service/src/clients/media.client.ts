@@ -45,11 +45,10 @@ export class MediaClient {
   }
 
   /**
-   * Request a signed upload URL for a course thumbnail.
-   * @param courseId - ID of the course
-   * @param filename - Name of the image file to upload
-   * @returns A promise resolving to the signed upload URL and file URL
-   * @throws Will throw an error if the media-service request fails
+   * Requests a presigned URL for uploading a course thumbnail image.
+   * @param courseId - The ID of the course this thumbnail belongs to.
+   * @param filename - The original name of the image file.
+   * @returns An object containing the presigned URL and the S3 key.
    */
   public static async requestCourseThumbnailUploadUrl(
     courseId: string,
