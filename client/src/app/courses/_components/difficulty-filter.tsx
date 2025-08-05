@@ -34,36 +34,40 @@ export function DifficultyFilter() {
   };
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              size="icon"
-              variant="secondary"
-              className=" border text-sm px-3 h-6"
-              aria-label="Filter by difficulty"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          size="icon"
+          variant="secondary"
+          className=" border text-sm px-3 h-6"
+          aria-label="Filter by difficulty"
+        >
+          <Tooltip>
+            <TooltipTrigger>
+              <SlidersHorizontal className="cursor-pointer w-4 h-4" />
+            </TooltipTrigger>
+            <TooltipContent align="center">Filter by difficulty</TooltipContent>
+          </Tooltip>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      >
+        {COURSE_LEVELS.map((level) => (
+          <DropdownMenuItem
+            key={level.value}
+            onClick={() => handleSelect(level.value)}
+            className={
+              currentLevel === level.value
+                ? "font-semibold bg-foreground/20"
+                : ""
+            }
           >
-            {COURSE_LEVELS.map((level) => (
-              <DropdownMenuItem
-                key={level.value}
-                onClick={() => handleSelect(level.value)}
-                className={currentLevel === level.value ? "font-semibold" : ""}
-              >
-                {level.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </TooltipTrigger>
-      <TooltipContent>Filter by difficulty</TooltipContent>
-    </Tooltip>
+            {level.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

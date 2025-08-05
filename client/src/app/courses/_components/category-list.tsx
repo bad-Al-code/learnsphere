@@ -14,6 +14,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Category } from "@/types/category";
 
 interface CategoryListProps {
@@ -118,7 +123,12 @@ export function CategoryList({ categories }: CategoryListProps) {
                 variant="secondary"
                 className=" border text-sm px-3 h-6"
               >
-                <MoreHorizontal className="w-4 h-4" />
+                <Tooltip>
+                  <TooltipTrigger>
+                    <MoreHorizontal className="w-4 h-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>More Category</TooltipContent>
+                </Tooltip>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
