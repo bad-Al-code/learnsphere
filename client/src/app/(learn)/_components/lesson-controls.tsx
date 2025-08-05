@@ -53,7 +53,7 @@ export function LessonControls({
   };
 
   return (
-    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+    <div className="flex flex-row md:flex-row items-center justify-between gap-4">
       <div className="flex items-center gap-4">
         {prevLesson && (
           <Button asChild variant="outline" size="sm">
@@ -82,15 +82,15 @@ export function LessonControls({
             </>
           )}
         </Button>
-        {nextLesson && (
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/learn/${course.id}/${nextLesson.id}`}>
-              Next
-              <ArrowRight className="h-4 w-4 ml-1" />
-            </Link>
-          </Button>
-        )}
       </div>
+      {nextLesson && (
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/learn/${course.id}/${nextLesson.id}`}>
+            Next
+            <ArrowRight className="h-4 w-4 ml-1" />
+          </Link>
+        </Button>
+      )}
     </div>
   );
 }
