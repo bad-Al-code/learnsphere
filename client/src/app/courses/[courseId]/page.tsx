@@ -1,4 +1,6 @@
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Curriculum } from "../_components/curriculum";
 import { EnrollButton } from "../_components/enroll-button";
@@ -66,7 +68,19 @@ export default async function CourseDetailPage({
         {/* Right Sidebar */}
         <div className="md:col-span-1">
           <div className="sticky top-24 space-y-4 md:space-y-6">
-            <div className="aspect-video bg-muted rounded-lg" />
+            <AspectRatio
+              ratio={16 / 9}
+              className="bg-muted rounded-lg overflow-hidden"
+            >
+              {course.imageUrl && (
+                <Image
+                  src={course.imageUrl}
+                  alt={course.title}
+                  fill
+                  className="object-cover"
+                />
+              )}
+            </AspectRatio>
 
             <div className="space-y-2">
               <h2 className="text-xl md:text-2xl font-bold">Free</h2>

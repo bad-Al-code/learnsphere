@@ -1,13 +1,12 @@
 import { getCourseDetailsForAdmin } from "@/app/(admin)/actions";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, BookCheck, Clock } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CourseActions } from "./_components/course-actions";
+import { ThumbnailUploader } from "./_components/thumbnail-uploader";
 
 export default function AdminCourseDetailPage({
   params,
@@ -112,21 +111,17 @@ async function CourseDetailComponent({ courseId }: { courseId: string }) {
       </div>
 
       <div className="lg:col-span-1 space-y-6">
-        <div className="sticky top-24 space-y-4">
-          <AspectRatio
-            ratio={16 / 9}
-            className="bg-muted rounded-lg overflow-hidden"
-          >
-            {course.imageUrl && (
-              <Image
-                src={course.imageUrl}
-                alt={course.title}
-                fill
-                className="object-cover"
-              />
-            )}
-          </AspectRatio>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Course Thumbnail</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ThumbnailUploader
+              courseId={course.id}
+              currentImageUrl={course.imageUrl}
+            />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
