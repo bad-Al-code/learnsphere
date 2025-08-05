@@ -79,8 +79,9 @@ export class CourseController {
     try {
       const page = parseInt(req.query.page as string, 10) || 1;
       const limit = parseInt(req.query.limit as string, 10) || 12;
+      const categoryId = req.query.categoryId as string | undefined;
 
-      const result = await CourseService.listCourses(page, limit);
+      const result = await CourseService.listCourses(page, limit, categoryId);
 
       res.status(StatusCodes.OK).json(result);
     } catch (error) {

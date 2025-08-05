@@ -101,7 +101,11 @@ export class CourseService {
    * @param limit - The number of results per page.
    * @returns A paginated result object.
    */
-  public static async listCourses(page: number, limit: number) {
+  public static async listCourses(
+    page: number,
+    limit: number,
+    categoryId?: string
+  ) {
     logger.info(
       `Fetching courses list from DB for page: ${page}, limit: ${limit}`
     );
@@ -109,7 +113,7 @@ export class CourseService {
     const offset = (page - 1) * limit;
 
     const { totalResults, results: courseList } =
-      await CourseRepository.listPublished(limit, offset);
+      await CourseRepository.listPublished(limit, offset, categoryId);
 
     const resultWithInstructors =
       await this._enrichCourseWithInstructors(courseList);

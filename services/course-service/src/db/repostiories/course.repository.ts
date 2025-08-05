@@ -1,4 +1,4 @@
-import { count, eq, ilike, inArray } from 'drizzle-orm';
+import { and, count, eq, ilike, inArray } from 'drizzle-orm';
 
 import { db } from '..';
 import { Course, NewCourse, UpdateCourse } from '../../types';
@@ -70,8 +70,18 @@ export class CourseRepository {
    * @param offset - The number of results to skip.
    * @returns An object containing the paginated results and the total count.
    */
-  public static async listPublished(limit: number, offset: number) {
-    const whereClause = eq(courses.status, 'published');
+  public static async listPublished(
+    limit: number,
+    offset: number,
+    categoryId?: string
+  ) {
+    const conditions = [eq(courses.status, 'published')];
+    if (categoryId) {
+      conditions.push(eq(courses.categoryId, categoryId));
+    }
+
+    const whereClause = and(...conditions);
+
     const totalQuery = db
       .select({ value: count() })
       .from(courses)
@@ -81,6 +91,7 @@ export class CourseRepository {
       where: whereClause,
       limit,
       offset,
+      orderBy: (courses, { desc }) => [desc(courses.createdAt)],
     });
 
     const [[{ value: totalResults }], results] = await Promise.all([
