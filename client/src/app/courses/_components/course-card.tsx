@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -20,8 +21,16 @@ export function CourseCard({ course }: { course: Course }) {
     <Link href={`/courses/${course.id}`}>
       <Card className="h-full flex flex-col hover:border-primary/30 transition-all">
         <CardHeader>
-          <CardTitle className="line-clam2"> {course.title}</CardTitle>
+          <div className="flex justify-between items-center mb-2">
+            <CardTitle className="line-clamp-2 leading-tight">
+              {course.title}
+            </CardTitle>
+            <Badge variant="outline" className="capitalize flex-shrink-0">
+              {course.level.replace("-", " ")}
+            </Badge>
+          </div>
         </CardHeader>
+
         <CardContent className="grow">
           <p className="text-sm text-muted-foreground line-clamp-3">
             {course.description || "No description available."}

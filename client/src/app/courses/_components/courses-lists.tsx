@@ -3,14 +3,16 @@ import { CourseCard } from "./course-card";
 import { PaginationControls } from "./pagination-controls";
 
 interface CoursesListProps {
-  searchParams?: { page?: string };
+  searchParams?: { page?: string; level?: string };
 }
 
 export async function CoursesList({ searchParams }: CoursesListProps) {
   const currentPage = Number(searchParams?.page) || 1;
+  const level = searchParams?.level;
 
   const { results: courses, pagination } = await getPublicCourses({
     page: currentPage,
+    level,
   });
 
   if (courses.length === 0) {

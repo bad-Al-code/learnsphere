@@ -8,10 +8,12 @@ export async function getPublicCourses({
   page = 1,
   limit = 12,
   categoryId,
+  level,
 }: {
   page?: number;
   limit?: number;
   categoryId?: string;
+  level?: string;
 }) {
   try {
     const params = new URLSearchParams({
@@ -20,6 +22,9 @@ export async function getPublicCourses({
     });
     if (categoryId) {
       params.set("categoryId", categoryId);
+    }
+    if (level) {
+      params.set("level", level);
     }
 
     const response = await courseService.get(
@@ -30,6 +35,7 @@ export async function getPublicCourses({
     }
 
     const result = await response.json();
+    console.log(result);
 
     return result;
   } catch (error) {

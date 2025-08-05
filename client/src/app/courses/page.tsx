@@ -3,10 +3,11 @@ import { CategoryList } from "./_components/category-list";
 import { CoursesSkeleton } from "./_components/course-skeleton";
 import { CategoryListSkeleton } from "./_components/courselist-skeleton";
 import { CoursesList } from "./_components/courses-lists";
+import { DifficultyFilter } from "./_components/difficulty-filter";
 import { getCategoryOptions } from "./actions";
 
 interface CoursesPageProps {
-  searchParams?: { page?: string };
+  searchParams?: { page?: string; level?: string };
 }
 
 export default async function CoursePage({ searchParams }: CoursesPageProps) {
@@ -17,7 +18,12 @@ export default async function CoursePage({ searchParams }: CoursesPageProps) {
       <h1 className="text-4xl font-bold mb-4">Explore Courses</h1>
 
       <Suspense fallback={<CategoryListSkeleton />}>
-        <CategoryListWrapper />
+        <div className="flex flex-row gap-2 mb-8">
+          <div className="flex-grow">
+            <CategoryList categories={categories} />
+          </div>
+          <DifficultyFilter />
+        </div>
       </Suspense>
 
       <Suspense fallback={<CoursesSkeleton />}>

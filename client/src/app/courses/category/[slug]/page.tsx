@@ -13,7 +13,7 @@ import { getCategoryBySlug, getPublicCourses } from "../../actions";
 
 interface CategoryPageProps {
   params: { slug: string };
-  searchParams?: { page?: string };
+  searchParams?: { page?: string; level?: string };
 }
 
 export default function CategoryPage({
@@ -35,6 +35,7 @@ async function CategoryCoursesList({
 }: CategoryPageProps) {
   const { slug } = params;
   const currentPage = Number(searchParams?.page) || 1;
+  const level = searchParams?.level;
 
   const category = await getCategoryBySlug(slug);
   if (!category) {
@@ -44,6 +45,7 @@ async function CategoryCoursesList({
   const { results: courses, pagination } = await getPublicCourses({
     page: currentPage,
     categoryId: category.id,
+    level,
   });
 
   return (
