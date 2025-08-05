@@ -22,84 +22,97 @@ interface CategoryListProps {
 
 export function CategoryList({ categories }: CategoryListProps) {
   const pathname = usePathname();
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-  const chipRefs = useRef<Map<number, HTMLAnchorElement | null>>(new Map());
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [visible, setVisible] = useState<Category[]>([]);
+  const [hidden, setHidden] = useState<Category[]>([]);
 
-  const [hiddenCategories, setHiddenCategories] = useState<Category[]>([]);
+  const allCategories: Category[] = [
+    { id: "all", name: "All", slug: "" },
+    ...categories,
+  ];
 
-  const isActive = (slug: string) => pathname === `/courses/category/${slug}`;
+  const isActive = (slug: string) =>
+    pathname === (slug ? `/courses/category/${slug}` : "/courses");
 
   useEffect(() => {
-    const updateVisibility = () => {
-      const container = scrollRef.current;
+    const measure = () => {
+      const container = containerRef.current;
       if (!container) return;
 
-      const containerRect = container.getBoundingClientRect();
-      const containerRight = containerRect.right;
+      const availableWidth = container.offsetWidth - 10;
+      const temp = document.createElement("div");
+      temp.style.visibility = "hidden";
+      temp.style.position = "absolute";
+      temp.style.display = "inline-flex";
+      temp.className =
+        "px-3 py-1 text-sm font-medium border rounded-md whitespace-nowrap mr-2";
+      document.body.appendChild(temp);
 
-      const overflow: Category[] = [];
+      let total = 0;
+      let fitCount = 0;
 
-      categories.forEach((category) => {
-        const el = chipRefs.current.get(category.id);
-        if (!el) return;
+      for (const cat of allCategories) {
+        temp.innerText = cat.name;
+        const width = temp.offsetWidth + 8;
+        if (total + width > availableWidth) break;
+        total += width;
+        fitCount++;
+      }
 
-        const rect = el.getBoundingClientRect();
-        if (rect.right > containerRight) {
-          overflow.push(category);
-        }
-      });
+      document.body.removeChild(temp);
 
-      setHiddenCategories(overflow);
+      setVisible(allCategories.slice(0, fitCount));
+      setHidden(allCategories.slice(fitCount));
     };
 
-    updateVisibility();
-    window.addEventListener("resize", updateVisibility);
+    measure();
+    window.addEventListener("resize", measure);
+    const timeout = setTimeout(measure, 100);
 
     return () => {
-      window.removeEventListener("resize", updateVisibility);
+      window.removeEventListener("resize", measure);
+      clearTimeout(timeout);
     };
   }, [categories]);
 
   return (
     <div className="relative mb-8">
-      <div ref={scrollRef} className="flex gap-2 overflow-hidden pr-16">
-        <Link href="/courses" ref={(el) => chipRefs.current.set(0, el)}>
-          <Badge variant={pathname === "/courses" ? "default" : "secondary"}>
-            All
-          </Badge>
-        </Link>
-
-        {categories.map((category) => (
+      <div ref={containerRef} className="flex gap-2 overflow-hidden pr-16">
+        {visible.map((cat) => (
           <Link
-            href={`/courses/category/${category.slug}`}
-            key={category.id}
-            ref={(el) => chipRefs.current.set(category.id, el)}
-            className="flex-shrink-0"
+            key={cat.id}
+            href={cat.slug ? `/courses/category/${cat.slug}` : "/courses"}
           >
             <Badge
-              variant={isActive(category.slug) ? "default" : "secondary"}
+              variant={isActive(cat.slug) ? "default" : "secondary"}
               className="whitespace-nowrap"
             >
-              {category.name}
+              {cat.name}
             </Badge>
           </Link>
         ))}
       </div>
 
-      {/* More dropdown */}
-      {hiddenCategories.length > 0 && (
-        <div className="absolute right-0 top-0 h-full flex items-center pl-2">
+      {hidden.length > 0 && (
+        <div className="absolute right-0 top-0 h-full flex items-center  pl-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="sm" variant="secondary">
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {hiddenCategories.map((category) => (
-                <DropdownMenuItem asChild key={category.id}>
-                  <Link href={`/courses/category/${category.slug}`}>
-                    {category.name}
+            <DropdownMenuContent
+              align="end"
+              className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+            >
+              {hidden.map((cat) => (
+                <DropdownMenuItem asChild key={cat.id}>
+                  <Link
+                    href={
+                      cat.slug ? `/courses/category/${cat.slug}` : "/courses"
+                    }
+                  >
+                    {cat.name}
                   </Link>
                 </DropdownMenuItem>
               ))}
