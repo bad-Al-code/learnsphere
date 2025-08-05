@@ -71,10 +71,17 @@ async function seedCourses(categories: { id: string }[]): Promise<string[]> {
       ? hardcodedInstructorIds
       : Array.from({ length: 10 }, () => faker.string.uuid());
 
+  const courseLevels = [
+    'beginner',
+    'intermediate',
+    'advanced',
+    'all-levels',
+  ] as const;
   const courseIds: string[] = [];
 
   for (const instructorId of instructorIds) {
     const randomCategory = faker.helpers.arrayElement(categories);
+    const randomLevel = faker.helpers.arrayElement(courseLevels);
 
     const [course] = await db
       .insert(courses)
@@ -83,6 +90,7 @@ async function seedCourses(categories: { id: string }[]): Promise<string[]> {
         description: faker.lorem.paragraph(),
         instructorId,
         categoryId: randomCategory.id,
+        level: randomLevel,
         status: 'published',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -90,7 +98,9 @@ async function seedCourses(categories: { id: string }[]): Promise<string[]> {
       .returning();
 
     courseIds.push(course.id);
-    console.log(`Course created: ${course.title} (ID: ${course.id})`);
+    console.log(
+      `Course created: ${course.title} (ID: ${course.id}, Level: ${randomLevel})`
+    );
   }
 
   return courseIds;
