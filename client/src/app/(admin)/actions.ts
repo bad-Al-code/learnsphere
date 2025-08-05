@@ -349,3 +349,29 @@ export async function deleteCategory(id: string) {
     return { error: error.message };
   }
 }
+
+export async function getCourseThumbnailUploadUrl(
+  courseId: string,
+  filename: string
+) {
+  try {
+    const response = await courseService.post(
+      `/api/courses/${courseId}/thumbnail-upload-url`,
+      { filename }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.errors?.[0]?.message || "Could not get upload URL."
+      );
+    }
+
+    const data = await response.json();
+    console.log(data);
+
+    return { success: true, data };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}

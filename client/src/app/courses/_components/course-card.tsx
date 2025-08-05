@@ -1,3 +1,4 @@
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -8,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Course } from "@/types/course";
+import Image from "next/image";
 import Link from "next/link";
 
 const getInitials = (firstName?: string | null, lastName?: string | null) => {
@@ -21,6 +23,17 @@ export function CourseCard({ course }: { course: Course }) {
     <Link href={`/courses/${course.id}`}>
       <Card className="h-full flex flex-col hover:border-primary/30 transition-all">
         <CardHeader>
+          <AspectRatio ratio={16 / 9} className="bg-muted">
+            {course.imageUrl && (
+              <Image
+                src={course.imageUrl}
+                alt={course.title}
+                fill
+                className="object-cover"
+              />
+            )}
+          </AspectRatio>
+
           <div className="flex justify-between items-center mb-2">
             <CardTitle className="line-clamp-2 leading-tight">
               {course.title}

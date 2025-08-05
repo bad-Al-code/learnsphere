@@ -3,6 +3,7 @@ export type Course = {
   title: string;
   description: string | null;
   level: string;
+  imageUrl: string | null;
   instructor: {
     firstName: string | null;
     lastName: string | null;
