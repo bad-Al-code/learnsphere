@@ -19,7 +19,7 @@ const router = Router();
  * /categories/slug/{slug}:
  *   get:
  *     summary: Get a category by slug
- *     tags: [Categories]]
+ *     tags: [Categories]
  *     parameters:
  *       - name: slug
  *         in: path

@@ -1,6 +1,8 @@
 import { faker } from '@faker-js/faker';
+import slugify from 'slugify';
 import { db } from '../index';
 import {
+  categories as categoriesTable,
   courses,
   lessons,
   lessonTypeEnum,
@@ -34,20 +36,53 @@ const realHlsUrls = [
   'https://res.cloudinary.com/dannykeane/video/upload/sp_full_hd/q_80:qmax_90,ac_none/v1/dk-memoji-dark.m3u8',
 ];
 
-async function seedCourses(): Promise<string[]> {
-  const instructorIds = hardcodedInstructorIds.length
-    ? hardcodedInstructorIds
-    : Array.from({ length: 10 }, () => faker.string.uuid());
+async function seedCategories() {
+  const categoryNames = [
+    'gRPC',
+    'cloud-computing',
+    'Web Dev',
+    'Development',
+    'Design',
+    'Marketing',
+    'Business',
+    'AI',
+    'Data Science',
+  ];
+
+  const categoryData = categoryNames.map((name) => ({
+    name,
+    slug: slugify(name, { lower: true, strict: true }),
+  }));
+
+  await db.insert(categoriesTable).values(categoryData).onConflictDoNothing();
+
+  const allCategories = await db.select().from(categoriesTable);
+
+  console.log(`Seeded or reused ${allCategories.length} categories.`);
+
+  return allCategories;
+}
+
+async function seedCourses(categories: { id: string }[]): Promise<string[]> {
+  if (!categories.length) throw new Error('No categories found.');
+
+  const instructorIds =
+    hardcodedInstructorIds.length > 0
+      ? hardcodedInstructorIds
+      : Array.from({ length: 10 }, () => faker.string.uuid());
 
   const courseIds: string[] = [];
 
   for (const instructorId of instructorIds) {
+    const randomCategory = faker.helpers.arrayElement(categories);
+
     const [course] = await db
       .insert(courses)
       .values({
         title: faker.lorem.words(3),
         description: faker.lorem.paragraph(),
         instructorId,
+        categoryId: randomCategory.id,
         status: 'published',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -147,7 +182,8 @@ async function runSeed() {
   try {
     console.log('Starting full DB seed...');
 
-    const courseIds = await seedCourses();
+    const seededCategories = await seedCategories();
+    const courseIds = await seedCourses(seededCategories);
     const moduleIds = await seedModules(courseIds);
     await seedLessons(moduleIds);
 
