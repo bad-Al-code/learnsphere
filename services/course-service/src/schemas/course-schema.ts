@@ -199,6 +199,8 @@ export const createCoursePayloadSchema = z.object({
   title: z.string().min(3),
   categoryId: z.string().uuid(),
   level: courseLevelEnum,
+  price: z.number().positive().optional().nullable(),
+  currency: z.string().length(3).optional().nullable(),
 });
 
 export const updateCoursePayloadSchema = createCoursePayloadSchema.partial();

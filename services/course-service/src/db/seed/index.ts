@@ -77,12 +77,16 @@ async function seedCourses(categories: { id: string }[]): Promise<string[]> {
     'advanced',
     'all-levels',
   ] as const;
+
   const courseIds: string[] = [];
 
   for (const instructorId of instructorIds) {
     const randomCategory = faker.helpers.arrayElement(categories);
     const randomLevel = faker.helpers.arrayElement(courseLevels);
-    const imageUrl = faker.image.urlPicsumPhotos({ width: 600, height: 400 });
+    const imageUrl = `https://source.unsplash.com/random/600x400?sig=${Math.floor(Math.random() * 10000)}`;
+    const price = faker.number
+      .float({ min: 0, max: 4999, fractionDigits: 2 })
+      .toString();
 
     const [course] = await db
       .insert(courses)
@@ -92,7 +96,9 @@ async function seedCourses(categories: { id: string }[]): Promise<string[]> {
         instructorId,
         categoryId: randomCategory.id,
         level: randomLevel,
-        imageUrl,
+        imageUrl: imageUrl,
+        price: price,
+        currency: 'INR',
         status: 'published',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -101,7 +107,7 @@ async function seedCourses(categories: { id: string }[]): Promise<string[]> {
 
     courseIds.push(course.id);
     console.log(
-      `Course created: ${course.title} (ID: ${course.id}, Level: ${randomLevel})`
+      `Course created: ${course.title} (ID: ${course.id}, ₹${price} - ${randomLevel})`
     );
   }
 

@@ -1,5 +1,6 @@
 import { relations } from 'drizzle-orm';
 import {
+  decimal,
   integer,
   pgEnum,
   pgTable,
@@ -29,6 +30,8 @@ export const courses = pgTable('courses', {
   description: text('description'),
   instructorId: uuid('instructor_id').notNull(),
   status: courseStatusEnum('status').default('draft').notNull(),
+  price: decimal('price', { precision: 10, scale: 2 }),
+  currency: varchar('currency', { length: 3 }).default('INR'),
   imageUrl: text('image_url'),
   level: courseLevelEnum('level').default('all-levels').notNull(),
   prerequisiteCourseId: uuid('prerequisite_course_id').references(
