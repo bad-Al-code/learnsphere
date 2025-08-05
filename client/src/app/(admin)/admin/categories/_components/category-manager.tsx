@@ -45,7 +45,11 @@ interface CategoryManagerProps {
 export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
+    null
+  );
 
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
@@ -56,6 +60,26 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     setEditingCategory(category);
     form.reset({ name: category?.name || "" });
     setIsDialogOpen(true);
+  };
+
+  const handleDeleteClick = (category: Category) => {
+    setCategoryToDelete(category);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!categoryToDelete) return;
+
+    startTransition(async () => {
+      const result = await deleteCategory(categoryToDelete.id);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Category deleted successfully.");
+      }
+      setIsDeleteDialogOpen(false);
+      setCategoryToDelete(null);
+    });
   };
 
   const onSubmit = (values: CategoryFormValues) => {
@@ -73,17 +97,6 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
           `Category ${editingCategory ? "updated" : "created"} successfully!`
         );
         setIsDialogOpen(false);
-      }
-    });
-  };
-
-  const handleDelete = (id: string) => {
-    startTransition(async () => {
-      const result = await deleteCategory(id);
-      if (result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success("Category deleted successfully.");
       }
     });
   };
@@ -113,7 +126,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
                 <TableCell className="font-mono text-muted-foreground">
                   {category.slug}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right space-x-1">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -124,7 +137,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleDelete(category.id)}
+                    onClick={() => handleDeleteClick(category)}
                     disabled={isPending}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
@@ -165,6 +178,34 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
               </div>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+          </DialogHeader>
+          <p>
+            Are you sure you want to delete the category "
+            {categoryToDelete?.name}"?
+          </p>
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={isPending}
+            >
+              {isPending ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
