@@ -47,7 +47,7 @@ export class MediaService {
       s3Key: key,
       uploadType: uploadType,
       ownerUserId: metadata.userId || null,
-      parentEntityId: metadata.lessonId || metadata.userId,
+      parentEntityId: metadata.lessonId || metadata.userId || metadata.courseId,
       status: 'uploading',
     });
 

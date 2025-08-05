@@ -18,7 +18,7 @@ export default async function CoursePage({ searchParams }: CoursesPageProps) {
       <h1 className="text-4xl font-bold mb-4">Explore Courses</h1>
 
       <Suspense fallback={<CategoryListSkeleton />}>
-        <div className="flex flex-row gap-2 mb-8">
+        <div className="flex flex-row gap-2 mb-2">
           <div className="flex-grow">
             <CategoryList categories={categories} />
           </div>

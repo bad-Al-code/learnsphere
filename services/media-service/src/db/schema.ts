@@ -27,7 +27,7 @@ export const mediaAssets = pgTable('media_assets', {
     .primaryKey(),
   s3Key: text('s3_key').notNull().unique(),
   ownerUserId: uuid('owner_user_id'),
-  parentEntityId: uuid('parent_entity_id'),
+  parentEntityId: uuid('parent_entity_id').notNull(),
   uploadType: uploadTypeEnum('upload_type').notNull(),
   status: mediaStatusEnum('status').default('uploading').notNull(),
   errorMessage: text('error_message'),

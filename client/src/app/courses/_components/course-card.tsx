@@ -23,13 +23,16 @@ export function CourseCard({ course }: { course: Course }) {
     <Link href={`/courses/${course.id}`}>
       <Card className="h-full flex flex-col hover:border-primary/30 transition-all">
         <CardHeader>
-          <AspectRatio ratio={16 / 9} className="bg-muted">
+          <AspectRatio
+            ratio={16 / 9}
+            className="bg-muted rounded-md shadow-2xl/10"
+          >
             {course.imageUrl && (
               <Image
                 src={course.imageUrl}
                 alt={course.title}
                 fill
-                className="object-cover"
+                className="object-cover rounded-md"
               />
             )}
           </AspectRatio>
