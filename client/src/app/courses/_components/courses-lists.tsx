@@ -1,18 +1,33 @@
-import { getPublicCourses } from "../actions";
+import { getCategoryBySlug, getPublicCourses } from "../actions";
 import { CourseCard } from "./course-card";
 import { PaginationControls } from "./pagination-controls";
 
 interface CoursesListProps {
-  searchParams?: { page?: string; level?: string };
+  searchParams?: { page?: string; level?: string; category?: string };
 }
 
 export async function CoursesList({ searchParams }: CoursesListProps) {
   const currentPage = Number(searchParams?.page) || 1;
   const level = searchParams?.level;
+  const categorySlug = searchParams?.category;
+
+  let categoryId: string | undefined = undefined;
+
+  if (categorySlug) {
+    const category = await getCategoryBySlug(categorySlug);
+    if (category) {
+      categoryId = category.id;
+    } else {
+      return (
+        <p className="text-center text-muted-foreground">Category not found.</p>
+      );
+    }
+  }
 
   const { results: courses, pagination } = await getPublicCourses({
     page: currentPage,
     level,
+    categoryId,
   });
 
   if (courses.length === 0) {

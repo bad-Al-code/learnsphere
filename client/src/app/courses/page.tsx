@@ -7,7 +7,7 @@ import { DifficultyFilter } from "./_components/difficulty-filter";
 import { getCategoryOptions } from "./actions";
 
 interface CoursesPageProps {
-  searchParams?: { page?: string; level?: string };
+  searchParams?: { page?: string; level?: string; category?: string };
 }
 
 export default async function CoursePage({ searchParams }: CoursesPageProps) {

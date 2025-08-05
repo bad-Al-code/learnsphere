@@ -2,7 +2,7 @@
 
 import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +21,11 @@ interface CategoryListProps {
 }
 
 export function CategoryList({ categories }: CategoryListProps) {
+  const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentCategorySlug = searchParams.get("category");
+
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState<Category[]>([]);
   const [hidden, setHidden] = useState<Category[]>([]);
@@ -31,8 +35,23 @@ export function CategoryList({ categories }: CategoryListProps) {
     ...categories,
   ];
 
-  const isActive = (slug: string) =>
-    pathname === (slug ? `/courses/category/${slug}` : "/courses");
+  const createCategoryURL = (slug: string | null) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
+
+    if (slug) {
+      params.set("category", slug);
+    } else {
+      params.delete("category");
+    }
+
+    return `${pathname}?${params.toString()}`;
+  };
+
+  const isActive = (slug: string | null) => {
+    if (!slug && !currentCategorySlug) return true;
+    return currentCategorySlug === slug;
+  };
 
   useEffect(() => {
     const measure = () => {
@@ -79,10 +98,7 @@ export function CategoryList({ categories }: CategoryListProps) {
     <div className="relative mb-8">
       <div ref={containerRef} className="flex gap-2 overflow-hidden pr-16">
         {visible.map((cat) => (
-          <Link
-            key={cat.id}
-            href={cat.slug ? `/courses/category/${cat.slug}` : "/courses"}
-          >
+          <Link key={cat.id} href={createCategoryURL(cat.slug || null)}>
             <Badge
               variant={isActive(cat.slug) ? "default" : "secondary"}
               className="whitespace-nowrap"
@@ -111,11 +127,7 @@ export function CategoryList({ categories }: CategoryListProps) {
             >
               {hidden.map((cat) => (
                 <DropdownMenuItem asChild key={cat.id}>
-                  <Link
-                    href={
-                      cat.slug ? `/courses/category/${cat.slug}` : "/courses"
-                    }
-                  >
+                  <Link href={createCategoryURL(cat.slug)} key={cat.id}>
                     {cat.name}
                   </Link>
                 </DropdownMenuItem>
