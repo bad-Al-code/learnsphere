@@ -42,6 +42,16 @@ export class CategoryService {
     if (!category) {
       throw new NotFoundError('Category');
     }
+
     await CategoryRepository.delete(id);
+  }
+
+  public static async getCategoryBySlug(slug: string): Promise<Category> {
+    const category = await CategoryRepository.findBySlug(slug);
+    if (!category) {
+      throw new NotFoundError('Category');
+    }
+
+    return category;
   }
 }

@@ -47,4 +47,17 @@ export class CategoryController {
       next(error);
     }
   }
+
+  public static async getBySlug(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const category = await CategoryService.getCategoryBySlug(req.params.slug);
+      res.status(StatusCodes.OK).json(category);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

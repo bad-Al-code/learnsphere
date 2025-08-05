@@ -58,4 +58,13 @@ export class CategoryRepository {
   public static async delete(id: string): Promise<void> {
     await db.delete(categories).where(eq(categories.id, id));
   }
+
+  /**
+   * Finds a category by its slug.
+   * @param slug - The unique slug of the category.
+   * @returns The category object if found, otherwise undefined.
+   */
+  public static async findBySlug(slug: string): Promise<Category | undefined> {
+    return db.query.categories.findFirst({ where: eq(categories.slug, slug) });
+  }
 }

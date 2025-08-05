@@ -16,6 +16,33 @@ const router = Router();
 
 /**
  * @openapi
+ * /categories/slug/{slug}:
+ *   get:
+ *     summary: Get a category by slug
+ *     tags: [Categories]]
+ *     parameters:
+ *       - name: slug
+ *         in: path
+ *         required: true
+ *         description: Slug of the category to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Category found successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CategoryResponse'
+ *       '404':
+ *         description: Category not found
+ *       '500':
+ *         description: Internal server error
+ */
+router.get('/slug/:slug', CategoryController.getBySlug);
+
+/**
+ * @openapi
  * /categories/list:
  *   get:
  *     summary: List all categories
