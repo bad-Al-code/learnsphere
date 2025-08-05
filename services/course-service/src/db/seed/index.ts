@@ -82,6 +82,7 @@ async function seedCourses(categories: { id: string }[]): Promise<string[]> {
   for (const instructorId of instructorIds) {
     const randomCategory = faker.helpers.arrayElement(categories);
     const randomLevel = faker.helpers.arrayElement(courseLevels);
+    const imageUrl = faker.image.urlPicsumPhotos({ width: 600, height: 400 });
 
     const [course] = await db
       .insert(courses)
@@ -91,6 +92,7 @@ async function seedCourses(categories: { id: string }[]): Promise<string[]> {
         instructorId,
         categoryId: randomCategory.id,
         level: randomLevel,
+        imageUrl,
         status: 'published',
         createdAt: new Date(),
         updatedAt: new Date(),

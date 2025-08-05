@@ -29,6 +29,7 @@ export const courses = pgTable('courses', {
   description: text('description'),
   instructorId: uuid('instructor_id').notNull(),
   status: courseStatusEnum('status').default('draft').notNull(),
+  imageUrl: text('image_url'),
   level: courseLevelEnum('level').default('all-levels').notNull(),
   prerequisiteCourseId: uuid('prerequisite_course_id').references(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
