@@ -225,7 +225,7 @@ interface UserRoleUpdatedEvent {
 
 export class UserSyncRoleUpdatedListener extends Listener<UserRoleUpdatedEvent> {
   readonly topic = 'user.role.updated' as const;
-  queueGroupName = 'notification-service-user-sync';
+  queueGroupName = 'notification-service-user-role-sync';
 
   async onMessage(data: UserRoleUpdatedEvent['data'], _msg: ConsumeMessage) {
     try {
