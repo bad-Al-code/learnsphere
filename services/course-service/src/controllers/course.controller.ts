@@ -280,4 +280,20 @@ export class CourseController {
       next(error);
     }
   }
+
+  public static async publicSearch(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const query = req.query.q ? String(req.query.q) : '';
+
+      const courses = await CourseService.searchPublicCourses(query);
+
+      res.status(StatusCodes.OK).json(courses);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

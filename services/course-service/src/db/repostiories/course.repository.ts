@@ -1,4 +1,4 @@
-import { and, count, eq, ilike, inArray } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, inArray } from 'drizzle-orm';
 
 import { db } from '..';
 import { Course, CourseLevel, NewCourse, UpdateCourse } from '../../types';
@@ -198,5 +198,27 @@ export class CourseRepository {
     ]);
 
     return { totalResults, results };
+  }
+
+  /**
+   * Finds published courses by title for the public search command.
+   * @param query The search term
+   * @param limit The maximumn number of results to return
+   * @returns An array of simplified course objects
+   */
+  public static async findPublishedByTitle(
+    query: string,
+    limit: number = 5
+  ): Promise<{ id: string; title: string }[]> {
+    if (!query) return [];
+
+    return db
+      .select({ id: courses.id, title: courses.title })
+      .from(courses)
+      .where(
+        and(eq(courses.status, 'published'), ilike(courses.title, `%${query}%`))
+      )
+      .orderBy(desc(courses.createdAt))
+      .limit(limit);
   }
 }

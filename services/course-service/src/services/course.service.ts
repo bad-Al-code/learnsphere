@@ -290,4 +290,8 @@ export class CourseService {
       },
     };
   }
+
+  public static async searchPublicCourses(query: string) {
+    return CourseRepository.findPublishedByTitle(query);
+  }
 }

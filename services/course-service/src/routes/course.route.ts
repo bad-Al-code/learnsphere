@@ -203,6 +203,24 @@ router.get(
 
 /**
  * @openapi
+ * /api/courses/public-search:
+ *   get:
+ *     summary: "Publicly search for published courses"
+ *     tags: [Courses]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: The search term for the course title.
+ *     responses:
+ *       '200':
+ *         description: An array of courses matching the query.
+ */
+router.get('/public-search', CourseController.publicSearch);
+
+/**
+ * @openapi
  * /api/courses/{courseId}:
  *   get:
  *     summary: Get full details of a single course, including all modules and lessons
