@@ -3,6 +3,11 @@ import logger from '../config/logger';
 import { CourseRepository } from '../db/repostiories';
 import { NotFoundError } from '../errors';
 import {
+  CourseCreatedPublisher,
+  CourseDeletedPublisher,
+  CourseUpdatedPublisher,
+} from '../events/publisher';
+import {
   Course,
   CourseLevel,
   CourseWithInstructor,
@@ -49,6 +54,21 @@ export class CourseService {
       description: data.description,
       instructorId: data.instructorId,
     });
+
+    try {
+      const publisher = new CourseCreatedPublisher();
+      await publisher.publish({
+        courseId: newCourse.id,
+        instructorId: newCourse.instructorId,
+        status: newCourse.status,
+        prerequisiteCourseId: newCourse.prerequisiteCourseId,
+      });
+    } catch (error) {
+      logger.error('Failed to publish course.created event', {
+        error,
+        courseId: newCourse.id,
+      });
+    }
 
     await CourseCacheService.invalidateCourseList();
 
@@ -148,6 +168,19 @@ export class CourseService {
 
     const updatedCourse = await CourseRepository.update(courseId, data);
 
+    try {
+      const publisher = new CourseUpdatedPublisher();
+      await publisher.publish({
+        courseId: updatedCourse.id,
+        newPrerequisiteCourseId: updatedCourse.prerequisiteCourseId,
+      });
+    } catch (error) {
+      logger.error('Failed to publish course.updated event', {
+        error,
+        courseId,
+      });
+    }
+
     await CourseCacheService.invalidateCacheDetails(courseId);
     await CourseCacheService.invalidateCourseList();
 
@@ -168,6 +201,18 @@ export class CourseService {
     await AuthorizationService.verifyCourseOwnership(courseId, requester);
 
     await CourseRepository.delete(courseId);
+
+    try {
+      const publisher = new CourseDeletedPublisher();
+      await publisher.publish({
+        courseId,
+      });
+    } catch (error) {
+      logger.error('Failed to publish course.deleted event', {
+        error,
+        courseId,
+      });
+    }
 
     await CourseCacheService.invalidateCacheDetails(courseId);
     await CourseCacheService.invalidateCourseList();
@@ -194,6 +239,19 @@ export class CourseService {
       courseId,
       'published'
     );
+
+    try {
+      const publisher = new CourseUpdatedPublisher();
+      await publisher.publish({
+        courseId: updatedCourse.id,
+        newStatus: updatedCourse.status,
+      });
+    } catch (error) {
+      logger.error(
+        'Failed to publish course.updated event for publish action',
+        { error, courseId }
+      );
+    }
 
     await CourseCacheService.invalidateCacheDetails(courseId);
     await CourseCacheService.invalidateCourseList();
@@ -223,6 +281,19 @@ export class CourseService {
       courseId,
       'draft'
     );
+
+    try {
+      const publisher = new CourseUpdatedPublisher();
+      await publisher.publish({
+        courseId: updatedCourse.id,
+        newStatus: updatedCourse.status,
+      });
+    } catch (error) {
+      logger.error(
+        'Failed to publish course.updated event for unpublish action',
+        { error, courseId }
+      );
+    }
 
     await CourseCacheService.invalidateCacheDetails(courseId);
     await CourseCacheService.invalidateCourseList();
