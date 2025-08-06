@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import { StatusCodes } from 'http-status-codes';
 import { MediaClient } from '../clients/media.client';
+import { CourseRepository } from '../db/repostiories';
 import { NotAuthorizedError } from '../errors';
 import {
   AuthorizationService,
@@ -241,6 +242,37 @@ export class CourseController {
       );
 
       res.status(StatusCodes.OK).json(uploadData);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * @route PATCH /api/courses/:courseId/price
+   * @summary Update the price of a course
+   * @param req.params.courseId - The ID of the course
+   * @param req.body.price - The new price of the course
+   * @returns 200 - Price updated successfully
+   * @returns 401 - Unauthorized
+   * @returns 403 - Forbidden
+   * @returns 404 - Course not found
+   * @returns 500 - Server error
+   */
+  public static async updatePrice(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseId } = req.params;
+      const requester = req.currentUser!;
+      const price = req.body.price;
+
+      await AuthorizationService.verifyCourseOwnership(courseId, requester);
+
+      await CourseRepository.update(courseId, { price });
+
+      res.status(StatusCodes.OK).json({ message: 'Price updated.' });
     } catch (error) {
       next(error);
     }

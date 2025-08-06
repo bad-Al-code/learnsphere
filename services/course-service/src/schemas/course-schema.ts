@@ -204,3 +204,14 @@ export const createCoursePayloadSchema = z.object({
 });
 
 export const updateCoursePayloadSchema = createCoursePayloadSchema.partial();
+
+export const updateCoursePriceSchema = z.object({
+  body: z.object({
+    price: z.coerce
+      .number()
+      .min(0, 'Price must be a positive number.')
+      .positive()
+      .optional()
+      .nullable(),
+  }),
+});

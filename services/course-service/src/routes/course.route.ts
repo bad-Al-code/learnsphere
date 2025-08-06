@@ -16,6 +16,7 @@ import {
   createCourseSchema,
   createModuleSchema,
   listCoursesSchema,
+  updateCoursePriceSchema,
 } from '../schemas/course-schema';
 
 const router = Router();
@@ -405,6 +406,62 @@ router.post(
   requireAuth,
   requireRole(['instructor', 'admin']),
   CourseController.getThumbnailUploadUrl
+);
+
+/**
+ * @openapi
+ * /api/courses/{courseId}/price:
+ *   patch:
+ *     tags: [Courses]
+ *     summary: Update course price
+ *     description: Update the price of a course (admin/instructor only).
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: courseId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the course
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               price:
+ *                 type: number
+ *                 nullable: true
+ *                 minimum: 0
+ *                 example: 19.99
+ *     responses:
+ *       200:
+ *         description: Price updated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Price updated.
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Course not found
+ *       500:
+ *         description: Internal server error
+ */
+router.patch(
+  '/:courseId/price',
+  requireAuth,
+  requireRole(['admin', 'instructor']),
+  validateRequest(updateCoursePriceSchema),
+  CourseController.updatePrice
 );
 
 export { router as courseRouter };
