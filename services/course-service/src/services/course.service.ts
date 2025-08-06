@@ -365,4 +365,11 @@ export class CourseService {
   public static async searchPublicCourses(query: string) {
     return CourseRepository.findPublishedByTitle(query);
   }
+
+  public static async getCoursesForInstructor(instructorId: string) {
+    const courseList =
+      await CourseRepository.findAllByInstructorId(instructorId);
+
+    return courseList;
+  }
 }

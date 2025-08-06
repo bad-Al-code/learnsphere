@@ -221,6 +221,39 @@ router.get('/public-search', CourseController.publicSearch);
 
 /**
  * @openapi
+ * /api/courses/my-courses:
+ *   get:
+ *     summary: "[Instructor/Admin] Get all courses for the current instructor"
+ *     tags: [Courses]
+ *     description: |
+ *       Retrieves a list of all courses created by the currently authenticated instructor.
+ *       The results are ordered by creation date, with the most recent courses appearing first.
+ *       This endpoint requires the user to be authenticated and have the role of 'instructor' or 'admin'.
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: A list of courses for the instructor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Course'
+ *       '401':
+ *         description: Not authorized. The user is not authenticated.
+ *       '403':
+ *         description: Forbidden. The user does not have the required 'instructor' or 'admin' role.
+ */
+router.get(
+  '/my-courses',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  CourseController.getForInstructor
+);
+
+/**
+ * @openapi
  * /api/courses/{courseId}:
  *   get:
  *     summary: Get full details of a single course, including all modules and lessons

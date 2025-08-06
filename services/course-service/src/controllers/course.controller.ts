@@ -296,4 +296,21 @@ export class CourseController {
       next(error);
     }
   }
+
+  public static async getForInstructor(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const instructorId = req.currentUser!.id;
+
+      const instructorCourses =
+        await CourseService.getCoursesForInstructor(instructorId);
+
+      res.status(StatusCodes.OK).json(instructorCourses);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

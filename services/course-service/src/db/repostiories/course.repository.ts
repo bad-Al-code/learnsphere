@@ -221,4 +221,24 @@ export class CourseRepository {
       .orderBy(desc(courses.createdAt))
       .limit(limit);
   }
+
+  /**
+   * @static
+   * @async
+   * @method findAllByInstructorId
+   * @description Finds all courses in the database created by a specific instructor.
+   * The results are ordered by the creation date in descending order, showing the
+   * newest courses first.
+   * @param {string} instructorId - The unique identifier of the instructor whose courses are to be retrieved.
+   * @returns {Promise<Course[]>} A promise that resolves with an array of `Course` objects.
+   * If no courses are found for the instructor, it returns an empty array.
+   */
+  public static async findAllByInstructorId(
+    instructorId: string
+  ): Promise<Course[]> {
+    return db.query.courses.findMany({
+      where: eq(courses.instructorId, instructorId),
+      orderBy: (courses, { desc }) => [desc(courses.createdAt)],
+    });
+  }
 }
