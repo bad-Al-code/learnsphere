@@ -1,7 +1,9 @@
 "use server";
 
 import { courseService, enrollmentService } from "@/lib/api";
+import { searchQuerySchema } from "@/lib/schemas/course";
 import { redirect } from "next/navigation";
+import z from "zod";
 import { getCurrentUser } from "../(auth)/actions";
 
 export async function getPublicCourses({
@@ -112,5 +114,33 @@ export async function getCategoryBySlug(slug: string) {
     return await response.json();
   } catch (error) {
     return null;
+  }
+}
+
+export async function serachCourseForCommand(query: string) {
+  try {
+    const validatedQuery = searchQuerySchema.parse(query);
+    const params = new URLSearchParams({ q: validatedQuery });
+
+    const response = await courseService.get(
+      `/api/courses/public-search?${params.toString()}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch search results.");
+    }
+
+    const courses = await response.json();
+    console.log(courses);
+
+    return { success: true, data: courses };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { error: "Invalid search query." };
+    }
+
+    console.error("Error in searchCoursesForCommand:", error);
+
+    return { error: "An error occurred while searching." };
   }
 }

@@ -22,3 +22,7 @@ export const priceSchema = z.object({
 });
 
 export type PriceFormValues = z.input<typeof priceSchema>;
+
+export const searchQuerySchema = z
+  .string()
+  .min(1, "Search query cannot be empty.");
