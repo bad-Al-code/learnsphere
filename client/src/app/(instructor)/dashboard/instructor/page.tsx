@@ -1,3 +1,4 @@
+import { getCoursesByIds } from "@/app/courses/actions";
 import {
   Card,
   CardContent,
@@ -7,10 +8,26 @@ import {
 } from "@/components/ui/card";
 import { formatPrice } from "@/lib/utils";
 import { IndianRupeeIcon, Users } from "lucide-react";
+import { AnalyticsChart } from "../../_components/analytics-chart";
 import { getInstructorAnalytics } from "../../actions";
 
 export default async function InstructorDashboardPage() {
-  const stats = await getInstructorAnalytics();
+  const analyticsData = await getInstructorAnalytics();
+
+  let chartData = [];
+  if (analyticsData?.chartData && analyticsData.chartData.length > 0) {
+    const courseIds = analyticsData.chartData.map((item: any) => item.courseId);
+
+    const courses = await getCoursesByIds(courseIds);
+
+    chartData = analyticsData.chartData.map((item: any) => ({
+      name:
+        courses
+          .find((c: any) => c.id === item.courseId)
+          ?.title.substring(0, 15) || "Unknown",
+      total: item.studentCount,
+    }));
+  }
 
   return (
     <div className="space-y-6">
@@ -25,7 +42,7 @@ export default async function InstructorDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatPrice(stats.totalRevenue)}
+              {formatPrice(analyticsData?.totalRevenue)}
             </div>
             <p className="text-xs text-muted-foreground">
               Total earnings from all courses. (Coming soon)
@@ -42,7 +59,7 @@ export default async function InstructorDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              +{stats.totalStudents.toLocaleString()}
+              +{analyticsData?.totalStudents?.toLocaleString() ?? "0"}
             </div>
             <p className="text-xs text-muted-foreground">
               Unique students across all your courses.
@@ -50,6 +67,24 @@ export default async function InstructorDashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Students per Course</CardTitle>
+          <CardDescription>
+            A breakdown of student enrollment across your most popular courses.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {chartData.length > 0 ? (
+            <AnalyticsChart data={chartData} />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No student data yet.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

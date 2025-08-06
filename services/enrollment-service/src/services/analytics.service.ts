@@ -9,6 +9,9 @@ import { AnalyticsRepository } from '../db/analytics.repository';
 export class AnalyticsService {
   public static async getInstructorAnalytics(instructorId: string) {
     const stats = await AnalyticsRepository.getInstructorStats(instructorId);
-    return stats;
+    const chartData =
+      await AnalyticsRepository.getStudentCountByCourse(instructorId);
+
+    return { stats, chartData };
   }
 }

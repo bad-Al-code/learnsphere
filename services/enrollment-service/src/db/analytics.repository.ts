@@ -1,4 +1,4 @@
-import { eq, inArray, sql } from 'drizzle-orm';
+import { countDistinct, desc, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '.';
 import { courses, enrollments } from './schema';
 
@@ -48,5 +48,31 @@ export class AnalyticsRepository {
       totalStudents: Number(totalStudentsResult[0].count),
       totalRevenue: totalRevenue,
     };
+  }
+
+  /**
+   * Gets the number of unique students for each of an instructor's courses.
+   * @param instructorId The ID of the instructor.
+   * @returns An array of objects with courseId and studentCount.
+   */
+  public static async getStudentCountByCourse(instructorId: string) {
+    const instructorCourses = await db
+      .select()
+      .from(courses)
+      .where(eq(courses.instructorId, instructorId));
+
+    if (instructorCourses.length === 0) return [];
+
+    const courseIds = instructorCourses.map((c) => c.id);
+
+    return db
+      .select({
+        courseId: enrollments.courseId,
+        studentCount: countDistinct(enrollments.userId),
+      })
+      .from(enrollments)
+      .where(inArray(enrollments.courseId, courseIds))
+      .groupBy(enrollments.courseId)
+      .orderBy(desc(sql`count(distinct ${enrollments.userId})`));
   }
 }

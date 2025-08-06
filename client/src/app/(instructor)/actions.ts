@@ -9,7 +9,7 @@ export async function getInstructorAnalytics() {
     if (!response.ok) {
       console.error("Failed to fetch instructor analytics, response not ok.");
 
-      return { totalStudents: 0, totalRevenue: 0 };
+      return { totalStudents: 0, totalRevenue: 0, chartData: [] };
     }
 
     const result = await response.json();
@@ -18,6 +18,6 @@ export async function getInstructorAnalytics() {
   } catch (error) {
     console.error("Error fetching instructor analytics:", error);
 
-    return { totalStudents: 0, totalRevenue: 0 };
+    return { totalStudents: 0, totalRevenue: 0, chartData: [] };
   }
 }

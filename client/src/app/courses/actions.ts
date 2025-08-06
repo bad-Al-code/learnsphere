@@ -49,6 +49,18 @@ export async function getPublicCourses({
   }
 }
 
+export async function getCoursesByIds(courseIds: string[]) {
+  try {
+    const response = await courseService.post("/api/courses/bulk", {
+      courseIds,
+    });
+    if (!response.ok) return [];
+    return await response.json();
+  } catch (error) {
+    return [];
+  }
+}
+
 export async function getCourseDetails(courseId: string) {
   try {
     const response = await courseService.get(`/api/courses/${courseId}`);
