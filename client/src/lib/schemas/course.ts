@@ -12,3 +12,13 @@ export const createCourseSchema = z.object({
   categoryId: z.string().uuid("Please select a category."),
   level: z.enum(COURSE_LEVELS),
 });
+
+export const priceSchema = z.object({
+  price: z.coerce
+    .number()
+    .min(0, "Price must be a positive number.")
+    .optional()
+    .nullable(),
+});
+
+export type PriceFormValues = z.input<typeof priceSchema>;

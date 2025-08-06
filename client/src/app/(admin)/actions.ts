@@ -2,6 +2,7 @@
 
 import { courseService, userService } from "@/lib/api";
 import { categorySchema } from "@/lib/schemas/category";
+import { PriceFormValues, priceSchema } from "@/lib/schemas/course";
 import { profileFormSchema } from "@/lib/schemas/user";
 import { revalidatePath, revalidateTag, unstable_noStore } from "next/cache";
 import z from "zod";
@@ -373,6 +374,31 @@ export async function getCourseThumbnailUploadUrl(
     return { success: true, data };
   } catch (error: any) {
     console.log(error);
+    return { error: error.message };
+  }
+}
+
+export async function updateCoursePrice(
+  courseId: string,
+  values: PriceFormValues
+) {
+  try {
+    const validatedData = priceSchema.parse(values);
+
+    const response = await courseService.patch(
+      `/api/courses/${courseId}/price`,
+      validatedData
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.errors?.[0]?.message || "Failed to update price.");
+    }
+
+    revalidatePath(`/admin/courses/${courseId}`);
+
+    return { success: true };
+  } catch (error: any) {
     return { error: error.message };
   }
 }

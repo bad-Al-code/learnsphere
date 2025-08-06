@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CourseActions } from "./_components/course-actions";
+import { PriceForm } from "./_components/price-form";
 import { ThumbnailUploader } from "./_components/thumbnail-uploader";
 
 export default function AdminCourseDetailPage({
@@ -120,6 +121,15 @@ async function CourseDetailComponent({ courseId }: { courseId: string }) {
               courseId={course.id}
               currentImageUrl={course.imageUrl}
             />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Course Price</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PriceForm courseId={course.id} initialPrice={course.price} />
           </CardContent>
         </Card>
       </div>
