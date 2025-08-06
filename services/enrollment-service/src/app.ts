@@ -1,14 +1,15 @@
-import express, { json } from 'express';
 import cookieParser from 'cookie-parser';
-import swaggerUi from 'swagger-ui-express';
+import express, { json } from 'express';
 import helmet from 'helmet';
+import swaggerUi from 'swagger-ui-express';
 
-import { errorHandler } from './middlewares/error-handler';
-import { currentUser } from './middlewares/current-user';
-import { healthRouter } from './routes/health';
-import { httpLogger } from './middlewares/http-logger';
-import { enrollmentRouter } from './routes/enrollment.routes';
 import { swaggerSpec } from './config/swagger';
+import { currentUser } from './middlewares/current-user';
+import { errorHandler } from './middlewares/error-handler';
+import { httpLogger } from './middlewares/http-logger';
+import { analyticsRouter } from './routes/analytics.route';
+import { enrollmentRouter } from './routes/enrollment.routes';
+import { healthRouter } from './routes/health';
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(currentUser);
 
 app.use('/api/enrollments', healthRouter);
 app.use('/api/enrollments', enrollmentRouter);
+app.use('/api/analytics', analyticsRouter);
 
 app.use(errorHandler);
 
