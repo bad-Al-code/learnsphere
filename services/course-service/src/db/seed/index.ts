@@ -213,9 +213,15 @@ async function seedLessons(moduleIds: string[]) {
   console.log('Lessons seeding complete!');
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function runSeed() {
   try {
     console.log('Starting full DB seed...');
+    await rabbitMQConnection.connect();
 
     const seededCategories = await seedCategories();
     const courseIds = await seedCourses(seededCategories);
@@ -223,10 +229,14 @@ async function runSeed() {
     await seedLessons(moduleIds);
 
     console.log('All data seeded successfully.');
+
     await rabbitMQConnection.close();
+
     process.exit(0);
   } catch (err) {
     console.error('Seeding failed:', err);
+
+    await rabbitMQConnection.close().catch(console.error);
     process.exit(1);
   }
 }

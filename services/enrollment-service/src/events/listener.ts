@@ -66,7 +66,7 @@ interface CourseCreatedEvent {
 
 export class CourseSyncCreatedListener extends Listener<CourseCreatedEvent> {
   readonly topic = 'course.created' as const;
-  queueGroupName = 'enrollment-service-course-sync';
+  queueGroupName = 'enrollment-service-course-created';
 
   async onMessage(data: CourseCreatedEvent['data'], _msg: ConsumeMessage) {
     try {
@@ -95,7 +95,7 @@ interface CourseUpdatedEvent {
 
 export class CourseSyncUpdatedListener extends Listener<CourseUpdatedEvent> {
   readonly topic = 'course.updated' as const;
-  queueGroupName = 'enrollment-service-course-sync';
+  queueGroupName = 'enrollment-service-course-updated';
 
   async onMessage(data: CourseUpdatedEvent['data'], _msg: ConsumeMessage) {
     try {
@@ -124,7 +124,7 @@ interface CourseDeletedEvent {
 
 export class CourseSyncDeletedListener extends Listener<CourseDeletedEvent> {
   readonly topic = 'course.deleted' as const;
-  queueGroupName = 'enrollment-service-course-sync';
+  queueGroupName = 'enrollment-service-course-deleted';
 
   async onMessage(data: CourseDeletedEvent['data'], _msg: ConsumeMessage) {
     try {
