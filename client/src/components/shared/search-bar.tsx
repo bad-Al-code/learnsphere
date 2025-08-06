@@ -14,6 +14,7 @@ import {
   CommandItem,
   CommandList,
 } from "../ui/command";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 type CourseSearchResult = {
   id: string;
@@ -64,14 +65,23 @@ export function SearchBar() {
   return (
     <>
       {/* Mobile/Tablet: Just Icon Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setIsOpen(true)}
-        className="md:hidden"
-      >
-        <Search className="h-5 w-5" />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsOpen(true)}
+              className="md:hidden"
+            >
+              <Search className="h-5 w-5" />
+            </Button>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          <p>Search Courses</p>
+        </TooltipContent>
+      </Tooltip>
 
       {/* Desktop and Up: Full Button */}
       <Button
@@ -82,13 +92,17 @@ export function SearchBar() {
         <Search className="h-4 w-4 mr-1" />
         <span className="hidden lg:inline-flex">Search courses...</span>
         <span className="inline-flex lg:hidden">Search...</span>
-        <kbd className="bg-muted text-muted-foreground pointer-events-none inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100 select-none">
+        <kbd className="ml-auto bg-muted text-muted-foreground pointer-events-none inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100 select-none">
           <span className="text-xs">⌘</span>K
         </kbd>
       </Button>
 
       {/* Search Command Dialog */}
-      <CommandDialog open={isOpen} onOpenChange={setIsOpen}>
+      <CommandDialog
+        className="border-2"
+        open={isOpen}
+        onOpenChange={setIsOpen}
+      >
         <CommandInput
           placeholder="Type a course title to search..."
           value={query}
