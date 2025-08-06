@@ -2,15 +2,24 @@ import 'dotenv/config';
 
 import { app } from './app';
 import logger from './config/logger';
-import { rabbitMQConnection } from './events/connection';
 import { redisConnection } from './config/redis';
 import { checkDatabaseConnection } from './db';
+import { rabbitMQConnection } from './events/connection';
+import {
+  CourseSyncCreatedListener,
+  CourseSyncDeletedListener,
+  CourseSyncUpdatedListener,
+} from './events/listener';
 
 const startServer = async () => {
   try {
     await rabbitMQConnection.connect();
     await redisConnection.connect();
     await checkDatabaseConnection();
+
+    new CourseSyncCreatedListener().listen();
+    new CourseSyncUpdatedListener().listen();
+    new CourseSyncDeletedListener().listen();
 
     const PORT = process.env.PORT || 8000;
     app.listen(PORT, () => {
