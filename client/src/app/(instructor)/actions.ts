@@ -1,6 +1,6 @@
 "use server";
 
-import { enrollmentService } from "@/lib/api";
+import { courseService, enrollmentService } from "@/lib/api";
 
 export async function getInstructorAnalytics() {
   try {
@@ -19,5 +19,16 @@ export async function getInstructorAnalytics() {
     console.error("Error fetching instructor analytics:", error);
 
     return { totalStudents: 0, totalRevenue: 0, chartData: [] };
+  }
+}
+
+export async function getMyCourses() {
+  try {
+    const response = await courseService.get("/api/courses/my-courses");
+    if (!response.ok) return [];
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch instructor courses:", error);
+    return [];
   }
 }

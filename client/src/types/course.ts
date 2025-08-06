@@ -1,4 +1,5 @@
 export type Course = {
+  status: "draft" | "published";
   id: string;
   title: string;
   description: string | null;
