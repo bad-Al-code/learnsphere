@@ -1,5 +1,7 @@
 import { faker } from '@faker-js/faker';
 import slugify from 'slugify';
+import { rabbitMQConnection } from '../../events/connection';
+import { CourseCreatedPublisher } from '../../events/publisher';
 import { db } from '../index';
 import {
   categories as categoriesTable,
@@ -106,6 +108,21 @@ async function seedCourses(categories: { id: string }[]): Promise<string[]> {
       .returning();
 
     courseIds.push(course.id);
+
+    try {
+      const publisher = new CourseCreatedPublisher();
+      await publisher.publish({
+        courseId: course.id,
+        instructorId: course.instructorId,
+        status: course.status,
+        prerequisiteCourseId: course.prerequisiteCourseId ?? null,
+      });
+
+      console.log(`Published course.created for course ${course.id}`);
+    } catch (err) {
+      console.error(`Failed to publish course.created for ${course.id}:`, err);
+    }
+
     console.log(
       `Course created: ${course.title} (ID: ${course.id}, ₹${price} - ${randomLevel})`
     );
@@ -206,6 +223,7 @@ async function runSeed() {
     await seedLessons(moduleIds);
 
     console.log('All data seeded successfully.');
+    await rabbitMQConnection.close();
     process.exit(0);
   } catch (err) {
     console.error('Seeding failed:', err);
