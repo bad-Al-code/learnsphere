@@ -4,6 +4,8 @@ export type Course = {
   description: string | null;
   level: string;
   imageUrl: string | null;
+  price: number | null;
+  currency: string | undefined;
   instructor: {
     firstName: string | null;
     lastName: string | null;

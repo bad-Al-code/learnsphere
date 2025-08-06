@@ -1,16 +1,11 @@
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatPrice, getInitials } from "@/lib/utils";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Curriculum } from "../_components/curriculum";
 import { EnrollButton } from "../_components/enroll-button";
 import { getCourseDetails } from "../actions";
-
-const getInitials = (firstName?: string | null, lastName?: string | null) => {
-  const first = firstName?.[0] || "";
-  const last = lastName?.[0] || "";
-  return `${first}${last}`.toUpperCase();
-};
 
 export default async function CourseDetailPage({
   params,
@@ -83,7 +78,9 @@ export default async function CourseDetailPage({
             </AspectRatio>
 
             <div className="space-y-2">
-              <h2 className="text-xl md:text-2xl font-bold">Free</h2>
+              <h2 className="text-xl md:text-2xl font-bold">
+                {formatPrice(course.price, course.currency)}
+              </h2>
               <EnrollButton courseId={course.id} />
             </div>
 

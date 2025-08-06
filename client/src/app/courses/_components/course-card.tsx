@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { formatPrice } from "@/lib/utils";
 import { Course } from "@/types/course";
 import Image from "next/image";
 import Link from "next/link";
@@ -52,7 +53,7 @@ export function CourseCard({ course }: { course: Course }) {
             {course.description || "No description available."}
           </p>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
               <AvatarImage src={course.instructor?.avatarUrls?.small} />
@@ -69,6 +70,9 @@ export function CourseCard({ course }: { course: Course }) {
                 ? `${course.instructor.firstName} ${course.instructor.lastName}`
                 : "Unknown Instructor"}
             </span>
+          </div>
+          <div className="font-semibold">
+            {formatPrice(course.price, course.currency)}
           </div>
         </CardFooter>
       </Card>
