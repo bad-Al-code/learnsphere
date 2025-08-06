@@ -34,40 +34,42 @@ export function DifficultyFilter() {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          size="icon"
-          variant="secondary"
-          className=" border text-sm px-3 h-6"
-          aria-label="Filter by difficulty"
-        >
-          <Tooltip>
-            <TooltipTrigger>
-              <SlidersHorizontal className="cursor-pointer w-4 h-4" />
-            </TooltipTrigger>
-            <TooltipContent align="center">Filter by difficulty</TooltipContent>
-          </Tooltip>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-      >
-        {COURSE_LEVELS.map((level) => (
-          <DropdownMenuItem
-            key={level.value}
-            onClick={() => handleSelect(level.value)}
-            className={
-              currentLevel === level.value
-                ? "font-semibold bg-foreground/20"
-                : ""
-            }
-          >
-            {level.label}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="icon"
+                variant="secondary"
+                className="border text-sm px-3 h-6"
+                aria-label="Filter by difficulty"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+            >
+              {COURSE_LEVELS.map((level) => (
+                <DropdownMenuItem
+                  key={level.value}
+                  onClick={() => handleSelect(level.value)}
+                  className={
+                    currentLevel === level.value
+                      ? "bg-foreground/20"
+                      : "text-xs lg:text-md"
+                  }
+                >
+                  {level.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent align="center">Filter by difficulty</TooltipContent>
+    </Tooltip>
   );
 }

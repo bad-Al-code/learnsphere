@@ -83,7 +83,7 @@ async function seedCourses(categories: { id: string }[]): Promise<string[]> {
   for (const instructorId of instructorIds) {
     const randomCategory = faker.helpers.arrayElement(categories);
     const randomLevel = faker.helpers.arrayElement(courseLevels);
-    const imageUrl = `https://source.unsplash.com/random/600x400?sig=${Math.floor(Math.random() * 10000)}`;
+    const imageUrl = `https://picsum.photos/600/400?random=${Math.floor(Math.random() * 10000)}`;
     const price = faker.number
       .float({ min: 0, max: 4999, fractionDigits: 2 })
       .toString();

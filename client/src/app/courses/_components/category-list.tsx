@@ -116,34 +116,38 @@ export function CategoryList({ categories }: CategoryListProps) {
 
       {hidden.length > 0 && (
         <div className="absolute right-0 top-0 h-full flex items-center  pl-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="icon"
-                variant="secondary"
-                className=" border text-sm px-3 h-6"
-              >
-                <Tooltip>
-                  <TooltipTrigger>
-                    <MoreHorizontal className="w-4 h-4" />
-                  </TooltipTrigger>
-                  <TooltipContent>More Category</TooltipContent>
-                </Tooltip>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-            >
-              {hidden.map((cat) => (
-                <DropdownMenuItem asChild key={cat.id}>
-                  <Link href={createCategoryURL(cat.slug)} key={cat.id}>
-                    {cat.name}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="border text-sm px-3 h-6"
+                      aria-label="More Category"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent
+                    align="end"
+                    className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+                  >
+                    {hidden.map((cat) => (
+                      <DropdownMenuItem asChild key={cat.id}>
+                        <Link href={createCategoryURL(cat.slug)}>
+                          {cat.name}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>More Category</TooltipContent>
+          </Tooltip>
         </div>
       )}
     </div>
