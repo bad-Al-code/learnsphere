@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PriceFormValues, priceSchema } from "@/lib/schemas/course";
+import { IndianRupeeIcon } from "lucide-react";
 
 interface PriceFormProps {
   courseId: string;
@@ -59,8 +60,8 @@ export function PriceForm({ courseId, initialPrice }: PriceFormProps) {
               <FormLabel>Course Price (INR)</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3  mt-0.5 text-muted-foreground">
-                    ₹
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3   text-muted-foreground">
+                    <IndianRupeeIcon className="w-4 h-4" />
                   </span>
                   <Input
                     type="number"
