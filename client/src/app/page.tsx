@@ -1,4 +1,3 @@
-import { SearchBar } from "@/components/shared/search-bar";
 import { getCurrentUser } from "./(auth)/actions";
 import { HomepageClient } from "./(components)/homepage-client";
 
@@ -12,7 +11,6 @@ export default async function Home() {
         <p className="mt-4">
           This is the homepage. Explore our courses and start learning!
         </p>
-        <SearchBar />
       </main>
 
       <HomepageClient user={user} />

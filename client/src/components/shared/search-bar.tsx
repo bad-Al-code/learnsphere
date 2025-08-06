@@ -48,40 +48,49 @@ export function SearchBar() {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-
         setIsOpen((open) => !open);
       }
     };
 
     document.addEventListener("keydown", down);
-
     return () => document.removeEventListener("keydown", down);
   }, []);
 
   const handleSelect = (courseId: string) => {
     setIsOpen(false);
-
     router.push(`/courses/${courseId}`);
   };
 
   return (
     <>
+      {/* Mobile/Tablet: Just Icon Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setIsOpen(true)}
+        className="md:hidden"
+      >
+        <Search className="h-5 w-5" />
+      </Button>
+
+      {/* Desktop and Up: Full Button */}
       <Button
         variant="outline"
         onClick={() => setIsOpen(true)}
-        className="w-full justify-start text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64"
+        className="hidden md:flex w-full justify-start text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64"
       >
         <Search className="h-4 w-4 mr-1" />
         <span className="hidden lg:inline-flex">Search courses...</span>
         <span className="inline-flex lg:hidden">Search...</span>
-        <kbd className="bg-muted text-muted-foreground pointer-events-none inline-flex  h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100 select-none ">
+        <kbd className="bg-muted text-muted-foreground pointer-events-none inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100 select-none">
           <span className="text-xs">⌘</span>K
         </kbd>
       </Button>
 
+      {/* Search Command Dialog */}
       <CommandDialog open={isOpen} onOpenChange={setIsOpen}>
         <CommandInput
-          placeholder="Type a course tiel to search..."
+          placeholder="Type a course title to search..."
           value={query}
           onValueChange={setQuery}
         />
@@ -90,7 +99,6 @@ export function SearchBar() {
           {!isLoading && !results.length && debounceQuery.length > 1 && (
             <CommandEmpty>No results found.</CommandEmpty>
           )}
-
           <CommandGroup heading="Courses">
             {results.map((course) => (
               <CommandItem
