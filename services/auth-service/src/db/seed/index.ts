@@ -42,6 +42,7 @@ async function seedUsers(count = 50) {
     });
 
     console.log(`User ${i + 1} created: ${user.email}`);
+    console.log(`UserID: ${user.id}`);
   }
 
   await rabbitMQConnection.close();
