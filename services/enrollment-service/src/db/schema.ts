@@ -1,11 +1,11 @@
 import {
-  uuid,
+  decimal,
+  jsonb,
+  pgEnum,
+  pgTable,
   timestamp,
   unique,
-  pgTable,
-  jsonb,
-  decimal,
-  pgEnum,
+  uuid,
 } from 'drizzle-orm/pg-core';
 
 type ModuleSnapshot = {
@@ -57,3 +57,12 @@ export const enrollments = pgTable(
     return [unique('user_course_unique_idx').on(table.userId, table.courseId)];
   }
 );
+
+export const courseStatusEnum = pgEnum('course_status', ['draft', 'published']);
+
+export const courses = pgTable('courses', {
+  id: uuid('id').primaryKey(),
+  instructorId: uuid('instructor_id').notNull(),
+  status: courseStatusEnum('status').default('draft').notNull(),
+  prerequisiteCourseId: uuid('prerequisite_course_id'),
+});
