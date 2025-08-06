@@ -82,3 +82,10 @@ export interface ResetProgressData {
   enrollmentId: string;
   requesterId: string;
 }
+
+export interface CourseStructureSnapshotDetails {
+  modules: {
+    id: string;
+    lessons: { id: string }[];
+  }[];
+}

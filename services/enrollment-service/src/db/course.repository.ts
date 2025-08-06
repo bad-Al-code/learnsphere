@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { db } from '.';
-import { courses, NewCourse, UpdatedCourse } from './schema';
+import { Course, courses, NewCourse, UpdatedCourse } from './schema';
 
 /**
  * @class CourseRepository
@@ -59,5 +59,20 @@ export class CourseRepository {
    */
   public static async delete(courseId: string): Promise<void> {
     await db.delete(courses).where(eq(courses.id, courseId));
+  }
+
+  /**
+   * @static
+   * @async
+   * @method findById
+   * @description Finds a single course by its unique identifier.
+   * This method queries the database for a course matching the provided `courseId`.
+   * @param {string} courseId - The unique identifier of the course to find.
+   * @returns {Promise<Course | undefined>} A promise that resolves with the `Course` object if found, otherwise it resolves with `undefined`.
+   */
+  public static async findById(courseId: string): Promise<Course | undefined> {
+    return db.query.courses.findFirst({
+      where: eq(courses.id, courseId),
+    });
   }
 }

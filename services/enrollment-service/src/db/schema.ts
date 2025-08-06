@@ -67,5 +67,6 @@ export const courses = pgTable('courses', {
   prerequisiteCourseId: uuid('prerequisite_course_id'),
 });
 
+export type Course = typeof courses.$inferSelect;
 export type NewCourse = typeof courses.$inferInsert;
 export type UpdatedCourse = Partial<Omit<NewCourse, 'id'>>;

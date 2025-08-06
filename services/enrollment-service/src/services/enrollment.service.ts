@@ -5,6 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import logger from '../config/logger';
 import { db } from '../db';
+import { CourseRepository } from '../db/course.repository';
 import { EnrollRepository } from '../db/enrollment.repository';
 import { enrollments } from '../db/schema';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
@@ -18,7 +19,7 @@ import {
 } from '../events/publisher';
 import {
   ChangeEnrollmentStatus,
-  CourseDetails,
+  CourseStructureSnapshotDetails,
   GetEnrollmentsOptions,
   ManualEnrollmentData,
   MarkProgressData,
@@ -37,34 +38,63 @@ export class EnrollmentService {
     await CacheService.del(cacheKey);
   }
 
-  private static async getValidCourseEnrollment(
-    courseId: string
-  ): Promise<CourseDetails> {
-    const courseServiceUrl = process.env.COURSE_SERVICE_URL!;
-    if (!courseServiceUrl) {
-      throw new Error(`COURSE_SERVICE_URL is not defined`);
-    }
+  // private static async getValidCourseEnrollment(
+  //   courseId: string
+  // ): Promise<CourseDetails> {
+  //   const courseServiceUrl = process.env.COURSE_SERVICE_URL!;
+  //   if (!courseServiceUrl) {
+  //     throw new Error(`COURSE_SERVICE_URL is not defined`);
+  //   }
 
+  //   try {
+  //     logger.debug(`Fetching user details for ${courseId} from course-service`);
+  //     const response = await axios.get<CourseDetails>(
+  //       `${courseServiceUrl}/api/courses/${courseId}`
+  //     );
+  //     if (response.data.status !== 'published') {
+  //       throw new BadRequestError('Enrollment Failed. Course is not published');
+  //     }
+
+  //     return response.data;
+  //   } catch (error) {
+  //     if (isAxiosError(error) && error.response?.status === 404) {
+  //       throw new NotFoundError('Course');
+  //     }
+
+  //     throw error;
+  //   }
+  // }
+
+  /**
+   * Fetches the detailed structure (modules and lessons) of a course.
+   * This is called only at the moment of enrollment to create a durable snapshot.
+   * @param courseId The ID of the course.
+   * @returns The course structure.
+   */
+  private static async getCourseStructureForSnapshot(
+    courseId: string
+  ): Promise<CourseStructureSnapshotDetails> {
+    const courseServiceUrl = process.env.COURSE_SERVICE_URL!;
     try {
-      logger.debug(`Fetching user details for ${courseId} from course-service`);
-      const response = await axios.get<CourseDetails>(
+      const response = await axios.get<CourseStructureSnapshotDetails>(
         `${courseServiceUrl}/api/courses/${courseId}`
       );
-      if (response.data.status !== 'published') {
-        throw new BadRequestError('Enrollment Failed. Course is not published');
-      }
-
       return response.data;
     } catch (error) {
+      logger.error(
+        `Failed to fetch course structure for snapshot for course ${courseId}`,
+        { error }
+      );
       if (isAxiosError(error) && error.response?.status === 404) {
         throw new NotFoundError('Course');
       }
-
-      throw error;
+      throw new Error('Could not retrieve course structure for enrollment.');
     }
   }
 
-  private static createCourseStructureSnapshot(course: CourseDetails) {
+  private static createCourseStructureSnapshot(
+    course: CourseStructureSnapshotDetails
+  ) {
     let totalLessons = 0;
     const totalModules = course.modules.length;
     const moduleSnapshots = course.modules.map((module) => {
@@ -133,22 +163,25 @@ export class EnrollmentService {
       throw new BadRequestError(`User is already enrolled in this course`);
     }
 
-    const course = await this.getValidCourseEnrollment(courseId);
-    if (course.prerequisiteCourseId) {
-      logger.debug(
-        `Course ${courseId} has prerequisite ${course.prerequisiteCourseId}. Checking user ${userId}'s status`
+    const course = await CourseRepository.findById(courseId);
+    if (!course) {
+      throw new NotFoundError(
+        'Course not found or has not been synchronized yet.'
       );
+    }
 
+    if (course.status !== 'published') {
+      throw new BadRequestError('Enrollment failed. Course is not published');
+    }
+
+    if (course.prerequisiteCourseId) {
       const hasCompletedPreq = await this.hasCompletedCourse(
         userId,
         course.prerequisiteCourseId
       );
       if (!hasCompletedPreq) {
-        const prereqCourse = await this.getCourseManualEnrollment(
-          course.prerequisiteCourseId
-        );
         throw new ForbiddenError(
-          `Enrollment failed. Pleasse complete the prerequistics course: ${prereqCourse}`
+          `Enrollment failed. Please complete the prerequisite course first.`
         );
       }
 
@@ -157,7 +190,10 @@ export class EnrollmentService {
       );
     }
 
-    const courseStructure = this.createCourseStructureSnapshot(course);
+    const courseStructureData =
+      await this.getCourseStructureForSnapshot(courseId);
+    const courseStructure =
+      this.createCourseStructureSnapshot(courseStructureData);
 
     if (courseStructure.totalLessons === 0) {
       throw new BadRequestError('Cannot enroll in a course with no lessons.');
@@ -360,28 +396,28 @@ export class EnrollmentService {
     return updatedEnrollment;
   }
 
-  private static async getCourseManualEnrollment(
-    courseId: string
-  ): Promise<CourseDetails & { instructorId: string }> {
-    const courseServiceUrl = process.env.COURSE_SERVICE_URL;
-    if (!courseServiceUrl) {
-      throw new Error(`COURSE_SERVICE_URL is not defined.`);
-    }
+  // private static async getCourseManualEnrollment(
+  //   courseId: string
+  // ): Promise<CourseDetails & { instructorId: string }> {
+  //   const courseServiceUrl = process.env.COURSE_SERVICE_URL;
+  //   if (!courseServiceUrl) {
+  //     throw new Error(`COURSE_SERVICE_URL is not defined.`);
+  //   }
 
-    try {
-      const response = await axios.get<
-        CourseDetails & { instructorId: string }
-      >(`${courseServiceUrl}/api/courses/${courseId}`);
+  //   try {
+  //     const response = await axios.get<
+  //       CourseDetails & { instructorId: string }
+  //     >(`${courseServiceUrl}/api/courses/${courseId}`);
 
-      return response.data;
-    } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 404) {
-        throw new NotFoundError('Course');
-      }
+  //     return response.data;
+  //   } catch (error) {
+  //     if (isAxiosError(error) && error.response?.status === 404) {
+  //       throw new NotFoundError('Course');
+  //     }
 
-      throw error;
-    }
-  }
+  //     throw error;
+  //   }
+  // }
 
   public static async enrollUserManually({
     userId,
@@ -392,7 +428,13 @@ export class EnrollmentService {
       `Manual enrollment request by ${requester.id} (${requester.role}) for user ${userId} in course ${courseId}`
     );
 
-    const course = await this.getCourseManualEnrollment(courseId);
+    const course = await CourseRepository.findById(courseId);
+    if (!course) {
+      throw new NotFoundError(
+        'Course not found or has not been synchronized yet.'
+      );
+    }
+
     if (
       requester.role === 'instructor' &&
       course.instructorId !== requester.id
@@ -408,7 +450,10 @@ export class EnrollmentService {
       throw new BadRequestError(`User is already enrolled in this course`);
     }
 
-    const courseStructure = this.createCourseStructureSnapshot(course);
+    const courseStructureData =
+      await this.getCourseStructureForSnapshot(courseId);
+    const courseStructure =
+      this.createCourseStructureSnapshot(courseStructureData);
 
     const newEnrollment = await EnrollRepository.create({
       userId,
@@ -447,7 +492,13 @@ export class EnrollmentService {
       throw new NotFoundError('Enrollment');
     }
 
-    const course = await this.getCourseManualEnrollment(enrollment.courseId);
+    const course = await CourseRepository.findById(enrollment.courseId);
+    if (!course) {
+      throw new NotFoundError(
+        'Associated course not found or has not been synchronized yet.'
+      );
+    }
+
     if (
       requester.role === 'instructor' &&
       course.instructorId !== requester.id
@@ -562,7 +613,13 @@ export class EnrollmentService {
       `Fetching enrollments for course ${courseId} for requester ${requester.id}`
     );
 
-    const course = await this.getCourseManualEnrollment(courseId);
+    const course = await CourseRepository.findById(courseId);
+    if (!course) {
+      throw new NotFoundError(
+        'Course not found or has not been synchronized yet.'
+      );
+    }
+
     if (
       requester.role === 'instructor' &&
       course.instructorId !== requester.id
