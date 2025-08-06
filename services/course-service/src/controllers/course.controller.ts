@@ -6,6 +6,7 @@ import { CourseRepository } from '../db/repostiories';
 import { NotAuthorizedError } from '../errors';
 import {
   AuthorizationService,
+  CourseCacheService,
   CourseService,
   ModuleService,
 } from '../services';
@@ -271,6 +272,8 @@ export class CourseController {
       await AuthorizationService.verifyCourseOwnership(courseId, requester);
 
       await CourseRepository.update(courseId, { price });
+
+      await CourseCacheService.invalidateCacheDetails(courseId);
 
       res.status(StatusCodes.OK).json({ message: 'Price updated.' });
     } catch (error) {

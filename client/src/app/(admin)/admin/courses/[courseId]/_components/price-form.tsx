@@ -56,11 +56,11 @@ export function PriceForm({ courseId, initialPrice }: PriceFormProps) {
           name="price"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Course Price (USD)</FormLabel>
+              <FormLabel>Course Price (INR)</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
-                    $
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3  mt-0.5 text-muted-foreground">
+                    ₹
                   </span>
                   <Input
                     type="number"
@@ -68,7 +68,12 @@ export function PriceForm({ courseId, initialPrice }: PriceFormProps) {
                     placeholder="e.g., 19.99"
                     className="pl-7"
                     {...field}
-                    value={typeof field.value === "number" ? field.value : ""}
+                    value={
+                      typeof field.value === "number" ||
+                      typeof field.value === "string"
+                        ? field.value
+                        : ""
+                    }
                   />
                 </div>
               </FormControl>
