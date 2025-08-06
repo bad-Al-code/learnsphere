@@ -197,8 +197,8 @@ export type CourseLevelEnum = z.infer<typeof courseLevelEnum>;
 
 export const createCoursePayloadSchema = z.object({
   title: z.string().min(3),
-  categoryId: z.string().uuid(),
-  level: courseLevelEnum,
+  categoryId: z.string().uuid().optional().nullable(),
+  level: courseLevelEnum.optional(),
   price: z.number().positive().optional().nullable(),
   currency: z.string().length(3).optional().nullable(),
 });

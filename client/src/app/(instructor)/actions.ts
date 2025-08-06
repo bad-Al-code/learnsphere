@@ -1,6 +1,9 @@
 "use server";
 
 import { courseService, enrollmentService } from "@/lib/api";
+import { createCourseSchema } from "@/lib/schemas/course";
+import { revalidatePath } from "next/cache";
+import z from "zod";
 
 export async function getInstructorAnalytics() {
   try {
@@ -30,5 +33,29 @@ export async function getMyCourses() {
   } catch (error) {
     console.error("Failed to fetch instructor courses:", error);
     return [];
+  }
+}
+
+export async function createCourse(values: z.infer<typeof createCourseSchema>) {
+  try {
+    const validatedData = createCourseSchema.parse(values);
+
+    const response = await courseService.post("/api/courses", validatedData);
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.errors?.[0]?.message || "Failed to create course.");
+    }
+
+    const newCourse = await response.json();
+
+    revalidatePath("/dashboard/instructor/courses");
+
+    return { success: true, data: newCourse };
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+    return { error: error.message };
   }
 }
