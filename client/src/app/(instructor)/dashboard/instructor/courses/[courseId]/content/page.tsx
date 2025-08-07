@@ -50,8 +50,8 @@ async function CourseModules({ courseId }: { courseId: string }) {
 
   return (
     <div>
-      <ModulesList modules={course.modules} courseId={course.id} />
       <AddModuleForm courseId={course.id} />
+      <ModulesList modules={course.modules} courseId={course.id} />
     </div>
   );
 }

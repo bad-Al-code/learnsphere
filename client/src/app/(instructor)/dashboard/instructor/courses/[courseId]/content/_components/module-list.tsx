@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import { Grip, Pencil, Trash2 } from "lucide-react";
+import { Grip, Pencil, Search, Trash2 } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 
 import {
@@ -109,7 +109,21 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
   };
 
   return (
-    <>
+    <div className="mt-6 space-y-4">
+      <form className="flex items-center gap-2">
+        <div className="relative flex-grow">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            name="query"
+            placeholder="Search for modules..."
+            // onChange={(e) => handleSearchOnChange(e.target.value)}
+            // defaultValue={searchParams.get("q") || ""}
+            className="pl-10"
+          />
+        </div>
+        <Button type="submit">Search</Button>
+      </form>
+
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="modules">
           {(provided) => (
@@ -200,6 +214,6 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
           </AlertDialogContent>
         </AlertDialog>
       </Dialog>
-    </>
+    </div>
   );
 }

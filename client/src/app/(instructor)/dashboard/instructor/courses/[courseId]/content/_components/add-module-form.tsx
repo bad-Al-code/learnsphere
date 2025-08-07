@@ -44,7 +44,7 @@ export function AddModuleForm({ courseId }: { courseId: string }) {
   };
 
   return (
-    <div className="mt-6 border  rounded-md p-4">
+    <div className=" border  rounded-md p-4">
       <div className="font-medium flex items-center justify-between">
         Add a new module
       </div>
