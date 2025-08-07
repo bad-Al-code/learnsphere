@@ -1,15 +1,18 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PlusCircle, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { getCategories } from "@/app/(admin)/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,12 +28,26 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createCourseSchema, CreateCourseValues } from "@/lib/schemas/course";
-import { PlusCircle, Trash2 } from "lucide-react";
-import { createCourse } from "../../../../actions";
+import { Category } from "@/types/category";
+import { PrerequisiteCourse } from "@/types/course";
+import { createFullCourse, getMyCourses } from "../../../../actions";
 
 export default function CreateCoursePage() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [instructorCourses, setInstructorCourses] = useState<
+    PrerequisiteCourse[]
+  >([]);
+
+  useEffect(() => {
+    getCategories().then((res) => {
+      if (res.success && res.data) setCategories(res.data);
+    });
+    getMyCourses().then((res) => {
+      if (res.success && res.data) setInstructorCourses(res);
+    });
+  }, []);
 
   const form = useForm<CreateCourseValues>({
     resolver: zodResolver(createCourseSchema),
@@ -40,6 +57,8 @@ export default function CreateCoursePage() {
       level: "all-levels",
       status: "draft",
       modules: [{ title: "" }],
+      price: 0,
+      duration: 0,
     },
   });
 
@@ -50,23 +69,22 @@ export default function CreateCoursePage() {
 
   const onSubmit = (values: CreateCourseValues) => {
     startTransition(async () => {
-      const result = await createCourse(values);
+      const result = await createFullCourse(values);
       if (result.error) {
         toast.error("Failed to create course", { description: result.error });
       } else {
         toast.success("Course created successfully!");
-
         router.push(`/dashboard/instructor/courses/${result.data.id}`);
       }
     });
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-3xl font-bold">Create a New Course</h1>
       <p className="text-muted-foreground mt-2">
-        Start by giving your course a title and description. You can edit all
-        other details later.
+        Fill out the essential details for your course. You can add more content
+        and fine-tune settings after creation.
       </p>
 
       <Form {...form}>
@@ -95,7 +113,7 @@ export default function CreateCoursePage() {
                 <FormLabel>Course Description</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="e.g., 'Learn the fundamentals of programming with Python...'"
+                    placeholder="e.g., 'Learn the fundamentals of programming...'"
                     {...field}
                     value={field.value ?? ""}
                   />
@@ -105,7 +123,43 @@ export default function CreateCoursePage() {
             )}
           />
 
+          <FormItem>
+            <FormLabel>Course Thumbnail</FormLabel>
+            <FormControl>
+              <div className="p-4 border rounded-lg bg-muted text-center text-muted-foreground">
+                You can upload a thumbnail on the next step.
+              </div>
+            </FormControl>
+          </FormItem>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value ?? undefined}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                      {categories.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="level"
@@ -121,7 +175,6 @@ export default function CreateCoursePage() {
                         <SelectValue />
                       </SelectTrigger>
                     </FormControl>
-
                     <SelectContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                       <SelectItem value="beginner">Beginner</SelectItem>
                       <SelectItem value="intermediate">Intermediate</SelectItem>
@@ -133,26 +186,111 @@ export default function CreateCoursePage() {
                 </FormItem>
               )}
             />
+          </div>
+
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Initial Status</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an initial status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="published">Published</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  'Draft' courses are not visible to students. 'Published'
+                  courses are live.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="prerequisiteCourseId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Prerequisite Course (Optional)</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value ?? undefined}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="None" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                    <SelectItem value="None">None</SelectItem>
+                    {instructorCourses.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
-              name="status"
+              name="duration"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Initial Status</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="published">Published</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Duration (minutes)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g., 180"
+                      {...field}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === "" ? null : +value);
+                      }}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormDescription>Total estimated video time.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="price"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Price (INR)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g., 499"
+                      {...field}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === "" ? null : +value);
+                      }}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Leave empty or 0 for a free course.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -160,7 +298,13 @@ export default function CreateCoursePage() {
           </div>
 
           <div>
-            <FormLabel className="text-lg font-semibold">Modules</FormLabel>
+            <FormLabel className="text-lg font-semibold">
+              Initial Modules
+            </FormLabel>
+            <FormDescription>
+              Create the first few modules for your course. You can add more
+              later.
+            </FormDescription>
             <div className="mt-4 space-y-4">
               {fields.map((field, index) => (
                 <div key={field.id} className="flex items-center gap-4">
@@ -181,14 +325,16 @@ export default function CreateCoursePage() {
                       </FormItem>
                     )}
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => remove(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {fields.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => remove(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
@@ -202,10 +348,13 @@ export default function CreateCoursePage() {
               <PlusCircle className="h-4 w-4 mr-2" />
               Add Module
             </Button>
-            <FormMessage>{form.formState.errors.modules?.message}</FormMessage>
+            <FormMessage>
+              {form.formState.errors.modules?.root?.message ||
+                form.formState.errors.modules?.message}
+            </FormMessage>
           </div>
 
-          <div className="flex items-center gap-x-2">
+          <div className="flex items-center justify-end gap-x-2">
             <Button
               type="button"
               variant="ghost"
@@ -214,7 +363,7 @@ export default function CreateCoursePage() {
               Cancel
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? "Creating..." : "Create and Continue"}
+              {isPending ? "Saving..." : "Save and Continue"}
             </Button>
           </div>
         </form>

@@ -14,7 +14,18 @@ export const createCourseSchema = z.object({
   level: z.enum(COURSE_LEVELS).optional(),
   status: z.enum(["draft", "published"]),
   price: z.number().positive().optional().nullable(),
-  currency: z.string().length(3).optional().nullable(),
+  currency: z.string().length(3).default("INR").optional().nullable(),
+  imageUrl: z.url("A valid image URL is required.").optional().nullable(),
+  prerequisiteCourseId: z
+    .uuid("Invalid prerequisite course ID.")
+    .optional()
+    .nullable(),
+  duration: z
+    .number()
+    .int()
+    .min(0, "Duration must be a positive number.")
+    .optional()
+    .nullable(),
   modules: z
     .array(
       z.object({

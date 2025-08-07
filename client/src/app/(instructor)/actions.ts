@@ -77,3 +77,39 @@ export async function createCourse(values: CreateCourseValues) {
     return { error: error.message };
   }
 }
+
+export async function getCategories() {
+  try {
+    const response = await courseService.get("/api/categories", {
+      next: { tags: ["categories"] },
+    });
+    if (!response.ok) throw new Error("Failed to fetch categories.");
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function createFullCourse(values: CreateCourseValues) {
+  try {
+    const validatedData = createCourseSchema.parse(values);
+    const response = await courseService.post(
+      "/api/courses/full",
+      validatedData
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.errors?.[0]?.message || "Failed to create course.");
+    }
+
+    const newCourse = await response.json();
+    console.log(newCourse);
+
+    revalidatePath("/dashboard/instructor/courses");
+
+    return { success: true, data: newCourse };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}

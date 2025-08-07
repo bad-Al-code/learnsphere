@@ -31,3 +31,5 @@ export type CourseFilterOptions = {
   page?: number;
   limit?: number;
 };
+
+export type PrerequisiteCourse = { id: string; title: string };
