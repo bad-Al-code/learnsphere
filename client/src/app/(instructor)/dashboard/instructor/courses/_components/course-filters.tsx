@@ -65,7 +65,7 @@ export function CourseFilters({ categories }: { categories: Category[] }) {
   const handleFilterChange = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", "1");
-    if (value && value !== "all") {
+    if (value) {
       params.set(key, value);
     } else {
       params.delete(key);
@@ -73,9 +73,16 @@ export function CourseFilters({ categories }: { categories: Category[] }) {
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const handleSearch = useDebouncedCallback((term: string) => {
+  const handleSearchOnChange = useDebouncedCallback((term: string) => {
     handleFilterChange("q", term);
-  }, 500);
+  }, 300);
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const term = formData.get("query") as string;
+    handleFilterChange("q", term);
+  };
 
   const categoryItems = [
     { value: "all", label: "All Subjects" },
@@ -222,15 +229,19 @@ export function CourseFilters({ categories }: { categories: Category[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <Input
-          placeholder="Search for courses..."
-          onChange={(e) => handleSearch(e.target.value)}
-          defaultValue={searchParams.get("q") || ""}
-          className="pl-10"
-        />
-      </div>
+      <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
+        <div className="relative flex-grow">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            name="query"
+            placeholder="Search for courses..."
+            onChange={(e) => handleSearchOnChange(e.target.value)}
+            defaultValue={searchParams.get("q") || ""}
+            className="pl-10"
+          />
+        </div>
+        <Button type="submit">Search</Button>
+      </form>
       {desktopFilters}
       {mobileFilters}
     </div>

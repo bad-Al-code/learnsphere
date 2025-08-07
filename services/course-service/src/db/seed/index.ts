@@ -63,6 +63,11 @@ const hardcodedInstructorIds = [
   'b652a94c-8057-4a45-8af7-73a39597d2dc',
   '22cf96b7-97b3-4544-8104-a49e3a73c937',
   '1f6201e3-1755-4626-b3bb-9a9273c83e28',
+  'e3b3bc3c-e271-4fad-b3b7-ae9e6b44daed',
+  'e3b3bc3c-e271-4fad-b3b7-ae9e6b44daed',
+  'e3b3bc3c-e271-4fad-b3b7-ae9e6b44daed',
+  'e3b3bc3c-e271-4fad-b3b7-ae9e6b44daed',
+  'e3b3bc3c-e271-4fad-b3b7-ae9e6b44daed',
 ];
 
 const realHlsUrls = [
@@ -120,15 +125,21 @@ async function seedCourses(categories: { id: string }[]): Promise<string[]> {
     'all-levels',
   ] as const;
 
+  const courseStatus = ['draft', 'published'] as const;
+
   const courseIds: string[] = [];
 
   for (const instructorId of instructorIds) {
     const randomCategory = faker.helpers.arrayElement(categories);
     const randomLevel = faker.helpers.arrayElement(courseLevels);
+    const randomStatus = faker.helpers.arrayElement(courseStatus);
     const imageUrl = `https://picsum.photos/600/400?random=${Math.floor(Math.random() * 10000)}`;
     const price = faker.number
       .float({ min: 0, max: 4999, fractionDigits: 2 })
       .toString();
+    const duration = faker.number.int({ min: 0, max: 300 });
+    const averageRating = faker.number.int({ min: 0, max: 5 });
+    const enrollmentCount = faker.number.int({ min: 0, max: 100 });
 
     const [course] = await db
       .insert(courses)
@@ -136,12 +147,15 @@ async function seedCourses(categories: { id: string }[]): Promise<string[]> {
         title: faker.lorem.words(3),
         description: faker.lorem.paragraph(),
         instructorId,
+        status: randomStatus,
         categoryId: randomCategory.id,
         level: randomLevel,
         imageUrl: imageUrl,
         price: price,
+        duration: duration,
+        averageRating: averageRating,
+        enrollmentCount: enrollmentCount,
         currency: 'INR',
-        status: 'published',
         createdAt: new Date(),
         updatedAt: new Date(),
       })

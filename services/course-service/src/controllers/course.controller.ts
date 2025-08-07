@@ -310,7 +310,7 @@ export class CourseController {
       const options = {
         instructorId,
         ...queryParams,
-        query: queryParams.query,
+        query: queryParams.q,
       };
 
       const result = await CourseService.getCoursesForInstructor(options);

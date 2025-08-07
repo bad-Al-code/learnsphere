@@ -270,7 +270,7 @@ export class CourseRepository {
    */
   public static async findAndFilterByInstructorId({
     instructorId,
-    query,
+    q,
     categoryId,
     level,
     price,
@@ -282,8 +282,8 @@ export class CourseRepository {
     const offset = (page - 1) * limit;
 
     const conditions = [eq(courses.instructorId, instructorId)];
-    if (query) {
-      conditions.push(ilike(courses.title, `%${query}%`));
+    if (q) {
+      conditions.push(ilike(courses.title, `%${q}%`));
     }
     if (categoryId) {
       conditions.push(eq(courses.categoryId, categoryId));

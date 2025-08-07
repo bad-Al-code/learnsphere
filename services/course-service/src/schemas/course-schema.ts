@@ -226,7 +226,7 @@ export const SortByFilter = z
   .default('newest');
 
 export const getCoursesQuerySchema = z.object({
-  query: z.string().optional(),
+  q: z.string().optional(),
   categoryId: z.string().uuid().optional(),
   level: CourseLevelValidationSchema.optional(),
   price: PriceFilter,
