@@ -1,6 +1,13 @@
 import { getCourseDetails } from "@/app/courses/actions";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { notFound } from "next/navigation";
+import { ModulesList } from "./_components/module-list";
 
 export default async function CourseContentPage({
   params,
@@ -17,9 +24,16 @@ export default async function CourseContentPage({
     <Card>
       <CardHeader>
         <CardTitle>Course Curriculum</CardTitle>
+        <CardDescription>
+          Drag and drop modules to reorder them. Click on a module to manage its
+          lessons.
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <p>Modules and lessons for "{course.title}" will be managed here.</p>
+        <ModulesList initialModules={course.modules} courseId={course.id} />
+        <div className="mt-6">
+          <p>Add Module form placeholder...</p>
+        </div>
       </CardContent>
     </Card>
   );

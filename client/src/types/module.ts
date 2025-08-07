@@ -4,6 +4,6 @@ export type Module = {
   lessons: {
     id: string;
     title: string;
-    lessonType: "video" | "text" | "quiz";
+    lessonType?: "video" | "text" | "quiz";
   }[];
 };
