@@ -9,13 +9,13 @@ export function InstructorCourseCard({ course }: { course: Course }) {
   return (
     <Link href={`/dashboard/instructor/courses/${course.id}`}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-        <div className="aspect-video relative bg-muted">
+        <div className="aspect-video relative bg-muted shadow-2xl/10 dark:shadow-2xl/20 rounded-lg mx-2">
           {course.imageUrl ? (
             <Image
               src={course.imageUrl}
               alt={course.title}
               fill
-              className="object-cover"
+              className="object-cover rounded-lg"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-muted-foreground">

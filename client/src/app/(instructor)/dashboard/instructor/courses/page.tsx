@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { getMyCourses } from "../../../actions";
 import { CourseFilters } from "./_components/course-filters";
 import { CoursesGridSkeleton } from "./_components/course-grid-skeleton";
+import { CreateCourseButton } from "./_components/create-course-button";
 import { MyCoursesGrid } from "./_components/my-courses-grid";
 
 interface MyCoursesPageProps {
@@ -24,6 +25,8 @@ export default async function MyCoursesPage({
             Manage and create your learning content.
           </p>
         </div>
+
+        <CreateCourseButton />
       </div>
 
       <CourseFilters categories={categories.success ? categories.data : []} />
