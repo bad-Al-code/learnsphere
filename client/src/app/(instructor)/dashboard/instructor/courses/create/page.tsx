@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createCourseSchema, CreateCourseValues } from "@/lib/schemas/course";
+import { PlusCircle, Trash2 } from "lucide-react";
 import { createCourse } from "../../../../actions";
 
 export default function CreateCoursePage() {
@@ -26,7 +34,18 @@ export default function CreateCoursePage() {
 
   const form = useForm<CreateCourseValues>({
     resolver: zodResolver(createCourseSchema),
-    defaultValues: { title: "", description: "" },
+    defaultValues: {
+      title: "",
+      description: "",
+      level: "all-levels",
+      status: "draft",
+      modules: [{ title: "" }],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "modules",
   });
 
   const onSubmit = (values: CreateCourseValues) => {
@@ -85,6 +104,107 @@ export default function CreateCoursePage() {
               </FormItem>
             )}
           />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="level"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Difficulty Level</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+
+                    <SelectContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                      <SelectItem value="all-levels">All Levels</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Initial Status</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div>
+            <FormLabel className="text-lg font-semibold">Modules</FormLabel>
+            <div className="mt-4 space-y-4">
+              {fields.map((field, index) => (
+                <div key={field.id} className="flex items-center gap-4">
+                  <FormField
+                    control={form.control}
+                    name={`modules.${index}.title`}
+                    render={({ field }) => (
+                      <FormItem className="flex-grow">
+                        <FormControl>
+                          <Input
+                            placeholder={`Module ${
+                              index + 1
+                            }: e.g., Introduction`}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => remove(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-4"
+              onClick={() => append({ title: "" })}
+            >
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Add Module
+            </Button>
+            <FormMessage>{form.formState.errors.modules?.message}</FormMessage>
+          </div>
+
           <div className="flex items-center gap-x-2">
             <Button
               type="button"
