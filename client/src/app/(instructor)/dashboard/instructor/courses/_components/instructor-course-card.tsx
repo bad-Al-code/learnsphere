@@ -1,3 +1,4 @@
+import { ImageOffIcon } from "@/components/shared/imge-off-icon";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Course } from "@/types/course";
@@ -17,8 +18,8 @@ export function InstructorCourseCard({ course }: { course: Course }) {
               className="object-cover"
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-              No Image
+            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+              <ImageOffIcon className="h-10 w-10" />
             </div>
           )}
         </div>
