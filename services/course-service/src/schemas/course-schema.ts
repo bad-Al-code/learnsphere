@@ -197,6 +197,7 @@ const CourseLevelValidationSchema = z.enum(courseLevelEnum.enumValues);
 
 export const createCoursePayloadSchema = z.object({
   title: z.string().min(3),
+  description: z.string().optional().nullable(),
   categoryId: z.string().uuid().optional().nullable(),
   level: CourseLevelValidationSchema.optional(),
   price: z.number().positive().optional().nullable(),

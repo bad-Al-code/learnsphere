@@ -1,10 +1,12 @@
 import { getCategories } from "@/app/(admin)/actions";
 import { PaginationControls } from "@/app/courses/_components/pagination-controls";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import Link from "next/link";
 import { Suspense } from "react";
 import { getMyCourses } from "../../../actions";
 import { CourseFilters } from "./_components/course-filters";
 import { CoursesGridSkeleton } from "./_components/course-grid-skeleton";
-import { CreateCourseButton } from "./_components/create-course-button";
 import { MyCoursesGrid } from "./_components/my-courses-grid";
 
 interface MyCoursesPageProps {
@@ -26,7 +28,12 @@ export default async function MyCoursesPage({
           </p>
         </div>
 
-        <CreateCourseButton />
+        <Button asChild>
+          <Link href="/dashboard/instructor/courses/create">
+            <PlusCircle className="h-4 w-4 mr-1" />
+            New Course
+          </Link>
+        </Button>
       </div>
 
       <CourseFilters categories={categories.success ? categories.data : []} />

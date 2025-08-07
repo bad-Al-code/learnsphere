@@ -1,7 +1,7 @@
 "use server";
 
 import { courseService, enrollmentService } from "@/lib/api";
-import { createCourseSchema } from "@/lib/schemas/course";
+import { createCourseSchema, CreateCourseValues } from "@/lib/schemas/course";
 import { CourseFilterOptions } from "@/types/course";
 import { revalidatePath } from "next/cache";
 import z from "zod";
@@ -54,7 +54,7 @@ export async function getMyCourses(options: CourseFilterOptions = {}) {
   }
 }
 
-export async function createCourse(values: z.infer<typeof createCourseSchema>) {
+export async function createCourse(values: CreateCourseValues) {
   try {
     const validatedData = createCourseSchema.parse(values);
 
