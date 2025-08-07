@@ -8,7 +8,7 @@ import Link from "next/link";
 export function InstructorCourseCard({ course }: { course: Course }) {
   return (
     <Link href={`/dashboard/instructor/courses/${course.id}`}>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+      <Card className="overflow-hidden hover:shadow-lg hover:border-foreground/30  transition-shadow">
         <div className="aspect-video relative bg-muted shadow-2xl/10 dark:shadow-2xl/20 rounded-lg mx-2">
           {course.imageUrl ? (
             <Image

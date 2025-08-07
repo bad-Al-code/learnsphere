@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/app/(auth)/actions";
 import { getCourseDetails } from "@/app/courses/actions";
-import { CourseSidebar } from "./_components/course-sidebar";
+import { CourseEditorTabs } from "./_components/course-editor-tabs";
 
 export default async function CourseEditorLayout({
   children,
@@ -28,27 +28,29 @@ export default async function CourseEditorLayout({
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-4 border-b h-16 flex items-center">
-        <div className="flex items-center text-sm">
-          <Link
-            href="/dashboard/instructor/courses"
-            className="hover:underline"
-          >
-            My Courses
-          </Link>
-          <ChevronRight className="h-4 w-4 mx-1" />
-          <span className="font-semibold truncate">{course.title}</span>
-        </div>
+    <div className="space-y-6">
+      {/* Breadcrumbs */}
+      <div className="flex items-center text-sm">
+        <Link href="/dashboard/instructor/courses" className="hover:underline">
+          My Courses
+        </Link>
+        <ChevronRight className="h-4 w-4 mx-1" />
+        <span className="font-semibold truncate">{course.title}</span>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-64 border-r h-full p-4">
-          <CourseSidebar courseId={course.id} />
-        </aside>
-
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+      {/* Title & Description */}
+      <div>
+        <h1 className="text-3xl font-bold">{course.title}</h1>
+        <p className="text-muted-foreground mt-2">
+          {course.description || "No description provided."}
+        </p>
       </div>
+
+      {/* Tab Navigation */}
+      <CourseEditorTabs courseId={courseId} />
+
+      {/* The content for the active tab will be rendered here */}
+      <div className="mt-6">{children}</div>
     </div>
   );
 }
