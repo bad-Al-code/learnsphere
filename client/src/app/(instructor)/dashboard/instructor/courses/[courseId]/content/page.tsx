@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { notFound } from "next/navigation";
+import { AddModuleForm } from "./_components/add-module-form";
 import { ModulesList } from "./_components/module-list";
 
 export default async function CourseContentPage({
@@ -32,7 +33,7 @@ export default async function CourseContentPage({
       <CardContent>
         <ModulesList initialModules={course.modules} courseId={course.id} />
         <div className="mt-6">
-          <p>Add Module form placeholder...</p>
+          <AddModuleForm courseId={course.id} />
         </div>
       </CardContent>
     </Card>
