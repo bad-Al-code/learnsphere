@@ -187,7 +187,7 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
             disabled={isPending}
           />
           <div className="flex justify-end gap-4">
-            <Button variant="outline" onClick={handleSave} disabled={isPending}>
+            <Button variant="outline" onClick={() => setEditModuleId(null)}>
               Cancel
             </Button>{" "}
             <Button onClick={handleSave} disabled={isPending}>
