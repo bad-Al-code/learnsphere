@@ -49,7 +49,7 @@ export default async function CourseEditorLayout({
       {/* Tab Navigation */}
       <CourseEditorTabs courseId={courseId} />
 
-      {/* The content for the active tab will be rendered here */}
+      {/* The content for the active tab */}
       <div className="mt-6">{children}</div>
     </div>
   );
