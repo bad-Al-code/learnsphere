@@ -20,3 +20,14 @@ export const COURSE_LEVELS = [
   { value: "intermediate", label: "Intermediate" },
   { value: "advanced", label: "Advanced" },
 ];
+
+export type CourseFilterOptions = {
+  query?: string;
+  categoryId?: string;
+  level?: string;
+  price?: "free" | "paid";
+  duration?: string;
+  sortBy?: "newest" | "rating" | "popularity";
+  page?: number;
+  limit?: number;
+};

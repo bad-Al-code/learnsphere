@@ -2,6 +2,7 @@
 
 import { courseService, enrollmentService } from "@/lib/api";
 import { createCourseSchema } from "@/lib/schemas/course";
+import { CourseFilterOptions } from "@/types/course";
 import { revalidatePath } from "next/cache";
 import z from "zod";
 
@@ -25,14 +26,31 @@ export async function getInstructorAnalytics() {
   }
 }
 
-export async function getMyCourses() {
+export async function getMyCourses(options: CourseFilterOptions = {}) {
   try {
-    const response = await courseService.get("/api/courses/my-courses");
-    if (!response.ok) return [];
-    return await response.json();
+    const params = new URLSearchParams();
+
+    if (options.query) params.set("q", options.query);
+    if (options.categoryId) params.set("categoryId", options.categoryId);
+    if (options.level) params.set("level", options.level);
+    if (options.price) params.set("price", options.price);
+    if (options.duration) params.set("duration", options.duration);
+    if (options.sortBy) params.set("sortBy", options.sortBy);
+    if (options.page) params.set("page", String(options.page));
+    if (options.limit) params.set("limit", String(options.limit));
+
+    const response = await courseService.get(
+      `/api/courses/my-courses?${params.toString()}`
+    );
+
+    if (!response.ok) throw new Error("Failed to fetch courses.");
+    const result = await response.json();
+    console.log(result);
+
+    return result;
   } catch (error) {
     console.error("Failed to fetch instructor courses:", error);
-    return [];
+    return { results: [], pagination: { currentPage: 1, totalPages: 0 } };
   }
 }
 
