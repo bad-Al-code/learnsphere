@@ -14,6 +14,7 @@ import { validateRequest } from '../middlewares/validate-request';
 import {
   bulkCoursesSchema,
   createCourseSchema,
+  createFullCourseRequestSchema,
   createModuleSchema,
   listCoursesSchema,
   updateCoursePriceSchema,
@@ -98,6 +99,49 @@ router.post(
   requireRole(['admin', 'instructor']),
   validateRequest(createCourseSchema),
   CourseController.create
+);
+
+/**
+ * @openapi
+ * /api/courses/full:
+ *   post:
+ *     summary: "[Instructor/Admin] Create a new course with modules"
+ *     tags: [Courses]
+ *     description: |
+ *       Creates a new course and all of its associated modules in a single atomic database transaction.
+ *       The request body must include the course title and an array with at least one module.
+ *       This endpoint is ideal for setting up a complete course structure in one API call.
+ *       Requires 'instructor' or 'admin' role.
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       description: The full course payload including an array of modules.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateFullCoursePayload'
+ *     responses:
+ *       '201':
+ *         description: Course and modules were created successfully. Returns the newly created course object.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Course'
+ *       '400':
+ *         description: Bad Request. The request body is missing required fields (like title or modules) or has invalid data.
+ *       '401':
+ *         description: Unauthorized. The user is not authenticated.
+ *       '403':
+ *         description: Forbidden. The user does not have the required 'instructor' or 'admin' role.
+ */
+
+router.post(
+  '/full',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  validateRequest(createFullCourseRequestSchema),
+  CourseController.createFull
 );
 
 /**

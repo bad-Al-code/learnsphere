@@ -4,7 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import { MediaClient } from '../clients/media.client';
 import { CourseRepository } from '../db/repostiories';
 import { NotAuthorizedError } from '../errors';
-import { getCoursesQuerySchema } from '../schemas';
+import { CreateFullCourseDto, getCoursesQuerySchema } from '../schemas';
 import {
   AuthorizationService,
   CourseCacheService,
@@ -31,6 +31,25 @@ export class CourseController {
       });
 
       res.status(StatusCodes.CREATED).json(course);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async createFull(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const instructorId = req.currentUser!.id;
+      const courseData: CreateFullCourseDto = req.body;
+
+      const newCourse = await CourseService.createFullCourse(
+        instructorId,
+        courseData
+      );
+      res.status(StatusCodes.CREATED).json(newCourse);
     } catch (error) {
       next(error);
     }

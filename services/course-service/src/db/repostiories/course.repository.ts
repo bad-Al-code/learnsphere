@@ -1,9 +1,12 @@
 import { and, count, desc, eq, ilike, inArray, sql } from 'drizzle-orm';
 
 import { db } from '..';
-import { GetCoursesByInstructorOptions } from '../../schemas';
+import {
+  CreateFullCourseDto,
+  GetCoursesByInstructorOptions,
+} from '../../schemas';
 import { Course, CourseLevel, NewCourse, UpdateCourse } from '../../types';
-import { courses } from '../schema';
+import { courses, modules } from '../schema';
 
 export class CourseRepository {
   /**
@@ -13,6 +16,54 @@ export class CourseRepository {
    */
   public static async create(data: NewCourse): Promise<Course> {
     const [newCourse] = await db.insert(courses).values(data).returning();
+
+    return newCourse;
+  }
+
+  /**
+   * @static
+   * @async
+   * @method createFullCourse
+   * @description Creates a new course and its associated modules in a single, atomic database transaction.
+   * If any part of the operation fails (e.g., module creation), the entire transaction
+   * is rolled back, ensuring data integrity.
+   *
+   * @param {string} instructorId - The UUID of the user creating the course.
+   * @param {CreateFullCourseDto} data - The DTO containing the course and module details.
+   * @returns {Promise<Course>} A promise that resolves to the newly created course record from the database.
+   * @throws Will throw an error if the database transaction fails, which should be caught by the calling service.
+   */
+  public static async createFullCourse(
+    instructorId: string,
+    data: CreateFullCourseDto
+  ): Promise<Course> {
+    const newCourse = await db.transaction(async (tx) => {
+      const [course] = await tx
+        .insert(courses)
+        .values({
+          instructorId,
+          title: data.title,
+          description: data.description,
+          categoryId: data.categoryId,
+          level: data.level,
+          status: data.status,
+          price: data.price ? String(data.price) : null,
+          currency: data.currency,
+        })
+        .returning();
+
+      if (data.modules && data.modules.length > 0) {
+        const moduleData = data.modules.map((module, index) => ({
+          courseId: course.id,
+          title: module.title,
+          order: index,
+        }));
+
+        await tx.insert(modules).values(moduleData);
+      }
+
+      return course;
+    });
 
     return newCourse;
   }

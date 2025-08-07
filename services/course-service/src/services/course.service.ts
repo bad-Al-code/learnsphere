@@ -7,7 +7,7 @@ import {
   CourseDeletedPublisher,
   CourseUpdatedPublisher,
 } from '../events/publisher';
-import { GetCoursesByInstructorOptions } from '../schemas';
+import { CreateFullCourseDto, GetCoursesByInstructorOptions } from '../schemas';
 import {
   Course,
   CourseLevel,
@@ -55,6 +55,47 @@ export class CourseService {
       description: data.description,
       instructorId: data.instructorId,
     });
+
+    try {
+      const publisher = new CourseCreatedPublisher();
+      await publisher.publish({
+        courseId: newCourse.id,
+        instructorId: newCourse.instructorId,
+        status: newCourse.status,
+        prerequisiteCourseId: newCourse.prerequisiteCourseId,
+      });
+    } catch (error) {
+      logger.error('Failed to publish course.created event', {
+        error,
+        courseId: newCourse.id,
+      });
+    }
+
+    await CourseCacheService.invalidateCourseList();
+
+    return newCourse;
+  }
+
+  /**
+   * @static
+   * @async
+   * @method createFullCourse
+   * @description Orchestrates the creation of a new course. It delegates the database
+   * insertion to the repository and then handles side-effects like event publishing
+   * and cache invalidation.
+   *
+   * @param {string} instructorId - The UUID of the user creating the course.
+   * @param {CreateFullCourseDto} data - The DTO containing course and module details.
+   * @returns {Promise<Course>} A promise that resolves to the newly created course object.
+   */
+  public static async createFullCourse(
+    instructorId: string,
+    data: CreateFullCourseDto
+  ) {
+    const newCourse = await CourseRepository.createFullCourse(
+      instructorId,
+      data
+    );
 
     try {
       const publisher = new CourseCreatedPublisher();

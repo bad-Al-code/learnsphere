@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { courseLevelEnum, lessonTypeEnum } from '../db/schema';
+import {
+  courseLevelEnum,
+  courseStatusEnum,
+  lessonTypeEnum,
+} from '../db/schema';
 
 /**
  * @openapi
@@ -200,10 +204,35 @@ export const createCoursePayloadSchema = z.object({
   description: z.string().optional().nullable(),
   categoryId: z.string().uuid().optional().nullable(),
   level: CourseLevelValidationSchema.optional(),
-  price: z.number().positive().optional().nullable(),
-  currency: z.string().length(3).optional().nullable(),
+  status: z.enum(courseStatusEnum.enumValues).optional(),
+  price: z.number().positive().min(0).optional().nullable(),
+  currency: z.string().length(3).default('INR').optional().nullable(),
+  modules: z
+    .array(
+      z.object({
+        title: z.string().min(1, 'Module title cannot be empty.'),
+      })
+    )
+    .min(1, 'At least one module is required.'),
 });
 
+/**
+ * @description Zod schema for validating the entire request for creating a full course.
+ * It ensures the request has a `body` object that conforms to the `createCoursePayloadSchema`.
+ */ export const createFullCourseRequestSchema = z.object({
+  body: createCoursePayloadSchema,
+});
+
+/**
+ * @description TypeScript type inferred from the Zod schema for the course creation payload.
+ * This is used for type-safety in service and repository layers.
+ */
+
+export type CreateFullCourseDto = z.infer<typeof createCoursePayloadSchema>;
+
+/**
+ * @description Zod schema for partially updating a course.
+ */
 export const updateCoursePayloadSchema = createCoursePayloadSchema.partial();
 
 export const updateCoursePriceSchema = z.object({
