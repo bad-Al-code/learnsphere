@@ -10,6 +10,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { AddModuleForm } from "./_components/add-module-form";
 import { ModulesList } from "./_components/module-list";
+import { ModulesSkeleton } from "./_components/module-skeleton";
 
 export default async function CourseContentPage({
   params,
@@ -51,18 +52,6 @@ async function CourseModules({ courseId }: { courseId: string }) {
     <div>
       <ModulesList modules={course.modules} courseId={course.id} />
       <AddModuleForm courseId={course.id} />
-    </div>
-  );
-}
-
-function ModulesSkeleton() {
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-x-2  h-[52px] rounded-md animate-pulse"></div>
-      <div className="flex items-center gap-x-2  h-[52px] rounded-md animate-pulse"></div>
-      <div className="mt-6 border  rounded-md p-4 animate-pulse">
-        <div className="h-10 w-full rounded-md"></div>
-      </div>
     </div>
   );
 }

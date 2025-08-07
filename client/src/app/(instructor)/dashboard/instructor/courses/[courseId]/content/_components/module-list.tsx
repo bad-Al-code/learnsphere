@@ -27,7 +27,7 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
   const onDragEnd = (result: any) => {
     if (!result.destination) return;
 
-    const items = Array.from(modules);
+    const items = Array.from(optimisticModules);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
@@ -59,7 +59,7 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
             ref={provided.innerRef}
             className="space-y-4"
           >
-            {modules.map((module, index) => (
+            {optimisticModules.map((module, index) => (
               <Draggable key={module.id} draggableId={module.id} index={index}>
                 {(provided) => (
                   <div
