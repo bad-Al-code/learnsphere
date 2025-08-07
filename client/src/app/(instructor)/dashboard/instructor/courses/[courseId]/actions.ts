@@ -1,7 +1,11 @@
 "use server";
 
 import { courseService } from "@/lib/api";
-import { moduleSchema, ModuleSchemaValues } from "@/lib/schemas/module";
+import {
+  moduleSchema,
+  ModuleSchemaValues,
+  moduleUpdateSchema,
+} from "@/lib/schemas/module";
 import { revalidatePath } from "next/cache";
 import z from "zod";
 
@@ -45,6 +49,29 @@ export async function reorderModules(
       throw new Error("Failed to reorder modules.");
     }
 
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function updateModule(
+  moduleId: string,
+  values: { title: string }
+) {
+  try {
+    const validated = moduleUpdateSchema.parse(values);
+
+    const response = await courseService.put(
+      `/api/modules/${moduleId}`,
+      validated
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to update module.");
+    }
+
+    revalidatePath("/dashboard/instructor/courses");
     return { success: true };
   } catch (error: any) {
     return { error: error.message };
