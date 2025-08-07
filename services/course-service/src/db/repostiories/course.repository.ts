@@ -49,6 +49,9 @@ export class CourseRepository {
           status: data.status,
           price: data.price ? String(data.price) : null,
           currency: data.currency,
+          imageUrl: data.imageUrl,
+          prerequisiteCourseId: data.prerequisiteCourseId,
+          duration: data.duration,
         })
         .returning();
 
