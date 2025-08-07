@@ -16,6 +16,12 @@ This projects serves as a comprehensive portfolio piece demonstrating expertise 
 - **Event-Driven Notifications**: Resilient, asynchronous user notifications using a message broker (RabbitMQ).
 - **Cloud-Native & Automated**: Fully containerized and orchestrated with Kubernetes, with IaC (Terraform) and deployed via an automated CI/CD pipeline (GitHub Actions).
 
+## Design & Prototyping
+
+The platform's UI/UX has been meticulously planned and designed in Figma. You are welcome to view and leave comments on the designs via the following Google Drive link:
+
+[**View Figma Designs on Google Drive**](https://drive.google.com/drive/folders/1Lzzk0w-g3yPZn7Mr4Bn1MsBjseoJDVVX?usp=sharing)
+
 ## Tech Stack
 
 | **Category**                | Technology                                                                                   |
