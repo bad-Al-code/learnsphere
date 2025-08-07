@@ -3,6 +3,7 @@ import { PaginationControls } from "@/app/courses/_components/pagination-control
 import { Suspense } from "react";
 import { getMyCourses } from "../../../actions";
 import { CourseFilters } from "./_components/course-filters";
+import { CoursesGridSkeleton } from "./_components/course-grid-skeleton";
 import { MyCoursesGrid } from "./_components/my-courses-grid";
 
 interface MyCoursesPageProps {
@@ -27,7 +28,7 @@ export default async function MyCoursesPage({
 
       <CourseFilters categories={categories.success ? categories.data : []} />
 
-      <Suspense fallback={<p>Loading courses...</p>}>
+      <Suspense fallback={<CoursesGridSkeleton />}>
         <CoursesDataComponent searchParams={searchParams} />
       </Suspense>
     </div>
