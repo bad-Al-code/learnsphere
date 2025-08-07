@@ -77,3 +77,18 @@ export async function updateModule(
     return { error: error.message };
   }
 }
+
+export async function deleteModule(moduleId: string) {
+  try {
+    const response = await courseService.delete(`/api/modules/${moduleId}`);
+
+    if (!response.ok) {
+      const data = await response.json();
+      return { error: data.error || "Something went wrong." };
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { error: "Internal server error." };
+  }
+}

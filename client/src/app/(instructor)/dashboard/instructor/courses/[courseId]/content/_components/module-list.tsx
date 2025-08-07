@@ -9,12 +9,21 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import { Grip, Pencil } from "lucide-react";
+import { Grip, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Module } from "@/types/module";
 import { toast } from "sonner";
-import { reorderModules, updateModule } from "../../actions";
+import { deleteModule, reorderModules, updateModule } from "../../actions";
 
 interface ModulesListProps {
   modules: Module[];
@@ -24,9 +33,9 @@ interface ModulesListProps {
 export function ModulesList({ modules, courseId }: ModulesListProps) {
   const [isPending, startTransition] = useTransition();
   const [optimisticModules, setOptimisticModules] = useState(modules);
-
   const [editModuleId, setEditModuleId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
+  const [deleteModuleId, setDeleteModuleId] = useState<string | null>(null);
 
   useEffect(() => {
     setOptimisticModules(modules);
@@ -82,6 +91,23 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
     });
   };
 
+  const handleDelete = () => {
+    if (!deleteModuleId) return;
+
+    startTransition(async () => {
+      const result = await deleteModule(deleteModuleId);
+      if (result.error) {
+        toast.error("Failed to delete module", { description: result.error });
+      } else {
+        toast.success("Module deleted successfully");
+        setOptimisticModules((prev) =>
+          prev.filter((m) => m.id !== deleteModuleId)
+        );
+        setDeleteModuleId(null);
+      }
+    });
+  };
+
   return (
     <>
       <DragDropContext onDragEnd={onDragEnd}>
@@ -118,6 +144,12 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={() => setDeleteModuleId(module.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -140,10 +172,33 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
             placeholder="New module title"
             disabled={isPending}
           />
-          <Button onClick={handleSave} disabled={isPending}>
-            Save
-          </Button>
+          <div className="flex justify-end gap-4">
+            <Button variant="outline" onClick={handleSave} disabled={isPending}>
+              Cancel
+            </Button>{" "}
+            <Button onClick={handleSave} disabled={isPending}>
+              Save
+            </Button>
+          </div>
         </DialogContent>
+
+        <AlertDialog
+          open={!!deleteModuleId}
+          onOpenChange={() => setDeleteModuleId(null)}
+        >
+          <AlertDialogContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            </AlertDialogHeader>
+            <p>This will permanently delete the module and its contents.</p>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} disabled={isPending}>
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </Dialog>
     </>
   );
