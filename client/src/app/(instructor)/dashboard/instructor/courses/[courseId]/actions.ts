@@ -32,3 +32,21 @@ export async function createModule(
     return { error: error.message };
   }
 }
+
+export async function reorderModules(
+  courseId: string,
+  list: { id: string; order: number }[]
+) {
+  try {
+    const ids = list.map((item) => item.id);
+    const response = await courseService.post(`/api/modules/reorder`, { ids });
+
+    if (!response.ok) {
+      throw new Error("Failed to reorder modules.");
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}

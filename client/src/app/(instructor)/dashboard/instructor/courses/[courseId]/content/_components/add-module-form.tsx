@@ -44,7 +44,7 @@ export function AddModuleForm({ courseId }: { courseId: string }) {
   };
 
   return (
-    <div className="mt-6 border bg-slate-100 rounded-md p-4">
+    <div className="mt-6 border  rounded-md p-4">
       <div className="font-medium flex items-center justify-between">
         Add a new module
       </div>
@@ -70,7 +70,7 @@ export function AddModuleForm({ courseId }: { courseId: string }) {
             )}
           />
           <Button type="submit" disabled={isPending}>
-            <PlusCircle className="h-4 w-4 mr-2" />
+            <PlusCircle className="h-4 w-4 mr-0" />
             Add
           </Button>
         </form>
