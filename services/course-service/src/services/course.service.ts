@@ -7,6 +7,7 @@ import {
   CourseDeletedPublisher,
   CourseUpdatedPublisher,
 } from '../events/publisher';
+import { GetCoursesByInstructorOptions } from '../schemas';
 import {
   Course,
   CourseLevel,
@@ -366,10 +367,21 @@ export class CourseService {
     return CourseRepository.findPublishedByTitle(query);
   }
 
-  public static async getCoursesForInstructor(instructorId: string) {
-    const courseList =
-      await CourseRepository.findAllByInstructorId(instructorId);
+  public static async getCoursesForInstructor(
+    options: GetCoursesByInstructorOptions
+  ) {
+    const { totalResults, results } =
+      await CourseRepository.findAndFilterByInstructorId(options);
 
-    return courseList;
+    const totalPages = Math.ceil(totalResults / options.limit);
+
+    return {
+      results: results,
+      pagination: {
+        currentPage: options.page,
+        totalPages,
+        totalResults,
+      },
+    };
   }
 }

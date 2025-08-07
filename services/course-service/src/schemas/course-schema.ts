@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { lessonTypeEnum } from '../db/schema';
+import { courseLevelEnum, lessonTypeEnum } from '../db/schema';
 
 /**
  * @openapi
@@ -186,19 +186,19 @@ export const bulkCoursesSchema = z.object({
   }),
 });
 
-export const courseLevelEnum = z.enum([
-  'beginner',
-  'intermediate',
-  'advanced',
-  'all-levels',
-]);
+// export const courseLevelEnum = z.enum([
+//   'beginner',
+//   'intermediate',
+//   'advanced',
+//   'all-levels',
+// ]);
 
-export type CourseLevelEnum = z.infer<typeof courseLevelEnum>;
+const CourseLevelValidationSchema = z.enum(courseLevelEnum.enumValues);
 
 export const createCoursePayloadSchema = z.object({
   title: z.string().min(3),
   categoryId: z.string().uuid().optional().nullable(),
-  level: courseLevelEnum.optional(),
+  level: CourseLevelValidationSchema.optional(),
   price: z.number().positive().optional().nullable(),
   currency: z.string().length(3).optional().nullable(),
 });
@@ -215,3 +215,28 @@ export const updateCoursePriceSchema = z.object({
       .nullable(),
   }),
 });
+
+export const PriceFilter = z.enum(['free', 'paid']).optional();
+export const DurationFilter = z
+  .string()
+  .regex(/^\d+(-\d+)?$/)
+  .optional();
+export const SortByFilter = z
+  .enum(['newest', 'rating', 'popularity'])
+  .default('newest');
+
+export const getCoursesQuerySchema = z.object({
+  query: z.string().optional(),
+  categoryId: z.string().uuid().optional(),
+  level: CourseLevelValidationSchema.optional(),
+  price: PriceFilter,
+  duration: DurationFilter,
+  sortBy: SortByFilter,
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(10),
+});
+
+export type GetCoursesQuery = z.infer<typeof getCoursesQuerySchema>;
+export type GetCoursesByInstructorOptions = GetCoursesQuery & {
+  instructorId: string;
+};

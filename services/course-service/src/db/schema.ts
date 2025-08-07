@@ -4,6 +4,7 @@ import {
   integer,
   pgEnum,
   pgTable,
+  real,
   text,
   timestamp,
   uuid,
@@ -41,6 +42,10 @@ export const courses = pgTable('courses', {
   categoryId: uuid('category_id').references(() => categories.id, {
     onDelete: 'set null',
   }),
+  duration: integer('duration').default(0),
+  averageRating: real('rating_count').default(0),
+  enrollmentCount: integer('enrollment_count').default(0),
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

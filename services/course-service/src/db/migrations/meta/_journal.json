@@ -64,6 +64,20 @@
       "when": 1754430530334,
       "tag": "0008_chubby_colleen_wing",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1754567172418,
+      "tag": "0009_wild_trish_tilby",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1754569461792,
+      "tag": "0010_wooden_boomer",
+      "breakpoints": true
     }
   ]
 }

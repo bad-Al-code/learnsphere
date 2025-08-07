@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import { MediaClient } from '../clients/media.client';
 import { CourseRepository } from '../db/repostiories';
 import { NotAuthorizedError } from '../errors';
+import { getCoursesQuerySchema } from '../schemas';
 import {
   AuthorizationService,
   CourseCacheService,
@@ -304,11 +305,17 @@ export class CourseController {
   ) {
     try {
       const instructorId = req.currentUser!.id;
+      const queryParams = getCoursesQuerySchema.parse(req.query);
 
-      const instructorCourses =
-        await CourseService.getCoursesForInstructor(instructorId);
+      const options = {
+        instructorId,
+        ...queryParams,
+        query: queryParams.query,
+      };
 
-      res.status(StatusCodes.OK).json(instructorCourses);
+      const result = await CourseService.getCoursesForInstructor(options);
+
+      res.status(StatusCodes.OK).json(result);
     } catch (error) {
       next(error);
     }

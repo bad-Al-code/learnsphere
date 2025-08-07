@@ -1,6 +1,7 @@
-import { and, count, desc, eq, ilike, inArray } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, inArray, sql } from 'drizzle-orm';
 
 import { db } from '..';
+import { GetCoursesByInstructorOptions } from '../../schemas';
 import { Course, CourseLevel, NewCourse, UpdateCourse } from '../../types';
 import { courses } from '../schema';
 
@@ -240,5 +241,106 @@ export class CourseRepository {
       where: eq(courses.instructorId, instructorId),
       orderBy: (courses, { desc }) => [desc(courses.createdAt)],
     });
+  }
+
+  /**
+   * @static
+   * @async
+   * @method findAndFilterByInstructorId
+   * @description Finds, filters, sorts, and paginates courses for a specific instructor.
+   * This method constructs a dynamic SQL query based on a variety of filter
+   * criteria. It performs two queries in parallel: one to get the total count
+   * of matching records for pagination metadata, and another to fetch the
+   * actual data for the requested page.
+   *
+   * @param {GetCoursesByInstructorOptions} options - The options object for filtering and pagination.
+   * @param {string} options.instructorId - The UUID of the instructor to fetch courses for.
+   * @param {string} [options.query] - A search term to match against course titles (case-insensitive).
+   * @param {string} [options.categoryId] - The UUID of a category to filter by.
+   * @param {CourseLevel} [options.level] - The difficulty level to filter by.
+   * @param {'free' | 'paid'} [options.price] - Filter by free or paid courses.
+   * @param {string} [options.duration] - A duration range (in minutes/hours) to filter by, e.g., "60-120" or "180".
+   * @param {'newest' | 'rating' | 'popularity'} [options.sortBy='newest'] - The sorting criteria. Defaults to 'newest'.
+   * @param {number} options.page - The page number for pagination (starts at 1).
+   * @param {number} options.limit - The number of results to return per page.
+   *
+   * @returns {Promise<{totalResults: number, results: Course[]}>} A promise that resolves to an object containing:
+   * - `totalResults`: The total number of courses matching the filter criteria (ignoring pagination).
+   * - `results`: An array of course objects for the specified page.
+   */
+  public static async findAndFilterByInstructorId({
+    instructorId,
+    query,
+    categoryId,
+    level,
+    price,
+    duration,
+    sortBy = 'newest',
+    page,
+    limit,
+  }: GetCoursesByInstructorOptions) {
+    const offset = (page - 1) * limit;
+
+    const conditions = [eq(courses.instructorId, instructorId)];
+    if (query) {
+      conditions.push(ilike(courses.title, `%${query}%`));
+    }
+    if (categoryId) {
+      conditions.push(eq(courses.categoryId, categoryId));
+    }
+    if (level) {
+      conditions.push(eq(courses.level, level));
+    }
+    if (price === 'free') {
+      conditions.push(eq(courses.price, '0'));
+    }
+    if (price === 'paid') {
+      conditions.push(sql`${courses.price} > 0`);
+    }
+    if (duration) {
+      const [min, max] = duration.split('-').map(Number);
+
+      if (max) {
+        conditions.push(
+          sql`${courses.duration} >= ${min} AND ${courses.duration} <= ${max}`
+        );
+      } else {
+        conditions.push(sql`${courses.duration} >= ${min}`);
+      }
+    }
+
+    const whereClause = and(...conditions);
+
+    let orderByClause;
+
+    switch (sortBy) {
+      case 'rating':
+        orderByClause = [desc(courses.averageRating)];
+        break;
+      case 'popularity':
+        orderByClause = [desc(courses.enrollmentCount)];
+        break;
+      case 'newest':
+      default:
+        orderByClause = [desc(courses.createdAt)];
+    }
+
+    const totalQuery = db
+      .select({ value: count() })
+      .from(courses)
+      .where(whereClause);
+    const resultQuery = db.query.courses.findMany({
+      where: whereClause,
+      orderBy: orderByClause,
+      limit,
+      offset,
+    });
+
+    const [[{ value: totalResults }], results] = await Promise.all([
+      totalQuery,
+      resultQuery,
+    ]);
+
+    return { totalResults, results };
   }
 }

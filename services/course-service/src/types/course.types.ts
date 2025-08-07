@@ -33,3 +33,15 @@ export interface Requester {
 }
 
 export type CourseLevel = CourseLevelEnum;
+
+export interface FindCoursesByInstructorOptions {
+  instructorId: string;
+  query?: string;
+  categoryId?: string;
+  level?: CourseLevel;
+  price?: 'free' | 'paid';
+  duration?: 'short' | 'medium' | 'long';
+  sortBy?: 'newest';
+  page: number;
+  limit: number;
+}
