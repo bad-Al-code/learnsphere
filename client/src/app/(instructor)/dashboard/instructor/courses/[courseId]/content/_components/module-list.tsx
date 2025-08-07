@@ -6,22 +6,23 @@ import { useEffect, useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Module } from "@/types/module";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { reorderModules } from "../../actions";
 
 interface ModulesListProps {
-  initialModules: Module[];
+  modules: Module[];
   courseId: string;
 }
 
-export function ModulesList({ initialModules, courseId }: ModulesListProps) {
-  const [isMounted, setIsMounted] = useState(false);
-  const [modules, setModules] = useState(initialModules);
+export function ModulesList({ modules, courseId }: ModulesListProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [optimisticModules, setOptimisticModules] = useState(modules);
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    setOptimisticModules(modules);
+  }, [modules]);
 
   const onDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -30,7 +31,7 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    setModules(items);
+    setOptimisticModules(items);
 
     const bulkUpdateData = items.map((module, index) => ({
       id: module.id,
@@ -42,16 +43,12 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
       if (result.error) {
         toast.error("Failed to reorder modules", { description: result.error });
 
-        setModules(initialModules);
+        setOptimisticModules(modules);
       } else {
         toast.success("Modules reordered successfully!");
       }
     });
   };
-
-  if (!isMounted) {
-    return null;
-  }
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
