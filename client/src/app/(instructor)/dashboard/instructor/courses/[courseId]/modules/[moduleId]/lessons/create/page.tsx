@@ -8,6 +8,7 @@ import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { RichTextEditor } from "@/components/shared/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -127,9 +128,22 @@ export default function AddLessonPage({
             </div>
           )}
           {lessonType === "text" && (
-            <div className="p-4 border rounded-lg bg-muted text-center text-muted-foreground">
-              Rich text editor will go here after the lesson is created.
-            </div>
+            <FormField
+              control={form.control}
+              name="content"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Lesson Content</FormLabel>
+                  <FormControl>
+                    <RichTextEditor
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           )}
 
           <div className="flex justify-end">

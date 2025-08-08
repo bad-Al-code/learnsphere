@@ -20,6 +20,7 @@ export const lessonSchema = z.object({
   lessonType: z.enum(lessonTypeEnum).refine((val) => !!val, {
     message: "Please select a lesson type.",
   }),
+  content: z.string().optional(),
 });
 
 export type LessonFormValues = z.infer<typeof lessonSchema>;
