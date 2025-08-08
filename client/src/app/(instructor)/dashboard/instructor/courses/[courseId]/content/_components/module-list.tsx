@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Module } from "@/types/module";
+import Link from "next/link";
 import { toast } from "sonner";
 import { deleteModule, reorderModules, updateModule } from "../../actions";
 
@@ -151,7 +152,13 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
                       <div className="p-2 border-r rounded-l-md transition">
                         <Grip className="h-5 w-5" />
                       </div>
-                      <span className="font-medium">{module.title}</span>
+                      <Link
+                        href={`/dashboard/instructor/courses/${courseId}/modules/${module.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {module.title}
+                      </Link>
+
                       <div className="ml-auto pr-2 flex items-center gap-x-2">
                         <Button
                           variant="ghost"
