@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 
 import { MediaClient } from '../clients/media.client';
 import logger from '../config/logger';
@@ -32,10 +32,12 @@ export class LessonService {
     }
 
     return db.transaction(async (tx) => {
-      const lessonCount = await tx
-        .select({ value: eq(lessons.moduleId, data.moduleId) })
-        .from(lessons);
-      const nextOrder = lessonCount.length;
+      const lessonCountResult = await tx
+        .select({ value: count() })
+        .from(lessons)
+        .where(eq(lessons.moduleId, data.moduleId));
+
+      const nextOrder = lessonCountResult[0].value;
 
       const [newLesson] = await tx
         .insert(lessons)

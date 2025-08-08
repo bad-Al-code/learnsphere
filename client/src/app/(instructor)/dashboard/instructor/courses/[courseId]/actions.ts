@@ -2,8 +2,8 @@
 
 import { courseService } from "@/lib/api";
 import {
-  createLessonSchema,
   LessonFormValues,
+  lessonSchema,
   UpdateLessonFormValues,
   updateLessonSchema,
 } from "@/lib/schemas/lesson";
@@ -109,7 +109,7 @@ export async function createLesson(
   values: LessonFormValues
 ) {
   try {
-    const validatedData = createLessonSchema.parse(values);
+    const validatedData = lessonSchema.parse(values);
 
     const response = await courseService.post(
       `/api/modules/${moduleId}/lessons`,
@@ -117,17 +117,12 @@ export async function createLesson(
     );
 
     if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-
-      throw new Error(data.errors?.[0]?.message || "Failed to create lesson.");
+      throw new Error("Failed to create lesson.");
     }
 
     revalidatePath(`/dashboard/instructor/courses/${courseId}/content`);
 
-    const data = await response.json();
-    console.log(data);
-
-    return { success: true, data };
+    return { success: true };
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       return { error: error.issues[0].message };
