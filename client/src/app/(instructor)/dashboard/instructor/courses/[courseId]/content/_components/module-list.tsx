@@ -75,7 +75,9 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
     if (!editModuleId) return;
 
     startTransition(async () => {
-      const result = await updateModule(editModuleId, { title: editTitle });
+      const result = await updateModule(courseId, editModuleId, {
+        title: editTitle,
+      });
 
       if (result.error) {
         toast.error("Failed to update module", { description: result.error });
@@ -95,7 +97,7 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
     if (!deleteModuleId) return;
 
     startTransition(async () => {
-      const result = await deleteModule(deleteModuleId);
+      const result = await deleteModule(courseId, deleteModuleId);
       if (result.error) {
         toast.error("Failed to delete module", { description: result.error });
       } else {
@@ -195,25 +197,25 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
             </Button>
           </div>
         </DialogContent>
-
-        <AlertDialog
-          open={!!deleteModuleId}
-          onOpenChange={() => setDeleteModuleId(null)}
-        >
-          <AlertDialogContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            </AlertDialogHeader>
-            <p>This will permanently delete the module and its contents.</p>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} disabled={isPending}>
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </Dialog>
+
+      <AlertDialog
+        open={!!deleteModuleId}
+        onOpenChange={() => setDeleteModuleId(null)}
+      >
+        <AlertDialogContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <p>This will permanently delete the module and its contents.</p>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={isPending}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

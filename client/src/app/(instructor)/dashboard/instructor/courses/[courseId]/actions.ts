@@ -49,6 +49,8 @@ export async function reorderModules(
       throw new Error("Failed to reorder modules.");
     }
 
+    revalidatePath(`/dashboard/instructor/courses/${courseId}/content`);
+
     return { success: true };
   } catch (error: any) {
     return { error: error.message };
@@ -56,6 +58,7 @@ export async function reorderModules(
 }
 
 export async function updateModule(
+  courseId: string,
   moduleId: string,
   values: { title: string }
 ) {
@@ -71,14 +74,13 @@ export async function updateModule(
       throw new Error("Failed to update module.");
     }
 
-    revalidatePath("/dashboard/instructor/courses");
     return { success: true };
   } catch (error: any) {
     return { error: error.message };
   }
 }
 
-export async function deleteModule(moduleId: string) {
+export async function deleteModule(courseId: string, moduleId: string) {
   try {
     const response = await courseService.delete(`/api/modules/${moduleId}`);
 
@@ -86,6 +88,8 @@ export async function deleteModule(moduleId: string) {
       const data = await response.json();
       return { error: data.error || "Something went wrong." };
     }
+
+    revalidatePath(`/dashboard/instructor/courses/${courseId}/content`);
 
     return { success: true };
   } catch (error) {
