@@ -85,7 +85,7 @@ export function CourseFilters({ categories }: { categories: Category[] }) {
   };
 
   const categoryItems = [
-    { value: "all", label: "All Subjects" },
+    { value: "all", label: "All Category" },
     ...categories.map((c) => ({ value: c.id, label: c.name })),
   ];
   const levelItems = [

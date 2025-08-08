@@ -203,3 +203,13 @@ export async function reorderLessons(
     return { error: error.message };
   }
 }
+
+export async function getModuleDetails(moduleId: string) {
+  try {
+    const response = await courseService.get(`/api/modules/${moduleId}`);
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (error) {
+    return null;
+  }
+}
