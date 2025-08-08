@@ -11,3 +11,15 @@ export const updateLessonSchema = z.object({
 });
 
 export type UpdateLessonFormValues = z.infer<typeof updateLessonSchema>;
+
+export const lessonTypeEnum = ["video", "text", "quiz"] as const;
+export type LessonType = (typeof lessonTypeEnum)[number];
+
+export const lessonSchema = z.object({
+  title: z.string().min(1, "Lesson title is required."),
+  lessonType: z.enum(lessonTypeEnum).refine((val) => !!val, {
+    message: "Please select a lesson type.",
+  }),
+});
+
+export type LessonFormValues = z.infer<typeof lessonSchema>;

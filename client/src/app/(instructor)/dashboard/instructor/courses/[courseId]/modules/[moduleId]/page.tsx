@@ -1,8 +1,9 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -12,7 +13,6 @@ import {
 } from "@/components/ui/card";
 import { getModuleDetails } from "../../actions";
 import { ModulesSkeleton as LessonSkeleton } from "../../content/_components/module-skeleton";
-import { AddLessonForm } from "./_components/add-lesson-form";
 import { LessonsList } from "./_components/lessons-list";
 
 interface ModuleDetailPageProps {
@@ -43,9 +43,19 @@ async function ModuleContent({ params }: ModuleDetailPageProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{module.title}</CardTitle>
-        <CardDescription>Manage the lessons for this module.</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>{module.title}</CardTitle>
+          <CardDescription>Manage the lessons for this module.</CardDescription>
+        </div>
+        <Button asChild>
+          <Link
+            href={`/dashboard/instructor/courses/${params.courseId}/modules/${params.moduleId}/lessons/create`}
+          >
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Add a lesson
+          </Link>
+        </Button>
       </CardHeader>
       <CardContent>
         <LessonsList
@@ -53,7 +63,6 @@ async function ModuleContent({ params }: ModuleDetailPageProps) {
           courseId={params.courseId}
           moduleId={module.id}
         />
-        <AddLessonForm courseId={params.courseId} moduleId={module.id} />
       </CardContent>
     </Card>
   );

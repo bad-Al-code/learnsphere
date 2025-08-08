@@ -2,8 +2,8 @@
 
 import { courseService } from "@/lib/api";
 import {
-  CreateLessonFormValues,
   createLessonSchema,
+  LessonFormValues,
   UpdateLessonFormValues,
   updateLessonSchema,
 } from "@/lib/schemas/lesson";
@@ -106,14 +106,14 @@ export async function deleteModule(courseId: string, moduleId: string) {
 export async function createLesson(
   courseId: string,
   moduleId: string,
-  values: CreateLessonFormValues
+  values: LessonFormValues
 ) {
   try {
     const validatedData = createLessonSchema.parse(values);
 
     const response = await courseService.post(
       `/api/modules/${moduleId}/lessons`,
-      { validatedData }
+      validatedData
     );
 
     if (!response.ok) {
