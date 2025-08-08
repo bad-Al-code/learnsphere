@@ -36,6 +36,7 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
   const [editModuleId, setEditModuleId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [deleteModuleId, setDeleteModuleId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     setOptimisticModules(modules);
@@ -110,21 +111,21 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
     });
   };
 
+  const filteredModules = optimisticModules.filter((module) =>
+    module.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="mt-6 space-y-4">
-      <form className="flex items-center gap-2">
-        <div className="relative flex-grow">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input
-            name="query"
-            placeholder="Search for modules..."
-            // onChange={(e) => handleSearchOnChange(e.target.value)}
-            // defaultValue={searchParams.get("q") || ""}
-            className="pl-10"
-          />
-        </div>
-        <Button type="submit">Search</Button>
-      </form>
+      <div className="relative ">
+        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <Input
+          placeholder="Search for modules..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9"
+        />
+      </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="modules">
@@ -134,7 +135,7 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
               ref={provided.innerRef}
               className="space-y-4"
             >
-              {optimisticModules.map((module, index) => (
+              {filteredModules.map((module, index) => (
                 <Draggable
                   key={module.id}
                   draggableId={module.id}
@@ -171,6 +172,7 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
                   )}
                 </Draggable>
               ))}
+
               {provided.placeholder}
             </div>
           )}
