@@ -2,7 +2,6 @@
 
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { EditorToolbar } from "./editor-toolbar";
 
 interface RichTextEditorProps {
   value: string;
@@ -33,7 +32,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
 
   return (
     <div className="flex flex-col justify-stretch gap-2">
-      <EditorToolbar />
+      <EditorContent editor={editor} />
       <EditorContent editor={editor} />
     </div>
   );
