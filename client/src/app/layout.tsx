@@ -1,12 +1,12 @@
 import { Header } from '@/components/layout/header';
 import { SessionRefresher } from '@/components/layout/session-refresher';
+import { ThemeFavicon } from '@/components/layout/theme-favicon';
 import { Toaster } from '@/components/ui/sonner';
 import { GeistMono } from 'geist/font/mono';
 import { GeistSans } from 'geist/font/sans';
 import type { Metadata } from 'next';
 import { ThemeProvider } from 'next-themes';
 import { getCurrentUser } from './(auth)/actions';
-import { ThemeFavicon } from './(components)/theme-favicon';
 import './globals.css';
 
 export const dynamic = 'force-dynamic';
