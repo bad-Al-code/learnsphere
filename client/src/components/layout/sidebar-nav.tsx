@@ -2,43 +2,30 @@
 
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, Shield, User } from 'lucide-react';
+import { settingsNavItems } from '@/config/nav-items';
+import { NavItem } from '@/types';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const navItems = [
-  {
-    href: '/settings/profile',
-    label: 'My Account',
-    value: 'profile',
-    icon: User,
-  },
-  {
-    href: '/settings/security',
-    label: 'Security',
-    value: 'security',
-    icon: Shield,
-  },
-  {
-    href: '/settings/notifications',
-    label: 'Notifications',
-    value: 'notifications',
-    icon: Bell,
-  },
-];
+interface SidebarNavProps {
+  type: 'settings' | 'admin' | 'instructor';
+}
 
-export function SettingsSidebar() {
+export function SidebarNav({ type }: SidebarNavProps) {
   const pathname = usePathname();
 
+  const navItems: NavItem[] = type === 'settings' ? settingsNavItems : [];
+
   const activeTab =
-    navItems.find((item) => pathname.startsWith(item.href))?.value || 'profile';
+    navItems.find((item) => pathname.startsWith(item.href))?.value ||
+    navItems[0]?.value;
 
   return (
     <>
       {/* Mobile: Tab Navigation */}
       <div className="mb-0 md:hidden">
         <Tabs defaultValue={activeTab} className="w-full">
-          <TabsList className="grid grid-cols-3">
+          <TabsList className="grid w-full grid-cols-3">
             {navItems.map((item) => (
               <TabsTrigger key={item.value} value={item.value} asChild>
                 <Link href={item.href} className="flex items-center gap-1">
