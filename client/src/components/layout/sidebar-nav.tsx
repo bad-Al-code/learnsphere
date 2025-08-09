@@ -2,7 +2,11 @@
 
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { adminNavItems, settingsNavItems } from '@/config/nav-items';
+import {
+  adminNavItems,
+  instructorNavItems,
+  settingsNavItems,
+} from '@/config/nav-items';
 import { NavItem } from '@/types';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -19,7 +23,9 @@ export function SidebarNav({ type }: SidebarNavProps) {
       ? settingsNavItems
       : type === 'admin'
         ? adminNavItems
-        : [];
+        : type === 'instructor'
+          ? instructorNavItems
+          : [];
 
   const activeTab =
     navItems
@@ -31,7 +37,7 @@ export function SidebarNav({ type }: SidebarNavProps) {
   return (
     <>
       {/* Mobile: Tab Navigation */}
-      <div className="mb-0 md:hidden">
+      <div className="mb-4 md:hidden">
         <Tabs defaultValue={activeTab} className="w-full">
           <TabsList
             className={`grid w-full`}

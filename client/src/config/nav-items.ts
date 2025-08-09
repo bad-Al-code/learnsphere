@@ -1,6 +1,7 @@
 import { NavItem } from '@/types';
 import {
   Bell,
+  BookCopy,
   BookOpenCheck,
   FolderKanban,
   LayoutGrid,
@@ -54,5 +55,20 @@ export const adminNavItems: NavItem[] = [
     label: 'Categories',
     value: 'categories',
     icon: FolderKanban,
+  },
+];
+
+export const instructorNavItems: NavItem[] = [
+  {
+    href: '/dashboard/instructor',
+    label: 'Dashboard',
+    value: 'dashboard',
+    icon: LayoutGrid,
+  },
+  {
+    href: '/dashboard/instructor/courses',
+    label: 'Courses',
+    value: 'courses',
+    icon: BookCopy,
   },
 ];
