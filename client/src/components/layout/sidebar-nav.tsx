@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { settingsNavItems } from '@/config/nav-items';
+import { adminNavItems, settingsNavItems } from '@/config/nav-items';
 import { NavItem } from '@/types';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -14,7 +14,12 @@ interface SidebarNavProps {
 export function SidebarNav({ type }: SidebarNavProps) {
   const pathname = usePathname();
 
-  const navItems: NavItem[] = type === 'settings' ? settingsNavItems : [];
+  const navItems: NavItem[] =
+    type === 'settings'
+      ? settingsNavItems
+      : type === 'admin'
+        ? adminNavItems
+        : [];
 
   const activeTab =
     navItems.find((item) => pathname.startsWith(item.href))?.value ||
@@ -25,10 +30,16 @@ export function SidebarNav({ type }: SidebarNavProps) {
       {/* Mobile: Tab Navigation */}
       <div className="mb-0 md:hidden">
         <Tabs defaultValue={activeTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList
+            className={`grid w-full`}
+            style={{ gridTemplateColumns: `repeat(${navItems.length}, 1fr)` }}
+          >
             {navItems.map((item) => (
               <TabsTrigger key={item.value} value={item.value} asChild>
-                <Link href={item.href} className="flex items-center gap-1">
+                <Link
+                  href={item.href}
+                  className="flex items-center gap-1 text-xs"
+                >
                   <item.icon className="h-4 w-4" />
                   {item.label}
                 </Link>

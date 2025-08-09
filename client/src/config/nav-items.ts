@@ -1,5 +1,13 @@
 import { NavItem } from '@/types';
-import { Bell, Shield, User } from 'lucide-react';
+import {
+  Bell,
+  BookOpenCheck,
+  FolderKanban,
+  LayoutGrid,
+  Shield,
+  User,
+  Users,
+} from 'lucide-react';
 
 export const settingsNavItems: NavItem[] = [
   {
@@ -19,5 +27,32 @@ export const settingsNavItems: NavItem[] = [
     label: 'Notifications',
     value: 'notifications',
     icon: Bell,
+  },
+];
+
+export const adminNavItems: NavItem[] = [
+  {
+    href: '/admin',
+    label: 'Dashboard',
+    value: 'dashboard',
+    icon: LayoutGrid,
+  },
+  {
+    href: '/admin/users',
+    label: 'Users',
+    value: 'users',
+    icon: Users,
+  },
+  {
+    href: '/admin/courses',
+    label: 'Courses',
+    value: 'courses',
+    icon: BookOpenCheck,
+  },
+  {
+    href: '/admin/categories',
+    label: 'Categories',
+    value: 'categories',
+    icon: FolderKanban,
   },
 ];
