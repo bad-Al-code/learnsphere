@@ -22,7 +22,10 @@ export function SidebarNav({ type }: SidebarNavProps) {
         : [];
 
   const activeTab =
-    navItems.find((item) => pathname.startsWith(item.href))?.value ||
+    navItems
+      .slice()
+      .reverse()
+      .find((item) => pathname.startsWith(item.href))?.value ||
     navItems[0]?.value;
 
   return (
@@ -55,7 +58,7 @@ export function SidebarNav({ type }: SidebarNavProps) {
           <Button
             key={item.href}
             asChild
-            variant={pathname.startsWith(item.href) ? 'secondary' : 'ghost'}
+            variant={item.value === activeTab ? 'secondary' : 'ghost'}
             className="w-full justify-start gap-2"
           >
             <Link href={item.href} className="flex items-center gap-2">
