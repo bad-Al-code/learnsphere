@@ -15,12 +15,13 @@ export default async function InstructorLayout({
   }
 
   return (
-    <div className="container mx-auto space-y-6 py-6">
-      <div className="gap-6 md:grid md:grid-cols-12 lg:grid-cols-12">
-        <aside className="mb-4 md:col-span-2 md:mb-0 lg:col-span-2">
+    <div className="container mx-auto py-4 md:py-8">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+        <aside className="md:col-span-1">
           <SidebarNav type="instructor" />
         </aside>
-        <main className="md:col-span-9">{children}</main>
+
+        <main className="md:col-span-3">{children}</main>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ export const COURSE_LEVELS = [
   'all-levels',
 ] as const;
 
-export const createCourseSchema = z.object({
+export const courseSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters.'),
   description: z.string().optional().nullable(),
   categoryId: z.uuid('Please select a category.').optional().nullable(),
@@ -35,7 +35,7 @@ export const createCourseSchema = z.object({
     .min(1, 'Please add at least one module.'),
 });
 
-export type CreateCourseValues = z.infer<typeof createCourseSchema>;
+export type CourseFormValues = z.infer<typeof courseSchema>;
 
 export const priceSchema = z.object({
   price: z.coerce

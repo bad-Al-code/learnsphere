@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { createCourseSchema, CreateCourseValues } from '@/lib/schemas/course';
+import { CourseFormValues, courseSchema } from '@/lib/schemas/course';
 import { Category } from '@/types/category';
 import { PrerequisiteCourse } from '@/types/course';
 import { createFullCourse, getMyCourses } from '../../../../actions';
@@ -49,8 +49,8 @@ export default function CreateCoursePage() {
     });
   }, []);
 
-  const form = useForm<CreateCourseValues>({
-    resolver: zodResolver(createCourseSchema),
+  const form = useForm<CourseFormValues>({
+    resolver: zodResolver(courseSchema),
     defaultValues: {
       title: '',
       description: '',
@@ -67,7 +67,7 @@ export default function CreateCoursePage() {
     name: 'modules',
   });
 
-  const onSubmit = (values: CreateCourseValues) => {
+  const onSubmit = (values: CourseFormValues) => {
     startTransition(async () => {
       const result = await createFullCourse(values);
       if (result.error) {

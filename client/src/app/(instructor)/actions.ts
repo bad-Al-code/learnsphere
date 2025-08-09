@@ -1,7 +1,7 @@
 'use server';
 
 import { courseService, enrollmentService } from '@/lib/api';
-import { createCourseSchema, CreateCourseValues } from '@/lib/schemas/course';
+import { CourseFormValues, courseSchema } from '@/lib/schemas/course';
 import { CourseFilterOptions } from '@/types/course';
 import { revalidatePath } from 'next/cache';
 import z from 'zod';
@@ -54,9 +54,9 @@ export async function getMyCourses(options: CourseFilterOptions = {}) {
   }
 }
 
-export async function createCourse(values: CreateCourseValues) {
+export async function createCourse(values: CourseFormValues) {
   try {
-    const validatedData = createCourseSchema.parse(values);
+    const validatedData = courseSchema.parse(values);
 
     const response = await courseService.post('/api/courses', validatedData);
 
@@ -90,9 +90,9 @@ export async function getCategories() {
   }
 }
 
-export async function createFullCourse(values: CreateCourseValues) {
+export async function createFullCourse(values: CourseFormValues) {
   try {
-    const validatedData = createCourseSchema.parse(values);
+    const validatedData = courseSchema.parse(values);
     const response = await courseService.post(
       '/api/courses/full',
       validatedData
