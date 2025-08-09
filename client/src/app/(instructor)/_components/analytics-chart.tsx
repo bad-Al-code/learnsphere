@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Bar,
@@ -7,7 +7,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from "recharts";
+} from 'recharts';
 
 interface AnalyticsChartProps {
   data: { name: string; total: number }[];
@@ -33,8 +33,8 @@ export function AnalyticsChart({ data }: AnalyticsChartProps) {
         />
         <Tooltip
           contentStyle={{
-            backgroundColor: "hsl(var(--background))",
-            border: "1px solid hsl(var(--border))",
+            backgroundColor: 'hsl(var(--background))',
+            border: '1px solid hsl(var(--border))',
           }}
         />
         <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />

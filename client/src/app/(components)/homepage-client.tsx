@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import OnboardingModal from "@/components/shared/onboarding-modal";
-import { useEffect, useState } from "react";
+import OnboardingModal from '@/components/shared/onboarding-modal';
+import { useEffect, useState } from 'react';
 
 type User = {
   firstName: string | null;

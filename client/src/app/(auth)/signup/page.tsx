@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
-import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
+import { useState, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 
-import { GoogleIcon } from "@/components/icons/google";
-import { Logo } from "@/components/shared/logo";
-import { Button } from "@/components/ui/button";
+import { GoogleIcon } from '@/components/icons/google';
+import { Logo } from '@/components/shared/logo';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+} from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
@@ -24,21 +24,21 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Eye, EyeOff } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { signup } from "../actions";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Eye, EyeOff } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { signup } from '../actions';
 
 const formSchema = z.object({
-  firstName: z.string().min(1, { message: "First name is required." }),
-  lastName: z.string().min(1, { message: "Last name is required." }),
-  email: z.email({ message: "Please enter a valid email." }),
+  firstName: z.string().min(1, { message: 'First name is required.' }),
+  lastName: z.string().min(1, { message: 'Last name is required.' }),
+  email: z.email({ message: 'Please enter a valid email.' }),
   password: z
     .string()
-    .min(8, { message: "Password must be at least 8 characters long." }),
+    .min(8, { message: 'Password must be at least 8 characters long.' }),
   terms: z.boolean().refine((val) => val === true, {
-    message: "You must accept the terms and conditions.",
+    message: 'You must accept the terms and conditions.',
   }),
 });
 
@@ -53,10 +53,10 @@ export default function SignupPage() {
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
       terms: false,
     },
   });
@@ -77,10 +77,10 @@ export default function SignupPage() {
   }
 
   return (
-    <div className=" flex flex-col items-center justify-center min-h-[90vh]">
-      <Card className="shadow-2xl/20  w-full max-w-md min-w-sm">
+    <div className="flex min-h-[90vh] flex-col items-center justify-center">
+      <Card className="w-full max-w-md min-w-sm shadow-2xl/20">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
+          <div className="mb-4 flex justify-center">
             <Logo />
           </div>
           <CardTitle className="text-2xl">Create an Account</CardTitle>
@@ -100,13 +100,13 @@ export default function SignupPage() {
             </Button>
           </div>
 
-          <div className="flex items-center my-4 space-x-2">
-            <div className="w-full bg-foreground/20 border-b mask-l-from-0%"></div>
+          <div className="my-4 flex items-center space-x-2">
+            <div className="bg-foreground/20 w-full border-b mask-l-from-0%"></div>
 
-            <span className="text-xs justify-center items-center uppercase">
+            <span className="items-center justify-center text-xs uppercase">
               or
             </span>
-            <div className="w-full bg-foreground/20 border-b mask-r-from-0"></div>
+            <div className="bg-foreground/20 w-full border-b mask-r-from-0"></div>
           </div>
 
           <Form {...form}>
@@ -161,12 +161,12 @@ export default function SignupPage() {
                     <div className="relative">
                       <FormControl>
                         <Input
-                          type={showPassword ? "text" : "password"}
+                          type={showPassword ? 'text' : 'password'}
                           placeholder="Choose a password"
                           {...field}
                         />
                       </FormControl>
-                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 cursor-pointer">
+                      <div className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-gray-400">
                         {showPassword ? (
                           <EyeOff
                             className="h-5 w-5"
@@ -190,7 +190,7 @@ export default function SignupPage() {
                 name="terms"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex flex-row items-start space-x-3 space-y-0">
+                    <div className="flex flex-row items-start space-y-0 space-x-3">
                       <FormControl>
                         <Checkbox
                           checked={field.value}
@@ -199,7 +199,7 @@ export default function SignupPage() {
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel>
-                          I agree to the{" "}
+                          I agree to the{' '}
                           <Link
                             href="/legal/terms"
                             className="underline"
@@ -217,15 +217,15 @@ export default function SignupPage() {
               />
 
               <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? "Signing up..." : "Sign Up"}
+                {isPending ? 'Signing up...' : 'Sign Up'}
               </Button>
               {error && (
-                <p className="text-sm font-medium text-destructive">{error}</p>
+                <p className="text-destructive text-sm font-medium">{error}</p>
               )}
             </form>
           </Form>
           <div className="mt-4 text-center text-sm">
-            Already have an account?{" "}
+            Already have an account?{' '}
             <Link href="/login" className="underline">
               Log in
             </Link>

@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
 import {
   approveInstructor,
   declineInstructor,
   reinstateUser,
   suspendUser,
-} from "@/app/(admin)/actions";
+} from '@/app/(admin)/actions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,10 +16,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { useTransition } from "react";
-import { toast } from "sonner";
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { useTransition } from 'react';
+import { toast } from 'sonner';
 
 interface UserActionsProps {
   user: {
@@ -40,9 +40,9 @@ export function UserActions({ user }: UserActionsProps) {
     startTransition(async () => {
       const result = await action(user.userId);
       if (result.error) {
-        toast.error(result.error || "Action Failed");
+        toast.error(result.error || 'Action Failed');
       } else {
-        toast.success("User status updated successfully!");
+        toast.success('User status updated successfully!');
       }
     });
   };
@@ -50,7 +50,7 @@ export function UserActions({ user }: UserActionsProps) {
   return (
     <div className="flex items-center gap-2">
       {/* --- APPROVE/DECLINE FLOW --- */}
-      {user.status === "pending_instructor_review" && (
+      {user.status === 'pending_instructor_review' && (
         <>
           <Button
             onClick={() => handleAction(approveInstructor)}
@@ -87,7 +87,7 @@ export function UserActions({ user }: UserActionsProps) {
       )}
 
       {/* --- Suspend User Button --- */}
-      {user.status !== "suspended" && (
+      {user.status !== 'suspended' && (
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" disabled={isPending}>
@@ -113,7 +113,7 @@ export function UserActions({ user }: UserActionsProps) {
       )}
 
       {/* --- Reinstate User Button --- */}
-      {user.status === "suspended" && (
+      {user.status === 'suspended' && (
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button disabled={isPending} variant="secondary">

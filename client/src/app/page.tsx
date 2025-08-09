@@ -1,5 +1,5 @@
-import { getCurrentUser } from "./(auth)/actions";
-import { HomepageClient } from "./(components)/homepage-client";
+import { getCurrentUser } from './(auth)/actions';
+import { HomepageClient } from './(components)/homepage-client';
 
 export default async function Home() {
   const user = await getCurrentUser();

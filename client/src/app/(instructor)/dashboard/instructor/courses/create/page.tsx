@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { PlusCircle, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { PlusCircle, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState, useTransition } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
-import { getCategories } from "@/app/(admin)/actions";
-import { Button } from "@/components/ui/button";
+import { getCategories } from '@/app/(admin)/actions';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -17,20 +17,20 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { createCourseSchema, CreateCourseValues } from "@/lib/schemas/course";
-import { Category } from "@/types/category";
-import { PrerequisiteCourse } from "@/types/course";
-import { createFullCourse, getMyCourses } from "../../../../actions";
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { createCourseSchema, CreateCourseValues } from '@/lib/schemas/course';
+import { Category } from '@/types/category';
+import { PrerequisiteCourse } from '@/types/course';
+import { createFullCourse, getMyCourses } from '../../../../actions';
 
 export default function CreateCoursePage() {
   const router = useRouter();
@@ -52,11 +52,11 @@ export default function CreateCoursePage() {
   const form = useForm<CreateCourseValues>({
     resolver: zodResolver(createCourseSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      level: "all-levels",
-      status: "draft",
-      modules: [{ title: "" }],
+      title: '',
+      description: '',
+      level: 'all-levels',
+      status: 'draft',
+      modules: [{ title: '' }],
       price: 0,
       duration: 0,
     },
@@ -64,23 +64,23 @@ export default function CreateCoursePage() {
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "modules",
+    name: 'modules',
   });
 
   const onSubmit = (values: CreateCourseValues) => {
     startTransition(async () => {
       const result = await createFullCourse(values);
       if (result.error) {
-        toast.error("Failed to create course", { description: result.error });
+        toast.error('Failed to create course', { description: result.error });
       } else {
-        toast.success("Course created successfully!");
+        toast.success('Course created successfully!');
         router.push(`/dashboard/instructor/courses/${result.data.id}`);
       }
     });
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="mx-auto max-w-3xl p-6">
       <h1 className="text-3xl font-bold">Create a New Course</h1>
       <p className="text-muted-foreground mt-2">
         Fill out the essential details for your course. You can add more content
@@ -115,7 +115,7 @@ export default function CreateCoursePage() {
                   <Textarea
                     placeholder="e.g., 'Learn the fundamentals of programming...'"
                     {...field}
-                    value={field.value ?? ""}
+                    value={field.value ?? ''}
                   />
                 </FormControl>
                 <FormMessage />
@@ -126,13 +126,13 @@ export default function CreateCoursePage() {
           <FormItem>
             <FormLabel>Course Thumbnail</FormLabel>
             <FormControl>
-              <div className="p-4 border rounded-lg bg-muted text-center text-muted-foreground">
+              <div className="bg-muted text-muted-foreground rounded-lg border p-4 text-center">
                 You can upload a thumbnail on the next step.
               </div>
             </FormControl>
           </FormItem>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <FormField
               control={form.control}
               name="categoryId"
@@ -148,7 +148,7 @@ export default function CreateCoursePage() {
                         <SelectValue placeholder="Select a category..." />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                    <SelectContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
                       {categories.map((c) => (
                         <SelectItem key={c.id} value={c.id}>
                           {c.name}
@@ -175,7 +175,7 @@ export default function CreateCoursePage() {
                         <SelectValue />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                    <SelectContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
                       <SelectItem value="beginner">Beginner</SelectItem>
                       <SelectItem value="intermediate">Intermediate</SelectItem>
                       <SelectItem value="advanced">Advanced</SelectItem>
@@ -203,7 +203,7 @@ export default function CreateCoursePage() {
                       <SelectValue placeholder="Select an initial status" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                  <SelectContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
                     <SelectItem value="draft">Draft</SelectItem>
                     <SelectItem value="published">Published</SelectItem>
                   </SelectContent>
@@ -232,7 +232,7 @@ export default function CreateCoursePage() {
                       <SelectValue placeholder="None" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                  <SelectContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
                     <SelectItem value="None">None</SelectItem>
                     {instructorCourses.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
@@ -246,7 +246,7 @@ export default function CreateCoursePage() {
             )}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <FormField
               control={form.control}
               name="duration"
@@ -260,9 +260,9 @@ export default function CreateCoursePage() {
                       {...field}
                       onChange={(e) => {
                         const value = e.target.value;
-                        field.onChange(value === "" ? null : +value);
+                        field.onChange(value === '' ? null : +value);
                       }}
-                      value={field.value ?? ""}
+                      value={field.value ?? ''}
                     />
                   </FormControl>
                   <FormDescription>Total estimated video time.</FormDescription>
@@ -283,9 +283,9 @@ export default function CreateCoursePage() {
                       {...field}
                       onChange={(e) => {
                         const value = e.target.value;
-                        field.onChange(value === "" ? null : +value);
+                        field.onChange(value === '' ? null : +value);
                       }}
-                      value={field.value ?? ""}
+                      value={field.value ?? ''}
                     />
                   </FormControl>
                   <FormDescription>
@@ -343,9 +343,9 @@ export default function CreateCoursePage() {
               variant="outline"
               size="sm"
               className="mt-4"
-              onClick={() => append({ title: "" })}
+              onClick={() => append({ title: '' })}
             >
-              <PlusCircle className="h-4 w-4 mr-2" />
+              <PlusCircle className="mr-2 h-4 w-4" />
               Add Module
             </Button>
             <FormMessage>
@@ -358,12 +358,12 @@ export default function CreateCoursePage() {
             <Button
               type="button"
               variant="ghost"
-              onClick={() => router.push("/dashboard/instructor/courses")}
+              onClick={() => router.push('/dashboard/instructor/courses')}
             >
               Cancel
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? "Saving..." : "Save and Continue"}
+              {isPending ? 'Saving...' : 'Save and Continue'}
             </Button>
           </div>
         </form>

@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import { Grip, Pencil, Search, Trash2 } from "lucide-react";
-import { useEffect, useState, useTransition } from "react";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
+import { Grip, Pencil, Search, Trash2 } from 'lucide-react';
+import { useEffect, useState, useTransition } from 'react';
 
 import {
   AlertDialog,
@@ -20,11 +20,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Module } from "@/types/module";
-import Link from "next/link";
-import { toast } from "sonner";
-import { deleteModule, reorderModules, updateModule } from "../../actions";
+} from '@/components/ui/alert-dialog';
+import { Module } from '@/types/module';
+import Link from 'next/link';
+import { toast } from 'sonner';
+import { deleteModule, reorderModules, updateModule } from '../../actions';
 
 interface ModulesListProps {
   modules: Module[];
@@ -35,9 +35,9 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
   const [isPending, startTransition] = useTransition();
   const [optimisticModules, setOptimisticModules] = useState(modules);
   const [editModuleId, setEditModuleId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState("");
+  const [editTitle, setEditTitle] = useState('');
   const [deleteModuleId, setDeleteModuleId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     setOptimisticModules(modules);
@@ -60,10 +60,10 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
     startTransition(async () => {
       const result = await reorderModules(courseId, bulkUpdateData);
       if (result.error) {
-        toast.error("Failed to reorder modules", { description: result.error });
+        toast.error('Failed to reorder modules', { description: result.error });
         setOptimisticModules(modules);
       } else {
-        toast.success("Modules reordered successfully!");
+        toast.success('Modules reordered successfully!');
       }
     });
   };
@@ -82,9 +82,9 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
       });
 
       if (result.error) {
-        toast.error("Failed to update module", { description: result.error });
+        toast.error('Failed to update module', { description: result.error });
       } else {
-        toast.success("Module updated successfully!");
+        toast.success('Module updated successfully!');
         setOptimisticModules((prev) =>
           prev.map((m) =>
             m.id === editModuleId ? { ...m, title: editTitle } : m
@@ -101,9 +101,9 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
     startTransition(async () => {
       const result = await deleteModule(courseId, deleteModuleId);
       if (result.error) {
-        toast.error("Failed to delete module", { description: result.error });
+        toast.error('Failed to delete module', { description: result.error });
       } else {
-        toast.success("Module deleted successfully");
+        toast.success('Module deleted successfully');
         setOptimisticModules((prev) =>
           prev.filter((m) => m.id !== deleteModuleId)
         );
@@ -118,8 +118,8 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
 
   return (
     <div className="mt-6 space-y-4">
-      <div className="relative ">
-        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      <div className="relative">
+        <Search className="text-muted-foreground absolute top-1/2 left-2 h-5 w-5 -translate-y-1/2" />
         <Input
           placeholder="Search for modules..."
           value={searchQuery}
@@ -144,12 +144,12 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
                 >
                   {(provided) => (
                     <div
-                      className="flex items-center gap-x-2 p-1 border rounded-md text-sm cursor-grab active:cursor-grabbing"
+                      className="flex cursor-grab items-center gap-x-2 rounded-md border p-1 text-sm active:cursor-grabbing"
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
                     >
-                      <div className="p-2 border-r rounded-l-md transition">
+                      <div className="rounded-l-md border-r p-2 transition">
                         <Grip className="h-5 w-5" />
                       </div>
                       <Link
@@ -159,7 +159,7 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
                         {module.title}
                       </Link>
 
-                      <div className="ml-auto pr-2 flex items-center gap-x-2">
+                      <div className="ml-auto flex items-center gap-x-2 pr-2">
                         <Button
                           variant="ghost"
                           onClick={() =>
@@ -187,7 +187,7 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
       </DragDropContext>
 
       <Dialog open={!!editModuleId} onOpenChange={() => setEditModuleId(null)}>
-        <DialogContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <DialogContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
           <DialogHeader>
             <DialogTitle>Edit Module Title</DialogTitle>
           </DialogHeader>
@@ -200,7 +200,7 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
           <div className="flex justify-end gap-4">
             <Button variant="outline" onClick={() => setEditModuleId(null)}>
               Cancel
-            </Button>{" "}
+            </Button>{' '}
             <Button onClick={handleSave} disabled={isPending}>
               Save
             </Button>
@@ -212,7 +212,7 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
         open={!!deleteModuleId}
         onOpenChange={() => setDeleteModuleId(null)}
       >
-        <AlertDialogContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <AlertDialogContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           </AlertDialogHeader>

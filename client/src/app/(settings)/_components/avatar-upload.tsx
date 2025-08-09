@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
-import { toast } from "sonner";
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState, useTransition } from 'react';
+import { toast } from 'sonner';
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { useSessionStore } from "@/stores/session-store";
-import { getAvatarUploadUrl } from "../actions";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { useSessionStore } from '@/stores/session-store';
+import { getAvatarUploadUrl } from '../actions';
 
 interface AvatarUploadProps {
   currentAvatarUrl: string | undefined;
@@ -41,28 +41,28 @@ export function AvatarUpload({
       try {
         const payload = {
           filename: file.name,
-          uploadType: "avatar" as const,
+          uploadType: 'avatar' as const,
           metadata: { userId: user.userId },
         };
         const { data, error: urlError } = await getAvatarUploadUrl(payload);
         if (urlError || !data?.signedUrl) {
-          throw new Error(urlError || "Could not get upload URL.");
+          throw new Error(urlError || 'Could not get upload URL.');
         }
 
         const uploadResponse = await fetch(data.signedUrl, {
-          method: "PUT",
+          method: 'PUT',
           body: file,
-          headers: { "Content-Type": file.type },
+          headers: { 'Content-Type': file.type },
         });
         if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image.");
+          throw new Error('Failed to upload image.');
         }
 
-        toast.success("Avatar uploaded successfully!");
+        toast.success('Avatar uploaded successfully!');
 
         router.refresh();
       } catch (err: any) {
-        toast.error(err.message || "Upload failed");
+        toast.error(err.message || 'Upload failed');
         setPreviewUrl(null);
         setError(err.message);
       }
@@ -85,9 +85,9 @@ export function AvatarUpload({
         <DialogTrigger asChild>
           <button
             disabled={!displayUrl}
-            className="rounded-full ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none"
+            className="ring-offset-background focus-visible:ring-ring rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none"
           >
-            <Avatar className="h-24 w-24 cursor-pointer hover:opacity-80 transition-opacity">
+            <Avatar className="h-24 w-24 cursor-pointer transition-opacity hover:opacity-80">
               <AvatarImage src={displayUrl} alt="User avatar" />
               <AvatarFallback className="text-3xl">{initials}</AvatarFallback>
             </Avatar>
@@ -107,15 +107,15 @@ export function AvatarUpload({
           <label
             htmlFor="avatar-upload"
             className={`cursor-pointer ${
-              isPending ? "cursor-not-allowed" : ""
+              isPending ? 'cursor-not-allowed' : ''
             }`}
           >
-            {isPending ? "Uploading..." : "Change Avatar"}
+            {isPending ? 'Uploading...' : 'Change Avatar'}
           </label>
         </Button>
 
         {error && (
-          <p className="text-sm font-medium text-destructive">{error}</p>
+          <p className="text-destructive text-sm font-medium">{error}</p>
         )}
       </div>
 

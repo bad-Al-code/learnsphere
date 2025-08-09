@@ -1,7 +1,7 @@
-"use server";
+'use server';
 
-import { courseService, enrollmentService } from "@/lib/api";
-import { revalidatePath } from "next/cache";
+import { courseService, enrollmentService } from '@/lib/api';
+import { revalidatePath } from 'next/cache';
 
 export async function checkEnrollmentStatus(courseId: string) {
   try {
@@ -47,7 +47,7 @@ export async function getEnrollmentProgress(courseId: string) {
 
 export async function markLessonComplete(courseId: string, lessonId: string) {
   try {
-    const response = await enrollmentService.post("/api/enrollments/progress", {
+    const response = await enrollmentService.post('/api/enrollments/progress', {
       courseId,
       lessonId,
     });
@@ -55,11 +55,11 @@ export async function markLessonComplete(courseId: string, lessonId: string) {
       const data = await response.json().catch(() => ({}));
 
       return {
-        error: data.errors?.[0]?.message || "Failed to mark as complete.",
+        error: data.errors?.[0]?.message || 'Failed to mark as complete.',
       };
     }
 
-    revalidatePath(`/learn/${courseId}`, "layout");
+    revalidatePath(`/learn/${courseId}`, 'layout');
 
     return { success: true };
   } catch (error: any) {

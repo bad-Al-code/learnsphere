@@ -3,8 +3,8 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { BookCheck, Clock } from "lucide-react";
+} from '@/components/ui/accordion';
+import { BookCheck, Clock } from 'lucide-react';
 
 type Module = {
   id: string;
@@ -12,7 +12,7 @@ type Module = {
   lessons: {
     id: string;
     title: string;
-    lessonType: "video" | "text" | "quiz";
+    lessonType: 'video' | 'text' | 'quiz';
   }[];
 };
 
@@ -31,7 +31,7 @@ export function Curriculum({ modules }: CurriculumProps) {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">Course Curriculum</h2>
+      <h2 className="mb-4 text-2xl font-bold">Course Curriculum</h2>
       <Accordion type="single" collapsible className="w-full">
         {modules.map((module, index) => (
           <AccordionItem value={`item-${index}`} key={module.id}>
@@ -46,9 +46,9 @@ export function Curriculum({ modules }: CurriculumProps) {
                 {module.lessons.map((lesson) => (
                   <li
                     key={lesson.id}
-                    className="flex items-center gap-3 text-muted-foreground"
+                    className="text-muted-foreground flex items-center gap-3"
                   >
-                    {lesson.lessonType === "video" ? (
+                    {lesson.lessonType === 'video' ? (
                       <Clock className="h-4 w-4 flex-shrink-0" />
                     ) : (
                       <BookCheck className="h-4 w-4 flex-shrink-0" />

@@ -1,15 +1,15 @@
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   const cookieStore = await cookies();
-  const refreshToken = cookieStore.get("refreshToken");
+  const refreshToken = cookieStore.get('refreshToken');
 
   if (!refreshToken) {
     return NextResponse.json(
-      { error: "No refresh token found" },
+      { error: 'No refresh token found' },
       { status: 401 }
     );
   }
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const authServiceUrl = process.env.AUTH_SERVICE_URL!;
 
     const response = await fetch(`${authServiceUrl}/api/auth/refresh`, {
-      method: "POST",
+      method: 'POST',
       headers: {
         Cookie: `refreshToken=${refreshToken.value}`,
       },
@@ -26,8 +26,8 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      (await cookies()).delete("token");
-      (await cookies()).delete("refreshToken");
+      (await cookies()).delete('token');
+      (await cookies()).delete('refreshToken');
       return NextResponse.json(errorData, { status: response.status });
     }
 
@@ -35,13 +35,13 @@ export async function POST(request: Request) {
     const nextResponse = NextResponse.json({ success: true });
 
     setCookieHeaders.forEach((cookie) => {
-      nextResponse.headers.append("Set-Cookie", cookie);
+      nextResponse.headers.append('Set-Cookie', cookie);
     });
 
     return nextResponse;
   } catch (error) {
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: 'Internal Server Error' },
       { status: 500 }
     );
   }

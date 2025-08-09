@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { MailCheck } from "lucide-react";
-import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { MailCheck } from 'lucide-react';
+import { useState, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 
-import { Logo } from "@/components/shared/logo";
-import { Button } from "@/components/ui/button";
+import { Logo } from '@/components/shared/logo';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -22,14 +22,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { forgotPassword } from "../actions";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { forgotPassword } from '../actions';
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email." }),
+  email: z.string().email({ message: 'Please enter a valid email.' }),
 });
 
 export default function ForgotPasswordPage() {
@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { email: "" },
+    defaultValues: { email: '' },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -59,10 +59,10 @@ export default function ForgotPasswordPage() {
 
   if (submitted) {
     return (
-      <div className="flex items-center justify-center min-h-[80vh]">
-        <Card className="w-full max-w-mdtext-center shadow-2xl/20 ">
+      <div className="flex min-h-[80vh] items-center justify-center">
+        <Card className="max-w-mdtext-center w-full shadow-2xl/20">
           <CardHeader className="text-start">
-            <div className="flex  mb-4">
+            <div className="mb-4 flex">
               <Logo variant="icon" />
             </div>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
@@ -80,10 +80,10 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
+    <div className="flex min-h-[80vh] items-center justify-center">
       <Card className="w-full max-w-md shadow-2xl/20">
         <CardHeader className="text-start">
-          <div className="flex  mb-4">
+          <div className="mb-4 flex">
             <Logo variant="icon" />
           </div>
           <CardTitle className="text-2xl">Reset your password</CardTitle>
@@ -119,12 +119,12 @@ export default function ForgotPasswordPage() {
                 </Button>
 
                 <Button type="submit" className="flex-1" disabled={isPending}>
-                  {isPending ? "Sending..." : "Reset Password"}
+                  {isPending ? 'Sending...' : 'Reset Password'}
                 </Button>
               </div>
 
               {error && (
-                <p className="text-sm font-medium text-destructive">{error}</p>
+                <p className="text-destructive text-sm font-medium">{error}</p>
               )}
             </form>
           </Form>

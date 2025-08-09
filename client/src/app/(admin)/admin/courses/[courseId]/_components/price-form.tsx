@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
-import { updateCoursePrice } from "@/app/(admin)/actions";
-import { Button } from "@/components/ui/button";
+import { updateCoursePrice } from '@/app/(admin)/actions';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -16,10 +16,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { PriceFormValues, priceSchema } from "@/lib/schemas/course";
-import { IndianRupeeIcon } from "lucide-react";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { PriceFormValues, priceSchema } from '@/lib/schemas/course';
+import { IndianRupeeIcon } from 'lucide-react';
 
 interface PriceFormProps {
   courseId: string;
@@ -41,9 +41,9 @@ export function PriceForm({ courseId, initialPrice }: PriceFormProps) {
     startTransition(async () => {
       const result = await updateCoursePrice(courseId, values);
       if (result.error) {
-        toast.error("Update failed", { description: result.error });
+        toast.error('Update failed', { description: result.error });
       } else {
-        toast.success("Course price updated!");
+        toast.success('Course price updated!');
         form.reset({ price: values.price });
       }
     });
@@ -60,8 +60,8 @@ export function PriceForm({ courseId, initialPrice }: PriceFormProps) {
               <FormLabel>Course Price (INR)</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3   text-muted-foreground">
-                    <IndianRupeeIcon className="w-4 h-4" />
+                  <span className="text-muted-foreground absolute inset-y-0 left-0 flex items-center pl-3">
+                    <IndianRupeeIcon className="h-4 w-4" />
                   </span>
                   <Input
                     type="number"
@@ -70,10 +70,10 @@ export function PriceForm({ courseId, initialPrice }: PriceFormProps) {
                     className="pl-7"
                     {...field}
                     value={
-                      typeof field.value === "number" ||
-                      typeof field.value === "string"
+                      typeof field.value === 'number' ||
+                      typeof field.value === 'string'
                         ? field.value
-                        : ""
+                        : ''
                     }
                   />
                 </div>
@@ -87,7 +87,7 @@ export function PriceForm({ courseId, initialPrice }: PriceFormProps) {
         />
         <div className="flex justify-end">
           <Button type="submit" disabled={isPending || !isDirty}>
-            {isPending ? "Saving..." : "Save Price"}
+            {isPending ? 'Saving...' : 'Save Price'}
           </Button>
         </div>
       </form>

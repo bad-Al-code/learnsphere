@@ -1,6 +1,6 @@
-import { getUserById } from "@/app/(settings)/actions";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { getUserById } from '@/app/(settings)/actions';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
@@ -8,17 +8,17 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { Suspense } from "react";
-import { AdminEditProfileForm } from "./_components/admin-edit-profile-form";
-import { UserActions } from "./_components/user-actions";
+} from '@/components/ui/card';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
+import { AdminEditProfileForm } from './_components/admin-edit-profile-form';
+import { UserActions } from './_components/user-actions';
 
 const getInitials = (firstName?: string | null, lastName?: string | null) => {
-  const first = firstName?.[0] || "";
-  const last = lastName?.[0] || "";
+  const first = firstName?.[0] || '';
+  const last = lastName?.[0] || '';
   return `${first}${last}`.toUpperCase();
 };
 
@@ -45,7 +45,7 @@ async function UserDetailComponent({ userId }: { userId: string }) {
     <div className="space-y-6">
       <Link
         href="/admin/users"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to all users
@@ -63,7 +63,7 @@ async function UserDetailComponent({ userId }: { userId: string }) {
             {user.firstName} {user.lastName}
           </h1>
           <p className="text-muted-foreground">
-            {user.headline || "No headline"}
+            {user.headline || 'No headline'}
           </p>
         </div>
       </div>
@@ -74,24 +74,24 @@ async function UserDetailComponent({ userId }: { userId: string }) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
-            <div className="text-sm text-muted-foreground">User ID</div>
-            <div className="col-span-2 text-sm font-mono">{user.userId}</div>
+            <div className="text-muted-foreground text-sm">User ID</div>
+            <div className="col-span-2 font-mono text-sm">{user.userId}</div>
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <div className="text-sm text-muted-foreground">Status</div>
+            <div className="text-muted-foreground text-sm">Status</div>
             <div className="col-span-2">
               <Badge>{user.status}</Badge>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <div className="text-sm text-muted-foreground">Role</div>
+            <div className="text-muted-foreground text-sm">Role</div>
             <div className="col-span-2">
-              <Badge variant="secondary">{user.role || "-"}</Badge>
+              <Badge variant="secondary">{user.role || '-'}</Badge>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <div className="text-sm text-muted-foreground">Bio</div>
-            <div className="col-span-2 text-sm">{user.bio || "N/A"}</div>
+            <div className="text-muted-foreground text-sm">Bio</div>
+            <div className="col-span-2 text-sm">{user.bio || 'N/A'}</div>
           </div>
         </CardContent>
 
@@ -117,13 +117,13 @@ async function UserDetailComponent({ userId }: { userId: string }) {
 
 function UserDetailSkeleton() {
   return (
-    <div className="space-y-6 animate-pulse">
-      <div className="h-5 w-32 bg-muted rounded-md"></div>
+    <div className="animate-pulse space-y-6">
+      <div className="bg-muted h-5 w-32 rounded-md"></div>
       <div className="flex items-center gap-4">
-        <div className="h-16 w-16 bg-muted rounded-full"></div>
+        <div className="bg-muted h-16 w-16 rounded-full"></div>
         <div>
-          <div className="h-7 w-48 bg-muted rounded-md"></div>
-          <div className="h-4 w-32 bg-muted rounded-md mt-2"></div>
+          <div className="bg-muted h-7 w-48 rounded-md"></div>
+          <div className="bg-muted mt-2 h-4 w-32 rounded-md"></div>
         </div>
       </div>
       <Card>
@@ -131,9 +131,9 @@ function UserDetailSkeleton() {
           <CardTitle>User Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="h-5 w-full bg-muted rounded-md"></div>
-          <div className="h-5 w-full bg-muted rounded-md"></div>
-          <div className="h-5 w-full bg-muted rounded-md"></div>
+          <div className="bg-muted h-5 w-full rounded-md"></div>
+          <div className="bg-muted h-5 w-full rounded-md"></div>
+          <div className="bg-muted h-5 w-full rounded-md"></div>
         </CardContent>
       </Card>
     </div>

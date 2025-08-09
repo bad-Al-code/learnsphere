@@ -1,8 +1,8 @@
-import { LessonControls } from "@/app/(learn)/_components/lesson-controls";
-import { getCourseDetails } from "@/app/courses/actions";
-import { VideoPlayer } from "@/components/video-player/video-player";
-import { notFound, redirect } from "next/navigation";
-import { getEnrollmentProgress, getLessonDetails } from "../../../actions";
+import { LessonControls } from '@/app/(learn)/_components/lesson-controls';
+import { getCourseDetails } from '@/app/courses/actions';
+import { VideoPlayer } from '@/components/video-player/video-player';
+import { notFound, redirect } from 'next/navigation';
+import { getEnrollmentProgress, getLessonDetails } from '../../../actions';
 
 interface LessonPageProps {
   params: {
@@ -29,13 +29,13 @@ export default async function LessonPage({ params }: LessonPageProps) {
   }
 
   return (
-    <div className="flex flex-col h-full ">
-      <div className="flex-1 p-4 md:p-6 lg:p-8 space-y-6">
-        <h1 className="text-2xl md:text-3xl font-bold">{lesson.title}</h1>
+    <div className="flex h-full flex-col">
+      <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
+        <h1 className="text-2xl font-bold md:text-3xl">{lesson.title}</h1>
 
-        {lesson.lessonType === "video" && lesson.contentId ? (
+        {lesson.lessonType === 'video' && lesson.contentId ? (
           <VideoPlayer src={lesson.contentId} />
-        ) : lesson.lessonType === "text" && lesson.textContent ? (
+        ) : lesson.lessonType === 'text' && lesson.textContent ? (
           <div
             className="prose dark:prose-invert max-w-none"
             dangerouslySetInnerHTML={{ __html: lesson.textContent.content }}

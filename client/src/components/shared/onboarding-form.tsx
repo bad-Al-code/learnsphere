@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
-import { updateProfile as completeOnboarding } from "@/app/(settings)/actions";
-import { Button } from "@/components/ui/button";
+import { updateProfile as completeOnboarding } from '@/app/(settings)/actions';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -15,11 +15,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { onboardingFormSchema, OnboardingFormValues } from "@/lib/schemas/user";
-import { Github, Linkedin, Twitter } from "lucide-react";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { onboardingFormSchema, OnboardingFormValues } from '@/lib/schemas/user';
+import { Github, Linkedin, Twitter } from 'lucide-react';
 
 interface OnboardingFormProps {
   userData: {
@@ -44,13 +44,13 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
     resolver: zodResolver(onboardingFormSchema),
     defaultValues: {
       email: userData.email,
-      headline: userData.headline || "",
-      bio: userData.bio || "",
-      websiteUrl: userData.websiteUrl || "",
+      headline: userData.headline || '',
+      bio: userData.bio || '',
+      websiteUrl: userData.websiteUrl || '',
       socialLinks: {
-        github: userData.socialLinks?.github || "",
-        linkedin: userData.socialLinks?.linkedin || "",
-        twitter: userData.socialLinks?.twitter || "",
+        github: userData.socialLinks?.github || '',
+        linkedin: userData.socialLinks?.linkedin || '',
+        twitter: userData.socialLinks?.twitter || '',
       },
     },
   });
@@ -60,9 +60,9 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
       const result = await completeOnboarding(values);
 
       if (result?.error) {
-        toast.error(result.error || "Update Failed");
+        toast.error(result.error || 'Update Failed');
       } else {
-        toast.success("Profile completed!");
+        toast.success('Profile completed!');
         if (onSuccess) {
           onSuccess();
         }
@@ -101,7 +101,7 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
                   placeholder="Tell us a little about your learning goals."
                   className="resize-none"
                   {...field}
-                  value={field.value ?? ""}
+                  value={field.value ?? ''}
                 />
               </FormControl>
               <FormMessage />
@@ -118,7 +118,7 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
                 <Input
                   placeholder="https://your-portfolio.com"
                   {...field}
-                  value={field.value ?? ""}
+                  value={field.value ?? ''}
                 />
               </FormControl>
               <FormMessage />
@@ -133,15 +133,15 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
             render={({ field }) => (
               <FormItem>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Github className="h-4 w-4 text-muted-foreground" />
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <Github className="text-muted-foreground h-4 w-4" />
                   </div>
                   <FormControl>
                     <Input
                       placeholder="https://github.com/username"
                       {...field}
                       className="pl-10"
-                      value={field.value ?? ""}
+                      value={field.value ?? ''}
                     />
                   </FormControl>
                 </div>
@@ -155,15 +155,15 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
             render={({ field }) => (
               <FormItem>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Linkedin className="h-4 w-4 text-muted-foreground" />
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <Linkedin className="text-muted-foreground h-4 w-4" />
                   </div>
                   <FormControl>
                     <Input
                       placeholder="https://linkedin.com/in/username"
                       {...field}
                       className="pl-10"
-                      value={field.value ?? ""}
+                      value={field.value ?? ''}
                     />
                   </FormControl>
                 </div>
@@ -177,15 +177,15 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
             render={({ field }) => (
               <FormItem>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Twitter className="h-4 w-4 text-muted-foreground" />
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <Twitter className="text-muted-foreground h-4 w-4" />
                   </div>
                   <FormControl>
                     <Input
                       placeholder="https://twitter.com/username"
                       {...field}
                       className="pl-10"
-                      value={field.value ?? ""}
+                      value={field.value ?? ''}
                     />
                   </FormControl>
                 </div>
@@ -197,7 +197,7 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
 
         <div className="flex justify-end">
           <Button type="submit" disabled={isPending}>
-            {isPending ? "Saving..." : "Complete Profile"}
+            {isPending ? 'Saving...' : 'Complete Profile'}
           </Button>
         </div>
       </form>

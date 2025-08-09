@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Slider } from "@/components/ui/slider";
-import { Volume1, Volume2, VolumeX } from "lucide-react";
-import { Button } from "../ui/button";
+import { Slider } from '@/components/ui/slider';
+import { Volume1, Volume2, VolumeX } from 'lucide-react';
+import { Button } from '../ui/button';
 
 interface VolumeControlProps {
   volume: number;
@@ -25,15 +25,15 @@ export function VolumeControl({
   };
 
   return (
-    <div className="flex items-center gap-1 group/volume cursor-pointer">
+    <div className="group/volume flex cursor-pointer items-center gap-1">
       <Button
         variant="ghost"
         onClick={onMuteToggle}
-        className="text-white cursor-pointer"
+        className="cursor-pointer text-white"
       >
-        <VolumeIcon className="w-6 h-6" />
+        <VolumeIcon className="h-6 w-6" />
       </Button>
-      <div className="w-24 opacity-0 group-hover/volume:opacity-100 transition-opacity">
+      <div className="w-24 opacity-0 transition-opacity group-hover/volume:opacity-100">
         <Slider
           value={[isMuted ? 0 : volume * 100]}
           max={100}

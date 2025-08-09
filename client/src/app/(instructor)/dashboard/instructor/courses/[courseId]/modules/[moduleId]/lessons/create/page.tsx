@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
-import { RichTextEditor } from "@/components/shared/rich-text-editor";
-import { Button } from "@/components/ui/button";
+import { RichTextEditor } from '@/components/shared/rich-text-editor';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -17,17 +17,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { LessonFormValues, lessonSchema } from "@/lib/schemas/lesson";
-import { createLesson } from "../../../../actions";
+} from '@/components/ui/select';
+import { LessonFormValues, lessonSchema } from '@/lib/schemas/lesson';
+import { createLesson } from '../../../../actions';
 
 export default function AddLessonPage({
   params,
@@ -39,10 +39,10 @@ export default function AddLessonPage({
 
   const form = useForm<LessonFormValues>({
     resolver: zodResolver(lessonSchema),
-    defaultValues: { title: "" },
+    defaultValues: { title: '' },
   });
 
-  const lessonType = form.watch("lessonType");
+  const lessonType = form.watch('lessonType');
 
   const onSubmit = (values: LessonFormValues) => {
     startTransition(async () => {
@@ -52,9 +52,9 @@ export default function AddLessonPage({
         values
       );
       if (result.error) {
-        toast.error("Failed to create lesson", { description: result.error });
+        toast.error('Failed to create lesson', { description: result.error });
       } else {
-        toast.success("Lesson created successfully!");
+        toast.success('Lesson created successfully!');
 
         router.push(
           `/dashboard/instructor/courses/${params.courseId}/modules/${params.moduleId}`
@@ -65,14 +65,14 @@ export default function AddLessonPage({
 
   return (
     <div className="">
-      <div className="flex items-center gap-4 mb-6">
+      <div className="mb-6 flex items-center gap-4">
         <Link
           href={`/dashboard/instructor/courses/${params.courseId}/modules/${params.moduleId}`}
-          className="hover:opacity-75 transition-opacity"
+          className="transition-opacity hover:opacity-75"
         >
           <ArrowLeft className="h-6 w-6" />
         </Link>
-        <h1 className="text-2xl md:text-3xl font-bold">Add a New Lesson</h1>
+        <h1 className="text-2xl font-bold md:text-3xl">Add a New Lesson</h1>
       </div>
 
       <Form {...form}>
@@ -111,7 +111,7 @@ export default function AddLessonPage({
                       <SelectValue placeholder="Select a lesson type..." />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                  <SelectContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
                     <SelectItem value="video">Video</SelectItem>
                     <SelectItem value="text">Text</SelectItem>
                     <SelectItem value="quiz">Quiz (Coming Soon)</SelectItem>
@@ -122,12 +122,12 @@ export default function AddLessonPage({
             )}
           />
 
-          {lessonType === "video" && (
-            <div className="p-4 border rounded-lg bg-muted text-center text-muted-foreground">
+          {lessonType === 'video' && (
+            <div className="bg-muted text-muted-foreground rounded-lg border p-4 text-center">
               Video uploader will go here after the lesson is created.
             </div>
           )}
-          {lessonType === "text" && (
+          {lessonType === 'text' && (
             <FormField
               control={form.control}
               name="content"
@@ -136,7 +136,7 @@ export default function AddLessonPage({
                   <FormLabel>Lesson Content</FormLabel>
                   <FormControl>
                     <RichTextEditor
-                      value={field.value || ""}
+                      value={field.value || ''}
                       onChange={field.onChange}
                     />
                   </FormControl>
@@ -148,7 +148,7 @@ export default function AddLessonPage({
 
           <div className="flex justify-end">
             <Button type="submit" disabled={isPending}>
-              {isPending ? "Adding Lesson..." : "Add Lesson"}
+              {isPending ? 'Adding Lesson...' : 'Add Lesson'}
             </Button>
           </div>
         </form>

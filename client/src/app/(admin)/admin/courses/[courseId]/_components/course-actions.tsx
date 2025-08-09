@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
 import {
   deleteCourse,
   publishCourse,
   unpublishCourse,
-} from "@/app/(admin)/actions";
+} from '@/app/(admin)/actions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,15 +15,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { toast } from "sonner";
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { toast } from 'sonner';
 
 interface CourseActionsProps {
   courseId: string;
-  status: "draft" | "published";
+  status: 'draft' | 'published';
 }
 
 export function CourseActions({ courseId, status }: CourseActionsProps) {
@@ -37,7 +37,7 @@ export function CourseActions({ courseId, status }: CourseActionsProps) {
     startTransition(async () => {
       const result = await action(courseId);
       if (result.error) {
-        toast.error(result.error || "Action Failed");
+        toast.error(result.error || 'Action Failed');
       } else {
         toast.success(successMessage);
       }
@@ -48,17 +48,17 @@ export function CourseActions({ courseId, status }: CourseActionsProps) {
     startTransition(async () => {
       const result = await deleteCourse(courseId);
       if (result.error) {
-        toast.error(result.error || "Delete Failed");
+        toast.error(result.error || 'Delete Failed');
       } else {
-        toast.success("Course deleted successfully.");
-        router.push("/admin/courses");
+        toast.success('Course deleted successfully.');
+        router.push('/admin/courses');
       }
     });
   };
 
   return (
     <div className="flex items-center gap-2">
-      {status === "draft" ? (
+      {status === 'draft' ? (
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="default" disabled={isPending}>
@@ -75,7 +75,7 @@ export function CourseActions({ courseId, status }: CourseActionsProps) {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => handleAction(publishCourse, "Course published")}
+                onClick={() => handleAction(publishCourse, 'Course published')}
               >
                 Confirm Publish
               </AlertDialogAction>
@@ -100,7 +100,7 @@ export function CourseActions({ courseId, status }: CourseActionsProps) {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() =>
-                  handleAction(unpublishCourse, "Course unpublished")
+                  handleAction(unpublishCourse, 'Course unpublished')
                 }
               >
                 Confirm Unpublish

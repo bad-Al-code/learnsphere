@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { navItems } from "./navItem";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { navItems } from './navItem';
 
 export function AdminSidebar() {
   const pathname = usePathname();
 
   const activeTab =
     navItems.find((item) => pathname.startsWith(item.href))?.value ||
-    "dashboard";
+    'dashboard';
 
   return (
     <>
       {/* Mobile: Tabs */}
-      <div className="md:hidden mb-4">
+      <div className="mb-4 md:hidden">
         <Tabs defaultValue={activeTab} className="w-full">
-          <TabsList className="flex overflow-x-auto no-scrollbar">
+          <TabsList className="no-scrollbar flex overflow-x-auto">
             {navItems.map((item) => (
               <TabsTrigger key={item.value} value={item.value} asChild>
                 <Link href={item.href} className="flex items-center gap-1 px-2">
@@ -33,14 +33,14 @@ export function AdminSidebar() {
       </div>
 
       {/* Desktop: Sidebar Buttons */}
-      <nav className="hidden md:flex flex-col space-y-2">
+      <nav className="hidden flex-col space-y-2 md:flex">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Button
               key={item.href}
               asChild
-              variant={isActive ? "secondary" : "ghost"}
+              variant={isActive ? 'secondary' : 'ghost'}
               className="w-full justify-start gap-2 truncate"
             >
               <Link href={item.href} className="flex items-center gap-2">

@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import { MoreHorizontal } from "lucide-react";
-import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { MoreHorizontal } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Category } from "@/types/category";
+} from '@/components/ui/tooltip';
+import { Category } from '@/types/category';
 
 interface CategoryListProps {
   categories: Category[];
@@ -29,25 +29,25 @@ export function CategoryList({ categories }: CategoryListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentCategorySlug = searchParams.get("category");
+  const currentCategorySlug = searchParams.get('category');
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState<Category[]>([]);
   const [hidden, setHidden] = useState<Category[]>([]);
 
   const allCategories: Category[] = [
-    { id: "all", name: "All", slug: "" },
+    { id: 'all', name: 'All', slug: '' },
     ...categories,
   ];
 
   const createCategoryURL = (slug: string | null) => {
     const params = new URLSearchParams(searchParams);
-    params.set("page", "1");
+    params.set('page', '1');
 
     if (slug) {
-      params.set("category", slug);
+      params.set('category', slug);
     } else {
-      params.delete("category");
+      params.delete('category');
     }
 
     return `${pathname}?${params.toString()}`;
@@ -64,12 +64,12 @@ export function CategoryList({ categories }: CategoryListProps) {
       if (!container) return;
 
       const availableWidth = container.offsetWidth - 10;
-      const temp = document.createElement("div");
-      temp.style.visibility = "hidden";
-      temp.style.position = "absolute";
-      temp.style.display = "inline-flex";
+      const temp = document.createElement('div');
+      temp.style.visibility = 'hidden';
+      temp.style.position = 'absolute';
+      temp.style.display = 'inline-flex';
       temp.className =
-        "px-3 py-1 text-sm font-medium border rounded-md whitespace-nowrap mr-2";
+        'px-3 py-1 text-sm font-medium border rounded-md whitespace-nowrap mr-2';
       document.body.appendChild(temp);
 
       let total = 0;
@@ -90,11 +90,11 @@ export function CategoryList({ categories }: CategoryListProps) {
     };
 
     measure();
-    window.addEventListener("resize", measure);
+    window.addEventListener('resize', measure);
     const timeout = setTimeout(measure, 100);
 
     return () => {
-      window.removeEventListener("resize", measure);
+      window.removeEventListener('resize', measure);
       clearTimeout(timeout);
     };
   }, [categories]);
@@ -105,7 +105,7 @@ export function CategoryList({ categories }: CategoryListProps) {
         {visible.map((cat) => (
           <Link key={cat.id} href={createCategoryURL(cat.slug || null)}>
             <Badge
-              variant={isActive(cat.slug) ? "default" : "secondary"}
+              variant={isActive(cat.slug) ? 'default' : 'secondary'}
               className="whitespace-nowrap"
             >
               {cat.name}
@@ -115,7 +115,7 @@ export function CategoryList({ categories }: CategoryListProps) {
       </div>
 
       {hidden.length > 0 && (
-        <div className="absolute right-0 top-0 h-full flex items-center  pl-2">
+        <div className="absolute top-0 right-0 flex h-full items-center pl-2">
           <Tooltip>
             <TooltipTrigger asChild>
               <div>
@@ -124,16 +124,16 @@ export function CategoryList({ categories }: CategoryListProps) {
                     <Button
                       size="icon"
                       variant="secondary"
-                      className="border text-sm px-3 h-6"
+                      className="h-6 border px-3 text-sm"
                       aria-label="More Category"
                     >
-                      <MoreHorizontal className="w-4 h-4" />
+                      <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
 
                   <DropdownMenuContent
                     align="end"
-                    className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+                    className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur"
                   >
                     {hidden.map((cat) => (
                       <DropdownMenuItem asChild key={cat.id}>

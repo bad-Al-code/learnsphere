@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { logout } from "@/app/(auth)/actions";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { logout } from '@/app/(auth)/actions';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,25 +9,25 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { getInitials } from "@/lib/utils";
-import { useSessionStore } from "@/stores/session-store";
-import { User } from "@/types/user";
+} from '@/components/ui/dropdown-menu';
+import { getInitials } from '@/lib/utils';
+import { useSessionStore } from '@/stores/session-store';
+import { User } from '@/types/user';
 import {
   ChevronsDownUp,
   ChevronsUpDown,
   LogOut,
   Menu,
   User as UserIcon,
-} from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
-import { Logo } from "../shared/logo";
-import { ModeToggle } from "../shared/mode-toggle";
-import { SearchBar } from "../shared/search-bar";
-import { Button } from "../ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "../ui/sheet";
-import { InstructorApplyButton } from "./instructor-apply-button";
+} from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useState, useTransition } from 'react';
+import { Logo } from '../shared/logo';
+import { ModeToggle } from '../shared/mode-toggle';
+import { SearchBar } from '../shared/search-bar';
+import { Button } from '../ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
+import { InstructorApplyButton } from './instructor-apply-button';
 
 export function Header({ user: initialUser }: { user: User }) {
   const { user, setUser } = useSessionStore();
@@ -46,8 +46,8 @@ export function Header({ user: initialUser }: { user: User }) {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex items-center justify-between h-16 px-4">
+    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
@@ -56,22 +56,22 @@ export function Header({ user: initialUser }: { user: User }) {
         </div>
 
         {/* Center Nav (Desktop only) */}
-        <nav className="hidden sm:flex flex-1 justify-center items-center space-x-6 text-sm font-medium">
+        <nav className="hidden flex-1 items-center justify-center space-x-6 text-sm font-medium sm:flex">
           <Link
             href="/courses"
-            className="transition-colors hover:text-foreground/80"
+            className="hover:text-foreground/80 transition-colors"
           >
             Courses
           </Link>
           <Link
             href="/blog"
-            className="transition-colors hover:text-foreground/80"
+            className="hover:text-foreground/80 transition-colors"
           >
             Blog
           </Link>
           <Link
             href="/about"
-            className="transition-colors hover:text-foreground/80"
+            className="hover:text-foreground/80 transition-colors"
           >
             About
           </Link>
@@ -94,12 +94,12 @@ export function Header({ user: initialUser }: { user: User }) {
 
           {/* Desktop Avatar & Instructor */}
           {user ? (
-            <div className="hidden sm:flex items-center space-x-2">
+            <div className="hidden items-center space-x-2 sm:flex">
               <InstructorApplyButton />
               <DropdownMenu>
                 <DropdownMenuTrigger
                   asChild
-                  className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+                  className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur"
                 >
                   <Button
                     variant="ghost"
@@ -117,13 +117,13 @@ export function Header({ user: initialUser }: { user: User }) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="w-56 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+                  className="bg-background/95 supports-[backdrop-filter]:bg-background/60 w-56 backdrop-blur"
                   align="end"
                   forceMount
                 >
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
+                      <p className="text-sm leading-none font-medium">
                         {user.firstName} {user.lastName}
                       </p>
                     </div>
@@ -144,7 +144,7 @@ export function Header({ user: initialUser }: { user: User }) {
               </DropdownMenu>
             </div>
           ) : (
-            <div className="hidden sm:flex items-center space-x-2">
+            <div className="hidden items-center space-x-2 sm:flex">
               <Button asChild variant="ghost">
                 <Link href="/login">Login</Link>
               </Button>
@@ -164,20 +164,20 @@ export function Header({ user: initialUser }: { user: User }) {
               </SheetTrigger>
               <SheetContent
                 side="left"
-                className="w-64 sm:w-80p px-4 flex justify-between bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/50"
+                className="sm:w-80p bg-background/95 supports-[backdrop-filter]:bg-background/50 flex w-64 justify-between px-4 backdrop-blur"
               >
                 <div className="flex flex-col">
                   <SheetHeader>
                     <Link
                       href="/"
-                      className="flex items-center mb-4"
+                      className="mb-4 flex items-center"
                       onClick={() => setIsSheetOpen(false)}
                     >
                       <Logo className="w-28" />
                     </Link>
                   </SheetHeader>
 
-                  <nav className="flex flex-col space-y-4 mt-6 px-4 text-sm font-medium">
+                  <nav className="mt-6 flex flex-col space-y-4 px-4 text-sm font-medium">
                     <Link
                       href="/courses"
                       className="hover:text-foreground/80"
@@ -210,7 +210,7 @@ export function Header({ user: initialUser }: { user: User }) {
                         <DropdownMenuTrigger className="mt-2" asChild>
                           <button
                             onClick={() => setDropdownOpen(!dropdownOpen)}
-                            className="w-full flex items-center justify-between gap-2 p-2 rounded-md border border-border hover:bg-muted transition text-left"
+                            className="border-border hover:bg-muted flex w-full items-center justify-between gap-2 rounded-md border p-2 text-left transition"
                           >
                             <div className="flex items-center gap-2">
                               <Avatar className="h-8 w-8">
@@ -227,9 +227,9 @@ export function Header({ user: initialUser }: { user: User }) {
                               </span>
                             </div>
                             {dropdownOpen ? (
-                              <ChevronsDownUp className="w-4 h-4" />
+                              <ChevronsDownUp className="h-4 w-4" />
                             ) : (
-                              <ChevronsUpDown className="w-4 h-4" />
+                              <ChevronsUpDown className="h-4 w-4" />
                             )}
                           </button>
                         </DropdownMenuTrigger>
@@ -237,7 +237,7 @@ export function Header({ user: initialUser }: { user: User }) {
                         <DropdownMenuContent
                           side="top"
                           align="center"
-                          className="w-full mt-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/6"
+                          className="bg-background/95 supports-[backdrop-filter]:bg-background/6 mt-2 w-full backdrop-blur"
                           onCloseAutoFocus={() => setDropdownOpen(false)}
                           onInteractOutside={() => setDropdownOpen(false)}
                           onEscapeKeyDown={() => setDropdownOpen(false)}

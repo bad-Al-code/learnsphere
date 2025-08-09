@@ -1,11 +1,11 @@
-import { cookies } from "next/headers";
+import { cookies } from 'next/headers';
 
 export class ApiError extends Error {
   status: number;
   data: any;
   constructor(message: string, status: number, data: any) {
     super(message);
-    this.name = "ApiError";
+    this.name = 'ApiError';
     this.status = status;
     this.data = data;
   }
@@ -20,14 +20,14 @@ async function apiClient(
   const allCookies = cookieStore.getAll();
   const cookieHeader = allCookies
     .map((cookie) => `${cookie.name}=${cookie.value}`)
-    .join("; ");
+    .join('; ');
 
   const headers = new Headers(options.headers);
   if (cookieHeader) {
-    headers.set("Cookie", cookieHeader);
+    headers.set('Cookie', cookieHeader);
   }
-  if (!headers.has("Content-Type") && options.body) {
-    headers.set("Content-Type", "application/json");
+  if (!headers.has('Content-Type') && options.body) {
+    headers.set('Content-Type', 'application/json');
   }
 
   const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
@@ -36,31 +36,31 @@ async function apiClient(
 
 const createApiService = (baseUrl: string) => ({
   get: (path: string, options: RequestInit = {}) =>
-    apiClient(baseUrl, path, { method: "GET", ...options }),
+    apiClient(baseUrl, path, { method: 'GET', ...options }),
 
   post: (path: string, body: any, options: RequestInit = {}) =>
     apiClient(baseUrl, path, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(body),
       ...options,
     }),
 
   put: (path: string, body: any, options: RequestInit = {}) =>
     apiClient(baseUrl, path, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify(body),
       ...options,
     }),
 
   patch: (path: string, body: any, options: RequestInit = {}) =>
     apiClient(baseUrl, path, {
-      method: "PATCH",
+      method: 'PATCH',
       body: JSON.stringify(body),
       ...options,
     }),
 
   delete: (path: string, options: RequestInit = {}) =>
-    apiClient(baseUrl, path, { method: "DELETE", ...options }),
+    apiClient(baseUrl, path, { method: 'DELETE', ...options }),
 });
 
 export const authService = createApiService(process.env.AUTH_SERVICE_URL!);

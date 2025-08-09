@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { instructorNavItems } from "./nav-items";
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { instructorNavItems } from './nav-items';
 
 export function InstructorTabs() {
   const pathname = usePathname();
 
   const activeTab =
     instructorNavItems.find((item) => pathname.startsWith(item.href))?.value ||
-    "dashboard";
+    'dashboard';
 
   return (
-    <div className="md:hidden mb-4">
+    <div className="mb-4 md:hidden">
       <Tabs defaultValue={activeTab} className="w-full">
-        <TabsList className="flex overflow-x-auto no-scrollbar">
+        <TabsList className="no-scrollbar flex overflow-x-auto">
           {instructorNavItems.map((item) => (
             <TabsTrigger key={item.value} value={item.value} asChild>
               <Link href={item.href} className="flex items-center gap-1 px-2">

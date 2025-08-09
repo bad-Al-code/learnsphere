@@ -1,10 +1,10 @@
-import { ChevronRight } from "lucide-react";
-import Link from "next/link";
-import { redirect } from "next/navigation";
+import { ChevronRight } from 'lucide-react';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
-import { getCurrentUser } from "@/app/(auth)/actions";
-import { getCourseDetails } from "@/app/courses/actions";
-import { CourseEditorTabs } from "./_components/course-editor-tabs";
+import { getCurrentUser } from '@/app/(auth)/actions';
+import { getCourseDetails } from '@/app/courses/actions';
+import { CourseEditorTabs } from './_components/course-editor-tabs';
 
 export default async function CourseEditorLayout({
   children,
@@ -22,9 +22,9 @@ export default async function CourseEditorLayout({
   if (
     !user ||
     !course ||
-    (user.userId !== course.instructorId && user.role !== "admin")
+    (user.userId !== course.instructorId && user.role !== 'admin')
   ) {
-    redirect("/dashboard/instructor/courses");
+    redirect('/dashboard/instructor/courses');
   }
 
   return (
@@ -34,15 +34,15 @@ export default async function CourseEditorLayout({
         <Link href="/dashboard/instructor/courses" className="hover:underline">
           My Courses
         </Link>
-        <ChevronRight className="h-4 w-4 mx-1" />
-        <span className="font-semibold truncate">{course.title}</span>
+        <ChevronRight className="mx-1 h-4 w-4" />
+        <span className="truncate font-semibold">{course.title}</span>
       </div>
 
       {/* Title & Description */}
       <div>
         <h1 className="text-3xl font-bold">{course.title}</h1>
         <p className="text-muted-foreground mt-2">
-          {course.description || "No description provided."}
+          {course.description || 'No description provided.'}
         </p>
       </div>
 

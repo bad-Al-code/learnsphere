@@ -1,16 +1,16 @@
-import { getCourseDetails } from "@/app/courses/actions";
+import { getCourseDetails } from '@/app/courses/actions';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { notFound } from "next/navigation";
-import { Suspense } from "react";
-import { AddModuleForm } from "./_components/add-module-form";
-import { ModulesList } from "./_components/module-list";
-import { ModulesSkeleton } from "./_components/module-skeleton";
+} from '@/components/ui/card';
+import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
+import { AddModuleForm } from './_components/add-module-form';
+import { ModulesList } from './_components/module-list';
+import { ModulesSkeleton } from './_components/module-skeleton';
 
 export default async function CourseContentPage({
   params,

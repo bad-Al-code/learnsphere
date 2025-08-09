@@ -1,8 +1,8 @@
-"use client";
-import { refreshToken } from "@/lib/auth";
-import Cookies from "js-cookie";
-import { jwtDecode } from "jwt-decode";
-import { useEffect } from "react";
+'use client';
+import { refreshToken } from '@/lib/auth';
+import Cookies from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
+import { useEffect } from 'react';
 
 interface JwtPayload {
   id: string;
@@ -19,7 +19,7 @@ export function SessionRefresher() {
   useEffect(() => {
     const onFocus = () => {
       try {
-        const token = Cookies.get("token");
+        const token = Cookies.get('token');
         if (!token) {
           return;
         }
@@ -30,7 +30,7 @@ export function SessionRefresher() {
         const threshold = REFRESH_THRESHOLD_MINUTES * 60 * 60 * 1000;
 
         if (expiresAt - now < threshold) {
-          console.log("Token is nearing expiration. Attempting refresh...");
+          console.log('Token is nearing expiration. Attempting refresh...');
 
           refreshToken();
         }
@@ -39,12 +39,12 @@ export function SessionRefresher() {
       }
     };
 
-    window.addEventListener("focus", onFocus);
+    window.addEventListener('focus', onFocus);
 
     onFocus();
 
     return () => {
-      window.removeEventListener("focus", onFocus);
+      window.removeEventListener('focus', onFocus);
     };
   }, []);
 

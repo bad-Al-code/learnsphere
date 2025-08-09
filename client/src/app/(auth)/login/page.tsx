@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { GoogleIcon } from "@/components/icons/google";
-import { Logo } from "@/components/shared/logo";
-import { Button } from "@/components/ui/button";
+import { GoogleIcon } from '@/components/icons/google';
+import { Logo } from '@/components/shared/logo';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -17,20 +17,20 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
-import z from "zod";
-import { login } from "../actions";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, EyeOff } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import z from 'zod';
+import { login } from '../actions';
 
 const formSchema = z.object({
-  email: z.email({ error: "Please enter a valid email" }),
-  password: z.string().min(1, { error: "Password is required" }),
+  email: z.email({ error: 'Please enter a valid email' }),
+  password: z.string().min(1, { error: 'Password is required' }),
 });
 
 export type FormSchema = z.infer<typeof formSchema>;
@@ -43,7 +43,7 @@ export default function LoginPage() {
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { email: '', password: '' },
   });
 
   function onSubmit(values: FormSchema) {
@@ -58,10 +58,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
-      <Card className="shadow-2xl/20 w-full max-w-md">
+    <div className="flex min-h-[80vh] items-center justify-center">
+      <Card className="w-full max-w-md shadow-2xl/20">
         <CardHeader className="text-start">
-          <div className="flex  mb-4">
+          <div className="mb-4 flex">
             <Logo variant="icon" />
           </div>
           <CardTitle className="text-2xl">Welcome back!</CardTitle>
@@ -81,13 +81,13 @@ export default function LoginPage() {
             </Button>
           </div>
 
-          <div className="flex items-center my-4 space-x-2">
-            <div className="w-full bg-foreground/20 border-b mask-l-from-0%"></div>
+          <div className="my-4 flex items-center space-x-2">
+            <div className="bg-foreground/20 w-full border-b mask-l-from-0%"></div>
 
-            <span className="text-xs justify-center items-center uppercase">
+            <span className="items-center justify-center text-xs uppercase">
               or
             </span>
-            <div className="w-full bg-foreground/20 border-b mask-r-from-0"></div>
+            <div className="bg-foreground/20 w-full border-b mask-r-from-0"></div>
           </div>
 
           <Form {...form}>
@@ -114,12 +114,12 @@ export default function LoginPage() {
                     <div className="relative">
                       <FormControl>
                         <Input
-                          type={showPassword ? "text" : "password"}
+                          type={showPassword ? 'text' : 'password'}
                           placeholder="Enter your password"
                           {...field}
                         />
                       </FormControl>
-                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 cursor-pointer">
+                      <div className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-gray-400">
                         {showPassword ? (
                           <EyeOff
                             className="h-5 w-5"
@@ -148,16 +148,16 @@ export default function LoginPage() {
               </div>
 
               <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? "Logging in..." : "Login"}
+                {isPending ? 'Logging in...' : 'Login'}
               </Button>
               {error && (
-                <p className="text-sm font-medium text-destructive">{error}</p>
+                <p className="text-destructive text-sm font-medium">{error}</p>
               )}
             </form>
           </Form>
 
           <div className="mt-4 text-center text-sm">
-            Don't have an account?{" "}
+            Don't have an account?{' '}
             <Link href="/signup" className="underline">
               Sign Up
             </Link>

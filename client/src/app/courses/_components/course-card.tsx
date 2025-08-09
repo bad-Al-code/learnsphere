@@ -1,28 +1,28 @@
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { formatPrice } from "@/lib/utils";
-import { Course } from "@/types/course";
-import Image from "next/image";
-import Link from "next/link";
+} from '@/components/ui/card';
+import { formatPrice } from '@/lib/utils';
+import { Course } from '@/types/course';
+import Image from 'next/image';
+import Link from 'next/link';
 
 const getInitials = (firstName?: string | null, lastName?: string | null) => {
-  const first = firstName?.[0] || "";
-  const last = lastName?.[0] || "";
+  const first = firstName?.[0] || '';
+  const last = lastName?.[0] || '';
   return `${first}${last}`.toUpperCase();
 };
 
 export function CourseCard({ course }: { course: Course }) {
   return (
     <Link href={`/courses/${course.id}`}>
-      <Card className="h-full flex flex-col hover:border-primary/30 transition-all">
+      <Card className="hover:border-primary/30 flex h-full flex-col transition-all">
         <CardHeader>
           <AspectRatio
             ratio={16 / 9}
@@ -33,24 +33,24 @@ export function CourseCard({ course }: { course: Course }) {
                 src={course.imageUrl}
                 alt={course.title}
                 fill
-                className="object-cover rounded-md"
+                className="rounded-md object-cover"
               />
             )}
           </AspectRatio>
 
-          <div className="flex justify-between items-center mb-2">
+          <div className="mb-2 flex items-center justify-between">
             <CardTitle className="line-clamp-2 leading-tight">
               {course.title}
             </CardTitle>
-            <Badge variant="outline" className="capitalize flex-shrink-0">
-              {course.level.replace("-", " ")}
+            <Badge variant="outline" className="flex-shrink-0 capitalize">
+              {course.level.replace('-', ' ')}
             </Badge>
           </div>
         </CardHeader>
 
         <CardContent className="grow">
-          <p className="text-sm text-muted-foreground line-clamp-3">
-            {course.description || "No description available."}
+          <p className="text-muted-foreground line-clamp-3 text-sm">
+            {course.description || 'No description available.'}
           </p>
         </CardContent>
         <CardFooter className="flex items-center justify-between">
@@ -65,10 +65,10 @@ export function CourseCard({ course }: { course: Course }) {
               </AvatarFallback>
             </Avatar>
 
-            <span className="text-sm text-muted-foreground">
+            <span className="text-muted-foreground text-sm">
               {course.instructor
                 ? `${course.instructor.firstName} ${course.instructor.lastName}`
-                : "Unknown Instructor"}
+                : 'Unknown Instructor'}
             </span>
           </div>
           <div className="font-semibold">

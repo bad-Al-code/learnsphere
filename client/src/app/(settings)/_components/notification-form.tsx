@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -14,10 +14,10 @@ import {
   FormField,
   FormItem,
   FormLabel,
-} from "@/components/ui/form";
-import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
-import { updateNotificationSettings } from "../actions";
+} from '@/components/ui/form';
+import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
+import { updateNotificationSettings } from '../actions';
 
 const notificationsSchema = z.object({
   newCourseAlerts: z.boolean(),
@@ -51,9 +51,9 @@ export function NotificationsForm({ settings }: NotificationsFormProps) {
     startTransition(async () => {
       const result = await updateNotificationSettings(data);
       if (result?.error) {
-        toast.error("Failed to update settings");
+        toast.error('Failed to update settings');
       } else {
-        toast.success("Notification settings updated!");
+        toast.success('Notification settings updated!');
         router.refresh();
       }
     });
@@ -104,7 +104,7 @@ export function NotificationsForm({ settings }: NotificationsFormProps) {
         />
         <div className="flex justify-end">
           <Button type="submit" disabled={isPending}>
-            {isPending ? "Saving..." : "Save Preferences"}
+            {isPending ? 'Saving...' : 'Save Preferences'}
           </Button>
         </div>
       </form>

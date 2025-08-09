@@ -1,40 +1,40 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 
-import { Logo } from "@/components/shared/logo";
-import { Button } from "@/components/ui/button";
+import { Logo } from '@/components/shared/logo';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormMessage,
-} from "@/components/ui/form";
+} from '@/components/ui/form';
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSeparator,
   InputOTPSlot,
-} from "@/components/ui/input-otp";
-import { verifyResetCode, verifyResetToken } from "../actions";
+} from '@/components/ui/input-otp';
+import { verifyResetCode, verifyResetToken } from '../actions';
 
 const otpSchema = z.object({
   code: z
     .string()
-    .min(6, { message: "Your one-time password must be 6 characters." }),
+    .min(6, { message: 'Your one-time password must be 6 characters.' }),
 });
 
 export default function ResetPasswordPage() {
@@ -47,8 +47,8 @@ export default function ResetPasswordPage() {
 
 function ResetPasswordFlow() {
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-  const email = searchParams.get("email");
+  const token = searchParams.get('token');
+  const email = searchParams.get('email');
 
   if (token && email) {
     return <VerifyResetTokenComponent token={token} email={email} />;
@@ -59,10 +59,10 @@ function ResetPasswordFlow() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
+    <div className="flex min-h-[80vh] items-center justify-center">
       <Card className="w-full max-w-md text-center shadow-2xl/20">
         <CardHeader className="text-start">
-          <div className="flex  mb-4">
+          <div className="mb-4 flex">
             <Logo variant="icon" />
           </div>
           <CardTitle>Invalid Link</CardTitle>
@@ -85,7 +85,7 @@ function EnterCodeComponent({ email }: { email: string }) {
 
   const form = useForm<z.infer<typeof otpSchema>>({
     resolver: zodResolver(otpSchema),
-    defaultValues: { code: "" },
+    defaultValues: { code: '' },
   });
 
   async function onSubmit(values: z.infer<typeof otpSchema>) {
@@ -101,10 +101,10 @@ function EnterCodeComponent({ email }: { email: string }) {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
+    <div className="flex min-h-[80vh] items-center justify-center">
       <Card className="w-full max-w-md shadow-2xl/20">
         <CardHeader className="text-start">
-          <div className="flex  mb-4">
+          <div className="mb-4 flex">
             <Logo variant="icon" />
           </div>
           <CardTitle className="text-2xl">Check your email</CardTitle>
@@ -148,11 +148,11 @@ function EnterCodeComponent({ email }: { email: string }) {
                   Back
                 </Button>
                 <Button type="submit" className="flex-1" disabled={isPending}>
-                  {isPending ? "Verifying..." : "Continue"}
+                  {isPending ? 'Verifying...' : 'Continue'}
                 </Button>
               </div>
               {error && (
-                <p className="text-center text-sm font-medium text-destructive">
+                <p className="text-destructive text-center text-sm font-medium">
                   {error}
                 </p>
               )}
@@ -188,10 +188,10 @@ function VerifyResetTokenComponent({
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[80vh]">
+      <div className="flex min-h-[80vh] items-center justify-center">
         <Card className="w-full max-w-md text-center shadow-2xl/20">
           <CardHeader className="text-start">
-            <div className="flex  mb-4">
+            <div className="mb-4 flex">
               <Logo variant="icon" />
             </div>
             <CardTitle>Verification Failed</CardTitle>
@@ -209,10 +209,10 @@ function VerifyResetTokenComponent({
 
 function LoadingCard({ message }: { message: string }) {
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
+    <div className="flex min-h-[80vh] items-center justify-center">
       <Card className="w-full max-w-md text-center shadow-2xl/20">
         <CardHeader className="text-start">
-          <div className="flex  mb-4">
+          <div className="mb-4 flex">
             <Logo variant="icon" />
           </div>
           <CardTitle className="text-2xl">{message}</CardTitle>

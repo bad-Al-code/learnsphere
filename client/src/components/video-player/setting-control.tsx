@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Check, Settings } from "lucide-react";
+} from '@/components/ui/dropdown-menu';
+import { Check, Settings } from 'lucide-react';
 
 interface QualityLevel {
   name: string;
@@ -33,13 +33,13 @@ export function SettingsControl({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="text-white">
-          <Settings className="w-6 h-6" />
+          <Settings className="h-6 w-6" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="center"
         side="top"
-        className="bg-black/80 border-white/20 text-white mb-4"
+        className="mb-4 border-white/20 bg-black/80 text-white"
       >
         {levels.map((level) => (
           <DropdownMenuItem
@@ -47,7 +47,7 @@ export function SettingsControl({
             onClick={() => onLevelChange(level.index)}
             className="cursor-pointer"
           >
-            {level.index === currentLevel && <Check className="w-4 h-4 mr-0" />}
+            {level.index === currentLevel && <Check className="mr-0 h-4 w-4" />}
             {level.name}
           </DropdownMenuItem>
         ))}

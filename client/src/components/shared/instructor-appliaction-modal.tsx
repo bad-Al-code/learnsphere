@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
-import { applyForInstructor } from "@/app/(settings)/actions";
-import { Button } from "@/components/ui/button";
+import { applyForInstructor } from '@/app/(settings)/actions';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -23,13 +23,13 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   InstructorApplicationFormValues,
   instructorApplicationSchema,
-} from "@/lib/schemas/user";
+} from '@/lib/schemas/user';
 
 export function InstructorApplicationModal({
   children,
@@ -41,7 +41,7 @@ export function InstructorApplicationModal({
 
   const form = useForm<InstructorApplicationFormValues>({
     resolver: zodResolver(instructorApplicationSchema),
-    defaultValues: { expertise: "", experience: "", motivation: "" },
+    defaultValues: { expertise: '', experience: '', motivation: '' },
   });
 
   const onSubmit = (values: InstructorApplicationFormValues) => {
@@ -49,9 +49,9 @@ export function InstructorApplicationModal({
       const result = await applyForInstructor(values);
 
       if (result.error) {
-        toast.error(result.error || "Application Failed");
+        toast.error(result.error || 'Application Failed');
       } else {
-        toast.success(result.message || "Application Submitted!");
+        toast.success(result.message || 'Application Submitted!');
 
         setIsOpen(false);
       }
@@ -121,7 +121,7 @@ export function InstructorApplicationModal({
             />
             <DialogFooter>
               <Button type="submit" disabled={isPending}>
-                {isPending ? "Submitting..." : "Submit Application"}
+                {isPending ? 'Submitting...' : 'Submit Application'}
               </Button>
             </DialogFooter>
           </form>

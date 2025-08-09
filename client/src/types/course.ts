@@ -1,5 +1,5 @@
 export type Course = {
-  status: "draft" | "published";
+  status: 'draft' | 'published';
   id: string;
   title: string;
   description: string | null;
@@ -15,19 +15,19 @@ export type Course = {
 };
 
 export const COURSE_LEVELS = [
-  { value: "all", label: "All Levels" },
-  { value: "beginner", label: "Beginner" },
-  { value: "intermediate", label: "Intermediate" },
-  { value: "advanced", label: "Advanced" },
+  { value: 'all', label: 'All Levels' },
+  { value: 'beginner', label: 'Beginner' },
+  { value: 'intermediate', label: 'Intermediate' },
+  { value: 'advanced', label: 'Advanced' },
 ];
 
 export type CourseFilterOptions = {
   query?: string;
   categoryId?: string;
   level?: string;
-  price?: "free" | "paid";
+  price?: 'free' | 'paid';
   duration?: string;
-  sortBy?: "newest" | "rating" | "popularity";
+  sortBy?: 'newest' | 'rating' | 'popularity';
   page?: number;
   limit?: number;
 };

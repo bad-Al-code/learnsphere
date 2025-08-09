@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { format } from "date-fns";
-import { Search } from "lucide-react";
-import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useDebouncedCallback } from "use-debounce";
+import { format } from 'date-fns';
+import { Search } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useDebouncedCallback } from 'use-debounce';
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -16,12 +16,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 
 type CourseSearchResult = {
   id: string;
   title: string;
-  status: "draft" | "published";
+  status: 'draft' | 'published';
   createdAt: string;
   instructor: {
     userId: string;
@@ -39,21 +39,21 @@ export function CourseTable({ courses, totalPages }: CourseTableProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentPage = Number(searchParams.get("page")) || 1;
+  const currentPage = Number(searchParams.get('page')) || 1;
 
   const createPageURL = (pageNumber: number | string) => {
     const params = new URLSearchParams(searchParams);
-    params.set("page", pageNumber.toString());
+    params.set('page', pageNumber.toString());
     return `${pathname}?${params.toString()}`;
   };
 
   const performSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
-    params.set("page", "1");
+    params.set('page', '1');
     if (term) {
-      params.set("query", term);
+      params.set('query', term);
     } else {
-      params.delete("query");
+      params.delete('query');
     }
     router.replace(`${pathname}?${params.toString()}`);
   };
@@ -63,7 +63,7 @@ export function CourseTable({ courses, totalPages }: CourseTableProps) {
   const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const term = formData.get("query") as string;
+    const term = formData.get('query') as string;
     performSearch(term);
   };
 
@@ -71,19 +71,19 @@ export function CourseTable({ courses, totalPages }: CourseTableProps) {
     <div className="space-y-4">
       <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
         <div className="relative w-full max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
           <Input
             name="query"
             placeholder="Search by course title..."
             onChange={(e) => handleSearchOnChange(e.target.value)}
-            defaultValue={searchParams.get("query") || ""}
+            defaultValue={searchParams.get('query') || ''}
             className="pl-8"
           />
         </div>
         <Button type="submit">Search</Button>
       </form>
 
-      <div className="border rounded-lg">
+      <div className="rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -104,19 +104,19 @@ export function CourseTable({ courses, totalPages }: CourseTableProps) {
                   <TableCell>
                     {course.instructor
                       ? `${course.instructor.firstName} ${course.instructor.lastName}`
-                      : "N/A"}
+                      : 'N/A'}
                   </TableCell>
                   <TableCell>
                     <Badge
                       variant={
-                        course.status === "published" ? "default" : "secondary"
+                        course.status === 'published' ? 'default' : 'secondary'
                       }
                     >
                       {course.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {format(new Date(course.createdAt), "P")}
+                    {format(new Date(course.createdAt), 'P')}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button asChild variant="outline" size="sm">
@@ -127,7 +127,7 @@ export function CourseTable({ courses, totalPages }: CourseTableProps) {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="text-center h-24">
+                <TableCell colSpan={5} className="h-24 text-center">
                   No courses found.
                 </TableCell>
               </TableRow>

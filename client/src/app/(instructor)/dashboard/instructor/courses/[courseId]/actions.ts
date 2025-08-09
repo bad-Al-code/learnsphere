@@ -1,19 +1,19 @@
-"use server";
+'use server';
 
-import { courseService } from "@/lib/api";
+import { courseService } from '@/lib/api';
 import {
   LessonFormValues,
   lessonSchema,
   UpdateLessonFormValues,
   updateLessonSchema,
-} from "@/lib/schemas/lesson";
+} from '@/lib/schemas/lesson';
 import {
   moduleSchema,
   ModuleSchemaValues,
   moduleUpdateSchema,
-} from "@/lib/schemas/module";
-import { revalidatePath } from "next/cache";
-import z from "zod";
+} from '@/lib/schemas/module';
+import { revalidatePath } from 'next/cache';
+import z from 'zod';
 
 export async function createModule(
   courseId: string,
@@ -30,7 +30,7 @@ export async function createModule(
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
 
-      throw new Error(data.errors?.[0]?.message || "Failed to create module.");
+      throw new Error(data.errors?.[0]?.message || 'Failed to create module.');
     }
 
     revalidatePath(`/dashboard/instructor/courses/${courseId}/content`);
@@ -52,7 +52,7 @@ export async function reorderModules(
     const response = await courseService.post(`/api/modules/reorder`, { ids });
 
     if (!response.ok) {
-      throw new Error("Failed to reorder modules.");
+      throw new Error('Failed to reorder modules.');
     }
 
     revalidatePath(`/dashboard/instructor/courses/${courseId}/content`);
@@ -77,7 +77,7 @@ export async function updateModule(
     );
 
     if (!response.ok) {
-      throw new Error("Failed to update module.");
+      throw new Error('Failed to update module.');
     }
 
     return { success: true };
@@ -92,14 +92,14 @@ export async function deleteModule(courseId: string, moduleId: string) {
 
     if (!response.ok) {
       const data = await response.json();
-      return { error: data.error || "Something went wrong." };
+      return { error: data.error || 'Something went wrong.' };
     }
 
     revalidatePath(`/dashboard/instructor/courses/${courseId}/content`);
 
     return { success: true };
   } catch (error) {
-    return { error: "Internal server error." };
+    return { error: 'Internal server error.' };
   }
 }
 
@@ -117,7 +117,7 @@ export async function createLesson(
     );
 
     if (!response.ok) {
-      throw new Error("Failed to create lesson.");
+      throw new Error('Failed to create lesson.');
     }
 
     revalidatePath(`/dashboard/instructor/courses/${courseId}/content`);
@@ -148,7 +148,7 @@ export async function updateLesson(
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
 
-      throw new Error(data.errors?.[0]?.message || "Failed to update lesson.");
+      throw new Error(data.errors?.[0]?.message || 'Failed to update lesson.');
     }
 
     revalidatePath(`/dashboard/instructor/courses/${courseId}/content`);
@@ -167,13 +167,13 @@ export async function deleteLesson(courseId: string, lessonId: string) {
   try {
     const response = await courseService.delete(`/api/lessons/${lessonId}`);
     if (!response.ok) {
-      throw new Error("Failed to delete lesson.");
+      throw new Error('Failed to delete lesson.');
     }
 
     revalidatePath(`/dashboard/instructor/courses/${courseId}/content`);
     return { success: true };
   } catch (error: any) {
-    return { error: "An error occurred while deleting the lesson." };
+    return { error: 'An error occurred while deleting the lesson.' };
   }
 }
 
@@ -190,7 +190,7 @@ export async function reorderLessons(
     });
 
     if (!response.ok) {
-      throw new Error("Failed to reorder lessons.");
+      throw new Error('Failed to reorder lessons.');
     }
 
     return { success: true };

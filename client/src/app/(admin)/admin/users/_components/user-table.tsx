@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -10,11 +10,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Search } from "lucide-react";
-import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useDebouncedCallback } from "use-debounce";
+} from '@/components/ui/table';
+import { Search } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useDebouncedCallback } from 'use-debounce';
 
 type UserSearchResult = {
   userId: string;
@@ -32,22 +32,22 @@ export function UserTable({ users, totalPages }: UserTableProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentPage = Number(searchParams.get("page")) || 1;
-  const currentStatus = searchParams.get("status");
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const currentStatus = searchParams.get('status');
 
   const createPageURL = (pageNumber: number | string) => {
     const params = new URLSearchParams(searchParams);
-    params.set("page", pageNumber.toString());
+    params.set('page', pageNumber.toString());
     return `${pathname}?${params.toString()}`;
   };
 
   const performSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
-    params.set("page", "1");
+    params.set('page', '1');
     if (term) {
-      params.set("query", term);
+      params.set('query', term);
     } else {
-      params.delete("query");
+      params.delete('query');
     }
     router.replace(`${pathname}?${params.toString()}`);
   };
@@ -57,7 +57,7 @@ export function UserTable({ users, totalPages }: UserTableProps) {
   const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const term = formData.get("query") as string;
+    const term = formData.get('query') as string;
     performSearch(term);
   };
 
@@ -67,7 +67,7 @@ export function UserTable({ users, totalPages }: UserTableProps) {
         <div className="flex items-center gap-2 text-sm">
           <span className="text-muted-foreground">Filtering by status:</span>
           <Badge variant="secondary">{currentStatus}</Badge>
-          <Button asChild variant="link" className="p-0 h-auto">
+          <Button asChild variant="link" className="h-auto p-0">
             <Link href="/admin/users">Clear filter</Link>
           </Button>
         </div>
@@ -75,19 +75,19 @@ export function UserTable({ users, totalPages }: UserTableProps) {
 
       <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
         <div className="relative w-full max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
           <Input
             name="query"
             placeholder="Search by name..."
             onChange={(e) => handleSearchOnChange(e.target.value)}
-            defaultValue={searchParams.get("query") || ""}
+            defaultValue={searchParams.get('query') || ''}
             className="pl-8"
           />
         </div>
         <Button type="submit">Search</Button>
       </form>
 
-      <div className="border rounded-lg">
+      <div className="rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -102,14 +102,14 @@ export function UserTable({ users, totalPages }: UserTableProps) {
             {users.map((user) => (
               <TableRow key={user.userId}>
                 <TableCell className="font-medium">
-                  {user.firstName || "N/A"} {user.lastName || ""}
+                  {user.firstName || 'N/A'} {user.lastName || ''}
                 </TableCell>
                 <TableCell>
                   <Badge
                     variant={
-                      user.status === "active" || user.status === "instructor"
-                        ? "default"
-                        : "destructive"
+                      user.status === 'active' || user.status === 'instructor'
+                        ? 'default'
+                        : 'destructive'
                     }
                   >
                     {user.status}

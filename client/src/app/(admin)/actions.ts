@@ -1,15 +1,15 @@
-"use server";
+'use server';
 
-import { courseService, userService } from "@/lib/api";
-import { categorySchema } from "@/lib/schemas/category";
-import { PriceFormValues, priceSchema } from "@/lib/schemas/course";
-import { profileFormSchema } from "@/lib/schemas/user";
-import { revalidatePath, revalidateTag, unstable_noStore } from "next/cache";
-import z from "zod";
+import { courseService, userService } from '@/lib/api';
+import { categorySchema } from '@/lib/schemas/category';
+import { PriceFormValues, priceSchema } from '@/lib/schemas/course';
+import { profileFormSchema } from '@/lib/schemas/user';
+import { revalidatePath, revalidateTag, unstable_noStore } from 'next/cache';
+import z from 'zod';
 
 async function performUserAction(
   userId: string,
-  action: "approve" | "suspend" | "reinstate" | "decline"
+  action: 'approve' | 'suspend' | 'reinstate' | 'decline'
 ) {
   const endpointMap = {
     approve: `/api/users/${userId}/approve-instructor`,
@@ -31,24 +31,24 @@ async function performUserAction(
     revalidatePath(`/admin/users/${userId}`);
     return { success: true, message: responseData.message };
   } catch (error: any) {
-    return { error: "An unexpected error occurred." };
+    return { error: 'An unexpected error occurred.' };
   }
 }
 
 export async function approveInstructor(userId: string) {
-  return performUserAction(userId, "approve");
+  return performUserAction(userId, 'approve');
 }
 
 export async function declineInstructor(userId: string) {
-  return performUserAction(userId, "decline");
+  return performUserAction(userId, 'decline');
 }
 
 export async function suspendUser(userId: string) {
-  return performUserAction(userId, "suspend");
+  return performUserAction(userId, 'suspend');
 }
 
 export async function reinstateUser(userId: string) {
-  return performUserAction(userId, "reinstate");
+  return performUserAction(userId, 'reinstate');
 }
 
 const adminUpdateProfileSchema = profileFormSchema
@@ -62,7 +62,7 @@ const adminUpdateProfileSchema = profileFormSchema
   })
   .transform((data) => {
     const nullifyEmpty = (value: string | null | undefined) =>
-      value === "" ? null : value;
+      value === '' ? null : value;
 
     return {
       ...data,
@@ -91,24 +91,24 @@ export async function updateUserAsAdmin(
 
     if (!response.ok) {
       const errorMessage =
-        responseData.errors?.[0]?.message || "Failed to update profile.";
+        responseData.errors?.[0]?.message || 'Failed to update profile.';
       return { error: errorMessage };
     }
 
     revalidatePath(`/admin/users/${userId}`);
-    revalidatePath("/admin/users");
+    revalidatePath('/admin/users');
     return { success: true };
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       return { error: error.issues[0].message };
     }
-    return { error: "An unexpected error occurred." };
+    return { error: 'An unexpected error occurred.' };
   }
 }
 
 export async function getUserStats() {
   try {
-    const response = await userService.get("/api/users/stats");
+    const response = await userService.get('/api/users/stats');
     if (!response.ok) {
       return { totalUsers: 0, pendingApplications: 0 };
     }
@@ -117,14 +117,14 @@ export async function getUserStats() {
 
     return result;
   } catch (error) {
-    console.error("Failed to fetch user stats:", error);
+    console.error('Failed to fetch user stats:', error);
     return { totalUsers: 0, pendingApplications: 0 };
   }
 }
 
 export async function getCourseStats() {
   try {
-    const response = await courseService.get("/api/courses/stats");
+    const response = await courseService.get('/api/courses/stats');
     if (!response.ok) {
       return { totalCourses: 0 };
     }
@@ -133,13 +133,13 @@ export async function getCourseStats() {
 
     return result;
   } catch (error) {
-    console.error("Failed to fetch user stats:", error);
+    console.error('Failed to fetch user stats:', error);
     return { totalUsers: 0, pendingApplications: 0 };
   }
 }
 
 export async function searchAllCourses({
-  query = "",
+  query = '',
   page = 1,
   limit = 10,
 }: {
@@ -161,12 +161,12 @@ export async function searchAllCourses({
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
 
-      throw new Error(data.errors?.[0]?.message || "Failed to search courses.");
+      throw new Error(data.errors?.[0]?.message || 'Failed to search courses.');
     }
 
     return await response.json();
   } catch (error: any) {
-    console.error("Error searching all courses:", error);
+    console.error('Error searching all courses:', error);
     return {
       results: [],
       pagination: { currentPage: 1, totalPages: 0, totalResults: 0, limit: 10 },
@@ -178,7 +178,7 @@ export async function getCourseDetailsForAdmin(courseId: string) {
   try {
     const response = await courseService.get(`/api/courses/${courseId}`);
     if (!response.ok) {
-      throw new Error("Failed to fetch course details.");
+      throw new Error('Failed to fetch course details.');
     }
     return { success: true, data: await response.json() };
   } catch (error: any) {
@@ -188,11 +188,11 @@ export async function getCourseDetailsForAdmin(courseId: string) {
 
 async function performCourseAction(
   courseId: string,
-  action: "publish" | "unpublish" | "delete"
+  action: 'publish' | 'unpublish' | 'delete'
 ) {
   try {
     let response;
-    if (action === "delete") {
+    if (action === 'delete') {
       response = await courseService.delete(`/api/courses/${courseId}`);
     } else {
       response = await courseService.post(
@@ -209,7 +209,7 @@ async function performCourseAction(
     }
 
     revalidatePath(`/admin/courses/${courseId}`);
-    revalidatePath("/admin/courses");
+    revalidatePath('/admin/courses');
     return { success: true };
   } catch (error: any) {
     return { error: error.message };
@@ -217,15 +217,15 @@ async function performCourseAction(
 }
 
 export async function publishCourse(courseId: string) {
-  return performCourseAction(courseId, "publish");
+  return performCourseAction(courseId, 'publish');
 }
 
 export async function unpublishCourse(courseId: string) {
-  return performCourseAction(courseId, "unpublish");
+  return performCourseAction(courseId, 'unpublish');
 }
 
 export async function deleteCourse(courseId: string) {
-  return performCourseAction(courseId, "delete");
+  return performCourseAction(courseId, 'delete');
 }
 
 interface SearchUsersArgs {
@@ -237,10 +237,10 @@ interface SearchUsersArgs {
 
 export async function searchUsers(args: SearchUsersArgs) {
   unstable_noStore();
-  const query = args.query || "";
+  const query = args.query || '';
   const page = args.page || 1;
   const limit = args.limit || 10;
-  const status = args.status || "";
+  const status = args.status || '';
 
   try {
     const params = new URLSearchParams({
@@ -250,7 +250,7 @@ export async function searchUsers(args: SearchUsersArgs) {
     });
 
     if (status) {
-      params.set("status", status);
+      params.set('status', status);
     }
 
     const response = await userService.get(
@@ -260,13 +260,13 @@ export async function searchUsers(args: SearchUsersArgs) {
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
 
-      throw new Error(data.errors?.[0]?.message || "Failed to search users.");
+      throw new Error(data.errors?.[0]?.message || 'Failed to search users.');
     }
 
     const result = await response.json();
     return result;
   } catch (error: any) {
-    console.error("Error searching users:", error);
+    console.error('Error searching users:', error);
 
     return {
       results: [],
@@ -277,10 +277,10 @@ export async function searchUsers(args: SearchUsersArgs) {
 
 export async function getCategories() {
   try {
-    const response = await courseService.get("/api/categories", {
-      next: { tags: ["categories"] },
+    const response = await courseService.get('/api/categories', {
+      next: { tags: ['categories'] },
     });
-    if (!response.ok) throw new Error("Failed to fetch categories.");
+    if (!response.ok) throw new Error('Failed to fetch categories.');
     return { success: true, data: await response.json() };
   } catch (error: any) {
     return { error: error.message };
@@ -291,15 +291,15 @@ export async function createCategory(values: z.infer<typeof categorySchema>) {
   try {
     const validatedData = categorySchema.parse(values);
 
-    const response = await courseService.post("/api/categories", validatedData);
+    const response = await courseService.post('/api/categories', validatedData);
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
 
       throw new Error(
-        data.errors?.[0]?.message || "Failed to create category."
+        data.errors?.[0]?.message || 'Failed to create category.'
       );
     }
-    revalidateTag("categories");
+    revalidateTag('categories');
 
     return { success: true, data: await response.json() };
   } catch (error: any) {
@@ -322,10 +322,10 @@ export async function updateCategory(
       const data = await response.json().catch(() => ({}));
 
       throw new Error(
-        data.errors?.[0]?.message || "Failed to update category."
+        data.errors?.[0]?.message || 'Failed to update category.'
       );
     }
-    revalidateTag("categories");
+    revalidateTag('categories');
 
     return { success: true, data: await response.json() };
   } catch (error: any) {
@@ -340,10 +340,10 @@ export async function deleteCategory(id: string) {
       const data = await response.json().catch(() => ({}));
 
       throw new Error(
-        data.errors?.[0]?.message || "Failed to delete category."
+        data.errors?.[0]?.message || 'Failed to delete category.'
       );
     }
-    revalidateTag("categories");
+    revalidateTag('categories');
 
     return { success: true };
   } catch (error: any) {
@@ -364,7 +364,7 @@ export async function getCourseThumbnailUploadUrl(
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
-        errorData.errors?.[0]?.message || "Could not get upload URL."
+        errorData.errors?.[0]?.message || 'Could not get upload URL.'
       );
     }
 
@@ -392,7 +392,7 @@ export async function updateCoursePrice(
 
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
-      throw new Error(data.errors?.[0]?.message || "Failed to update price.");
+      throw new Error(data.errors?.[0]?.message || 'Failed to update price.');
     }
 
     revalidatePath(`/admin/courses/${courseId}`);

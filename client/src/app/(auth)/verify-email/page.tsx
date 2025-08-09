@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { CircleCheck, CircleX } from "lucide-react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState, useTransition } from "react";
+import { CircleCheck, CircleX } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState, useTransition } from 'react';
 
-import { Logo } from "@/components/shared/logo";
-import { Button } from "@/components/ui/button";
+import { Logo } from '@/components/shared/logo';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -14,7 +14,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -22,21 +22,21 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
+} from '@/components/ui/form';
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSeparator,
   InputOTPSlot,
-} from "@/components/ui/input-otp";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import z from "zod";
-import { resendVerificationEmail, verifyEmail } from "../actions";
+} from '@/components/ui/input-otp';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import z from 'zod';
+import { resendVerificationEmail, verifyEmail } from '../actions';
 
 const otpSchema = z.object({
-  code: z.string().min(6, "Your one-time passwod must be 6 characters."),
+  code: z.string().min(6, 'Your one-time passwod must be 6 characters.'),
 });
 
 export default function VerifyEmailPage() {
@@ -49,8 +49,8 @@ export default function VerifyEmailPage() {
 
 function VerificationFlow() {
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-  const email = searchParams.get("email");
+  const token = searchParams.get('token');
+  const email = searchParams.get('email');
 
   if (token) {
     return <VerifyTokenComponent token={token} email={email} />;
@@ -83,12 +83,12 @@ function CheckInboxComponent({ email }: { email: string }) {
 
   const form = useForm<z.infer<typeof otpSchema>>({
     resolver: zodResolver(otpSchema),
-    defaultValues: { code: "" },
+    defaultValues: { code: '' },
   });
 
   const onSubmit = (values: z.infer<typeof otpSchema>) => {
     if (!email) {
-      toast.error("Email not found in URL");
+      toast.error('Email not found in URL');
 
       return;
     }
@@ -97,7 +97,7 @@ function CheckInboxComponent({ email }: { email: string }) {
       const result = await verifyEmail({ email, code: values.code });
 
       if (result.error) {
-        toast.error("Verification failed");
+        toast.error('Verification failed');
 
         form.reset();
       } else if (result?.success) {
@@ -107,9 +107,9 @@ function CheckInboxComponent({ email }: { email: string }) {
         // } else {
         //   router.push("/login");
         // }
-        toast.success("Email verified successfully!");
+        toast.success('Email verified successfully!');
 
-        router.push("/");
+        router.push('/');
       }
     });
   };
@@ -118,19 +118,19 @@ function CheckInboxComponent({ email }: { email: string }) {
     startResending(async () => {
       const result = await resendVerificationEmail({ email });
       if (result.error) {
-        toast.error("Failed to send email");
+        toast.error('Failed to send email');
       } else {
-        toast.success("A new verification email has been sent.");
+        toast.success('A new verification email has been sent.');
         setCooldown(60);
       }
     });
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
+    <div className="flex min-h-[80vh] items-center justify-center">
       <Card className="w-full max-w-md shadow-2xl/20">
         <CardHeader className="text-start">
-          <div className="flex  mb-4">
+          <div className="mb-4 flex">
             <Logo variant="icon" />
           </div>
           <CardTitle className="text-2xl">Check your inbox</CardTitle>
@@ -175,14 +175,14 @@ function CheckInboxComponent({ email }: { email: string }) {
                   Back
                 </Button>
                 <Button type="submit" className="flex-1" disabled={isVerifying}>
-                  {isVerifying ? "Verifying..." : "Verify"}
+                  {isVerifying ? 'Verifying...' : 'Verify'}
                 </Button>
               </div>
             </form>
           </Form>
         </CardContent>
         <CardFooter className="flex-col items-center justify-center space-y-4 border-t pt-6">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Didn't receive the email? Double check your spam folders.
           </p>
           <Button
@@ -192,10 +192,10 @@ function CheckInboxComponent({ email }: { email: string }) {
             className="w-full"
           >
             {isResending
-              ? "Sending..."
+              ? 'Sending...'
               : cooldown > 0
-              ? `Resend in ${cooldown}s`
-              : "Resend Verification Email"}
+                ? `Resend in ${cooldown}s`
+                : 'Resend Verification Email'}
           </Button>
 
           <div className="pt-4 text-center text-sm">
@@ -221,7 +221,7 @@ function VerifyTokenComponent({
 
   useEffect(() => {
     if (!email) {
-      setError("Invalid verification link: email is missing.");
+      setError('Invalid verification link: email is missing.');
       return;
     }
 
@@ -230,14 +230,14 @@ function VerifyTokenComponent({
       if (result.error) {
         setError(result.error);
       } else {
-        router.push("/");
+        router.push('/');
       }
     };
     performVerification();
   }, [token, email, router]);
 
   const searchParams = useSearchParams();
-  if (searchParams.get("verified") === "true") {
+  if (searchParams.get('verified') === 'true') {
     return <SuccessCard />;
   }
 
@@ -250,10 +250,10 @@ function VerifyTokenComponent({
 
 function SuccessCard() {
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
+    <div className="flex min-h-[80vh] items-center justify-center">
       <Card className="w-full max-w-md text-center">
         <CardHeader className="text-start">
-          <div className="flex  mb-4">
+          <div className="mb-4 flex">
             <Logo variant="icon" />
           </div>
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
@@ -282,10 +282,10 @@ function ErrorCard({
   showSignupLink?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
-      <Card className="w-full max-w-md text-center shadow-2xl/20 ">
+    <div className="flex min-h-[80vh] items-center justify-center">
+      <Card className="w-full max-w-md text-center shadow-2xl/20">
         <CardHeader className="text-start">
-          <div className="flex  mb-4">
+          <div className="mb-4 flex">
             <Logo variant="icon" />
           </div>
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
@@ -308,10 +308,10 @@ function ErrorCard({
 
 function LoadingCard() {
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
+    <div className="flex min-h-[80vh] items-center justify-center">
       <Card className="w-full max-w-md text-center">
         <CardHeader className="text-start">
-          <div className="flex  mb-4">
+          <div className="mb-4 flex">
             <Logo variant="icon" />
           </div>
           <CardTitle className="text-2xl">Verifying...</CardTitle>

@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { useSessionStore } from "@/stores/session-store";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { toast } from "sonner";
-import { enrollInCourse } from "../actions";
+import { Button } from '@/components/ui/button';
+import { useSessionStore } from '@/stores/session-store';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { toast } from 'sonner';
+import { enrollInCourse } from '../actions';
 
 interface EnrollButtonProps {
   courseId: string;
@@ -25,7 +25,7 @@ export function EnrollButton({ courseId }: EnrollButtonProps) {
     startTransition(async () => {
       const result = await enrollInCourse(courseId);
       if (result?.error) {
-        toast.error("Enrollment Failed", {
+        toast.error('Enrollment Failed', {
           description: result.error,
         });
       }
@@ -39,7 +39,7 @@ export function EnrollButton({ courseId }: EnrollButtonProps) {
       className="w-full font-semibold"
       disabled={isPending}
     >
-      {isPending ? "Enrolling..." : "Enroll Now"}
+      {isPending ? 'Enrolling...' : 'Enroll Now'}
     </Button>
   );
 }

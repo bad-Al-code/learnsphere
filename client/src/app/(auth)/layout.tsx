@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 export default function AuthLayout({
   children,
@@ -10,7 +10,7 @@ export default function AuthLayout({
       {/* Background SVG */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="animate-show pointer-events-none absolute inset-0 -z-10 h-full w-full bg-none mask-radial-from-muted-foreground"
+        className="animate-show mask-radial-from-muted-foreground pointer-events-none absolute inset-0 -z-10 h-full w-full bg-none"
       >
         <defs>
           <linearGradient>

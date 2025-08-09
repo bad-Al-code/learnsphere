@@ -1,13 +1,13 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { UpdatePasswordForm } from "../../_components/update-password-form";
-import { SessionHistory } from "./_components/session-history";
+} from '@/components/ui/card';
+import { UpdatePasswordForm } from '../../_components/update-password-form';
+import { SessionHistory } from './_components/session-history';
 
 export default function SecuritySettingsPage() {
   return (
@@ -46,10 +46,10 @@ export default function SecuritySettingsPage() {
             to generate verification codes for an extra layer of security.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center justify-between p-6 border-t">
+        <CardContent className="flex items-center justify-between border-t p-6">
           <div>
             <p className="text-sm font-medium">Enable Authenticator App</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               Codes are sent via your authenticator app.
             </p>
           </div>

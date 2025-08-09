@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -9,14 +9,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Course } from "@/types/course";
-import { Edit } from "lucide-react";
-import Link from "next/link";
+} from '@/components/ui/table';
+import { Course } from '@/types/course';
+import { Edit } from 'lucide-react';
+import Link from 'next/link';
 
 export function MyCoursesTable({ courses }: { courses: Course[] }) {
   return (
-    <div className="border rounded-lg">
+    <div className="rounded-lg border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -34,12 +34,12 @@ export function MyCoursesTable({ courses }: { courses: Course[] }) {
               <TableRow key={course.id}>
                 <TableCell className="font-medium">{course.title}</TableCell>
                 <TableCell>
-                  {course.price ? `$${course.price}` : "Free"}
+                  {course.price ? `$${course.price}` : 'Free'}
                 </TableCell>
                 <TableCell>
                   <Badge
                     variant={
-                      course.status === "published" ? "default" : "secondary"
+                      course.status === 'published' ? 'default' : 'secondary'
                     }
                   >
                     {course.status}
@@ -48,7 +48,7 @@ export function MyCoursesTable({ courses }: { courses: Course[] }) {
                 <TableCell className="text-right">
                   <Button asChild variant="outline" size="sm">
                     <Link href={`/dashboard/instructor/courses/${course.id}`}>
-                      <Edit className="h-4 w-4 mr-2" />
+                      <Edit className="mr-2 h-4 w-4" />
                       Edit
                     </Link>
                   </Button>
@@ -57,7 +57,7 @@ export function MyCoursesTable({ courses }: { courses: Course[] }) {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={4} className="text-center h-24">
+              <TableCell colSpan={4} className="h-24 text-center">
                 You haven't created any courses yet.
               </TableCell>
             </TableRow>

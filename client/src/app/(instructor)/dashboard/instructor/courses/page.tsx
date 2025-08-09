@@ -1,13 +1,13 @@
-import { getCategories } from "@/app/(admin)/actions";
-import { PaginationControls } from "@/app/courses/_components/pagination-controls";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import Link from "next/link";
-import { Suspense } from "react";
-import { getMyCourses } from "../../../actions";
-import { CourseFilters } from "./_components/course-filters";
-import { CoursesGridSkeleton } from "./_components/course-grid-skeleton";
-import { MyCoursesGrid } from "./_components/my-courses-grid";
+import { getCategories } from '@/app/(admin)/actions';
+import { PaginationControls } from '@/app/courses/_components/pagination-controls';
+import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
+import Link from 'next/link';
+import { Suspense } from 'react';
+import { getMyCourses } from '../../../actions';
+import { CourseFilters } from './_components/course-filters';
+import { CoursesGridSkeleton } from './_components/course-grid-skeleton';
+import { MyCoursesGrid } from './_components/my-courses-grid';
 
 interface MyCoursesPageProps {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -30,7 +30,7 @@ export default async function MyCoursesPage({
 
         <Button asChild>
           <Link href="/dashboard/instructor/courses/create">
-            <PlusCircle className="h-4 w-4 mr-1" />
+            <PlusCircle className="mr-1 h-4 w-4" />
             New Course
           </Link>
         </Button>
@@ -47,23 +47,23 @@ export default async function MyCoursesPage({
 
 async function CoursesDataComponent({ searchParams }: MyCoursesPageProps) {
   const options = {
-    query: typeof searchParams.q === "string" ? searchParams.q : undefined,
+    query: typeof searchParams.q === 'string' ? searchParams.q : undefined,
     categoryId:
-      typeof searchParams.categoryId === "string"
+      typeof searchParams.categoryId === 'string'
         ? searchParams.categoryId
         : undefined,
     level:
-      typeof searchParams.level === "string" ? searchParams.level : undefined,
+      typeof searchParams.level === 'string' ? searchParams.level : undefined,
     price:
-      typeof searchParams.price === "string"
+      typeof searchParams.price === 'string'
         ? (searchParams.price as any)
         : undefined,
     duration:
-      typeof searchParams.duration === "string"
+      typeof searchParams.duration === 'string'
         ? searchParams.duration
         : undefined,
     sortBy:
-      typeof searchParams.sortBy === "string"
+      typeof searchParams.sortBy === 'string'
         ? (searchParams.sortBy as any)
         : undefined,
     page: Number(searchParams.page) || 1,

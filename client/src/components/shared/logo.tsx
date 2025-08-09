@@ -6,7 +6,7 @@ type LogoProps = {
    * 'icon': Shows only the square icon.
    * @default 'full'
    */
-  variant?: "full" | "icon";
+  variant?: 'full' | 'icon';
 
   /**
    * Allows passing additional CSS classes for sizing and positioning.
@@ -16,8 +16,8 @@ type LogoProps = {
   className?: string;
 };
 
-export const Logo = ({ variant = "full", className = "" }: LogoProps) => {
-  if (variant === "icon") {
+export const Logo = ({ variant = 'full', className = '' }: LogoProps) => {
+  if (variant === 'icon') {
     return (
       <div className={className}>
         <svg

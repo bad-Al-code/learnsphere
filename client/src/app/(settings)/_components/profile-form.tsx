@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { useForm } from 'react-hook-form';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -13,21 +13,21 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { SUPPORTED_LANGUAGES } from "@/config/language";
-import { profileFormSchema, ProfileFormValues } from "@/lib/schemas/user";
-import { Github, Linkedin, Twitter } from "lucide-react";
-import { toast } from "sonner";
-import { updateProfile } from "../actions";
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { SUPPORTED_LANGUAGES } from '@/config/language';
+import { profileFormSchema, ProfileFormValues } from '@/lib/schemas/user';
+import { Github, Linkedin, Twitter } from 'lucide-react';
+import { toast } from 'sonner';
+import { updateProfile } from '../actions';
 
 interface ProfileFormProps {
   userData: {
@@ -53,17 +53,17 @@ export function ProfileForm({ userData }: ProfileFormProps) {
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      firstName: userData.firstName || "",
-      lastName: userData.lastName || "",
+      firstName: userData.firstName || '',
+      lastName: userData.lastName || '',
       email: userData.email,
-      headline: userData.headline || "",
-      bio: userData.bio || "",
-      language: userData.settings?.language || "en",
-      websiteUrl: userData.websiteUrl || "",
+      headline: userData.headline || '',
+      bio: userData.bio || '',
+      language: userData.settings?.language || 'en',
+      websiteUrl: userData.websiteUrl || '',
       socialLinks: {
-        github: userData.socialLinks?.github || "",
-        linkedin: userData.socialLinks?.linkedin || "",
-        twitter: userData.socialLinks?.twitter || "",
+        github: userData.socialLinks?.github || '',
+        linkedin: userData.socialLinks?.linkedin || '',
+        twitter: userData.socialLinks?.twitter || '',
       },
     },
   });
@@ -76,9 +76,9 @@ export function ProfileForm({ userData }: ProfileFormProps) {
 
       if (result?.error) {
         result.error;
-        toast.error("Update Failed");
+        toast.error('Update Failed');
       } else {
-        toast.success("Profile updated successfully!");
+        toast.success('Profile updated successfully!');
         router.refresh();
 
         form.reset(values);
@@ -88,7 +88,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
 
   return (
     <div>
-      <h3 className="text-lg font-medium mb-4">Account Settings</h3>
+      <h3 className="mb-4 text-lg font-medium">Account Settings</h3>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
@@ -101,7 +101,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
                   <Input
                     type="email"
                     {...field}
-                    value={field.value ?? ""}
+                    value={field.value ?? ''}
                     disabled
                   />
                 </FormControl>
@@ -110,7 +110,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
             )}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
               name="firstName"
@@ -118,7 +118,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
                 <FormItem>
                   <FormLabel>First Name</FormLabel>
                   <FormControl>
-                    <Input {...field} value={field.value ?? ""} />
+                    <Input {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -131,7 +131,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
                 <FormItem>
                   <FormLabel>Last Name</FormLabel>
                   <FormControl>
-                    <Input {...field} value={field.value ?? ""} />
+                    <Input {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -149,7 +149,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
                   <Input
                     placeholder="e.g., Senior Software Engineer"
                     {...field}
-                    value={field.value ?? ""}
+                    value={field.value ?? ''}
                   />
                 </FormControl>
                 <FormMessage />
@@ -167,7 +167,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
                     placeholder="Tell us about yourself"
                     className="resize-none"
                     {...field}
-                    value={field.value ?? ""}
+                    value={field.value ?? ''}
                   />
                 </FormControl>
                 <FormMessage />
@@ -185,7 +185,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
                   <Input
                     placeholder="https://your-portfolio.com"
                     {...field}
-                    value={field.value ?? ""}
+                    value={field.value ?? ''}
                   />
                 </FormControl>
                 <FormMessage />
@@ -201,14 +201,14 @@ export function ProfileForm({ userData }: ProfileFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Github className="h-4 w-4 text-muted-foreground" />
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <Github className="text-muted-foreground h-4 w-4" />
                     </div>
                     <FormControl>
                       <Input
                         placeholder="https://github.com/username"
                         {...field}
-                        value={field.value ?? ""}
+                        value={field.value ?? ''}
                         className="pl-10"
                       />
                     </FormControl>
@@ -223,14 +223,14 @@ export function ProfileForm({ userData }: ProfileFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Linkedin className="h-4 w-4 text-muted-foreground" />
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <Linkedin className="text-muted-foreground h-4 w-4" />
                     </div>
                     <FormControl>
                       <Input
                         placeholder="https://linkedin.com/in/username"
                         {...field}
-                        value={field.value ?? ""}
+                        value={field.value ?? ''}
                         className="pl-10"
                       />
                     </FormControl>
@@ -245,14 +245,14 @@ export function ProfileForm({ userData }: ProfileFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Twitter className="h-4 w-4 text-muted-foreground" />
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <Twitter className="text-muted-foreground h-4 w-4" />
                     </div>
                     <FormControl>
                       <Input
                         placeholder="https://twitter.com/username"
                         {...field}
-                        value={field.value ?? ""}
+                        value={field.value ?? ''}
                         className="pl-10"
                       />
                     </FormControl>
@@ -293,7 +293,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
 
           <div className="flex justify-end">
             <Button type="submit" disabled={isPending || !isDirty}>
-              {isPending ? "Saving..." : "Save Changes"}
+              {isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </form>

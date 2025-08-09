@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { Slider } from "@/components/ui/slider";
+import { Slider } from '@/components/ui/slider';
 
 const formatTime = (timeInSeconds: number) => {
   const date = new Date(0);
@@ -34,8 +34,8 @@ export function ProgressBar({
   };
 
   return (
-    <div className="w-full flex flex-col gap-1 text-white group">
-      <div className="flex justify-end text-xs  px-1 gap-1">
+    <div className="group flex w-full flex-col gap-1 text-white">
+      <div className="flex justify-end gap-1 px-1 text-xs">
         <span>{formatTime(currentTime)}</span> /
         <span>{formatTime(duration)}</span>
       </div>

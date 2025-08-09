@@ -4,9 +4,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { getCategories } from "../../actions";
-import { CategoryManager } from "./_components/category-manager";
+} from '@/components/ui/card';
+import { getCategories } from '../../actions';
+import { CategoryManager } from './_components/category-manager';
 
 export default async function ManageCategoriesPage() {
   const result = await getCategories();

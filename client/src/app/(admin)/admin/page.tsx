@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, School, Users } from "lucide-react";
-import Link from "next/link";
-import { getCourseStats, getUserStats } from "../actions";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BookOpen, School, Users } from 'lucide-react';
+import Link from 'next/link';
+import { getCourseStats, getUserStats } from '../actions';
 
 export default async function AdminDashboardPage() {
   const [userStats, courseStats] = await Promise.all([
@@ -19,7 +19,7 @@ export default async function AdminDashboardPage() {
           <Card className="hover:bg-muted transition-colors">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <Users className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -35,7 +35,7 @@ export default async function AdminDashboardPage() {
               <CardTitle className="text-sm font-medium">
                 Total Courses
               </CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
+              <BookOpen className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -51,7 +51,7 @@ export default async function AdminDashboardPage() {
               <CardTitle className="text-sm font-medium">
                 Pending Instructor Applications
               </CardTitle>
-              <School className="h-4 w-4 text-muted-foreground" />
+              <School className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -68,8 +68,8 @@ export default async function AdminDashboardPage() {
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Recent activity feed will be displayed here.{" "}
+            <p className="text-muted-foreground text-sm">
+              Recent activity feed will be displayed here.{' '}
               <code className="font-bold">WIP</code>
             </p>
           </CardContent>

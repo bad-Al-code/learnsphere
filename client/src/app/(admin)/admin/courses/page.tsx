@@ -4,10 +4,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Suspense } from "react";
-import { searchAllCourses } from "../../actions";
-import { CourseTable } from "./_components/course-table";
+} from '@/components/ui/card';
+import { Suspense } from 'react';
+import { searchAllCourses } from '../../actions';
+import { CourseTable } from './_components/course-table';
 
 interface ManageCoursesPageProps {
   searchParams?: {
@@ -40,7 +40,7 @@ export default function ManageCoursesPage({
 }
 
 async function CoursesDataComponent({ searchParams }: ManageCoursesPageProps) {
-  const query = searchParams?.query || "";
+  const query = searchParams?.query || '';
   const currentPage = Number(searchParams?.page) || 1;
   const result = await searchAllCourses({ query, page: currentPage });
 
@@ -56,15 +56,15 @@ function CourseTableSkeleton() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <div className="h-10 w-full max-w-sm bg-muted rounded-md animate-pulse"></div>
-        <div className="h-10 w-20 bg-muted rounded-md animate-pulse"></div>
+        <div className="bg-muted h-10 w-full max-w-sm animate-pulse rounded-md"></div>
+        <div className="bg-muted h-10 w-20 animate-pulse rounded-md"></div>
       </div>
-      <div className="border rounded-lg">
-        <div className="h-12 w-full bg-muted rounded-t-md animate-pulse"></div>
+      <div className="rounded-lg border">
+        <div className="bg-muted h-12 w-full animate-pulse rounded-t-md"></div>
         <div className="space-y-2 p-4">
-          <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
-          <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
-          <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
+          <div className="bg-muted h-10 w-full animate-pulse rounded-md"></div>
+          <div className="bg-muted h-10 w-full animate-pulse rounded-md"></div>
+          <div className="bg-muted h-10 w-full animate-pulse rounded-md"></div>
         </div>
       </div>
     </div>

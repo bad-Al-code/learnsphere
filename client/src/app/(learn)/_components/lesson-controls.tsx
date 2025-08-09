@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { ArrowLeft, ArrowRight, CheckCircle, Circle } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { toast } from "sonner";
+import { ArrowLeft, ArrowRight, CheckCircle, Circle } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { toast } from 'sonner';
 
-import { Button } from "@/components/ui/button";
-import { markLessonComplete } from "../actions";
+import { Button } from '@/components/ui/button';
+import { markLessonComplete } from '../actions';
 
 type Lesson = { id: string; title: string };
 type Module = { id: string; title: string; lessons: Lesson[] };
@@ -42,9 +42,9 @@ export function LessonControls({
     startTransition(async () => {
       const result = await markLessonComplete(course.id, currentLessonId);
       if (result.error) {
-        toast.error("Failed to update progress", { description: result.error });
+        toast.error('Failed to update progress', { description: result.error });
       } else {
-        toast.success("Progress updated!");
+        toast.success('Progress updated!');
         if (nextLesson) {
           router.push(`/learn/${course.id}/${nextLesson.id}`);
         }
@@ -53,12 +53,12 @@ export function LessonControls({
   };
 
   return (
-    <div className="flex flex-row md:flex-row items-center justify-between gap-4">
+    <div className="flex flex-row items-center justify-between gap-4 md:flex-row">
       <div className="flex items-center gap-4">
         {prevLesson && (
           <Button asChild variant="outline" size="sm">
             <Link href={`/learn/${course.id}/${prevLesson.id}`}>
-              <ArrowLeft className="h-4 w-4 mr-1" />
+              <ArrowLeft className="mr-1 h-4 w-4" />
               Previous
             </Link>
           </Button>
@@ -72,12 +72,12 @@ export function LessonControls({
         >
           {isCompleted ? (
             <>
-              <CheckCircle className="h-5 w-5 mr-1" />
+              <CheckCircle className="mr-1 h-5 w-5" />
               Completed
             </>
           ) : (
             <>
-              <Circle className="h-5 w-5 mr-1" />
+              <Circle className="mr-1 h-5 w-5" />
               Mark as Complete
             </>
           )}
@@ -87,7 +87,7 @@ export function LessonControls({
         <Button asChild variant="outline" size="sm">
           <Link href={`/learn/${course.id}/${nextLesson.id}`}>
             Next
-            <ArrowRight className="h-4 w-4 ml-1" />
+            <ArrowRight className="ml-1 h-4 w-4" />
           </Link>
         </Button>
       )}

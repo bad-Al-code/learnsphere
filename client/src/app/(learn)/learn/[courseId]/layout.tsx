@@ -1,7 +1,7 @@
-import { getCourseDetails } from "@/app/courses/actions";
-import { redirect } from "next/navigation";
-import { CourseSidebar } from "../../_components/course-sidebar";
-import { checkEnrollmentStatus } from "../../actions";
+import { getCourseDetails } from '@/app/courses/actions';
+import { redirect } from 'next/navigation';
+import { CourseSidebar } from '../../_components/course-sidebar';
+import { checkEnrollmentStatus } from '../../actions';
 
 export default async function LearnLayout({
   children,
@@ -19,15 +19,15 @@ export default async function LearnLayout({
 
   const course = await getCourseDetails(courseId);
   if (!course) {
-    redirect("/");
+    redirect('/');
   }
 
   return (
-    <div className="container mx-auto flex h-full ">
-      <div className="hidden md:flex w-80 flex-col h-full  fixed   ">
+    <div className="container mx-auto flex h-full">
+      <div className="fixed hidden h-full w-80 flex-col md:flex">
         <CourseSidebar course={course} />
       </div>
-      <main className="md:pl-80 w-full">{children}</main>
+      <main className="w-full md:pl-80">{children}</main>
     </div>
   );
 }

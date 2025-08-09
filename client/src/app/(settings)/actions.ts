@@ -1,13 +1,13 @@
-"use server";
+'use server';
 
-import { ApiError, authService, userService } from "@/lib/api";
+import { ApiError, authService, userService } from '@/lib/api';
 import {
   InstructorApplicationFormValues,
   instructorApplicationSchema,
   updateProfileSchema,
-} from "@/lib/schemas/user";
-import { revalidatePath } from "next/cache";
-import { z } from "zod";
+} from '@/lib/schemas/user';
+import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 
 export async function updateProfile(
   values: z.input<typeof updateProfileSchema>
@@ -16,9 +16,9 @@ export async function updateProfile(
     const { profileData, settingsData } = updateProfileSchema.parse(values);
 
     const apiCalls: Promise<Response>[] = [];
-    apiCalls.push(userService.put("/api/users/me", profileData));
+    apiCalls.push(userService.put('/api/users/me', profileData));
     if (settingsData.language) {
-      apiCalls.push(userService.put("/api/users/me/settings", settingsData));
+      apiCalls.push(userService.put('/api/users/me/settings', settingsData));
     }
 
     const responses = await Promise.all(apiCalls);
@@ -27,24 +27,24 @@ export async function updateProfile(
       if (!response.ok) {
         const responseData = await response.json().catch(() => ({}));
         const errorMessage =
-          responseData.errors?.[0]?.message || "Failed to update profile.";
+          responseData.errors?.[0]?.message || 'Failed to update profile.';
         return { error: errorMessage };
       }
     }
 
-    revalidatePath("/", "layout");
+    revalidatePath('/', 'layout');
     return { success: true };
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       return { error: error.issues[0].message };
     }
-    return { error: "An unexpected error occurred." };
+    return { error: 'An unexpected error occurred.' };
   }
 }
 
 const avatarUploadUrlschema = z.object({
   filename: z.string(),
-  uploadType: z.literal("avatar"),
+  uploadType: z.literal('avatar'),
   metadata: z.record(z.string(), z.string()),
 });
 
@@ -54,21 +54,21 @@ export async function getAvatarUploadUrl(values: AvataruploadUrlschema) {
   try {
     const validatedData = avatarUploadUrlschema.parse(values);
     const response = await userService.post(
-      "/api/users/me/avatar-upload-url",
+      '/api/users/me/avatar-upload-url',
       validatedData
     );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
-        errorData.errors?.[0]?.message || "Failed to get upload URL."
+        errorData.errors?.[0]?.message || 'Failed to get upload URL.'
       );
     }
 
     const data = await response.json();
     return { success: true, data };
   } catch (error: any) {
-    return { error: error.message || "An unexpected error occurred." };
+    return { error: error.message || 'An unexpected error occurred.' };
   }
 }
 
@@ -87,24 +87,24 @@ export async function updateNotificationSettings(values: {
     const validatedData = notificationsSchema.parse({ notifications: values });
 
     const response = await userService.put(
-      "/api/users/me/settings",
+      '/api/users/me/settings',
       validatedData
     );
 
     if (!response.ok) {
       const responseData = await response.json().catch(() => ({}));
       const errorMessage =
-        responseData.errors?.[0]?.message || "Failed to update settings.";
+        responseData.errors?.[0]?.message || 'Failed to update settings.';
       return { error: errorMessage };
     }
 
-    revalidatePath("/settings/notifications");
+    revalidatePath('/settings/notifications');
     return { success: true };
   } catch (error: any) {
     if (error instanceof ApiError) {
       return { error: error.message };
     }
-    return { error: "An unexpected error occurred." };
+    return { error: 'An unexpected error occurred.' };
   }
 }
 
@@ -115,26 +115,26 @@ export async function applyForInstructor(
     const validatedData = instructorApplicationSchema.parse(values);
 
     const response = await userService.post(
-      "/api/users/me/apply-for-instructor",
+      '/api/users/me/apply-for-instructor',
       validatedData
     );
     const responseData = await response.json().catch(() => ({}));
 
     if (!response.ok) {
       const errorMessage =
-        responseData.errors?.[0]?.message || "Failed to submit application.";
+        responseData.errors?.[0]?.message || 'Failed to submit application.';
 
       return { error: errorMessage };
     }
 
-    revalidatePath("/", "layout");
+    revalidatePath('/', 'layout');
 
     return { success: true, message: responseData.message };
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       return { error: error.issues[0].message };
     }
-    return { error: "An unexpected error occurred." };
+    return { error: 'An unexpected error occurred.' };
   }
 }
 
@@ -146,7 +146,7 @@ export async function getUserById(userId: string) {
       const data = await profileResponse.json().catch(() => ({}));
 
       throw new Error(
-        data.errors?.[0]?.message || "Failed to fetch user profile."
+        data.errors?.[0]?.message || 'Failed to fetch user profile.'
       );
     }
 

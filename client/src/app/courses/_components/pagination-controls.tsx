@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 interface PaginationControlsProps {
   totalPages: number;
@@ -11,11 +11,11 @@ interface PaginationControlsProps {
 export function PaginationControls({ totalPages }: PaginationControlsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentPage = Number(searchParams.get("page")) || 1;
+  const currentPage = Number(searchParams.get('page')) || 1;
 
   const createPageURL = (pageNumber: number) => {
     const params = new URLSearchParams(searchParams);
-    params.set("page", pageNumber.toString());
+    params.set('page', pageNumber.toString());
     return `${pathname}?${params.toString()}`;
   };
 

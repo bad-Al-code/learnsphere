@@ -1,10 +1,10 @@
-"use server";
+'use server';
 
-import { courseService, enrollmentService } from "@/lib/api";
-import { searchQuerySchema } from "@/lib/schemas/course";
-import { redirect } from "next/navigation";
-import z from "zod";
-import { getCurrentUser } from "../(auth)/actions";
+import { courseService, enrollmentService } from '@/lib/api';
+import { searchQuerySchema } from '@/lib/schemas/course';
+import { redirect } from 'next/navigation';
+import z from 'zod';
+import { getCurrentUser } from '../(auth)/actions';
 
 export async function getPublicCourses({
   page = 1,
@@ -23,17 +23,17 @@ export async function getPublicCourses({
       limit: String(limit),
     });
     if (categoryId) {
-      params.set("categoryId", categoryId);
+      params.set('categoryId', categoryId);
     }
     if (level) {
-      params.set("level", level);
+      params.set('level', level);
     }
 
     const response = await courseService.get(
       `/api/courses?${params.toString()}`
     );
     if (!response.ok) {
-      throw new Error("Failed to fetch courses.");
+      throw new Error('Failed to fetch courses.');
     }
 
     const result = await response.json();
@@ -51,7 +51,7 @@ export async function getPublicCourses({
 
 export async function getCoursesByIds(courseIds: string[]) {
   try {
-    const response = await courseService.post("/api/courses/bulk", {
+    const response = await courseService.post('/api/courses/bulk', {
       courseIds,
     });
     if (!response.ok) return [];
@@ -65,7 +65,7 @@ export async function getCourseDetails(courseId: string) {
   try {
     const response = await courseService.get(`/api/courses/${courseId}`);
     if (!response.ok) {
-      throw new Error("Course not found.");
+      throw new Error('Course not found.');
     }
 
     const result = await response.json();
@@ -81,7 +81,7 @@ export async function getCourseDetails(courseId: string) {
 export async function enrollInCourse(courseId: string) {
   const user = await getCurrentUser();
   if (!user) {
-    return { error: "You must log in to enroll." };
+    return { error: 'You must log in to enroll.' };
   }
 
   try {
@@ -93,7 +93,7 @@ export async function enrollInCourse(courseId: string) {
       const data = await response.json().catch(() => ({}));
 
       throw new Error(
-        data.errors?.[0]?.message || "Failed to enroll in the course."
+        data.errors?.[0]?.message || 'Failed to enroll in the course.'
       );
     }
   } catch (error: any) {
@@ -107,12 +107,12 @@ export async function getCategoryOptions() {
   try {
     const response = await courseService.get(`/api/categories/list`);
     if (!response.ok) {
-      throw new Error("Failed to fetch categories.");
+      throw new Error('Failed to fetch categories.');
     }
 
     return await response.json();
   } catch (error) {
-    console.error("Error fetching category options:", error);
+    console.error('Error fetching category options:', error);
     return [];
   }
 }
@@ -139,7 +139,7 @@ export async function serachCourseForCommand(query: string) {
     );
 
     if (!response.ok) {
-      throw new Error("Failed to fetch search results.");
+      throw new Error('Failed to fetch search results.');
     }
 
     const courses = await response.json();
@@ -148,11 +148,11 @@ export async function serachCourseForCommand(query: string) {
     return { success: true, data: courses };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: "Invalid search query." };
+      return { error: 'Invalid search query.' };
     }
 
-    console.error("Error in searchCoursesForCommand:", error);
+    console.error('Error in searchCoursesForCommand:', error);
 
-    return { error: "An error occurred while searching." };
+    return { error: 'An error occurred while searching.' };
   }
 }

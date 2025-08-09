@@ -1,35 +1,35 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { COURSE_LEVELS } from "@/types/course";
-import { SlidersHorizontal } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+} from '@/components/ui/tooltip';
+import { COURSE_LEVELS } from '@/types/course';
+import { SlidersHorizontal } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 export function DifficultyFilter() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentLevel = searchParams.get("level") || "all";
+  const currentLevel = searchParams.get('level') || 'all';
 
   const handleSelect = (level: string) => {
     const params = new URLSearchParams(searchParams);
-    if (level !== "all") {
-      params.set("level", level);
+    if (level !== 'all') {
+      params.set('level', level);
     } else {
-      params.delete("level");
+      params.delete('level');
     }
-    params.set("page", "1");
+    params.set('page', '1');
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -42,15 +42,15 @@ export function DifficultyFilter() {
               <Button
                 size="icon"
                 variant="secondary"
-                className="border text-sm px-3 h-6"
+                className="h-6 border px-3 text-sm"
                 aria-label="Filter by difficulty"
               >
-                <SlidersHorizontal className="w-4 h-4" />
+                <SlidersHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+              className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur"
             >
               {COURSE_LEVELS.map((level) => (
                 <DropdownMenuItem
@@ -58,8 +58,8 @@ export function DifficultyFilter() {
                   onClick={() => handleSelect(level.value)}
                   className={
                     currentLevel === level.value
-                      ? "bg-foreground/20"
-                      : "text-xs lg:text-md"
+                      ? 'bg-foreground/20'
+                      : 'lg:text-md text-xs'
                   }
                 >
                   {level.label}

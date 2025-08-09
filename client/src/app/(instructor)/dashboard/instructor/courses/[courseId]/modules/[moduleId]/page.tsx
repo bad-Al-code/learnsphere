@@ -1,19 +1,19 @@
-import { ArrowLeft, PlusCircle } from "lucide-react";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { ArrowLeft, PlusCircle } from 'lucide-react';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { getModuleDetails } from "../../actions";
-import { ModulesSkeleton as LessonSkeleton } from "../../content/_components/module-skeleton";
-import { LessonsList } from "./_components/lessons-list";
+} from '@/components/ui/card';
+import { getModuleDetails } from '../../actions';
+import { ModulesSkeleton as LessonSkeleton } from '../../content/_components/module-skeleton';
+import { LessonsList } from './_components/lessons-list';
 
 interface ModuleDetailPageProps {
   params: { courseId: string; moduleId: string };
@@ -24,7 +24,7 @@ export default function ModuleDetailPage({ params }: ModuleDetailPageProps) {
     <div>
       <Link
         href={`/dashboard/instructor/courses/${params.courseId}/content`}
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4"
+        className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-2 text-sm"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Course Content
@@ -52,7 +52,7 @@ async function ModuleContent({ params }: ModuleDetailPageProps) {
           <Link
             href={`/dashboard/instructor/courses/${params.courseId}/modules/${params.moduleId}/lessons/create`}
           >
-            <PlusCircle className="h-4 w-4 mr-2" />
+            <PlusCircle className="mr-2 h-4 w-4" />
             Add a lesson
           </Link>
         </Button>

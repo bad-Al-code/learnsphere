@@ -1,18 +1,18 @@
-import { getCurrentUser } from "@/app/(auth)/actions";
+import { getCurrentUser } from '@/app/(auth)/actions';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { redirect } from "next/navigation";
-import { NotificationsForm } from "../../_components/notification-form";
+} from '@/components/ui/card';
+import { redirect } from 'next/navigation';
+import { NotificationsForm } from '../../_components/notification-form';
 
 export default async function NotificationSettingsPage() {
   const user = await getCurrentUser();
   if (!user) {
-    redirect("/login");
+    redirect('/login');
   }
 
   const settings = user.settings || {

@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Edit, PlusCircle, Trash2 } from "lucide-react";
-import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Edit, PlusCircle, Trash2 } from 'lucide-react';
+import { useState, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 import {
   createCategory,
   deleteCategory,
   updateCategory,
-} from "@/app/(admin)/actions";
-import { Button } from "@/components/ui/button";
+} from '@/app/(admin)/actions';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -25,8 +25,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -34,9 +34,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { CategoryFormValues, categorySchema } from "@/lib/schemas/category";
-import { Category } from "@/types/category";
+} from '@/components/ui/table';
+import { CategoryFormValues, categorySchema } from '@/lib/schemas/category';
+import { Category } from '@/types/category';
 
 interface CategoryManagerProps {
   initialCategories: Category[];
@@ -53,12 +53,12 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
 
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
-    defaultValues: { name: "" },
+    defaultValues: { name: '' },
   });
 
   const handleOpenDialog = (category: Category | null = null) => {
     setEditingCategory(category);
-    form.reset({ name: category?.name || "" });
+    form.reset({ name: category?.name || '' });
     setIsDialogOpen(true);
   };
 
@@ -75,7 +75,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Category deleted successfully.");
+        toast.success('Category deleted successfully.');
       }
       setIsDeleteDialogOpen(false);
       setCategoryToDelete(null);
@@ -94,7 +94,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         toast.error(result.error);
       } else {
         toast.success(
-          `Category ${editingCategory ? "updated" : "created"} successfully!`
+          `Category ${editingCategory ? 'updated' : 'created'} successfully!`
         );
         setIsDialogOpen(false);
       }
@@ -103,14 +103,14 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
 
   return (
     <div>
-      <div className="flex justify-end mb-4">
+      <div className="mb-4 flex justify-end">
         <Button onClick={() => handleOpenDialog()}>
           <PlusCircle className="mr-1 h-4 w-4" />
           Add New Category
         </Button>
       </div>
 
-      <div className="border rounded-lg">
+      <div className="rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -123,10 +123,10 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
             {initialCategories.map((category) => (
               <TableRow key={category.id}>
                 <TableCell className="font-medium">{category.name}</TableCell>
-                <TableCell className="font-mono text-muted-foreground">
+                <TableCell className="text-muted-foreground font-mono">
                   {category.slug}
                 </TableCell>
-                <TableCell className="text-right space-x-1">
+                <TableCell className="space-x-1 text-right">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -140,7 +140,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
                     onClick={() => handleDeleteClick(category)}
                     disabled={isPending}
                   >
-                    <Trash2 className="h-4 w-4 text-destructive" />
+                    <Trash2 className="text-destructive h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>
@@ -153,7 +153,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingCategory ? "Edit Category" : "Create New Category"}
+              {editingCategory ? 'Edit Category' : 'Create New Category'}
             </DialogTitle>
           </DialogHeader>
           <Form {...form}>
@@ -173,7 +173,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
               />
               <div className="flex justify-end">
                 <Button type="submit" disabled={isPending}>
-                  {isPending ? "Saving..." : "Save"}
+                  {isPending ? 'Saving...' : 'Save'}
                 </Button>
               </div>
             </form>
@@ -190,7 +190,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
             Are you sure you want to delete the category "
             {categoryToDelete?.name}"?
           </p>
-          <div className="flex justify-end space-x-2 mt-4">
+          <div className="mt-4 flex justify-end space-x-2">
             <Button
               variant="outline"
               onClick={() => setIsDeleteDialogOpen(false)}
@@ -203,7 +203,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
               onClick={confirmDelete}
               disabled={isPending}
             >
-              {isPending ? "Deleting..." : "Delete"}
+              {isPending ? 'Deleting...' : 'Delete'}
             </Button>
           </div>
         </DialogContent>

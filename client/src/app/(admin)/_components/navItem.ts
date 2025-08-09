@@ -1,18 +1,18 @@
-import { BookOpen, Home, LayoutGrid, Users } from "lucide-react";
+import { BookOpen, Home, LayoutGrid, Users } from 'lucide-react';
 
 export const navItems = [
-  { href: "/admin", label: "Dashboard", value: "dashboard", icon: Home },
-  { href: "/admin/users", label: "Users", value: "users", icon: Users },
+  { href: '/admin', label: 'Dashboard', value: 'dashboard', icon: Home },
+  { href: '/admin/users', label: 'Users', value: 'users', icon: Users },
   {
-    href: "/admin/courses",
-    label: "Courses",
-    value: "courses",
+    href: '/admin/courses',
+    label: 'Courses',
+    value: 'courses',
     icon: BookOpen,
   },
   {
-    href: "/admin/categories",
-    label: "Categories",
-    value: "categories",
+    href: '/admin/categories',
+    label: 'Categories',
+    value: 'categories',
     icon: LayoutGrid,
   },
 ];

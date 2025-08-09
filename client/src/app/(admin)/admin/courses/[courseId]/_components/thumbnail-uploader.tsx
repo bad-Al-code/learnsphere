@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { UploadCloud } from "lucide-react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { UploadCloud } from 'lucide-react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState, useTransition } from 'react';
+import { toast } from 'sonner';
 
-import { getCourseThumbnailUploadUrl } from "@/app/(admin)/actions";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Button } from "@/components/ui/button";
+import { getCourseThumbnailUploadUrl } from '@/app/(admin)/actions';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Button } from '@/components/ui/button';
 
 interface ThumbnailUploaderProps {
   courseId: string;
@@ -37,27 +37,27 @@ export function ThumbnailUploader({
           file.name
         );
         if (error || !data?.signedUrl) {
-          throw new Error(error || "Could not get upload URL.");
+          throw new Error(error || 'Could not get upload URL.');
         }
 
         const uploadResponse = await fetch(data.signedUrl, {
-          method: "PUT",
+          method: 'PUT',
           body: file,
-          headers: { "Content-Type": file.type },
+          headers: { 'Content-Type': file.type },
         });
 
         if (!uploadResponse.ok) {
-          throw new Error("Failed to upload thumbnail.");
+          throw new Error('Failed to upload thumbnail.');
         }
 
-        toast.success("Thumbnail uploaded.", {
+        toast.success('Thumbnail uploaded.', {
           description:
-            "It may take a few moments for the change to appear everywhere.",
+            'It may take a few moments for the change to appear everywhere.',
         });
 
         router.refresh();
       } catch (err: any) {
-        toast.error("Upload failed", { description: err.message });
+        toast.error('Upload failed', { description: err.message });
         setPreviewUrl(null);
       }
     });
@@ -73,7 +73,7 @@ export function ThumbnailUploader({
 
   return (
     <div className="space-y-4">
-      <AspectRatio ratio={16 / 9} className="rounded-md border bg-muted">
+      <AspectRatio ratio={16 / 9} className="bg-muted rounded-md border">
         {displayUrl ? (
           <Image
             src={displayUrl}
@@ -82,9 +82,9 @@ export function ThumbnailUploader({
             className="object-cover"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+          <div className="text-muted-foreground flex h-full flex-col items-center justify-center">
             <UploadCloud className="h-8 w-8" />
-            <p className="text-sm mt-2">No thumbnail uploaded</p>
+            <p className="mt-2 text-sm">No thumbnail uploaded</p>
           </div>
         )}
       </AspectRatio>
@@ -100,9 +100,9 @@ export function ThumbnailUploader({
       <Button asChild variant="outline" className="w-full" disabled={isPending}>
         <label
           htmlFor="thumbnail-upload"
-          className={`cursor-pointer ${isPending ? "cursor-not-allowed" : ""}`}
+          className={`cursor-pointer ${isPending ? 'cursor-not-allowed' : ''}`}
         >
-          {isPending ? "Uploading..." : "Change Thumbnail"}
+          {isPending ? 'Uploading...' : 'Change Thumbnail'}
         </label>
       </Button>
     </div>

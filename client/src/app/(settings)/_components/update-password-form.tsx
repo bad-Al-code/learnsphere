@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
-import { updatePassword } from "@/app/(auth)/actions";
-import { Button } from "@/components/ui/button";
+import { updatePassword } from '@/app/(auth)/actions';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -14,18 +14,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Eye, EyeOff } from "lucide-react";
-import { toast } from "sonner";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Eye, EyeOff } from 'lucide-react';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   currentPassword: z
     .string()
-    .min(1, { message: "Current password is required." }),
+    .min(1, { message: 'Current password is required.' }),
   newPassword: z
     .string()
-    .min(8, { message: "New password must be at least 8 characters." }),
+    .min(8, { message: 'New password must be at least 8 characters.' }),
 });
 
 type FormSchema = z.infer<typeof formSchema>;
@@ -37,7 +37,7 @@ export function UpdatePasswordForm() {
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
-    defaultValues: { currentPassword: "", newPassword: "" },
+    defaultValues: { currentPassword: '', newPassword: '' },
   });
 
   const { isDirty } = form.formState;
@@ -46,9 +46,9 @@ export function UpdatePasswordForm() {
     startTransition(async () => {
       const result = await updatePassword(values);
       if (result?.error) {
-        toast.error(result.error || "Update Failed");
+        toast.error(result.error || 'Update Failed');
       } else {
-        toast.success("Your password has been updated successfully!");
+        toast.success('Your password has been updated successfully!');
         form.reset();
       }
     });
@@ -57,7 +57,7 @@ export function UpdatePasswordForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
             name="currentPassword"
@@ -67,12 +67,12 @@ export function UpdatePasswordForm() {
                 <div className="relative">
                   <FormControl>
                     <Input
-                      type={showCurrent ? "text" : "password"}
+                      type={showCurrent ? 'text' : 'password'}
                       {...field}
                     />
                   </FormControl>
                   <div
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                    className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3"
                     onClick={() => setShowCurrent((s) => !s)}
                   >
                     {showCurrent ? (
@@ -94,10 +94,10 @@ export function UpdatePasswordForm() {
                 <FormLabel>New Password</FormLabel>
                 <div className="relative">
                   <FormControl>
-                    <Input type={showNew ? "text" : "password"} {...field} />
+                    <Input type={showNew ? 'text' : 'password'} {...field} />
                   </FormControl>
                   <div
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                    className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3"
                     onClick={() => setShowNew((s) => !s)}
                   >
                     {showNew ? (
@@ -113,9 +113,9 @@ export function UpdatePasswordForm() {
           />
         </div>
 
-        <div className="flex flex-col md:flex-row justify-end md:items-center gap-2 pt-2">
+        <div className="flex flex-col justify-end gap-2 pt-2 md:flex-row md:items-center">
           <Button type="submit" disabled={isPending || !isDirty}>
-            {isPending ? "Updating..." : "Update Password"}
+            {isPending ? 'Updating...' : 'Update Password'}
           </Button>
         </div>
       </form>

@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   // typescript: {
@@ -8,13 +8,13 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: "/profile",
-        destination: "/settings/profile",
+        source: '/profile',
+        destination: '/settings/profile',
         permanent: true,
       },
       {
-        source: "/profile/security",
-        destination: "/settings/security",
+        source: '/profile/security',
+        destination: '/settings/security',
         permanent: true,
       },
     ];
@@ -22,25 +22,25 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: "https",
+        protocol: 'https',
         hostname:
-          "learnsphere-processed-media-xt9tcab6.s3.ap-south-1.amazonaws.com",
-        port: "",
-        pathname: "/**",
+          'learnsphere-processed-media-xt9tcab6.s3.ap-south-1.amazonaws.com',
+        port: '',
+        pathname: '/**',
       },
       {
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com",
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
       },
       {
-        protocol: "https",
-        hostname: "picsum.photos",
+        protocol: 'https',
+        hostname: 'picsum.photos',
       },
       {
-        protocol: "https",
-        hostname: "source.unsplash.com",
-        port: "",
-        pathname: "/**",
+        protocol: 'https',
+        hostname: 'source.unsplash.com',
+        port: '',
+        pathname: '/**',
       },
     ],
   },

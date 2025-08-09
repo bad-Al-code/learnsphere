@@ -1,13 +1,13 @@
-import { getCourseDetailsForAdmin } from "@/app/(admin)/actions";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, BookCheck, Clock } from "lucide-react";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { Suspense } from "react";
-import { CourseActions } from "./_components/course-actions";
-import { PriceForm } from "./_components/price-form";
-import { ThumbnailUploader } from "./_components/thumbnail-uploader";
+import { getCourseDetailsForAdmin } from '@/app/(admin)/actions';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, BookCheck, Clock } from 'lucide-react';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
+import { CourseActions } from './_components/course-actions';
+import { PriceForm } from './_components/price-form';
+import { ThumbnailUploader } from './_components/thumbnail-uploader';
 
 export default function AdminCourseDetailPage({
   params,
@@ -30,19 +30,19 @@ async function CourseDetailComponent({ courseId }: { courseId: string }) {
   const course = result.data;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-6">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-6 lg:col-span-2">
         <Link
           href="/admin/courses"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm"
         >
           <ArrowLeft className="h-4 w-4" />
           Back To all courses
         </Link>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="">
-            <h1 className="text-2xl font-bold mb-2 sm:mb-0">{course.title}</h1>
+            <h1 className="mb-2 text-2xl font-bold sm:mb-0">{course.title}</h1>
             <p className="text-muted-foreground">
               by {course.instructor?.firstName} {course.instructor?.lastName}
             </p>
@@ -62,7 +62,7 @@ async function CourseDetailComponent({ courseId }: { courseId: string }) {
               <div className="col-span-2">
                 <Badge
                   variant={
-                    course.status === "published" ? "default" : "secondary"
+                    course.status === 'published' ? 'default' : 'secondary'
                   }
                 >
                   {course.status}
@@ -72,7 +72,7 @@ async function CourseDetailComponent({ courseId }: { courseId: string }) {
             <div className="grid grid-cols-3 gap-4">
               <div className="text-sm font-semibold">Description</div>
               <div className="col-span-2 text-sm">
-                {course.description || "N/A"}
+                {course.description || 'N/A'}
               </div>
             </div>
           </CardContent>
@@ -95,7 +95,7 @@ async function CourseDetailComponent({ courseId }: { courseId: string }) {
                         key={lesson.id}
                         className="flex items-center gap-2 text-sm"
                       >
-                        {lesson.lessonType === "video" ? (
+                        {lesson.lessonType === 'video' ? (
                           <Clock className="h-4 w-4" />
                         ) : (
                           <BookCheck className="h-4 w-4" />
@@ -111,7 +111,7 @@ async function CourseDetailComponent({ courseId }: { courseId: string }) {
         </Card>
       </div>
 
-      <div className="lg:col-span-1 space-y-6">
+      <div className="space-y-6 lg:col-span-1">
         <Card>
           <CardHeader>
             <CardTitle>Course Thumbnail</CardTitle>
@@ -141,15 +141,15 @@ function CourseDetailsSkeleton() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <div className="h-10 w-full max-w-sm bg-muted rounded-md animate-pulse"></div>
-        <div className="h-10 w-20 bg-muted rounded-md animate-pulse"></div>
+        <div className="bg-muted h-10 w-full max-w-sm animate-pulse rounded-md"></div>
+        <div className="bg-muted h-10 w-20 animate-pulse rounded-md"></div>
       </div>
-      <div className="border rounded-lg">
-        <div className="h-12 w-full bg-muted rounded-t-md animate-pulse"></div>
+      <div className="rounded-lg border">
+        <div className="bg-muted h-12 w-full animate-pulse rounded-t-md"></div>
         <div className="space-y-2 p-4">
-          <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
-          <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
-          <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
+          <div className="bg-muted h-10 w-full animate-pulse rounded-md"></div>
+          <div className="bg-muted h-10 w-full animate-pulse rounded-md"></div>
+          <div className="bg-muted h-10 w-full animate-pulse rounded-md"></div>
         </div>
       </div>
     </div>

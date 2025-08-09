@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { cn } from "@/lib/utils";
-import Hls from "hls.js";
-import { Play } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { Controls } from "./control";
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { cn } from '@/lib/utils';
+import Hls from 'hls.js';
+import { Play } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Controls } from './control';
 
 interface VideoPlayerProps {
   src: string;
@@ -48,7 +48,7 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
           name: `${level.height}p`,
           index: index,
         }));
-        levels.unshift({ height: 0, name: "Auto", index: -1 });
+        levels.unshift({ height: 0, name: 'Auto', index: -1 });
         setQualityLevels(levels);
       });
 
@@ -57,7 +57,7 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
       });
 
       hls.loadSource(src);
-    } else if (videoNode.canPlayType("application/vnd.apple.mpegurl")) {
+    } else if (videoNode.canPlayType('application/vnd.apple.mpegurl')) {
       videoNode.src = src;
     }
 
@@ -76,12 +76,12 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
 
-    videoNode.addEventListener("play", onPlay);
-    videoNode.addEventListener("pause", onPause);
+    videoNode.addEventListener('play', onPlay);
+    videoNode.addEventListener('pause', onPause);
 
     return () => {
-      videoNode.removeEventListener("play", onPlay);
-      videoNode.removeEventListener("pause", onPause);
+      videoNode.removeEventListener('play', onPlay);
+      videoNode.removeEventListener('pause', onPause);
     };
   }, []);
 
@@ -97,12 +97,12 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
       setCurrentTime(videoNode.currentTime);
     };
 
-    videoNode.addEventListener("loadedmetadata", onLoadedMetadata);
-    videoNode.addEventListener("timeupdate", onTimeUpdate);
+    videoNode.addEventListener('loadedmetadata', onLoadedMetadata);
+    videoNode.addEventListener('timeupdate', onTimeUpdate);
 
     return () => {
-      videoNode.removeEventListener("loadedmetadata", onLoadedMetadata);
-      videoNode.removeEventListener("timeupdate", onTimeUpdate);
+      videoNode.removeEventListener('loadedmetadata', onLoadedMetadata);
+      videoNode.removeEventListener('timeupdate', onTimeUpdate);
     };
   }, []);
 
@@ -115,10 +115,10 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
       setIsMuted(videoNode.muted);
     };
 
-    videoNode.addEventListener("volumechange", onVolumeChange);
+    videoNode.addEventListener('volumechange', onVolumeChange);
 
     return () => {
-      videoNode.removeEventListener("volumechange", onVolumeChange);
+      videoNode.removeEventListener('volumechange', onVolumeChange);
     };
   }, []);
 
@@ -126,9 +126,9 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
     const onFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-    document.addEventListener("fullscreenchange", onFullscreenChange);
+    document.addEventListener('fullscreenchange', onFullscreenChange);
     return () =>
-      document.removeEventListener("fullscreenchange", onFullscreenChange);
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
   }, []);
 
   const handleQualityChange = (levelIndex: number) => {
@@ -203,10 +203,10 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
   };
 
   return (
-    <div className="w-full group relative" ref={playerContainerRef}>
+    <div className="group relative w-full" ref={playerContainerRef}>
       <AspectRatio
         ratio={16 / 9}
-        className="bg-black rounded-sm overflow-hidden "
+        className="overflow-hidden rounded-sm bg-black"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={handleTogglePlay}
@@ -214,13 +214,13 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
         <video
           ref={videoRef}
           controls={false}
-          className="w-full h-full rounded-sm"
+          className="h-full w-full rounded-sm"
         />
 
         <div
           className={cn(
-            "absolute inset-0 flex items-center justify-center transition-opacity bg-black/0 pointer-events-none",
-            isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"
+            'pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 transition-opacity',
+            isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'
           )}
         >
           {!isPlaying && (
@@ -229,7 +229,7 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
                 e.stopPropagation();
                 handleTogglePlay();
               }}
-              className="p-4 bg-black/50 rounded-full text-white hover:bg-black/60 transition-colors cursor-pointer pointer-events-auto"
+              className="pointer-events-auto cursor-pointer rounded-full bg-black/50 p-4 text-white transition-colors hover:bg-black/60"
             >
               <Play size={32} />
             </button>

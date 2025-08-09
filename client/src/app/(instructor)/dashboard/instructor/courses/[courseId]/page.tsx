@@ -1,10 +1,10 @@
-import { getCategories } from "@/app/(admin)/actions";
-import { getCurrentUser } from "@/app/(auth)/actions";
-import { getCourseDetails } from "@/app/courses/actions";
-import { IconBadge } from "@/components/shared/icon-badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { File, LayoutDashboard, ListChecks } from "lucide-react";
-import { redirect } from "next/navigation";
+import { getCategories } from '@/app/(admin)/actions';
+import { getCurrentUser } from '@/app/(auth)/actions';
+import { getCourseDetails } from '@/app/courses/actions';
+import { IconBadge } from '@/components/shared/icon-badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { File, LayoutDashboard, ListChecks } from 'lucide-react';
+import { redirect } from 'next/navigation';
 
 export default async function CourseEditorPage({
   params,
@@ -18,7 +18,7 @@ export default async function CourseEditorPage({
   const categories = await getCategories();
 
   if (!course || !user || user.userId !== course.instructorId) {
-    redirect("/");
+    redirect('/');
   }
 
   const requiredFields = [
@@ -47,24 +47,24 @@ export default async function CourseEditorPage({
         </div>
       </div>
 
-      <Tabs defaultValue="details" className="w-full mt-8">
-        <TabsList className="flex overflow-x-auto no-scrollbar ">
+      <Tabs defaultValue="details" className="mt-8 w-full">
+        <TabsList className="no-scrollbar flex overflow-x-auto">
           <TabsTrigger value="details">
-            <LayoutDashboard className="h-4 w-4 mr-0" />
+            <LayoutDashboard className="mr-0 h-4 w-4" />
             Customize Details
           </TabsTrigger>
           <TabsTrigger value="curriculum">
-            <ListChecks className="h-4 w-4 mr-0" />
+            <ListChecks className="mr-0 h-4 w-4" />
             Curriculum
           </TabsTrigger>
           <TabsTrigger value="attachments">
-            <File className="h-4 w-4 mr-0" />
+            <File className="mr-0 h-4 w-4" />
             Attachments & Resources
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="details" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <div className="flex items-center gap-x-2">
                 <IconBadge icon={LayoutDashboard} />

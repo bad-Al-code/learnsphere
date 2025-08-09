@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import { EditorToolbar } from "./editor-toolbar";
+import { EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { EditorToolbar } from './editor-toolbar';
 
 interface RichTextEditorProps {
   value: string;
@@ -22,7 +22,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
     editorProps: {
       attributes: {
         class:
-          "prose dark:prose-invert prose-sm sm:prose-base lg:prose-lg xl:prose-2xl m-0 focus:outline-none rounded-md border min-h-[150px] border-input bg-background p-4",
+          'prose dark:prose-invert prose-sm sm:prose-base lg:prose-lg xl:prose-2xl m-0 focus:outline-none rounded-md border min-h-[150px] border-input bg-background p-4',
       },
     },
 

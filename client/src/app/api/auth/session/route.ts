@@ -1,7 +1,7 @@
-import { getCurrentUser } from "@/app/(auth)/actions";
-import { NextResponse } from "next/server";
+import { getCurrentUser } from '@/app/(auth)/actions';
+import { NextResponse } from 'next/server';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
@@ -19,7 +19,7 @@ export async function GET() {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: 'Internal Server Error' },
       { status: 500 }
     );
   }

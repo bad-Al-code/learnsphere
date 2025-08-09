@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { cn } from "@/lib/utils";
-import { Maximize, Minimize, Pause, Play } from "lucide-react";
-import { Button } from "../ui/button";
-import { ProgressBar } from "./progress-bar";
-import { SettingsControl } from "./setting-control";
-import { VolumeControl } from "./volume-control";
+import { cn } from '@/lib/utils';
+import { Maximize, Minimize, Pause, Play } from 'lucide-react';
+import { Button } from '../ui/button';
+import { ProgressBar } from './progress-bar';
+import { SettingsControl } from './setting-control';
+import { VolumeControl } from './volume-control';
 
 interface QualityLevel {
   name: string;
@@ -48,8 +48,8 @@ export function Controls({
   return (
     <div
       className={cn(
-        "absolute bottom-0 left-0 right-0 px-2 pb-1 bg-gradient-to-t from-black/60 to-transparent transition-opacity ",
-        isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"
+        'absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent px-2 pb-1 transition-opacity',
+        isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'
       )}
     >
       <ProgressBar
@@ -58,9 +58,9 @@ export function Controls({
         onSeek={onSeek}
       />
 
-      <div className="flex items-center justify-between mt-1">
+      <div className="mt-1 flex items-center justify-between">
         {/* Left side controls */}
-        <div className="flex items-center gap-0 cursor-pointer">
+        <div className="flex cursor-pointer items-center gap-0">
           <Button
             onClick={onPlayToggle}
             variant="ghost"
@@ -78,7 +78,7 @@ export function Controls({
         </div>
 
         {/* Right side controls */}
-        <div className="flex items-center gap-0 cursor-pointer">
+        <div className="flex cursor-pointer items-center gap-0">
           <SettingsControl
             levels={qualityLevels}
             currentLevel={currentQuality}

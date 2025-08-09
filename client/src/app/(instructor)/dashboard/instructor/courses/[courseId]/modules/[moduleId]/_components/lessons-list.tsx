@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import { Grip, Pencil, Search, Trash2 } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
+import { Grip, Pencil, Search, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useState, useTransition } from 'react';
+import { toast } from 'sonner';
 
 import {
   AlertDialog,
@@ -15,17 +15,17 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Lesson } from "@/types/lesson";
-import { deleteLesson, reorderLessons, updateLesson } from "../../../actions";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Lesson } from '@/types/lesson';
+import { deleteLesson, reorderLessons, updateLesson } from '../../../actions';
 
 interface LessonsListProps {
   initialLessons: Lesson[];
@@ -42,7 +42,7 @@ export function LessonsList({
   const [optimisticLessons, setOptimisticLessons] = useState(initialLessons);
   const [editLesson, setEditLesson] = useState<Lesson | null>(null);
   const [isDeleteLesson, setIsDeleteLesson] = useState<Lesson | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     setOptimisticLessons(initialLessons);
@@ -64,12 +64,12 @@ export function LessonsList({
 
     startTransition(async () => {
       toast.promise(reorderLessons(courseId, moduleId, bulkUpdateData), {
-        loading: "Reordering lessons...",
-        success: "Lessons reordered!",
+        loading: 'Reordering lessons...',
+        success: 'Lessons reordered!',
         error: (err) => {
           setOptimisticLessons(initialLessons);
 
-          return err.message || "Failed to reorder.";
+          return err.message || 'Failed to reorder.';
         },
       });
     });
@@ -83,9 +83,9 @@ export function LessonsList({
         title: newTitle,
       });
       if (result.error) {
-        toast.error("Failed to update lesson", { description: result.error });
+        toast.error('Failed to update lesson', { description: result.error });
       } else {
-        toast.success("Lesson updated successfully!");
+        toast.success('Lesson updated successfully!');
 
         setOptimisticLessons((prev) =>
           prev.map((l) =>
@@ -104,9 +104,9 @@ export function LessonsList({
     startTransition(async () => {
       const result = await deleteLesson(courseId, isDeleteLesson.id);
       if (result.error) {
-        toast.error("Failed to delete lesson", { description: result.error });
+        toast.error('Failed to delete lesson', { description: result.error });
       } else {
-        toast.success("Lesson deleted successfully");
+        toast.success('Lesson deleted successfully');
         setOptimisticLessons((prev) =>
           prev.filter((l) => l.id !== isDeleteLesson.id)
         );
@@ -122,7 +122,7 @@ export function LessonsList({
   return (
     <div className="mt-6 space-y-4">
       <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="text-muted-foreground absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2" />
         <Input
           placeholder="Search for lessons..."
           value={searchQuery}
@@ -147,23 +147,23 @@ export function LessonsList({
                 >
                   {(provided) => (
                     <div
-                      className="flex items-center gap-x-2 p-2 border rounded-md text-sm bg-background"
+                      className="bg-background flex items-center gap-x-2 rounded-md border p-2 text-sm"
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                     >
                       <div
                         {...provided.dragHandleProps}
-                        className="p-1 cursor-grab active:cursor-grabbing"
+                        className="cursor-grab p-1 active:cursor-grabbing"
                       >
                         <Grip className="h-5 w-5" />
                       </div>
                       <Link
                         href={`/dashboard/instructor/courses/${courseId}/lessons/${lesson.id}`}
-                        className="font-medium flex-grow hover:underline"
+                        className="flex-grow font-medium hover:underline"
                       >
                         {lesson.title}
                       </Link>
-                      <div className="ml-auto pr-1 flex items-center gap-x-1">
+                      <div className="ml-auto flex items-center gap-x-1 pr-1">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -176,7 +176,7 @@ export function LessonsList({
                           size="icon"
                           onClick={() => setIsDeleteLesson(lesson)}
                         >
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <Trash2 className="text-destructive h-4 w-4" />
                         </Button>
                       </div>
                     </div>
@@ -198,7 +198,7 @@ export function LessonsList({
           <Input
             defaultValue={editLesson?.title}
             onKeyDown={(e) => {
-              if (e.key === "Enter") handleSave(e.currentTarget.value);
+              if (e.key === 'Enter') handleSave(e.currentTarget.value);
             }}
             placeholder="New lesson title"
             disabled={isPending}
@@ -213,9 +213,9 @@ export function LessonsList({
                 handleSave(
                   (
                     document.getElementById(
-                      "edit-lesson-title-input"
+                      'edit-lesson-title-input'
                     ) as HTMLInputElement
-                  )?.value || ""
+                  )?.value || ''
                 )
               }
               disabled={isPending}
