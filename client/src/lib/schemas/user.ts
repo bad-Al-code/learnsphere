@@ -10,10 +10,7 @@ export const profileFormSchema = z.object({
   firstName: z.string().min(1, 'First name is required.').optional().nullable(),
   lastName: z.string().optional().nullable(),
   email: z.string(),
-  headline: z
-    .string()
-    .min(1, 'A headline is required.')
-    .max(100, 'Headline is too long.'),
+  headline: z.string().optional().nullable(),
   bio: z.string().max(500, 'Bio is too long.').optional().nullable(),
   language: z.string().optional(),
   websiteUrl: z.string().optional().or(z.literal('')).nullable(),

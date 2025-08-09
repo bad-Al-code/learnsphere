@@ -30,18 +30,7 @@ import { toast } from 'sonner';
 import { updateProfile } from '../actions';
 
 interface ProfileFormProps {
-  userData: {
-    email: string;
-    firstName: string | null;
-    lastName: string | null;
-    headline: string | null;
-    bio: string | null;
-    websiteUrl: string | null;
-    socialLinks: {
-      github?: string | null;
-      linkedin?: string | null;
-      twitter?: string | null;
-    } | null;
+  userData: ProfileFormValues & {
     settings?: { language?: string };
   };
 }
