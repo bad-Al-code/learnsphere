@@ -147,7 +147,7 @@ export function LessonsList({
                 >
                   {(provided) => (
                     <div
-                      className="bg-background flex items-center gap-x-2 rounded-md border p-2 text-sm"
+                      className="flex items-center gap-x-2 rounded-md border p-2 text-sm"
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                     >

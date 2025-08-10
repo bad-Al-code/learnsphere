@@ -5,7 +5,7 @@ import logger from '../config/logger';
 import { db } from '../db';
 import { LessonRepository } from '../db/repostiories/lesson.repository';
 import { ModuleRepository } from '../db/repostiories/module.repository';
-import { lessons } from '../db/schema';
+import { lessons, textLessonContent } from '../db/schema';
 import { BadRequestError, NotFoundError } from '../errors';
 import { CreateLessonDto, Requester, UpdateLessonDto } from '../types';
 import { AuthorizationService } from './authorization.service';
@@ -31,7 +31,7 @@ export class LessonService {
       throw new NotFoundError('Module');
     }
 
-    return db.transaction(async (tx) => {
+    const newLessonWithContent = await db.transaction(async (tx) => {
       const lessonCountResult = await tx
         .select({ value: count() })
         .from(lessons)
@@ -54,13 +54,22 @@ export class LessonService {
         data.content &&
         data.content.length > 0
       ) {
-        await LessonRepository.createTextContent(newLesson.id, data.content);
+        await tx
+          .insert(textLessonContent)
+          .values({ lessonId: newLesson.id, content: data.content });
       }
 
-      await CourseCacheService.invalidateCacheDetails(parentModule.courseId);
+      const fullLesson = await tx.query.lessons.findFirst({
+        where: eq(lessons.id, newLesson.id),
+        with: { textContent: true, module: true },
+      });
 
-      return LessonRepository.findByIdWithContent(newLesson.id);
+      return fullLesson;
     });
+
+    await CourseCacheService.invalidateCacheDetails(parentModule.courseId);
+
+    return newLessonWithContent;
   }
 
   /**
