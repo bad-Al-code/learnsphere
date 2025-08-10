@@ -11,8 +11,8 @@ import { requireAuth } from '../middlewares/require-auth';
 import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
 import {
-  createLessonSchema,
   reorderSchema,
+  updateLessonSchema,
   videoUploadUrlSchema,
 } from '../schemas';
 
@@ -63,7 +63,7 @@ router.put(
   '/:lessonId',
   requireAuth,
   requireRole(['instructor', 'admin']),
-  validateRequest(createLessonSchema.partial()),
+  validateRequest(updateLessonSchema),
   LessonController.update
 );
 

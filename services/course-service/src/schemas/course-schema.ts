@@ -169,6 +169,10 @@ export const createLessonSchema = z.object({
   }),
 });
 
+export const updateLessonSchema = z.object({
+  body: createLessonSchema.shape.body.partial(),
+});
+
 export const listCoursesSchema = z.object({
   query: z.object({
     page: z.coerce.number().int().min(1).default(1),

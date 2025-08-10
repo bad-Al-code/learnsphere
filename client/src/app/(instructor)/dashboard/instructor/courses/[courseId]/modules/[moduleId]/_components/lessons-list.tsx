@@ -191,7 +191,7 @@ export function LessonsList({
 
       {/* Edit Dialog */}
       <Dialog open={!!editLesson} onOpenChange={() => setEditLesson(null)}>
-        <DialogContent>
+        <DialogContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
           <DialogHeader>
             <DialogTitle>Edit Lesson Title</DialogTitle>
           </DialogHeader>
@@ -231,7 +231,7 @@ export function LessonsList({
         open={!!isDeleteLesson}
         onOpenChange={() => setIsDeleteLesson(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
           <AlertDialogHeader>
             <AlertDialogTitle>
               Are you sure you want to delete this lesson?

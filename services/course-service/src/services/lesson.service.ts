@@ -105,13 +105,22 @@ export class LessonService {
     const lesson = await LessonRepository.findById(lessonId);
     if (!lesson) throw new NotFoundError('Lesson');
 
-    await db.transaction(async (_tx) => {
+    await db.transaction(async (tx) => {
       const { content, ...lessonData } = data;
       if (Object.keys(lessonData).length > 0) {
-        await LessonRepository.update(lessonId, lessonData);
+        await tx
+          .update(lessons)
+          .set(lessonData)
+          .where(eq(lessons.id, lessonId));
       }
       if (lesson.lessonType === 'text' && typeof content !== 'undefined') {
-        await LessonRepository.upsertTextContent(lessonId, content);
+        await tx
+          .insert(textLessonContent)
+          .values({ lessonId, content })
+          .onConflictDoUpdate({
+            target: textLessonContent.lessonId,
+            set: { content },
+          });
       }
     });
 
