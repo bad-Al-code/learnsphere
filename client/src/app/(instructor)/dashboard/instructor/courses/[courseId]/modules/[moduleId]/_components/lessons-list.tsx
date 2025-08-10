@@ -67,7 +67,7 @@ export function LessonsList({
         loading: 'Reordering lessons...',
         success: 'Lessons reordered!',
         error: (err) => {
-          setOptimisticLessons(initialLessons); // Revert on error
+          setOptimisticLessons(initialLessons);
           return err.message || 'Failed to reorder.';
         },
       });
@@ -96,7 +96,7 @@ export function LessonsList({
           loading: 'Updating lesson title...',
           success: 'Lesson title updated!',
           error: (err) => {
-            setOptimisticLessons(previousLessons); // Revert on error
+            setOptimisticLessons(previousLessons);
             return err.message || 'Failed to update lesson.';
           },
         }
@@ -108,7 +108,6 @@ export function LessonsList({
     if (!isDeleteLesson) return;
 
     startTransition(() => {
-      // Optimistic UI update
       const previousLessons = optimisticLessons;
       setOptimisticLessons((prev) =>
         prev.filter((l) => l.id !== isDeleteLesson.id)
@@ -119,7 +118,7 @@ export function LessonsList({
         loading: 'Deleting lesson...',
         success: 'Lesson deleted successfully!',
         error: (err) => {
-          setOptimisticLessons(previousLessons); // Revert on error
+          setOptimisticLessons(previousLessons);
           return err.message || 'Failed to delete lesson.';
         },
       });
@@ -169,7 +168,7 @@ export function LessonsList({
                         <Grip className="h-5 w-5" />
                       </div>
                       <Link
-                        href={`/dashboard/instructor/courses/${courseId}/lessons/${lesson.id}`}
+                        href={`/dashboard/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lesson.id}`}
                         className="flex-grow font-medium hover:underline"
                       >
                         {lesson.title}

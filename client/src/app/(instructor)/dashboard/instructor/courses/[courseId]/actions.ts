@@ -151,7 +151,9 @@ export async function updateLesson(
       throw new Error(data.errors?.[0]?.message || 'Failed to update lesson.');
     }
 
-    revalidatePath(`/dashboard/instructor/courses/${courseId}/content`);
+    revalidatePath(
+      `/dashboard/instructor/courses/${courseId}/modules/${(await getLessonDetails(lessonId))?.moduleId}`
+    );
 
     return { success: true };
   } catch (error: any) {
@@ -206,5 +208,35 @@ export async function getModuleDetails(moduleId: string) {
     return await response.json();
   } catch (error) {
     return null;
+  }
+}
+
+export async function getLessonDetails(lessonId: string) {
+  try {
+    const response = await courseService.get(`/api/lessons/${lessonId}`);
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function getLessonVideoUploadUrl(
+  lessonId: string,
+  filename: string
+) {
+  try {
+    const response = await courseService.post(
+      `/api/lessons/${lessonId}/request-video-upload`,
+      { filename }
+    );
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.errors?.[0]?.message || 'Could not get upload URL.');
+    }
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error: any) {
+    return { error: error.message };
   }
 }
