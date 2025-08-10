@@ -62,13 +62,12 @@ export function LessonsList({
       order: index,
     }));
 
-    startTransition(async () => {
+    startTransition(() => {
       toast.promise(reorderLessons(courseId, moduleId, bulkUpdateData), {
         loading: 'Reordering lessons...',
         success: 'Lessons reordered!',
         error: (err) => {
-          setOptimisticLessons(initialLessons);
-
+          setOptimisticLessons(initialLessons); // Revert on error
           return err.message || 'Failed to reorder.';
         },
       });
@@ -76,42 +75,54 @@ export function LessonsList({
   };
 
   const handleSave = (newTitle: string) => {
-    if (!editLesson) return;
+    if (!editLesson || newTitle === editLesson.title) {
+      setEditLesson(null);
+      return;
+    }
 
-    startTransition(async () => {
-      const result = await updateLesson(courseId, editLesson.id, {
-        title: newTitle,
-      });
-      if (result.error) {
-        toast.error('Failed to update lesson', { description: result.error });
-      } else {
-        toast.success('Lesson updated successfully!');
+    startTransition(() => {
+      // Optimistic UI update
+      const previousLessons = optimisticLessons;
+      setOptimisticLessons((prev) =>
+        prev.map((l) =>
+          l.id === editLesson.id ? { ...l, title: newTitle } : l
+        )
+      );
+      setEditLesson(null);
 
-        setOptimisticLessons((prev) =>
-          prev.map((l) =>
-            l.id === editLesson.id ? { ...l, title: newTitle } : l
-          )
-        );
-
-        setEditLesson(null);
-      }
+      toast.promise(
+        updateLesson(courseId, editLesson.id, { title: newTitle }),
+        {
+          loading: 'Updating lesson title...',
+          success: 'Lesson title updated!',
+          error: (err) => {
+            setOptimisticLessons(previousLessons); // Revert on error
+            return err.message || 'Failed to update lesson.';
+          },
+        }
+      );
     });
   };
 
   const handleDelete = () => {
     if (!isDeleteLesson) return;
 
-    startTransition(async () => {
-      const result = await deleteLesson(courseId, isDeleteLesson.id);
-      if (result.error) {
-        toast.error('Failed to delete lesson', { description: result.error });
-      } else {
-        toast.success('Lesson deleted successfully');
-        setOptimisticLessons((prev) =>
-          prev.filter((l) => l.id !== isDeleteLesson.id)
-        );
-        setIsDeleteLesson(null);
-      }
+    startTransition(() => {
+      // Optimistic UI update
+      const previousLessons = optimisticLessons;
+      setOptimisticLessons((prev) =>
+        prev.filter((l) => l.id !== isDeleteLesson.id)
+      );
+      setIsDeleteLesson(null);
+
+      toast.promise(deleteLesson(courseId, isDeleteLesson.id), {
+        loading: 'Deleting lesson...',
+        success: 'Lesson deleted successfully!',
+        error: (err) => {
+          setOptimisticLessons(previousLessons); // Revert on error
+          return err.message || 'Failed to delete lesson.';
+        },
+      });
     });
   };
 
