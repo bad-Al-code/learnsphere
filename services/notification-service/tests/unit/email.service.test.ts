@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { faker } from '@faker-js/faker';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { EmailService } from '../../src/services/email-service';
 import { EmailClient } from '../../src/clients/email.client';
-import { generateVerificationEmail } from '../../src/templates/verification.template';
+import { EmailService } from '../../src/services/email-service';
 import { generatePasswordResetEmail } from '../../src/templates/password-reset.template';
+import { generateVerificationEmail } from '../../src/templates/verification.template';
 
 vi.mock('../../src/clients/email.client');
 vi.mock('../../src/templates/verification.template');
@@ -26,6 +26,9 @@ describe('EmailService', () => {
       const testData = {
         email: faker.internet.email(),
         verificationToken: faker.string.uuid(),
+        verificationCode: faker.number
+          .int({ min: 1_00_000, max: 9_99_999 })
+          .toString(),
       };
 
       const expectedLink = `http://localhost:3000/verify-email?token=${testData.verificationToken}&email=${testData.email}`;
@@ -52,6 +55,9 @@ describe('EmailService', () => {
       const testData = {
         email: faker.internet.email(),
         resetToken: faker.string.uuid(),
+        resetCode: faker.number
+          .int({ min: 1_00_000, max: 9_99_999 })
+          .toString(),
       };
 
       const resetLink = `http://localhost:3000/reset-password?token=${testData.resetToken}&email=${testData.email}`;

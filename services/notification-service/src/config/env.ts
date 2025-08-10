@@ -8,8 +8,10 @@ const envSchema = z.object({
     .default('development'),
 
   RABBITMQ_URL: z.string().min(1, 'RABBITMQ_URL is required'),
-  DATABASE_URL: z.string().url('DATABASE_URL must be a valid postgresql URL'),
-  USER_SERVICE_URL: z.string().url('USER_SERVCE_URL is required'),
+  DATABASE_URL: z
+    .string()
+    .min(1, 'DATABASE_URL must be a valid postgresql URL'),
+  USER_SERVICE_URL: z.string().min(1, 'USER_SERVCE_URL is required'),
 
   GOOGLE_APPLICATION_CREDENTIALS: z
     .string()
@@ -17,7 +19,7 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().min(1, 'RESEND_API_KEY is required'),
   EMAIL_FROM_ADDRESS: z
     .string()
-    .email('EMAIL_FROM_ADDRESS must be a valid email'),
+    .min(1, 'EMAIL_FROM_ADDRESS must be a valid email'),
   EMAIL_FROM_NAME: z.string().min(1, 'EMAIL_FROM_NAME is required'),
 
   COOKIE_PARSER_SECRET: z.string().min(1, 'COOKIE_PARSER_SECRET is required'),

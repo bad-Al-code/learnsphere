@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { faker } from '@faker-js/faker';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { EmailService } from '../../src/services/email-service';
+import { EmailClient } from '../../src/clients/email.client';
 import {
   UserPasswordResetRequiredListener,
   UserVerificationRequiredListener,
 } from '../../src/events/listener';
-import { EmailClient } from '../../src/clients/email.client';
+import { EmailService } from '../../src/services/email-service';
 
 vi.mock('../../src/services/email-service');
 
@@ -26,6 +26,9 @@ describe('UserVerificationRequiredListener', () => {
     const eventData = {
       email: faker.internet.email(),
       verificationToken: faker.string.uuid(),
+      verificationCode: faker.number
+        .int({ min: 1_00_000, max: 9_99_999 })
+        .toString(),
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,6 +57,7 @@ describe('UserPasswordResetRequiredListener', () => {
     const eventData = {
       email: faker.internet.email(),
       resetToken: faker.string.uuid(),
+      resetCode: faker.number.int({ min: 1_00_000, max: 9_99_999 }).toString(),
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
