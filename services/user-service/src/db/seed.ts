@@ -37,6 +37,7 @@ async function main() {
     const userId = faker.string.uuid();
     return {
       userId,
+      email: faker.internet.email(),
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
       bio: faker.lorem.paragraph(),

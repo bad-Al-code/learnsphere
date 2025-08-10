@@ -1,7 +1,7 @@
 import { and, count, eq, ilike, inArray, or, sql } from 'drizzle-orm';
 
 import { db } from '.';
-import { profiles, UserSettings, userStatusEnum } from './schema';
+import { profiles, UserSettings, UserStatus, userStatusEnum } from './schema';
 
 export type Profile = typeof profiles.$inferSelect;
 export type NewProfile = typeof profiles.$inferInsert;
@@ -92,6 +92,10 @@ export class ProfileRepository {
     return updatedProfile || null;
   }
 
+  private static isValidUserStatus(status: string): status is UserStatus {
+    return (userStatusEnum.enumValues as readonly string[]).includes(status);
+  }
+
   /**
    * Searches for profiles by first or last name with pagination.
    * @param query The search query string.
@@ -116,11 +120,9 @@ export class ProfileRepository {
         )
       );
     }
-    if (status) {
-      const validStatuses = userStatusEnum.enumValues;
-      if (validStatuses.includes(status as any)) {
-        conditions.push(eq(profiles.status, status as any));
-      }
+
+    if (status && this.isValidUserStatus(status)) {
+      conditions.push(eq(profiles.status, status));
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;

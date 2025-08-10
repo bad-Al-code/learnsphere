@@ -31,6 +31,8 @@ export const userStatusEnum = pgEnum('user_status', [
   'suspended',
 ]);
 
+export type UserStatus = (typeof userStatusEnum.enumValues)[number];
+
 export const profiles = pgTable('profiles', {
   userId: text('user_id').primaryKey(),
   email: text('email').notNull().unique(),

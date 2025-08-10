@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import request from 'supertest';
 import { faker } from '@faker-js/faker';
 import jwt from 'jsonwebtoken';
+import request from 'supertest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import { env } from '../../src/config/env';
 import { app } from '../../src/app';
+import { env } from '../../src/config/env';
 import { db } from '../../src/db';
 import { profiles } from '../../src/db/schema';
 
@@ -29,7 +29,8 @@ describe('Profile Routes - Integration Tests', () => {
 
     it('should return the profile for an authenticated user', async () => {
       const userId = faker.string.uuid();
-      await db.insert(profiles).values({ userId, firstName: 'Test' });
+      const email = faker.internet.email();
+      await db.insert(profiles).values({ userId, email, firstName: 'Test' });
       const authCookie = generateAuthCookie(userId);
 
       const response = await request(app)
@@ -45,7 +46,8 @@ describe('Profile Routes - Integration Tests', () => {
   describe('PUT /api/users/me', () => {
     it("should update the authenticated user's profile", async () => {
       const userId = faker.string.uuid();
-      await db.insert(profiles).values({ userId, firstName: 'Initial' });
+      const email = faker.internet.email();
+      await db.insert(profiles).values({ userId, email, firstName: 'Initial' });
       const authCookie = generateAuthCookie(userId);
 
       const updateData = { firstName: 'Updated' };
@@ -64,11 +66,13 @@ describe('Profile Routes - Integration Tests', () => {
 describe('Authentication Routes', async () => {
   describe('User Settings (/me/settings)', () => {
     let userId: string;
+    let email: string;
     let authCookies: string;
 
     beforeEach(async () => {
       userId = faker.string.uuid();
-      await db.insert(profiles).values({ userId });
+      email = faker.internet.email();
+      await db.insert(profiles).values({ userId, email });
 
       authCookies = generateAuthCookie(userId);
     });

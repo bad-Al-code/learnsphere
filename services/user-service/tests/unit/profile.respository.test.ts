@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
 import { faker } from '@faker-js/faker';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { db } from '../../src/db';
 import { ProfileRepository } from '../../src/db/profile.repository';
@@ -11,7 +11,10 @@ beforeEach(async () => {
 
 describe('ProfileRepository', () => {
   it('should create a new profile and find it by ID', async () => {
-    const newProfileData = { userId: faker.string.uuid() };
+    const newProfileData = {
+      userId: faker.string.uuid(),
+      email: faker.internet.email(),
+    };
     const createdProfile = await ProfileRepository.create(newProfileData);
 
     expect(createdProfile).toBeDefined();

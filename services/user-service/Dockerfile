@@ -23,4 +23,4 @@ USER appuser
 
 EXPOSE 8001
 
-CMD [ "node", "dist/index.js" ]
+CMD [ "node", "dist/src/index.js" ]
