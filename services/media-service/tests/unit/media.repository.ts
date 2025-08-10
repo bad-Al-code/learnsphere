@@ -1,9 +1,9 @@
 import { faker } from '@faker-js/faker';
-import { it, beforeEach, describe, expect } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { db } from '../../src/db';
-import { mediaAssets } from '../../src/db/schema';
 import { MediaRepository } from '../../src/db/media.repository';
+import { mediaAssets } from '../../src/db/schema';
 
 beforeEach(async () => {
   await db.delete(mediaAssets);
@@ -16,6 +16,7 @@ describe('MediaRepository', () => {
         s3Key: `uploads/avatars/${faker.string.uuid()}/avatar.jpg`,
         uploadType: 'avatar' as const,
         ownerUserId: faker.string.uuid(),
+        parentEntityId: faker.string.uuid(),
       };
 
       const createdAsset = await MediaRepository.create(newAssetData);
@@ -28,9 +29,12 @@ describe('MediaRepository', () => {
   describe('updateByS3Key()', () => {
     it('should update an existing media asset record', async () => {
       const s3Key = `uploads/videos/${faker.string.uuid()}/video.mp4`;
+      const parentEntityId = faker.string.uuid();
+
       await MediaRepository.create({
         s3Key,
         uploadType: 'video',
+        parentEntityId,
       });
 
       const updateData = {
