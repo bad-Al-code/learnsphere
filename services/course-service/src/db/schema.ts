@@ -25,6 +25,8 @@ export const courseLevelEnum = pgEnum('course_level', [
   'all-levels',
 ]);
 
+export type CourseLevel = (typeof courseLevelEnum.enumValues)[number];
+
 export const courses = pgTable('courses', {
   id: uuid('id').primaryKey().defaultRandom(),
   title: varchar('title', { length: 255 }).notNull(),

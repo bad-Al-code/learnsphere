@@ -1,6 +1,7 @@
 import { UserClient } from '../clients/user.client';
 import logger from '../config/logger';
 import { CourseRepository } from '../db/repostiories';
+import { CourseLevel } from '../db/schema';
 import { NotFoundError } from '../errors';
 import {
   CourseCreatedPublisher,
@@ -10,7 +11,6 @@ import {
 import { CreateFullCourseDto, GetCoursesByInstructorOptions } from '../schemas';
 import {
   Course,
-  CourseLevel,
   CourseWithInstructor,
   CreateCourseDto,
   Requester,

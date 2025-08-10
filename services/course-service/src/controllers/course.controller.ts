@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { MediaClient } from '../clients/media.client';
 import { CourseRepository } from '../db/repostiories';
+import { CourseLevel } from '../db/schema';
 import { NotAuthorizedError } from '../errors';
 import { CreateFullCourseDto, getCoursesQuerySchema } from '../schemas';
 import {
@@ -11,7 +12,6 @@ import {
   CourseService,
   ModuleService,
 } from '../services';
-import { CourseLevel } from '../types';
 
 export class CourseController {
   public static async create(

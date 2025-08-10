@@ -1,5 +1,4 @@
-import { courses } from '../db/schema';
-import { CourseLevelEnum } from '../schemas';
+import { CourseLevel, courses } from '../db/schema';
 
 export type Course = typeof courses.$inferSelect;
 export type NewCourse = typeof courses.$inferInsert;
@@ -31,8 +30,6 @@ export interface Requester {
   id: string;
   role: 'student' | 'instructor' | 'admin';
 }
-
-export type CourseLevel = CourseLevelEnum;
 
 export interface FindCoursesByInstructorOptions {
   instructorId: string;

@@ -5,8 +5,8 @@ import {
   CreateFullCourseDto,
   GetCoursesByInstructorOptions,
 } from '../../schemas';
-import { Course, CourseLevel, NewCourse, UpdateCourse } from '../../types';
-import { courses, modules } from '../schema';
+import { Course, NewCourse, UpdateCourse } from '../../types';
+import { CourseLevel, courses, modules } from '../schema';
 
 export class CourseRepository {
   /**
