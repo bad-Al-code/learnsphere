@@ -32,7 +32,7 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET is required'),
   GOOGLE_CALLBACK_URL: z
     .string()
-    .url('GOOGLE_CALLBACK_URL must be a valid URL'),
+    .min(1, 'GOOGLE_CALLBACK_URL must be a valid URL'),
 
   CLIENT_URL: z.string().url().default('http://localhost:3000'),
 });
