@@ -83,8 +83,8 @@ export function VideoUploader({
       )}
 
       {initialVideoUrl && !videoUrl && !isUploading && (
-        <div className="flex items-center gap-2 rounded-md border border-yellow-300 bg-yellow-100 p-4 text-center">
-          <AlertTriangle className="h-8 w-8 text-yellow-600" />
+        <div className="flex items-center gap-2 rounded-md border p-4 text-center">
+          <AlertTriangle className="h-8 w-8" />
           <div className="text-left">
             <p className="font-semibold">Video is processing</p>
             <p className="text-muted-foreground text-xs">
