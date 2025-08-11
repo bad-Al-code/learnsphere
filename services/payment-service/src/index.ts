@@ -5,11 +5,24 @@ import { env } from './config/env';
 import logger from './config/logger';
 import { checkDatabaseConnection } from './db';
 import { rabbitMQConnection } from './events/connection';
+import {
+  CourseSyncCreatedListener,
+  CourseSyncDeletedListener,
+  CourseSyncUpdatedListener,
+  UserSyncRegisteredListener,
+  UserSyncRoleUpdatedListener,
+} from './events/listener';
 
 const startServer = async () => {
   try {
     await rabbitMQConnection.connect();
     await checkDatabaseConnection();
+
+    new CourseSyncCreatedListener().listen();
+    new CourseSyncUpdatedListener().listen();
+    new CourseSyncDeletedListener().listen();
+    new UserSyncRegisteredListener().listen();
+    new UserSyncRoleUpdatedListener().listen();
 
     app.listen(env.PORT, () => {
       logger.info(

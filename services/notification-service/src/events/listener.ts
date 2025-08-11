@@ -206,6 +206,9 @@ export class UserSyncRegisteredListener extends Listener<UserRegisteredEvent> {
       await UserRepository.upsert({
         id: data.id,
         email: data.email,
+        // The 'user.registered' event contract does not specify a role.
+        // We assume 'student' as the default, which will be corrected
+        // by the UserSyncRoleUpdatedListener if the role changes.
         role: 'student',
       });
     } catch (error) {
