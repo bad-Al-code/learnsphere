@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import { errorHandler } from './middleware/error-handler.middleware';
 import { httpLogger } from './middleware/http-logger';
 import { healthRouter } from './routes/health.route';
+import { paymentRouter } from './routes/payment.route';
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(helmet());
 app.use(httpLogger);
 
 app.use('/api/payments', healthRouter);
+app.use('/api/payments', paymentRouter);
 
 app.use(errorHandler);
 
