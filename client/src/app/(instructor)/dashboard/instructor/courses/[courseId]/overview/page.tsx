@@ -1,9 +1,10 @@
 import { getCategories } from '@/app/(admin)/actions';
 import { getCourseDetails } from '@/app/courses/actions';
 import { IconBadge } from '@/components/shared/icon-badge';
-import { LayoutDashboard } from 'lucide-react';
+import { Image as ImageIcon, LayoutDashboard } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { DetailsForm } from './_components/detail-form';
+import { ThumbnailUploader } from './_components/thumbnail-uploader';
 
 export default async function CourseDetailsEditorPage({
   params,
@@ -36,7 +37,16 @@ export default async function CourseDetailsEditorPage({
         />
       </div>
       <div>
-        <p>Thumbnail editor placeholder</p>
+        <div className="flex items-center gap-x-2">
+          <IconBadge icon={ImageIcon} />
+          <h2 className="text-xl">Course Thumbnail</h2>
+        </div>
+        <div className="mt-6 rounded-md border p-4">
+          <ThumbnailUploader
+            courseId={course.id}
+            currentImageUrl={course.imageUrl}
+          />
+        </div>
       </div>
     </div>
   );
