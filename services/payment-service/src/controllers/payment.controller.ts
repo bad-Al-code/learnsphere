@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { NotAuthorizedError } from '../errors';
+import { BadRequestError, NotAuthorizedError } from '../errors';
 import { PaymentService } from '../services/payment.service';
 
 export class PaymentController {
@@ -20,6 +20,30 @@ export class PaymentController {
       );
 
       res.status(StatusCodes.CREATED).json(orderDetails);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async handleWebhook(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const signature = req.headers['x-razorpay-signature'] as string;
+
+      const rawBody = (req as any).rawBody;
+
+      if (!signature || !rawBody) {
+        throw new BadRequestError(
+          'Missing Razorpay signature or request body.'
+        );
+      }
+
+      await PaymentService.handleWebhook(req.body, signature, rawBody);
+
+      res.status(StatusCodes.OK).json({ status: 'ok' });
     } catch (error) {
       next(error);
     }

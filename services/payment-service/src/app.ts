@@ -1,5 +1,6 @@
+import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
-import express, { json } from 'express';
+import express, { json, Request, Response } from 'express';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 
@@ -16,6 +17,16 @@ const app = express();
 app.set('trust proxy', 1);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.use(
+  '/api/payments/webhook',
+  bodyParser.raw({ type: 'application/json' }),
+  (req: Request, res: Response, next) => {
+    (req as any).rawBody = req.body.toString();
+    req.body = JSON.parse(req.body);
+    next();
+  }
+);
 
 app.use(json());
 app.use(helmet());

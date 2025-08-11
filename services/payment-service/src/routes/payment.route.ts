@@ -43,4 +43,33 @@ router.post(
   PaymentController.createOrder
 );
 
+/**
+ * @openapi
+ * /api/payments/webhook:
+ *   post:
+ *     summary: Handle incoming webhooks from Razorpay
+ *     tags: [Payments]
+ *     description: Endpoint for Razorpay to send payment status updates. This should not be called by clients directly.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             description: The webhook payload from Razorpay.
+ *     parameters:
+ *       - in: header
+ *         name: X-Razorpay-Signature
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The signature to verify the webhook's authenticity.
+ *     responses:
+ *       '200':
+ *         description: Webhook received and acknowledged.
+ *       '400':
+ *         description: Invalid signature or missing data.
+ */
+router.post('/webhook', PaymentController.handleWebhook);
+
 export { router as paymentRouter };
