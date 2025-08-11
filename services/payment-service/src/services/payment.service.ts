@@ -6,6 +6,7 @@ import { env } from '../config/env';
 import logger from '../config/logger';
 import { CourseRepository, PaymentRepository } from '../db/repostiories';
 import { BadRequestError, NotFoundError } from '../errors';
+import { PaymentSuccessfulPublisher } from '../events/publisher';
 import { CreateOrderData, Payment, Requester, WebhookEvent } from '../types';
 
 export class PaymentService {
@@ -115,6 +116,23 @@ export class PaymentService {
       });
 
       logger.info(`Payment record ${updatedPayment.id} marked as completed.`);
+
+      try {
+        const publisher = new PaymentSuccessfulPublisher();
+        await publisher.publish({
+          paymentId: updatedPayment.id,
+          userId: updatedPayment.id,
+          courseId: updatedPayment.courseId,
+          amount: updatedPayment.amount,
+          currency: updatedPayment.currency,
+          completedAt: updatedPayment.updatedAt,
+        });
+      } catch (error) {
+        logger.error(
+          `Failed to publish payment.successful event for paymentId: ${updatedPayment.id}`,
+          { error }
+        );
+      }
 
       return updatedPayment;
     } else if (event.event === 'payment.failed') {
