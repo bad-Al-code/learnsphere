@@ -1,6 +1,6 @@
 import bodyParser from 'body-parser';
 import { NextFunction, Request, Response } from 'express';
-import logger from '../config/logger';
+import { BadRequestError } from '../errors';
 
 export const rawBodyMiddleware = (
   req: Request,
@@ -12,18 +12,20 @@ export const rawBodyMiddleware = (
       return next(err);
     }
 
-    if (!req.body) {
-      return next(new Error('Empty body'));
+    if (req.body && Buffer.isBuffer(req.body)) {
+      const rawBodyString = req.body.toString();
+      req.rawBody = rawBodyString;
+
+      try {
+        req.body = JSON.parse(rawBodyString);
+      } catch (_e) {
+        return next(new BadRequestError('Invalid JSON payload.'));
+      }
+    } else {
+      req.rawBody = '';
+      req.body = {};
     }
 
-    req.rawBody = (req.body as Buffer).toString();
-
-    try {
-      req.body = JSON.parse(req.rawBody);
-    } catch (e) {
-      logger.error(`Raw Body Middleware Error: ${e}`);
-      return next(new Error('Invalid JSON payload'));
-    }
     next();
   });
 };
