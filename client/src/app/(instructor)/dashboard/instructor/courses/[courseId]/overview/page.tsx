@@ -20,7 +20,7 @@ export default async function CourseDetailsEditorPage({
   const categories = categoriesResult.success ? categoriesResult.data : [];
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <div>
         <div className="flex items-center gap-x-2">
           <IconBadge icon={LayoutDashboard} />
