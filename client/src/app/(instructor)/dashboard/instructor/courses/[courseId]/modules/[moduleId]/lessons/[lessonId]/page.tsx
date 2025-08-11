@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 
 import { IconBadge } from '@/components/shared/icon-badge';
 import { getLessonDetails } from '../../../../actions';
+import { EditTextContentForm } from './_components/edit-text-content-form';
 import { EditTitleForm } from './_components/edit-title-form';
 import { VideoUploader } from './_components/video-uploader';
 
@@ -55,7 +56,7 @@ export default async function EditLessonPage({
               <h2 className="text-xl">Lesson Content</h2>
             </div>
             {lesson.lessonType === 'video' && (
-              <div className="mt-6 rounded-md border bg-slate-100 p-4 dark:bg-slate-800">
+              <div className="mt-6 rounded-md border">
                 <VideoUploader
                   courseId={params.courseId}
                   lessonId={params.lessonId}
@@ -64,8 +65,12 @@ export default async function EditLessonPage({
               </div>
             )}
             {lesson.lessonType === 'text' && (
-              <div className="mt-6 rounded-md border bg-slate-100 p-4 dark:bg-slate-800">
-                <p>Rich text editor for editing goes here.</p>
+              <div className="border0 mt-6 rounded-md">
+                <EditTextContentForm
+                  courseId={params.courseId}
+                  lessonId={params.lessonId}
+                  initialContent={lesson.textContent?.content}
+                />
               </div>
             )}
           </div>

@@ -7,7 +7,8 @@ export const createLessonSchema = z.object({
 export type CreateLessonFormValues = z.infer<typeof createLessonSchema>;
 
 export const updateLessonSchema = z.object({
-  title: z.string().min(1, 'Title is required.'),
+  title: z.string().min(1).optional(),
+  content: z.string().min(1).optional(),
 });
 
 export type UpdateLessonFormValues = z.infer<typeof updateLessonSchema>;
