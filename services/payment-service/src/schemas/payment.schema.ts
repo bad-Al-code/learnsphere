@@ -28,6 +28,12 @@ import { z } from 'zod';
  *           type: string
  *           description: The currency code (e.g., INR).
  *           example: "INR"
+ *     RazorpayWebhookPayload:
+ *       type: object
+ *       description: "The webhook event payload sent by Razorpay. The structure varies based on the event type."
+ *       example:
+ *         event: "payment.captured"
+ *         payload: { ... }
  */
 export const createOrderSchema = z.object({
   body: z.object({
