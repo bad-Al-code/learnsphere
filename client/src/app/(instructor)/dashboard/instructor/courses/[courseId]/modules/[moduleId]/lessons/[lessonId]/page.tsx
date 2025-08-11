@@ -27,7 +27,7 @@ export default async function EditLessonPage({
             className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-2 text-sm"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Module
+            Back to Lessons
           </Link>
           <div className="flex flex-col gap-y-2">
             <h1 className="text-2xl font-medium">Lesson Editor</h1>

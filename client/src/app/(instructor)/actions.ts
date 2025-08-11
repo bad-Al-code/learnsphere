@@ -1,7 +1,12 @@
 'use server';
 
 import { courseService, enrollmentService } from '@/lib/api';
-import { CourseFormValues, courseSchema } from '@/lib/schemas/course';
+import {
+  CourseFormValues,
+  courseSchema,
+  updateCourseSchema,
+  UpdateCourseValues,
+} from '@/lib/schemas/course';
 import { CourseFilterOptions } from '@/types/course';
 import { revalidatePath } from 'next/cache';
 import z from 'zod';
@@ -110,6 +115,37 @@ export async function createFullCourse(values: CourseFormValues) {
 
     return { success: true, data: newCourse };
   } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function updateCourseDetails(
+  courseId: string,
+  values: UpdateCourseValues
+) {
+  try {
+    const validatedData = updateCourseSchema.parse(values);
+
+    const response = await courseService.put(
+      `/api/courses/${courseId}`,
+      validatedData
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(
+        data.errors?.[0]?.message || 'Failed to update course details.'
+      );
+    }
+
+    revalidatePath(`/dashboard/instructor/courses/${courseId}`);
+    revalidatePath(`/courses/${courseId}`);
+
+    return { success: true };
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
     return { error: error.message };
   }
 }

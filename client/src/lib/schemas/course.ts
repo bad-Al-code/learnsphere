@@ -50,3 +50,23 @@ export type PriceFormValues = z.input<typeof priceSchema>;
 export const searchQuerySchema = z
   .string()
   .min(1, 'Search query cannot be empty.');
+
+export const updateCourseSchema = z.object({
+  title: z.string().min(1, 'Title is required.').optional(),
+  description: z
+    .string()
+    .min(1, 'Description is required.')
+    .nullable()
+    .optional(),
+  categoryId: z
+    .string()
+    .min(1, 'Please select a category.')
+    .nullable()
+    .optional(),
+  level: z
+    .enum(['beginner', 'intermediate', 'advanced', 'all-levels'])
+    .optional(),
+  price: z.union([z.coerce.number().min(0), z.null()]).optional(),
+});
+
+export type UpdateCourseValues = z.infer<typeof updateCourseSchema>;
