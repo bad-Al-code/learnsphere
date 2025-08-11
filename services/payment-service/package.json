@@ -1,0 +1,37 @@
+{
+  "name": "payment-service",
+  "version": "1.0.0",
+  "description": "LearnSpere Payment Management Service",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node ./dist/index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "ts-node ./src/db/migrate.ts",
+    "db": "pnpm db:generate; pnpm db:migrate",
+    "db:studio": "pnpm drizzle-kit studio --port 6966 --verbose"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.14.0",
+  "dependencies": {
+    "dotenv": "^17.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "drizzle-kit": "^0.31.4",
+    "eslint": "^9.33.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.3.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.39.0"
+  }
+}

@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:17.5
+    container_name: learnsphere-payment-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: payment_db
+    ports:
+      - '5438:5432'
+    volumes:
+      - payment-db-data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:4.1.1-management-alpine
+    container_name: learnsphere-rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+volumes:
+  payment-db-data:
