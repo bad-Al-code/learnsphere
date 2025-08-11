@@ -3,11 +3,13 @@ import 'dotenv/config';
 import { app } from './app';
 import { env } from './config/env';
 import logger from './config/logger';
+import { checkDatabaseConnection } from './db';
 import { rabbitMQConnection } from './events/connection';
 
 const startServer = async () => {
   try {
     await rabbitMQConnection.connect();
+    await checkDatabaseConnection();
 
     app.listen(env.PORT, () => {
       logger.info(

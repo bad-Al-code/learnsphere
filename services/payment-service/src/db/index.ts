@@ -12,13 +12,14 @@ export const pool = new Pool({
 });
 
 pool.on('connect', () => {
-  logger.info(`Database for payment-service connected successfully`);
+  logger.info(`Database connected successfully`);
   healthState.set('db', true);
 });
 
 pool.on('error', (err) => {
   logger.error('Database connection error', { error: err.stack });
   healthState.set('db', false);
+  // process.exit(1);
 });
 
 export const db = drizzle(pool, {
@@ -28,12 +29,13 @@ export const db = drizzle(pool, {
 
 export const checkDatabaseConnection = async () => {
   try {
-    await db.query.users.findFirst();
+    await db.query.payments.findFirst();
     logger.info(`Database connection verified successfully,`);
     healthState.set('db', true);
   } catch (error) {
-    logger.error(`Failed to verify Database connection`, { error });
+    logger.info(`Failed to verify Database connection`);
     healthState.set('db', false);
+
     throw error;
   }
 };
