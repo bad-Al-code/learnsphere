@@ -33,7 +33,7 @@ export class PaymentController {
     try {
       const signature = req.headers['x-razorpay-signature'] as string;
 
-      const rawBody = (req as any).rawBody;
+      const rawBody = req.rawBody;
 
       if (!signature || !rawBody) {
         throw new BadRequestError(

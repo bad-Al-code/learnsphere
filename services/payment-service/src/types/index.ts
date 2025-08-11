@@ -20,8 +20,21 @@ export type UpdatePayment = Partial<Omit<NewPayment, 'id' | 'createdAt'>>;
 
 export interface WebhookEvent {
   event: string;
-  payload: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
+  payload: RazorpayWebhookPayload;
+}
+
+export interface RazorpayPaymentEntity {
+  id: string;
+  order_id: string;
+  amount: number;
+  currency: string;
+  status: 'captured' | 'failed' | 'created';
+  error_code: string | null;
+  error_description: string | null;
+}
+
+export interface RazorpayWebhookPayload {
+  payment: {
+    entity: RazorpayPaymentEntity;
   };
 }

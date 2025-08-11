@@ -1,6 +1,5 @@
-import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
-import express, { json, Request, Response } from 'express';
+import express, { json } from 'express';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 
@@ -9,6 +8,7 @@ import { swaggerSpec } from './config/swagger';
 import { currentUser } from './middleware/current-user.middleware';
 import { errorHandler } from './middleware/error-handler.middleware';
 import { httpLogger } from './middleware/http-logger';
+import { rawBodyMiddleware } from './middleware/raw-body.middleware';
 import { healthRouter } from './routes/health.route';
 import { paymentRouter } from './routes/payment.route';
 
@@ -18,15 +18,7 @@ app.set('trust proxy', 1);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.use(
-  '/api/payments/webhook',
-  bodyParser.raw({ type: 'application/json' }),
-  (req: Request, res: Response, next) => {
-    (req as any).rawBody = req.body.toString();
-    req.body = JSON.parse(req.body);
-    next();
-  }
-);
+app.use('/api/payments/webhook', rawBodyMiddleware);
 
 app.use(json());
 app.use(helmet());
