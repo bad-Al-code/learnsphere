@@ -1,4 +1,4 @@
-import crypto from 'node:crypto';
+import crypto, { timingSafeEqual } from 'node:crypto';
 import { v4 as uuidv4 } from 'uuid';
 
 import { RazorpayClient } from '../clients/razorpay.client';
@@ -169,6 +169,13 @@ export class PaymentService {
       .update(rawBody)
       .digest('hex');
 
-    return expectedSignature === signature;
+    const signatureBuffer = Buffer.from(signature, 'utf-8');
+    const expectedSignatureBuffer = Buffer.from(expectedSignature, 'utf-8');
+
+    if (signatureBuffer.length !== expectedSignatureBuffer.length) {
+      return false;
+    }
+
+    return timingSafeEqual(expectedSignatureBuffer, signatureBuffer);
   }
 }
