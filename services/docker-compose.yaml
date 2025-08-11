@@ -93,6 +93,18 @@ services:
     volumes:
       - notification-db-data:/var/lib/postgresql/data
 
+  postgres-payment:
+    image: postgres:17.5
+    container_name: learnsphere-payment-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: payment_db
+    ports:
+      - "5438:5432"
+    volumes:
+      - payment-db-data:/var/lib/postgresql/data
+
 volumes:
   auth-db-data:
   user-db-data:
@@ -100,3 +112,4 @@ volumes:
   enrollment-db-data:
   media-db-data:
   notification-db-data:
+  payment-db-data:
