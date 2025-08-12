@@ -11,13 +11,8 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
-export const categories = pgTable('categories', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  name: varchar('name', { length: 255 }).notNull().unique(),
-  slug: varchar('slug', { length: 255 }).notNull().unique(),
-});
-
 export const courseStatusEnum = pgEnum('course_status', ['draft', 'published']);
+
 export const courseLevelEnum = pgEnum('course_level', [
   'beginner',
   'intermediate',
@@ -26,6 +21,12 @@ export const courseLevelEnum = pgEnum('course_level', [
 ]);
 
 export type CourseLevel = (typeof courseLevelEnum.enumValues)[number];
+
+export const categories = pgTable('categories', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }).notNull().unique(),
+  slug: varchar('slug', { length: 255 }).notNull().unique(),
+});
 
 export const courses = pgTable('courses', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -83,6 +84,35 @@ export const textLessonContent = pgTable('text_lesson_content', {
   content: text('content').notNull(),
 });
 
+export const assignmentStatusEnum = pgEnum('assignment_status', [
+  'draft',
+  'published',
+]);
+export type AssignmentStatus = (typeof assignmentStatusEnum.enumValues)[number];
+
+export const assignments = pgTable('assignments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+
+  courseId: uuid('course_id')
+    .references(() => courses.id, { onDelete: 'cascade' })
+    .notNull(),
+
+  moduleId: uuid('module_id')
+    .references(() => modules.id, { onDelete: 'cascade' })
+    .notNull(),
+
+  dueDate: timestamp('due_date'),
+
+  status: assignmentStatusEnum('status').default('draft').notNull(),
+
+  order: integer('order').default(0).notNull(),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 export const categoryRelations = relations(categories, ({ many }) => ({
   courses: many(courses),
 }));
@@ -101,6 +131,7 @@ export const moduleRelations = relations(modules, ({ one, many }) => ({
     references: [courses.id],
   }),
   lessons: many(lessons),
+  assignments: many(assignments),
 }));
 
 export const lessonRelations = relations(lessons, ({ one }) => ({
@@ -123,3 +154,10 @@ export const textLessonContentRelations = relations(
     }),
   })
 );
+
+export const assignmentRelations = relations(assignments, ({ one }) => ({
+  module: one(modules, {
+    fields: [assignments.moduleId],
+    references: [modules.id],
+  }),
+}));
