@@ -2,6 +2,12 @@
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   BarChart2,
   FileText,
   LayoutDashboard,
@@ -17,30 +23,42 @@ const tabs = [
     label: 'Overview',
     href: (id: string) => `/dashboard/instructor/courses/${id}/overview`,
     icon: LayoutDashboard,
+    matcher: (id: string, pathname: string) =>
+      pathname === `/dashboard/instructor/courses/${id}/overview`,
   },
   {
     value: 'content',
     label: 'Content',
     href: (id: string) => `/dashboard/instructor/courses/${id}/content`,
     icon: ListChecks,
+    matcher: (id: string, pathname: string) =>
+      pathname.startsWith(`/dashboard/instructor/courses/${id}/content`) ||
+      pathname.startsWith(`/dashboard/instructor/courses/${id}/modules`),
   },
   {
     value: 'assignments',
     label: 'Assignments',
     href: (id: string) => `/dashboard/instructor/courses/${id}/assignments`,
     icon: FileText,
+    matcher: (id: string, pathname: string) =>
+      pathname === `/dashboard/instructor/courses/${id}/assignments`,
   },
   {
     value: 'grades',
     label: 'Grades',
     href: (id: string) => `/dashboard/instructor/courses/${id}/grades`,
     icon: BarChart2,
+
+    matcher: (id: string, pathname: string) =>
+      pathname === `/dashboard/instructor/courses/${id}/grades`,
   },
   {
     value: 'settings',
     label: 'Settings',
     href: (id: string) => `/dashboard/instructor/courses/${id}/settings`,
     icon: Settings,
+    matcher: (id: string, pathname: string) =>
+      pathname.startsWith(`/dashboard/instructor/courses/${id}/settings`),
   },
 ] as const;
 
@@ -48,29 +66,31 @@ export function CourseEditorTabs({ courseId }: { courseId: string }) {
   const pathname = usePathname();
 
   const activeTab =
-    tabs
-      .slice()
-      .sort((a, b) => b.href(courseId).length - a.href(courseId).length)
-      .find((tab) => pathname.startsWith(tab.href(courseId)))?.value ||
-    'overview';
+    tabs.find((tab) => tab.matcher(courseId, pathname))?.value || 'overview';
 
   return (
     <Tabs value={activeTab} className="w-full">
-      <TabsList className="grid w-full grid-cols-5 gap-4 px-1">
+      <TabsList className="no-scrollbar flex w-full gap-2 overflow-x-auto sm:grid sm:grid-cols-5">
         {tabs.map((tab) => (
           <TabsTrigger
             key={tab.value}
             value={tab.value}
-            asChild
-            className="text-[12px] sm:text-sm"
+            className="flex-shrink-0 px-3 py-1 text-xs sm:text-sm"
           >
-            <Link
-              href={tab.href(courseId)}
-              className="flex items-center gap-0 sm:gap-1"
-            >
-              <tab.icon className="h-4 w-4" />
-              {tab.label}
-            </Link>
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href={tab.href(courseId)}
+                    className="flex items-center gap-1 whitespace-nowrap"
+                  >
+                    <tab.icon className="h-4 w-4" />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">{tab.label}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </TabsTrigger>
         ))}
       </TabsList>
