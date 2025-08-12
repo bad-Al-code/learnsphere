@@ -113,6 +113,30 @@ export const assignments = pgTable('assignments', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+export const resources = pgTable('resources', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: varchar('title', { length: 255 }).notNull(),
+
+  courseId: uuid('course_id')
+    .references(() => courses.id, { onDelete: 'cascade' })
+    .notNull(),
+
+  fileUrl: text('file_url').notNull(),
+  fileName: varchar('file_name', { length: 255 }).notNull(),
+  fileSize: integer('file_size').notNull(), // in bytes
+  fileType: varchar('file_type', { length: 100 }).notNull(),
+
+  order: integer('order').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const resourcesRelations = relations(resources, ({ one }) => ({
+  course: one(courses, {
+    fields: [resources.courseId],
+    references: [courses.id],
+  }),
+}));
+
 export const categoryRelations = relations(categories, ({ many }) => ({
   courses: many(courses),
 }));
@@ -123,6 +147,7 @@ export const courseRelations = relations(courses, ({ many, one }) => ({
     fields: [courses.categoryId],
     references: [categories.id],
   }),
+  resources: many(resources),
 }));
 
 export const moduleRelations = relations(modules, ({ one, many }) => ({
