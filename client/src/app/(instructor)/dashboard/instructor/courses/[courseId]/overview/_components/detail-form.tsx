@@ -110,7 +110,7 @@ export function DetailsForm({
                       <SelectValue placeholder="Select a category..." />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
                     {categories.map((c) => (
                       <SelectItem key={c.value} value={c.value}>
                         {c.label}
@@ -137,7 +137,7 @@ export function DetailsForm({
                       <SelectValue placeholder="Select a level..." />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
                     <SelectItem value="beginner">Beginner</SelectItem>
                     <SelectItem value="intermediate">Intermediate</SelectItem>
                     <SelectItem value="advanced">Advanced</SelectItem>

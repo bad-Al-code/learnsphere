@@ -111,7 +111,7 @@ function LessonForm({
                         <SelectValue placeholder="Select a lesson type..." />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
                       <SelectItem value="video">Video</SelectItem>
                       <SelectItem value="text">Text</SelectItem>
                       <SelectItem value="quiz" disabled>

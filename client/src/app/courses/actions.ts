@@ -143,7 +143,6 @@ export async function serachCourseForCommand(query: string) {
     }
 
     const courses = await response.json();
-    console.log(courses);
 
     return { success: true, data: courses };
   } catch (error) {

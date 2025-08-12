@@ -1,6 +1,7 @@
 import { getCourseDetails } from '@/app/courses/actions';
 import { Banner } from '@/components/shared/banner';
 import { IconBadge } from '@/components/shared/icon-badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -8,8 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ListChecks } from 'lucide-react';
+import { ArrowLeft, ListChecks } from 'lucide-react';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CourseActions } from './_components/course-actions';
 
@@ -24,18 +25,23 @@ export default async function CourseSettingsPage({
     notFound();
   }
 
-  const requiredFields = [
-    course.title,
-    course.description,
-    course.imageUrl,
-    course.price,
-    course.categoryId,
-    course.modules.some((module: any) => module.lessons.length > 0),
+  const fieldLabels = [
+    { value: course.title, label: 'Course Title' },
+    { value: course.description, label: 'Description' },
+    { value: course.imageUrl, label: 'Course Image' },
+    { value: course.price, label: 'Price' },
+    { value: course.categoryId, label: 'Category' },
+    {
+      value: course.modules.some((module: any) => module.lessons.length > 0),
+      label: 'At least one lesson in a module',
+    },
   ];
 
-  const totalFields = requiredFields.length;
-  const completedFields = requiredFields.filter(Boolean).length;
-  const isComplete = requiredFields.every(Boolean);
+  const totalFields = fieldLabels.length;
+  const completedFields = fieldLabels.filter((f) => Boolean(f.value)).length;
+  const isComplete = completedFields === totalFields;
+
+  const missingFields = fieldLabels.filter((f) => !f.value).map((f) => f.label);
 
   return (
     <div className="space-y-6">
@@ -63,34 +69,35 @@ export default async function CourseSettingsPage({
             disabled={!isComplete}
           />
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <p className="text-muted-foreground text-sm">
             You can publish your course once all required fields are complete.
           </p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
 
-// Skeleton loader for settings page
-export function CourseSettingsSkeleton() {
-  return (
-    <div className="space-y-6 p-6">
-      <Skeleton className="h-12 w-full" />
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div className="flex items-center gap-x-2">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <div>
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="mt-1 h-4 w-40" />
+          {!isComplete && (
+            <div className="space-y-3">
+              <div>
+                <p className="mb-2 text-sm font-medium">
+                  Required fields missing:
+                </p>
+                <ul className="text-muted-foreground list-inside list-disc space-y-1 text-sm">
+                  {missingFields.map((field, idx) => (
+                    <li key={idx}>{field}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <Button asChild variant="outline" className="font-medium">
+                <Link
+                  href={`/dashboard/instructor/courses/${course.id}/overview`}
+                  className="text-primary flex items-center gap-1"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Go to Overview to Update
+                </Link>
+              </Button>
             </div>
-          </div>
-          <Skeleton className="h-8 w-24" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-4 w-64" />
+          )}
         </CardContent>
       </Card>
     </div>

@@ -369,7 +369,6 @@ export async function getCourseThumbnailUploadUrl(
     }
 
     const data = await response.json();
-    console.log(data);
 
     return { success: true, data };
   } catch (error: any) {

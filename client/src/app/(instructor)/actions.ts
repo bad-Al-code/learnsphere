@@ -22,7 +22,6 @@ export async function getInstructorAnalytics() {
     }
 
     const result = await response.json();
-    console.log(result);
     return result;
   } catch (error) {
     console.error('Error fetching instructor analytics:', error);
@@ -50,7 +49,6 @@ export async function getMyCourses(options: CourseFilterOptions = {}) {
 
     if (!response.ok) throw new Error('Failed to fetch courses.');
     const result = await response.json();
-    console.log(result);
 
     return result;
   } catch (error) {
@@ -109,7 +107,6 @@ export async function createFullCourse(values: CourseFormValues) {
     }
 
     const newCourse = await response.json();
-    console.log(newCourse);
 
     revalidatePath('/dashboard/instructor/courses');
 
