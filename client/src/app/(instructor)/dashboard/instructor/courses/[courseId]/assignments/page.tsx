@@ -30,7 +30,10 @@ export default async function CourseAssignmentsPage({
   return (
     <Suspense fallback={<AssignmentsSkeleton />}>
       <AssignmentFilters moduleOptions={moduleOptions} />
-      <AssignmentsDataComponent courseId={params.courseId} />
+      <AssignmentsDataComponent
+        courseId={params.courseId}
+        moduleOptions={moduleOptions}
+      />
     </Suspense>
   );
 }

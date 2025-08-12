@@ -1,5 +1,6 @@
 'use client';
 
+import { PaginationControls } from '@/app/courses/_components/pagination-controls';
 import {
   Card,
   CardContent,
@@ -15,8 +16,10 @@ import { AssignmentsList } from './assignment-list';
 
 export default function AssignmentsDataComponent({
   courseId,
+  moduleOptions = [],
 }: {
   courseId: string;
+  moduleOptions: { label: string; value: string }[];
 }) {
   const searchParams = useSearchParams();
   const [data, setData] = useState({
@@ -90,21 +93,24 @@ export default function AssignmentsDataComponent({
 
   return (
     <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Assignments</CardTitle>
-          <CardDescription>
-            Manage all assignments for this course.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AssignmentsList
-            initialAssignments={data.results}
-            courseId={courseId}
-            moduleOptions={[]}
-          />
-        </CardContent>
-      </Card>
+      <div className="">
+        <Card>
+          <CardHeader>
+            <CardTitle>Assignments</CardTitle>
+            <CardDescription>
+              Manage all assignments for this course.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AssignmentsList
+              initialAssignments={data.results}
+              courseId={courseId}
+              moduleOptions={moduleOptions}
+            />
+          </CardContent>
+        </Card>
+        <PaginationControls totalPages={data.pagination.totalPages} />
+      </div>
 
       <Card>
         <CardHeader>

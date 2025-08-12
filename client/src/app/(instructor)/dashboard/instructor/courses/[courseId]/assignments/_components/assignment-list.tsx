@@ -8,7 +8,7 @@ import {
 } from '@hello-pangea/dnd';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Grip, Pencil, PlusCircle, Search, Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -51,6 +51,7 @@ import {
 import {
   createAssignment,
   deleteAssignment,
+  getCourseAssignments,
   reorderAssignments,
   updateAssignment,
 } from '../../actions';
@@ -81,9 +82,12 @@ type AssignmentFormValues = z.infer<typeof assignmentFormSchema>;
 export function AssignmentsList({
   initialAssignments,
   courseId,
-  moduleOptions,
-}: AssignmentsListProps) {
+  moduleOptions = [],
+}: AssignmentsListProps & {
+  moduleOptions?: { label: string; value: string }[];
+}) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [optimisticAssignments, setOptimisticAssignments] =
     useState(initialAssignments);
@@ -181,7 +185,22 @@ export function AssignmentsList({
       } else {
         toast.success('Assignment created!');
         setIsCreateModalOpen(false);
-        router.refresh();
+
+        const statusParam = searchParams.get('status');
+        const status: 'draft' | 'published' | undefined =
+          statusParam === 'draft' || statusParam === 'published'
+            ? statusParam
+            : undefined;
+
+        const updatedData = await getCourseAssignments({
+          courseId,
+          q: searchParams.get('q') || undefined,
+          status,
+          moduleId: searchParams.get('moduleId') || undefined,
+          page: Number(searchParams.get('page')) || 1,
+          limit: Number(searchParams.get('limit')) || 10,
+        });
+        setOptimisticAssignments(updatedData.results);
       }
     });
   };
