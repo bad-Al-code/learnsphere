@@ -32,6 +32,10 @@ async function AssignmentsDataComponent({ courseId }: { courseId: string }) {
   const allAssignments = course.modules.flatMap(
     (module: any) => module.assignments || []
   );
+  const moduleOptions = course.modules.map((module: any) => ({
+    label: module.title,
+    value: module.id,
+  }));
 
   return (
     <div className="space-y-8">
@@ -46,6 +50,7 @@ async function AssignmentsDataComponent({ courseId }: { courseId: string }) {
           <AssignmentsList
             initialAssignments={allAssignments}
             courseId={course.id}
+            moduleOptions={moduleOptions}
           />
         </CardContent>
       </Card>
@@ -80,7 +85,7 @@ function AssignmentsSkeleton() {
       <CardHeader>
         <Skeleton className="h-8 w-48" />
       </CardHeader>
-      <CardContent>
+      <CardContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
         <Skeleton className="h-40 w-full" />
       </CardContent>
     </Card>

@@ -34,7 +34,7 @@ app.use('/api/courses', courseRouter);
 app.use('/api/modules', moduleRouter);
 app.use('/api/lessons', lessonRouter);
 app.use('/api/categories', categoryRouter);
-app.use('/api/assignments', assignmentRouter);
+app.use('/api', assignmentRouter);
 
 app.use(errorHandler);
 
