@@ -59,6 +59,35 @@ import { assignments, assignmentStatusEnum } from '../db/schema';
  *         status:
  *           type: string
  *           enum: [draft, published]
+ *
+ *     FindAssignmentsQuery:
+ *       type: object
+ *       properties:
+ *         courseId:
+ *           type: string
+ *           format: uuid
+ *           description: UUID of the course to filter assignments
+ *         q:
+ *           type: string
+ *           description: Search query to filter assignments by title
+ *         status:
+ *           type: string
+ *           enum: [draft, published]
+ *           description: Filter assignments by status
+ *         moduleId:
+ *           type: string
+ *           format: uuid
+ *           description: Filter assignments by module ID
+ *         page:
+ *           type: integer
+ *           default: 1
+ *           minimum: 1
+ *           description: Page number for pagination
+ *         limit:
+ *           type: integer
+ *           default: 10
+ *           minimum: 1
+ *           description: Number of assignments per page
  */
 export const assignmentSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters.'),
@@ -75,3 +104,26 @@ export type UpdateAssignmentDto = z.infer<typeof updateAssignmentSchema>;
 
 export type Assignment = typeof assignments.$inferSelect;
 export type NewAssignment = typeof assignments.$inferInsert;
+
+export const findAssignmentsSchema = z.object({
+  courseId: z.string().uuid(),
+  q: z.string().optional(),
+  status: z.enum(['draft', 'published']).optional(),
+  moduleId: z.string().uuid().optional(),
+  page: z
+    .preprocess(
+      (val) => (val ? parseInt(val as string, 10) : 1),
+      z.number().int().positive()
+    )
+    .optional()
+    .default(1),
+  limit: z
+    .preprocess(
+      (val) => (val ? parseInt(val as string, 10) : 10),
+      z.number().int().positive()
+    )
+    .optional()
+    .default(10),
+});
+
+export type FindAssignmentsQuery = z.infer<typeof findAssignmentsSchema>;

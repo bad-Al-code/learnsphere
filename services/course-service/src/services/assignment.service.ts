@@ -1,6 +1,10 @@
 import { AssignmentRepository, ModuleRepository } from '../db/repostiories';
 import { NotFoundError } from '../errors';
-import { CreateAssignmentDto, UpdateAssignmentDto } from '../schemas';
+import {
+  CreateAssignmentDto,
+  FindAssignmentsQuery,
+  UpdateAssignmentDto,
+} from '../schemas';
 import { Requester } from '../types';
 import { AuthorizationService } from './authorization.service';
 import { CourseCacheService } from './course-cache.service';
@@ -112,5 +116,34 @@ export class AssignmentService {
 
     await AssignmentRepository.reorder(items, moduleId);
     await CourseCacheService.invalidateCacheDetails(parentModule.courseId);
+  }
+
+  /**
+   * Retrieves paginated and filtered assignments for a given course.
+   *
+   * @param {FindAssignmentsQuery} options - Filtering and pagination parameters.
+   * @returns {Promise<{
+   *   results: Assignment[],
+   *   pagination: {
+   *     currentPage: number,
+   *     totalPages: number,
+   *     totalResults: number
+   *   }
+   * }>} - Paginated assignments and metadata.
+   */
+  public static async getAssignmentsForCourse(options: FindAssignmentsQuery) {
+    const { totalResults, results } =
+      await AssignmentRepository.findAndFilter(options);
+
+    const totalPages = Math.ceil(totalResults / options.limit);
+
+    return {
+      results,
+      pagination: {
+        currentPage: options.page,
+        totalPages,
+        totalResults,
+      },
+    };
   }
 }

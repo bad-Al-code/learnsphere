@@ -1,6 +1,11 @@
-import { and, eq } from 'drizzle-orm';
+import { and, count, desc, eq, ilike } from 'drizzle-orm';
 import { db } from '..';
-import { Assignment, NewAssignment, UpdateAssignmentDto } from '../../schemas';
+import {
+  Assignment,
+  FindAssignmentsQuery,
+  NewAssignment,
+  UpdateAssignmentDto,
+} from '../../schemas';
 import { assignments } from '../schema';
 
 export class AssignmentRepository {
@@ -79,5 +84,59 @@ export class AssignmentRepository {
     await db.transaction(async (tx) => {
       await Promise.all(queries.map((q) => tx.execute(q)));
     });
+  }
+
+  /**
+   * Finds and filters assignments with pagination.
+   *
+   * @param {FindAssignmentsQuery} options - Filtering and pagination options.
+   * @param {string} options.courseId - Course UUID to filter assignments.
+   * @param {string} [options.query] - Optional search query for assignment titles.
+   * @param {'draft'|'published'} [options.status] - Optional assignment status filter.
+   * @param {string} [options.moduleId] - Optional module UUID to filter assignments.
+   * @param {number} options.page - Current page number.
+   * @param {number} options.limit - Number of assignments per page.
+   * @returns {Promise<{totalResults: number, results: Assignment[]}>} - Total count and filtered assignment list.
+   */
+  public static async findAndFilter({
+    courseId,
+    q: query,
+    status,
+    moduleId,
+    page,
+    limit,
+  }: FindAssignmentsQuery) {
+    const offset = (page - 1) * limit;
+
+    const conditions = [eq(assignments.courseId, courseId)];
+    if (query) {
+      conditions.push(ilike(assignments.title, `%${query}%`));
+    }
+    if (status) {
+      conditions.push(eq(assignments.status, status));
+    }
+    if (moduleId) {
+      conditions.push(eq(assignments.moduleId, moduleId));
+    }
+    const whereClause = and(...conditions);
+
+    const totalQuery = db
+      .select({ value: count() })
+      .from(assignments)
+      .where(whereClause);
+
+    const resultsQuery = db.query.assignments.findMany({
+      where: whereClause,
+      orderBy: [desc(assignments.createdAt)],
+      limit,
+      offset,
+    });
+
+    const [[{ value: totalResults }], results] = await Promise.all([
+      totalQuery,
+      resultsQuery,
+    ]);
+
+    return { totalResults, results };
   }
 }

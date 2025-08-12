@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { NotAuthorizedError } from '../errors';
+import { findAssignmentsSchema } from '../schemas';
 import { AssignmentService } from '../services';
 
 export class AssignmentController {
@@ -75,6 +76,39 @@ export class AssignmentController {
       res
         .status(StatusCodes.OK)
         .json({ message: 'Assignments reordered successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getForCourse(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const parseResult = findAssignmentsSchema.safeParse({
+        courseId: req.params.courseId,
+        q: req.query.q,
+        status: req.query.status,
+        moduleId: req.query.moduleId,
+        page: req.query.page,
+        limit: req.query.limit,
+      });
+
+      if (!parseResult.success) {
+        res.status(StatusCodes.BAD_REQUEST).json({
+          error: 'Invalid query parameters',
+          details: parseResult.error.errors,
+        });
+
+        return;
+      }
+
+      const options = parseResult.data;
+
+      const result = await AssignmentService.getAssignmentsForCourse(options);
+      res.status(StatusCodes.OK).json(result);
     } catch (error) {
       next(error);
     }

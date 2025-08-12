@@ -39,12 +39,6 @@ router.use(requireAuth, requireRole(['instructor', 'admin']));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Assignment'
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- *       404:
- *         description: Module not found
  */
 router.post(
   '/modules/:moduleId/assignments',
@@ -82,12 +76,6 @@ router.post(
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Assignment'
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- *       404:
- *         description: Assignment not found
  */
 router.put(
   '/assignments/:assignmentId',
@@ -122,12 +110,6 @@ router.put(
  *                 message:
  *                   type: string
  *                   example: Assignment deleted successfully
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- *       404:
- *         description: Assignment not found
  */
 router.delete('/assignments/:assignmentId', AssignmentController.delete);
 
@@ -180,13 +162,81 @@ router.delete('/assignments/:assignmentId', AssignmentController.delete);
  *                 message:
  *                   type: string
  *                   example: Assignments reordered successfully
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- *       404:
- *         description: Module not found
  */
 router.post('/assignments/reorder', AssignmentController.reorder);
+
+/**
+ * @openapi
+ * /api/courses/{courseId}/assignments:
+ *   get:
+ *     summary: Get assignments for a course with filters and pagination.
+ *     tags:
+ *       - Assignments
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The course ID to fetch assignments for.
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Filter assignments by title containing this string.
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [draft, published]
+ *         description: Filter assignments by status.
+ *       - in: query
+ *         name: moduleId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter assignments by module ID.
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *           minimum: 1
+ *         description: Page number for paginated results.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *           minimum: 1
+ *         description: Number of assignments per page.
+ *     responses:
+ *       200:
+ *         description: A paginated list of assignments.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Assignment'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     currentPage:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ *                     totalResults:
+ *                       type: integer
+ *       400:
+ *         description: Invalid input.
+ *       500:
+ *         description: Internal server error.
+ */
+router.get('/courses/:courseId/assignments', AssignmentController.getForCourse);
 
 export { router as assignmentRouter };
