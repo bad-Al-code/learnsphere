@@ -65,12 +65,12 @@ export function EditTextContentForm({
     <div className="rounded-md border p-4">
       <div className="flex items-center justify-between font-medium">
         Lesson Content
-        <Button onClick={toggleEdit} variant="ghost">
+        <Button onClick={toggleEdit} variant="outline">
           {isEditing ? (
             <>Cancel</>
           ) : (
             <>
-              <Pencil className="mr-2 h-4 w-4" /> Edit
+              <Pencil className="mr-1 h-4 w-4" /> Edit
             </>
           )}
         </Button>

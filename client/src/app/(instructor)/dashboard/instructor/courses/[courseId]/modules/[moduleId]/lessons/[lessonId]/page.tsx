@@ -3,6 +3,14 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { IconBadge } from '@/components/shared/icon-badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { getLessonDetails } from '../../../../actions';
 import { EditTextContentForm } from './_components/edit-text-content-form';
 import { EditTitleForm } from './_components/edit-title-form';
@@ -14,67 +22,81 @@ export default async function EditLessonPage({
   params: { courseId: string; moduleId: string; lessonId: string };
 }) {
   const lesson = await getLessonDetails(params.lessonId);
+
   if (!lesson) {
     notFound();
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between">
-        <div className="w-full">
+    <div className="space-y-6">
+      <div>
+        <Button variant="ghost" asChild className="mb-2">
           <Link
             href={`/dashboard/instructor/courses/${params.courseId}/modules/${params.moduleId}`}
-            className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-2 text-sm"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Lessons
           </Link>
-          <div className="flex flex-col gap-y-2">
-            <h1 className="text-2xl font-medium">Lesson Editor</h1>
-          </div>
-        </div>
+        </Button>
+        <h1 className="text-2xl font-semibold tracking-tight">Lesson Editor</h1>
+        <p className="text-muted-foreground text-sm">
+          Update lesson details, content, and resources.
+        </p>
       </div>
 
-      <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="space-y-6">
-          <div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="flex flex-col gap-y-1">
             <div className="flex items-center gap-x-2">
               <IconBadge icon={FileText} />
-              <h2 className="text-xl">Customize your Lesson</h2>
+              <div className="space-y-1">
+                <CardTitle>Customize your Lesson</CardTitle>
+                <CardDescription>
+                  Edit the lesson title so it’s clear and easy for students to
+                  understand.
+                </CardDescription>
+              </div>
             </div>
+          </CardHeader>
+          <CardContent>
             <EditTitleForm
               courseId={params.courseId}
               lessonId={params.lessonId}
               initialTitle={lesson.title}
             />
-          </div>
-        </div>
-        <div className="space-y-6">
-          <div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-col gap-y-1">
             <div className="flex items-center gap-x-2">
               <IconBadge icon={Video} />
-              <h2 className="text-xl">Lesson Content</h2>
-            </div>
-            {lesson.lessonType === 'video' && (
-              <div className="mt-6 rounded-md border">
-                <VideoUploader
-                  courseId={params.courseId}
-                  lessonId={params.lessonId}
-                  initialVideoUrl={lesson.contentId}
-                />
+              <div className="space-y-1">
+                <CardTitle>Lesson Content</CardTitle>
+                <CardDescription>
+                  Upload videos or add written content for your students to
+                  learn from.
+                </CardDescription>
               </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {lesson.lessonType === 'video' && (
+              <VideoUploader
+                courseId={params.courseId}
+                lessonId={params.lessonId}
+                initialVideoUrl={lesson.contentId}
+              />
             )}
             {lesson.lessonType === 'text' && (
-              <div className="border0 mt-6 rounded-md">
-                <EditTextContentForm
-                  courseId={params.courseId}
-                  lessonId={params.lessonId}
-                  initialContent={lesson.textContent?.content}
-                />
-              </div>
+              <EditTextContentForm
+                courseId={params.courseId}
+                lessonId={params.lessonId}
+                initialContent={lesson.textContent?.content}
+              />
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -60,15 +60,15 @@ export function EditTitleForm({
   };
 
   return (
-    <div className="mt-6 rounded-md border p-4">
+    <div className="mt-0 rounded-md border p-4">
       <div className="flex items-center justify-between font-medium">
         Lesson Title
-        <Button onClick={toggleEdit} variant="ghost">
+        <Button onClick={toggleEdit} variant="outline">
           {isEditing ? (
             <>Cancel</>
           ) : (
             <>
-              <Pencil className="mr-2 h-4 w-4" /> Edit
+              <Pencil className="mr-1 h-4 w-4" /> Edit
             </>
           )}
         </Button>
