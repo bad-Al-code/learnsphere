@@ -1,6 +1,7 @@
 'use server';
 
 import { courseService } from '@/lib/api';
+import { FindAssignmentsQuery } from '@/lib/schemas/assignment';
 import {
   LessonFormValues,
   lessonSchema,
@@ -342,5 +343,35 @@ export async function reorderAssignments(
     return { success: true };
   } catch (error: any) {
     return { error: error.message };
+  }
+}
+
+export async function getCourseAssignments(options: FindAssignmentsQuery) {
+  try {
+    const params = new URLSearchParams();
+
+    if (options.q) params.set('q', options.q);
+    if (options.status) params.set('status', options.status);
+    if (options.moduleId) params.set('moduleId', options.moduleId);
+    if (options.page) params.set('page', String(options.page));
+    if (options.limit) params.set('limit', String(options.limit));
+
+    const response = await courseService.get(
+      `/api/courses/${options.courseId}/assignments?${params.toString()}`
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch assignments.');
+    }
+
+    const result = await response.json();
+
+    return result;
+  } catch (error: any) {
+    console.error('Error fetching course assignments:', error);
+    return {
+      results: [],
+      pagination: { currentPage: 1, totalPages: 0, totalResults: 0 },
+    };
   }
 }

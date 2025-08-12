@@ -87,25 +87,17 @@ export class AssignmentController {
     next: NextFunction
   ) {
     try {
-      const parseResult = findAssignmentsSchema.safeParse({
-        courseId: req.params.courseId,
-        q: req.query.q,
-        status: req.query.status,
-        moduleId: req.query.moduleId,
-        page: req.query.page,
-        limit: req.query.limit,
+      const { courseId } = req.params;
+
+      const queryParams = findAssignmentsSchema.parse({
+        courseId,
+        ...req.query,
       });
 
-      if (!parseResult.success) {
-        res.status(StatusCodes.BAD_REQUEST).json({
-          error: 'Invalid query parameters',
-          details: parseResult.error.errors,
-        });
-
-        return;
-      }
-
-      const options = parseResult.data;
+      const options = {
+        ...queryParams,
+        query: queryParams.q,
+      };
 
       const result = await AssignmentService.getAssignmentsForCourse(options);
       res.status(StatusCodes.OK).json(result);
