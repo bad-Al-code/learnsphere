@@ -1,17 +1,17 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
-import { Grip, Pencil, Search, Trash2 } from 'lucide-react';
+import { Grip, Pencil, PlusCircle, Search, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useState, useTransition } from 'react';
+import { toast } from 'sonner';
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,27 +21,34 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Module } from '@/types/module';
-import Link from 'next/link';
-import { toast } from 'sonner';
 import { deleteModule, reorderModules, updateModule } from '../../actions';
+import { LessonsList } from './lesson-list';
 
 interface ModulesListProps {
-  modules: Module[];
+  initialModules: Module[];
   courseId: string;
 }
 
-export function ModulesList({ modules, courseId }: ModulesListProps) {
+export function ModulesList({ initialModules, courseId }: ModulesListProps) {
   const [isPending, startTransition] = useTransition();
-  const [optimisticModules, setOptimisticModules] = useState(modules);
+  const [optimisticModules, setOptimisticModules] = useState(initialModules);
   const [editModuleId, setEditModuleId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [deleteModuleId, setDeleteModuleId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    setOptimisticModules(modules);
-  }, [modules]);
+    setOptimisticModules(initialModules);
+  }, [initialModules]);
 
   const onDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -61,7 +68,7 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
       const result = await reorderModules(courseId, bulkUpdateData);
       if (result.error) {
         toast.error('Failed to reorder modules', { description: result.error });
-        setOptimisticModules(modules);
+        setOptimisticModules(initialModules);
       } else {
         toast.success('Modules reordered successfully!');
       }
@@ -75,12 +82,10 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
 
   const handleSave = () => {
     if (!editModuleId) return;
-
     startTransition(async () => {
       const result = await updateModule(courseId, editModuleId, {
         title: editTitle,
       });
-
       if (result.error) {
         toast.error('Failed to update module', { description: result.error });
       } else {
@@ -97,7 +102,6 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
 
   const handleDelete = () => {
     if (!deleteModuleId) return;
-
     startTransition(async () => {
       const result = await deleteModule(courseId, deleteModuleId);
       if (result.error) {
@@ -119,67 +123,105 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
   return (
     <div className="mt-6 space-y-4">
       <div className="relative">
-        <Search className="text-muted-foreground absolute top-1/2 left-2 h-5 w-5 -translate-y-1/2" />
+        <Search className="text-muted-foreground absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2" />
         <Input
           placeholder="Search for modules..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
+          className="pl-10"
         />
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="modules">
           {(provided) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className="space-y-4"
-            >
-              {filteredModules.map((module, index) => (
-                <Draggable
-                  key={module.id}
-                  draggableId={module.id}
-                  index={index}
-                >
-                  {(provided) => (
-                    <div
-                      className="flex cursor-grab items-center gap-x-2 rounded-md border p-1 text-sm active:cursor-grabbing"
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                    >
-                      <div className="rounded-l-md border-r p-2 transition">
-                        <Grip className="h-5 w-5" />
-                      </div>
-                      <Link
-                        href={`/dashboard/instructor/courses/${courseId}/modules/${module.id}`}
-                        className="font-medium hover:underline"
+            <div {...provided.droppableProps} ref={provided.innerRef}>
+              <Accordion type="multiple">
+                {filteredModules.map((module, index) => (
+                  <Draggable
+                    key={module.id}
+                    draggableId={module.id}
+                    index={index}
+                  >
+                    {(provided) => (
+                      <AccordionItem
+                        value={module.id}
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className="mb-4 overflow-hidden rounded-md border"
                       >
-                        {module.title}
-                      </Link>
+                        <div className="bg-muted/40 flex items-center justify-between">
+                          <div className="flex flex-1 items-center">
+                            <div
+                              {...provided.dragHandleProps}
+                              className="cursor-grab p-2 active:cursor-grabbing"
+                            >
+                              <Grip className="h-5 w-5" />
+                            </div>
 
-                      <div className="ml-auto flex items-center gap-x-2 pr-2">
-                        <Button
-                          variant="ghost"
-                          onClick={() =>
-                            openEditDialog(module.id, module.title)
-                          }
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          onClick={() => setDeleteModuleId(module.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </Draggable>
-              ))}
+                            <AccordionTrigger className="flex-1 px-2 hover:no-underline">
+                              <Link
+                                href={`/dashboard/instructor/courses/${courseId}/modules/${module.id}`}
+                                className="block w-full text-left hover:underline"
+                              >
+                                <div>
+                                  <span className="text-sm font-medium">
+                                    {module.title}
+                                  </span>
+                                </div>
+                              </Link>
+                            </AccordionTrigger>
+                          </div>
 
+                          <div className="flex items-center gap-x-1 pr-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditDialog(module.id, module.title);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteModuleId(module.id);
+                              }}
+                            >
+                              <Trash2 className="text-destructive h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        <AccordionContent className="bg-background border-border border-t p-4">
+                          <LessonsList
+                            initialLessons={module.lessons}
+                            courseId={courseId}
+                            moduleId={module.id}
+                          />
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="mt-4"
+                          >
+                            <Link
+                              href={`/dashboard/instructor/courses/${courseId}/modules/${module.id}/lessons/create`}
+                            >
+                              <PlusCircle className="mr-2 h-4 w-4" />
+                              Add a lesson
+                            </Link>
+                          </Button>
+                        </AccordionContent>
+                      </AccordionItem>
+                    )}
+                  </Draggable>
+                ))}
+              </Accordion>
               {provided.placeholder}
             </div>
           )}
@@ -187,20 +229,19 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
       </DragDropContext>
 
       <Dialog open={!!editModuleId} onOpenChange={() => setEditModuleId(null)}>
-        <DialogContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Module Title</DialogTitle>
           </DialogHeader>
           <Input
             value={editTitle}
             onChange={(e) => setEditTitle(e.target.value)}
-            placeholder="New module title"
             disabled={isPending}
           />
-          <div className="flex justify-end gap-4">
-            <Button variant="outline" onClick={() => setEditModuleId(null)}>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setEditModuleId(null)}>
               Cancel
-            </Button>{' '}
+            </Button>
             <Button onClick={handleSave} disabled={isPending}>
               Save
             </Button>
@@ -212,14 +253,18 @@ export function ModulesList({ modules, courseId }: ModulesListProps) {
         open={!!deleteModuleId}
         onOpenChange={() => setDeleteModuleId(null)}
       >
-        <AlertDialogContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           </AlertDialogHeader>
-          <p>This will permanently delete the module and its contents.</p>
+          <p>This will permanently delete the module and all of its lessons.</p>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={isPending}>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isPending}
+              className="bg-destructive hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

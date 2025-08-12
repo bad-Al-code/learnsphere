@@ -49,9 +49,9 @@ async function CourseModules({ courseId }: { courseId: string }) {
   }
 
   return (
-    <div>
+    <div className="space-y-4">
       <AddModuleForm courseId={course.id} />
-      <ModulesList modules={course.modules} courseId={course.id} />
+      <ModulesList initialModules={course.modules} courseId={course.id} />
     </div>
   );
 }

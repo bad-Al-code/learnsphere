@@ -18,9 +18,12 @@ export type LessonType = (typeof lessonTypeEnum)[number];
 
 export const lessonSchema = z.object({
   title: z.string().min(1, 'Lesson title is required.'),
-  lessonType: z.enum(lessonTypeEnum).refine((val) => !!val, {
-    message: 'Please select a lesson type.',
-  }),
+  lessonType: z
+    .enum(lessonTypeEnum)
+    .refine((val) => !!val, {
+      message: 'Please select a lesson type.',
+    })
+    .optional(),
   content: z.string().optional(),
 });
 
