@@ -9,6 +9,7 @@ import { currentUser } from './middlewares/current-user';
 import { errorHandler } from './middlewares/error-handler';
 import { httpLogger } from './middlewares/http-logger';
 import {
+  assignmentRouter,
   categoryRouter,
   courseRouter,
   healthRouter,
@@ -33,6 +34,7 @@ app.use('/api/courses', courseRouter);
 app.use('/api/modules', moduleRouter);
 app.use('/api/lessons', lessonRouter);
 app.use('/api/categories', categoryRouter);
+app.use('/api/assignments', assignmentRouter);
 
 app.use(errorHandler);
 

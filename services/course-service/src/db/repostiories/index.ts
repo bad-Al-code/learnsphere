@@ -1,3 +1,4 @@
+export * from './assignment.repository';
 export * from './category.repository';
 export * from './course.repository';
 export * from './lesson.repository';

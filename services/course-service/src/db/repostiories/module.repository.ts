@@ -23,7 +23,12 @@ export class ModuleRepository {
   public static async findById(moduleId: string) {
     return db.query.modules.findFirst({
       where: eq(modules.id, moduleId),
-      with: { course: true },
+      with: {
+        course: true,
+        assignments: {
+          orderBy: (assignments, { asc }) => [asc(assignments.order)],
+        },
+      },
     });
   }
 

@@ -1,3 +1,4 @@
+export * from './assignment.service';
 export * from './authorization.service';
 export * from './category.service';
 export * from './course-cache.service';
