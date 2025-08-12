@@ -68,7 +68,7 @@ export function DetailsForm({
   };
 
   return (
-    <div className="mt-6 rounded-md border p-4">
+    <div className="mt-0 rounded-md border p-4">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
