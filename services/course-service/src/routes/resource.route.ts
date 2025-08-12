@@ -9,18 +9,124 @@ import { createResourceSchema, updateResourceSchema } from '../schemas';
 const router = Router();
 router.use(requireAuth, requireRole(['instructor', 'admin']));
 
+/**
+ * @openapi
+ * /courses/{courseId}/resources:
+ *   get:
+ *     summary: Get all resources for a course
+ *     tags:
+ *       - Resources
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: List of resources for the course
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Resource'
+ */
 router.get('/courses/:courseId/resources', ResourceController.getForCourse);
+
+/**
+ * @openapi
+ * /courses/{courseId}/resources:
+ *   post:
+ *     summary: Create a new resource for a course
+ *     tags:
+ *       - Resources
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateResourcePayload'
+ *     responses:
+ *       201:
+ *         description: Resource created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Resource'
+ *       400:
+ *         description: Invalid request data
+ */
 router.post(
   '/courses/:courseId/resources',
   validateRequest(z.object({ body: createResourceSchema })),
   ResourceController.create
 );
 
+/**
+ * @openapi
+ * /resources/{resourceId}:
+ *   put:
+ *     summary: Update an existing resource
+ *     tags:
+ *       - Resources
+ *     parameters:
+ *       - in: path
+ *         name: resourceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateResourcePayload'
+ *     responses:
+ *       200:
+ *         description: Resource updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Resource'
+ *       404:
+ *         description: Resource not found
+ */
 router.put(
   '/resources/:resourceId',
   validateRequest(z.object({ body: updateResourceSchema })),
   ResourceController.update
 );
+
+/**
+ * @openapi
+ * /resources/{resourceId}:
+ *   delete:
+ *     summary: Delete a resource
+ *     tags:
+ *       - Resources
+ *     parameters:
+ *       - in: path
+ *         name: resourceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Resource deleted successfully
+ *       404:
+ *         description: Resource not found
+ */
 router.delete('/resources/:resourceId', ResourceController.delete);
 
 export { router as resourceRouter };

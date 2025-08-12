@@ -14,6 +14,9 @@ export type NewResource = typeof resources.$inferInsert;
  *         id:
  *           type: string
  *           format: uuid
+ *         courseId:
+ *           type: string
+ *           format: uuid
  *         title:
  *           type: string
  *         fileUrl:
@@ -25,6 +28,12 @@ export type NewResource = typeof resources.$inferInsert;
  *           type: number
  *         fileType:
  *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
  *
  *     CreateResourcePayload:
  *       type: object
