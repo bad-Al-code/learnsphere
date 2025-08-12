@@ -1,9 +1,12 @@
 import { faker } from '@faker-js/faker';
+import { eq } from 'drizzle-orm';
 import slugify from 'slugify';
 import { rabbitMQConnection } from '../../events/connection';
 import { CourseCreatedPublisher } from '../../events/publisher';
 import { db } from '../index';
 import {
+  assignments,
+  assignmentStatusEnum,
   categories as categoriesTable,
   courses,
   lessons,
@@ -267,7 +270,40 @@ async function seedLessons(moduleIds: string[]) {
   console.log('Lessons seeding complete!');
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function seedAssignments(moduleIds: string[]): Promise<void> {
+  for (const moduleId of moduleIds) {
+    const [parentModule] = await db
+      .select({ courseId: modules.courseId })
+      .from(modules)
+      .where(eq(modules.id, moduleId));
+    if (!parentModule) continue;
+
+    const assignmentCount = faker.number.int({ min: 2, max: 4 });
+
+    for (let i = 0; i < assignmentCount; i++) {
+      const title = `Assignment ${i + 1}: ${faker.lorem.words(3)}`;
+      const description = faker.lorem.sentence();
+      const status = faker.helpers.arrayElement(
+        assignmentStatusEnum.enumValues
+      );
+      const dueDate = faker.date.future({ years: 0.5 });
+
+      await db.insert(assignments).values({
+        title,
+        description,
+        moduleId,
+        courseId: parentModule.courseId,
+        order: i,
+        status,
+        dueDate,
+      });
+
+      console.log(`Assignment created: ${title} (Module: ${moduleId})`);
+    }
+  }
+  console.log('Assignments seeding complete!');
+}
+
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -281,8 +317,12 @@ async function runSeed() {
     const courseIds = await seedCourses(seededCategories);
     const moduleIds = await seedModules(courseIds);
     await seedLessons(moduleIds);
+    await seedAssignments(moduleIds);
 
     console.log('All data seeded successfully.');
+
+    console.log('Waiting for events to publish...');
+    await delay(2000);
 
     await rabbitMQConnection.close();
 
