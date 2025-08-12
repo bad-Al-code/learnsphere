@@ -1,10 +1,13 @@
 import { NavItem } from '@/types';
 import {
+  BarChart2Icon,
   Bell,
   BookCopy,
   BookOpenCheck,
+  FileText,
   FolderKanban,
   LayoutGrid,
+  Settings2,
   Shield,
   User,
   Users,
@@ -70,5 +73,23 @@ export const instructorNavItems: NavItem[] = [
     label: 'Courses',
     value: 'courses',
     icon: BookCopy,
+  },
+  {
+    href: '/dashboard/instructor/assignments',
+    label: 'Assignments',
+    value: 'assignments',
+    icon: FileText,
+  },
+  {
+    href: '/dashboard/instructor/grades',
+    label: 'Grades',
+    value: 'grades',
+    icon: BarChart2Icon,
+  },
+  {
+    href: '/dashboard/instructor/settings',
+    label: 'Settings',
+    value: 'settings',
+    icon: Settings2,
   },
 ];

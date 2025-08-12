@@ -83,7 +83,7 @@ export function CourseEditorTabs({ courseId }: { courseId: string }) {
           <TabsTrigger
             key={tab.value}
             value={tab.value}
-            className="ext-xs flex-shrink-0 px-3 py-0 sm:text-sm"
+            className="flex-shrink-0 py-0 text-xs"
           >
             {isSmallScreen ? (
               <TooltipProvider delayDuration={100}>
