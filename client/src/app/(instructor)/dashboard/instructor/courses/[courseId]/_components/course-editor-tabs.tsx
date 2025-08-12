@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const tabs = [
   {
@@ -48,7 +49,6 @@ const tabs = [
     label: 'Grades',
     href: (id: string) => `/dashboard/instructor/courses/${id}/grades`,
     icon: BarChart2,
-
     matcher: (id: string, pathname: string) =>
       pathname === `/dashboard/instructor/courses/${id}/grades`,
   },
@@ -64,6 +64,14 @@ const tabs = [
 
 export function CourseEditorTabs({ courseId }: { courseId: string }) {
   const pathname = usePathname();
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  useEffect(() => {
+    const checkScreen = () => setIsSmallScreen(window.innerWidth < 640); // sm breakpoint
+    checkScreen();
+    window.addEventListener('resize', checkScreen);
+    return () => window.removeEventListener('resize', checkScreen);
+  }, []);
 
   const activeTab =
     tabs.find((tab) => tab.matcher(courseId, pathname))?.value || 'overview';
@@ -75,22 +83,32 @@ export function CourseEditorTabs({ courseId }: { courseId: string }) {
           <TabsTrigger
             key={tab.value}
             value={tab.value}
-            className="flex-shrink-0 px-3 py-1 text-xs sm:text-sm"
+            className="ext-xs flex-shrink-0 px-3 py-0 sm:text-sm"
           >
-            <TooltipProvider delayDuration={100}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    href={tab.href(courseId)}
-                    className="flex items-center gap-1 whitespace-nowrap"
-                  >
-                    <tab.icon className="h-4 w-4" />
-                    <span className="hidden sm:inline">{tab.label}</span>
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">{tab.label}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {isSmallScreen ? (
+              <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href={tab.href(courseId)}
+                      className="flex items-center gap-1 whitespace-nowrap"
+                    >
+                      <tab.icon className="h-4 w-4" />
+                      <span className="hidden sm:inline">{tab.label}</span>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">{tab.label}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <Link
+                href={tab.href(courseId)}
+                className="flex items-center gap-1 whitespace-nowrap"
+              >
+                <tab.icon className="h-4 w-4" />
+                <span className="hidden sm:inline">{tab.label}</span>
+              </Link>
+            )}
           </TabsTrigger>
         ))}
       </TabsList>
