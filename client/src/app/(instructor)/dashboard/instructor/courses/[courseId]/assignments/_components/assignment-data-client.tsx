@@ -11,8 +11,9 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { getCourseAssignments } from '../../actions';
+import { getCourseAssignments, getCourseResources } from '../../actions';
 import { AssignmentsList } from './assignment-list';
+import { ResourcesManager } from './resource-manager';
 
 export default function AssignmentsDataComponent({
   courseId,
@@ -22,10 +23,11 @@ export default function AssignmentsDataComponent({
   moduleOptions: { label: string; value: string }[];
 }) {
   const searchParams = useSearchParams();
-  const [data, setData] = useState({
+  const [assignmentsData, setAssignmentsData] = useState({
     results: [],
     pagination: { currentPage: 1, totalPages: 0, totalResults: 0 },
   });
+  const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,11 +46,13 @@ export default function AssignmentsDataComponent({
       limit: Number(searchParams.get('limit')) || 5,
     };
 
-    console.log('Options sent to getCourseAssignments:', options);
-
     setLoading(true);
-    getCourseAssignments(options)
-      .then(setData)
+
+    Promise.all([getCourseAssignments(options), getCourseResources(courseId)])
+      .then(([assignments, resourcesData]) => {
+        setAssignmentsData(assignments);
+        setResources(resourcesData);
+      })
       .finally(() => setLoading(false));
   }, [courseId, searchParams]);
 
@@ -93,7 +97,7 @@ export default function AssignmentsDataComponent({
 
   return (
     <div className="space-y-8">
-      <div className="">
+      <div>
         <Card>
           <CardHeader>
             <CardTitle>Assignments</CardTitle>
@@ -103,34 +107,31 @@ export default function AssignmentsDataComponent({
           </CardHeader>
           <CardContent>
             <AssignmentsList
-              initialAssignments={data.results}
+              initialAssignments={assignmentsData.results}
               courseId={courseId}
               moduleOptions={moduleOptions}
             />
           </CardContent>
         </Card>
-        <PaginationControls totalPages={data.pagination.totalPages} />
+        <PaginationControls
+          totalPages={assignmentsData.pagination.totalPages}
+        />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Resources</CardTitle>
+          <CardTitle>Resources & Activities</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            Manage downloadable resources here.
-          </p>
+          <ResourcesManager initialResources={resources} courseId={courseId} />
         </CardContent>
       </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Activities</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            Manage quizzes and discussions here.
-          </p>
-        </CardContent>
+        <CardContent>Activities here</CardContent>
       </Card>
     </div>
   );

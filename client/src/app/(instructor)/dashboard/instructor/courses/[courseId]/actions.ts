@@ -13,6 +13,10 @@ import {
   ModuleSchemaValues,
   moduleUpdateSchema,
 } from '@/lib/schemas/module';
+import {
+  CreateResourceDto,
+  createResourceSchema,
+} from '@/lib/schemas/resource';
 import { revalidatePath } from 'next/cache';
 import z from 'zod';
 
@@ -373,5 +377,75 @@ export async function getCourseAssignments(options: FindAssignmentsQuery) {
       results: [],
       pagination: { currentPage: 1, totalPages: 0, totalResults: 0 },
     };
+  }
+}
+
+export async function getCourseResources(courseId: string) {
+  try {
+    const response = await courseService.get(
+      `/api/courses/${courseId}/resources`
+    );
+    if (!response.ok) return [];
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch resources:', error);
+    return [];
+  }
+}
+
+export async function createResource(
+  courseId: string,
+  values: CreateResourceDto
+) {
+  try {
+    const validatedData = createResourceSchema.parse(values);
+    const response = await courseService.post(
+      `/api/courses/${courseId}/resources`,
+      validatedData
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(
+        data.errors?.[0]?.message || 'Failed to create resource.'
+      );
+    }
+
+    revalidatePath(`/dashboard/instructor/courses/${courseId}/assignments`);
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+    return { error: error.message };
+  }
+}
+
+export async function deleteResource(courseId: string, resourceId: string) {
+  try {
+    const response = await courseService.delete(`/api/resources/${resourceId}`);
+    if (!response.ok) {
+      throw new Error('Failed to delete resource.');
+    }
+
+    revalidatePath(`/dashboard/instructor/courses/${courseId}/assignments`);
+    return { success: true };
+  } catch (error: any) {
+    return { error: 'An error occurred.' };
+  }
+}
+
+export async function getResourceUploadUrl(courseId: string, filename: string) {
+  try {
+    const response = await courseService.post(
+      `/api/courses/${courseId}/resources/upload-url`,
+      { filename }
+    );
+    if (!response.ok) {
+      throw new Error('Could not get upload URL.');
+    }
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    return { error: error.message };
   }
 }
