@@ -50,8 +50,12 @@ export function AssignmentsList({
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button size="sm">
-          <PlusCircle className="mr-2 h-4 w-4" />
+        <Button
+          size="sm"
+          variant="outline"
+          className="inline-flex items-center"
+        >
+          <PlusCircle className="mr-1 h-4 w-4" />
           Add Assignment
         </Button>
       </div>
@@ -72,18 +76,21 @@ export function AssignmentsList({
                 >
                   {(provided) => (
                     <div
-                      className="flex items-center gap-x-3 rounded-md border p-3"
                       ref={provided.innerRef}
                       {...provided.draggableProps}
+                      className="border-border flex items-center gap-x-3 rounded-md border p-3"
                     >
                       <div
                         {...provided.dragHandleProps}
                         className="cursor-grab active:cursor-grabbing"
+                        aria-label="Drag handle"
                       >
-                        <Grip className="h-5 w-5" />
+                        <Grip className="text-muted-foreground h-5 w-5" />
                       </div>
                       <div className="flex-grow">
-                        <p className="font-medium">{assignment.title}</p>
+                        <p className="text-foreground font-semibold">
+                          {assignment.title}
+                        </p>
                         <p className="text-muted-foreground text-xs">
                           Due:{' '}
                           {assignment.dueDate

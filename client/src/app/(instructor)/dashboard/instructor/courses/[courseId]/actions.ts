@@ -240,3 +240,106 @@ export async function getLessonVideoUploadUrl(
     return { error: error.message };
   }
 }
+
+const createAssignmentSchema = z.object({
+  title: z.string().min(1, 'Title is required.'),
+});
+
+const updateAssignmentSchema = z.object({
+  title: z.string().min(1, 'Title is required.').optional(),
+  description: z.string().optional().nullable(),
+  dueDate: z.coerce.date().optional().nullable(),
+});
+
+export async function createAssignment(
+  courseId: string,
+  moduleId: string,
+  values: z.infer<typeof createAssignmentSchema>
+) {
+  try {
+    const validatedData = createAssignmentSchema.parse(values);
+    const response = await courseService.post(
+      `/api/modules/${moduleId}/assignments`,
+      validatedData
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(
+        data.errors?.[0]?.message || 'Failed to create assignment.'
+      );
+    }
+
+    revalidatePath(`/dashboard/instructor/courses/${courseId}/assignments`);
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+    return { error: error.message };
+  }
+}
+
+export async function updateAssignment(
+  courseId: string,
+  assignmentId: string,
+  values: z.infer<typeof updateAssignmentSchema>
+) {
+  try {
+    const validatedData = updateAssignmentSchema.parse(values);
+    const response = await courseService.put(
+      `/api/assignments/${assignmentId}`,
+      validatedData
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to update assignment.');
+    }
+
+    revalidatePath(`/dashboard/instructor/courses/${courseId}/assignments`);
+    return { success: true };
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+    return { error: error.message };
+  }
+}
+
+export async function deleteAssignment(courseId: string, assignmentId: string) {
+  try {
+    const response = await courseService.delete(
+      `/api/assignments/${assignmentId}`
+    );
+    if (!response.ok) {
+      throw new Error('Failed to delete assignment.');
+    }
+
+    revalidatePath(`/dashboard/instructor/courses/${courseId}/assignments`);
+    return { success: true };
+  } catch (error: any) {
+    return { error: 'An error occurred while deleting the assignment.' };
+  }
+}
+
+export async function reorderAssignments(
+  courseId: string,
+  moduleId: string,
+  list: { id: string; order: number }[]
+) {
+  try {
+    const ids = list.map((item) => item.id);
+    const response = await courseService.post(`/api/assignments/reorder`, {
+      moduleId,
+      items: list,
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to reorder assignments.');
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
