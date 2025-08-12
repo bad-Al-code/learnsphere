@@ -79,15 +79,18 @@ async function AssignmentsDataComponent({ courseId }: { courseId: string }) {
   );
 }
 
-function AssignmentsSkeleton() {
+export function AssignmentsSkeleton() {
   return (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-8 w-48" />
-      </CardHeader>
-      <CardContent className="bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
-        <Skeleton className="h-40 w-full" />
-      </CardContent>
-    </Card>
+    <div className="space-y-4">
+      {[1, 2].map((key) => (
+        <Card key={key}>
+          <CardContent className="space-y-2">
+            <Skeleton className="h-5 w-3/5 rounded-md" />
+            <Skeleton className="h-4 w-2/5 rounded-md" />
+            <Skeleton className="h-4 w-full rounded-md" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 }

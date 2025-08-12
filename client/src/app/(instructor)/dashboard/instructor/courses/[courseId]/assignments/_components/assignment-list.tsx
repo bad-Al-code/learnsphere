@@ -51,6 +51,7 @@ import {
 import {
   createAssignment,
   deleteAssignment,
+  reorderAssignments,
   updateAssignment,
 } from '../../actions';
 
@@ -73,6 +74,7 @@ interface AssignmentsListProps {
 const assignmentFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
   moduleId: z.string().uuid('Please select a module.'),
+  description: z.string().optional(),
 });
 type AssignmentFormValues = z.infer<typeof assignmentFormSchema>;
 
@@ -101,6 +103,7 @@ export function AssignmentsList({
     defaultValues: {
       title: '',
       moduleId: '',
+      description: '',
     },
   });
 
@@ -126,11 +129,13 @@ export function AssignmentsList({
       form.reset({
         title: editAssignment.title,
         moduleId: editAssignment.moduleId,
+        description: editAssignment.description ?? '',
       });
     } else if (isCreateModalOpen) {
       form.reset({
         title: '',
         moduleId: '',
+        description: '',
       });
     }
   }, [editAssignment, isCreateModalOpen, form]);
@@ -140,13 +145,34 @@ export function AssignmentsList({
     const items = Array.from(optimisticAssignments);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
-    setOptimisticAssignments(items);
+
+    const updatedList = items.map((item, index) => ({
+      ...item,
+      order: index,
+    }));
+
+    setOptimisticAssignments(updatedList);
+
+    startTransition(async () => {
+      const moduleId = updatedList[0]?.moduleId ?? '';
+      const reorderList = updatedList.map(({ id, order }) => ({ id, order }));
+      const result = await reorderAssignments(courseId, moduleId, reorderList);
+      if (result.error) {
+        toast.error('Failed to reorder assignments', {
+          description: result.error,
+        });
+        setOptimisticAssignments(initialAssignments);
+      } else {
+        toast.success('Assignments reordered!');
+      }
+    });
   };
 
   const handleCreateSubmit = (values: AssignmentFormValues) => {
     startTransition(async () => {
       const result = await createAssignment(courseId, values.moduleId, {
         title: values.title,
+        description: values.description,
       });
       if (result.error) {
         toast.error('Failed to create assignment', {
@@ -160,7 +186,11 @@ export function AssignmentsList({
     });
   };
 
-  const handleEditSubmit = (values: { title: string; moduleId?: string }) => {
+  const handleEditSubmit = (values: {
+    title: string;
+    moduleId?: string;
+    description?: string;
+  }) => {
     if (!editAssignment) return;
     startTransition(async () => {
       const result = await updateAssignment(
@@ -203,16 +233,16 @@ export function AssignmentsList({
   };
 
   return (
-    <div className="mt-4 space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="relative max-w-xs flex-grow">
+        <div className="relative flex-grow">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2" />
           <Input
             type="search"
             placeholder="Search assignments..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="max-w-xs pl-10"
           />
         </div>
 
@@ -263,6 +293,11 @@ export function AssignmentsList({
                             : 'N/A'}{' '}
                           | Status: {assignment.status}
                         </p>
+                        {assignment.description && (
+                          <p className="text-muted-foreground mt-1 text-sm">
+                            {assignment.description}
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center gap-x-1">
                         <Button
@@ -272,10 +307,10 @@ export function AssignmentsList({
                             form.reset({
                               title: assignment.title,
                               moduleId: assignment.moduleId,
+                              description: assignment.description ?? '',
                             });
                             setEditAssignment(assignment);
                           }}
-                          disabled={isPending}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -283,11 +318,8 @@ export function AssignmentsList({
                           variant="ghost"
                           size="icon"
                           onClick={() => setDeleteAssignmentId(assignment.id)}
-                          disabled={isPending}
-                          className="text-destructive"
-                          aria-label="Delete assignment"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="text-destructive h-4 w-4" />
                         </Button>
                       </div>
                     </div>
@@ -328,7 +360,7 @@ export function AssignmentsList({
                   <FormItem>
                     <FormLabel>Title</FormLabel>
                     <FormControl>
-                      <Input {...field} disabled={isPending} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -346,7 +378,6 @@ export function AssignmentsList({
                         <Select
                           onValueChange={field.onChange}
                           value={field.value}
-                          disabled={isPending}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select a module..." />
@@ -365,6 +396,19 @@ export function AssignmentsList({
                   )}
                 />
               )}
+
+              <FormField
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="flex justify-end gap-2">
                 <Button
@@ -400,7 +444,11 @@ export function AssignmentsList({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={isPending}>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isPending}
+              className="text-destructive"
+            >
               Continue
             </AlertDialogAction>
           </AlertDialogFooter>
