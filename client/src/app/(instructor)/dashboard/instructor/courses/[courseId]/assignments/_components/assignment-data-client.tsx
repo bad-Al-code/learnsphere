@@ -41,7 +41,7 @@ export default function AssignmentsDataComponent({
       status,
       moduleId: searchParams.get('moduleId') || undefined,
       page: Number(searchParams.get('page')) || 1,
-      limit: Number(searchParams.get('limit')) || 10,
+      limit: Number(searchParams.get('limit')) || 5,
     };
 
     console.log('Options sent to getCourseAssignments:', options);

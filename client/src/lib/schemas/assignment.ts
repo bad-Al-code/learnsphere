@@ -18,7 +18,7 @@ export const findAssignmentsSchema = z.object({
       z.number().int().positive()
     )
     .optional()
-    .default(10),
+    .default(5),
 });
 
 export type FindAssignmentsQuery = z.infer<typeof findAssignmentsSchema>;
