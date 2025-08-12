@@ -79,7 +79,7 @@ export function ThumbnailUploader({
             src={displayUrl}
             alt="Course thumbnail"
             fill
-            className="object-cover"
+            className="rounded-md object-cover"
           />
         ) : (
           <div className="text-muted-foreground flex h-full flex-col items-center justify-center">

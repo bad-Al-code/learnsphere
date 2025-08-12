@@ -74,7 +74,7 @@ export default function CreateCoursePage() {
         toast.error('Failed to create course', { description: result.error });
       } else {
         toast.success('Course created successfully!');
-        router.push(`/dashboard/instructor/courses/${result.data.id}`);
+        router.push(`/dashboard/instructor/courses/${result.data.id}/overview`);
       }
     });
   };

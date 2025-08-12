@@ -7,7 +7,7 @@ import Link from 'next/link';
 
 export function InstructorCourseCard({ course }: { course: Course }) {
   return (
-    <Link href={`/dashboard/instructor/courses/${course.id}`}>
+    <Link href={`/dashboard/instructor/courses/${course.id}/overview`}>
       <Card className="hover:border-foreground/30 overflow-hidden transition-shadow hover:shadow-lg">
         <div className="bg-muted relative mx-2 aspect-video rounded-lg shadow-2xl/10 dark:shadow-2xl/20">
           {course.imageUrl ? (
