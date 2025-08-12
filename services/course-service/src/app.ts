@@ -15,6 +15,7 @@ import {
   healthRouter,
   lessonRouter,
   moduleRouter,
+  resourceRouter,
 } from './routes';
 
 const app = express();
@@ -35,6 +36,7 @@ app.use('/api/modules', moduleRouter);
 app.use('/api/lessons', lessonRouter);
 app.use('/api/categories', categoryRouter);
 app.use('/api', assignmentRouter);
+app.use('/api', resourceRouter);
 
 app.use(errorHandler);
 
