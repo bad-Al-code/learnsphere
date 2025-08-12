@@ -100,8 +100,13 @@ export class CourseRepository {
                 textContent: true,
               },
             },
+            assignments: {
+              orderBy: (assignments, { asc }) => [asc(assignments.order)],
+            },
           },
         },
+
+        category: true,
       },
     });
   }
