@@ -24,7 +24,7 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
   }
 
   return (
-    <div className="flex items-center justify-center space-x-2 py-4">
+    <div className="flex items-center justify-center space-x-2 py-0">
       <Button
         asChild={currentPage > 1}
         variant="outline"

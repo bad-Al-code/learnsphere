@@ -27,7 +27,10 @@ export default function AssignmentsDataComponent({
     results: [],
     pagination: { currentPage: 1, totalPages: 0, totalResults: 0 },
   });
-  const [resources, setResources] = useState([]);
+  const [resourcesData, setResourcesData] = useState({
+    results: [],
+    pagination: { currentPage: 1, totalPages: 0, totalResults: 0 },
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,21 +40,27 @@ export default function AssignmentsDataComponent({
         ? statusParam
         : undefined;
 
+    const page = Number(searchParams.get('page')) || 1;
+    const limit = Number(searchParams.get('limit')) || 6;
+
     const options = {
       courseId,
       q: searchParams.get('q') || undefined,
       status,
       moduleId: searchParams.get('moduleId') || undefined,
-      page: Number(searchParams.get('page')) || 1,
-      limit: Number(searchParams.get('limit')) || 5,
+      page,
+      limit,
     };
 
     setLoading(true);
 
-    Promise.all([getCourseAssignments(options), getCourseResources(courseId)])
-      .then(([assignments, resourcesData]) => {
+    Promise.all([
+      getCourseAssignments(options),
+      getCourseResources(courseId, Number(searchParams.get('page')) || 1, 6),
+    ])
+      .then(([assignments, resources]) => {
         setAssignmentsData(assignments);
-        setResources(resourcesData);
+        setResourcesData(resources);
       })
       .finally(() => setLoading(false));
   }, [courseId, searchParams]);
@@ -97,34 +106,37 @@ export default function AssignmentsDataComponent({
 
   return (
     <div className="space-y-8">
-      <div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Assignments</CardTitle>
-            <CardDescription>
-              Manage all assignments for this course.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AssignmentsList
-              initialAssignments={assignmentsData.results}
-              courseId={courseId}
-              moduleOptions={moduleOptions}
-            />
-          </CardContent>
-        </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Assignments</CardTitle>
+          <CardDescription>
+            Manage all assignments for this course.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AssignmentsList
+            initialAssignments={assignmentsData.results}
+            courseId={courseId}
+            moduleOptions={moduleOptions}
+          />
+        </CardContent>
         <PaginationControls
           totalPages={assignmentsData.pagination.totalPages}
-        />
-      </div>
+        />{' '}
+      </Card>
 
       <Card>
         <CardHeader>
           <CardTitle>Resources & Activities</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResourcesManager initialResources={resources} courseId={courseId} />
+          <ResourcesManager
+            initialResources={resourcesData.results}
+            courseId={courseId}
+          />
         </CardContent>
+
+        <PaginationControls totalPages={resourcesData.pagination.totalPages} />
       </Card>
 
       <Card>

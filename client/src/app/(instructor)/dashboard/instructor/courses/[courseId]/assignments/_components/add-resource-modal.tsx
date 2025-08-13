@@ -116,7 +116,7 @@ export function AddResourceModal({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 py-4"
+            className="space-y-4 py-0"
           >
             <FormField
               control={form.control}

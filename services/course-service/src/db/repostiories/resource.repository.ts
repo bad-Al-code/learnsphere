@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm';
+import { count, desc, eq } from 'drizzle-orm';
 import { db } from '..';
 import { NewResource, Resource, UpdateResourceDto } from '../../schemas';
 import { resources } from '../schema';
@@ -29,13 +29,40 @@ export class ResourceRepository {
   /**
    * Get all resources for a given course.
    * @param courseId Course ID.
+   * @param limit
+   * @param page
    * @returns List of Resources ordered by creation date (descending).
    */
-  public static async findByCourseId(courseId: string): Promise<Resource[]> {
-    return db.query.resources.findMany({
+  public static async findByCourseId(
+    courseId: string,
+    page: number,
+    limit: number
+  ) {
+    const offset = (page - 1) * limit;
+    const totalQuery = db
+      .select({ value: count() })
+      .from(resources)
+      .where(eq(resources.courseId, courseId));
+    const resultsQuery = db.query.resources.findMany({
       where: eq(resources.courseId, courseId),
       orderBy: [desc(resources.createdAt)],
+      limit,
+      offset,
     });
+    const [[{ value: totalResults }], results] = await Promise.all([
+      totalQuery,
+      resultsQuery,
+    ]);
+    const totalPages = Math.ceil(totalResults / limit);
+
+    return {
+      results,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalResults,
+      },
+    };
   }
 
   /**

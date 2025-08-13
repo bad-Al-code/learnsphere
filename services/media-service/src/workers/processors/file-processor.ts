@@ -54,7 +54,8 @@ export class FileProcessor implements IProcessor {
         processedBucket,
         processedKey,
         fileBuffer,
-        contentType
+        contentType,
+        'public-read'
       );
 
       const finalUrl = `https://${processedBucket}.s3.${region}.amazonaws.com/${processedKey}`;

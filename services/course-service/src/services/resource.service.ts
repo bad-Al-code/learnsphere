@@ -8,10 +8,12 @@ import { Requester } from '../types';
 export class ResourceService {
   public static async getResourcesForCourse(
     courseId: string,
-    requester: Requester
+    requester: Requester,
+    page: number,
+    limit: number
   ) {
     await AuthorizationService.verifyCourseOwnership(courseId, requester);
-    return ResourceRepository.findByCourseId(courseId);
+    return ResourceRepository.findByCourseId(courseId, page, limit);
   }
 
   public static async createResource(

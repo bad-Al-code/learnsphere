@@ -8,7 +8,7 @@ export class MediaService {
   /**
    * Generate a secure, time-limited presigned URL for uploading a file to S3.
    * @param param The parameters for the upload request.
-   * @returns An object containing the presigned URL and the S3 object key.
+   * @returns An object containing the presigned URL, the S3 object key and the finalUrl.
    */
   public static async getUploadUrl({
     uploadType,

@@ -37,6 +37,7 @@ export function ResourcesManager({
 
   const onResourceCreated = (newResource: Resource) => {
     setResources((prev) => [...prev, newResource]);
+    router.refresh();
   };
 
   const getFileIcon = (url: string) => {
@@ -75,7 +76,7 @@ export function ResourcesManager({
           No resources have been added yet.
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col gap-4">
           {resources.map((resource) => (
             <Link
               key={resource.id}
@@ -84,7 +85,8 @@ export function ResourcesManager({
               rel="noopener noreferrer"
               className="group block"
             >
-              <Card className="hover:bg-accent transition hover:shadow-lg">
+              {/* className="bg-background flex items-center gap-x-3 rounded-md border p-3" */}
+              <Card className="hover:bg-accent bg-background rounded-md transition hover:shadow-lg">
                 <CardHeader className="flex flex-row items-center gap-2">
                   {getFileIcon(resource.fileUrl)}
                   <CardTitle className="line-clamp-1 text-base font-medium">
@@ -95,7 +97,10 @@ export function ResourcesManager({
                   <span className="text-muted-foreground group-hover:text-primary truncate text-sm">
                     {resource.fileUrl}
                   </span>
-                  <Badge variant="secondary">
+                  <Badge
+                    variant="secondary"
+                    className="bg-secondary text-secondary-foreground group-hover:text-secondary-foreground group-hover:bg-background flex-shrink-0"
+                  >
                     {getFileTypeLabel(resource.fileUrl)}
                   </Badge>
                 </CardContent>

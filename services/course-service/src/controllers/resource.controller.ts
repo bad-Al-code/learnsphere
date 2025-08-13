@@ -11,10 +11,16 @@ export class ResourceController {
     try {
       const { courseId } = req.params;
       const requester = req.currentUser!;
+      const page = req.query.page ? parseInt(String(req.query.page), 10) : 1;
+      const limit = 6;
+
       const resources = await ResourceService.getResourcesForCourse(
         courseId,
-        requester
+        requester,
+        page,
+        limit
       );
+
       res.status(StatusCodes.OK).json(resources);
     } catch (error) {
       next(error);

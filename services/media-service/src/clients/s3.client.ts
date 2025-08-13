@@ -1,15 +1,15 @@
-import path from 'node:path';
-import { pipeline } from 'node:stream/promises';
-import fs from 'fs-extra';
 import {
   GetObjectCommand,
   GetObjectTaggingCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
+import fs from 'fs-extra';
+import path from 'node:path';
+import { pipeline } from 'node:stream/promises';
 
-import { env } from '../config/env';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { env } from '../config/env';
 import logger from '../config/logger';
 
 export const s3 = new S3Client({
@@ -151,13 +151,15 @@ export class S3ClientService {
     bucket: string,
     key: string,
     buffer: Buffer,
-    contentType: string
+    contentType: string,
+    acl: 'public-read' | 'private' = 'private'
   ): Promise<void> {
     const putCommand = new PutObjectCommand({
       Bucket: bucket,
       Key: key,
       Body: buffer,
       ContentType: contentType,
+      ACL: acl,
     });
 
     await s3.send(putCommand);

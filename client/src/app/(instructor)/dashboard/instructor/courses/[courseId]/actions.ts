@@ -380,16 +380,39 @@ export async function getCourseAssignments(options: FindAssignmentsQuery) {
   }
 }
 
-export async function getCourseResources(courseId: string) {
+export async function getCourseResources(
+  courseId: string,
+  page: number = 1,
+  limit: number = 6
+) {
   try {
     const response = await courseService.get(
-      `/api/courses/${courseId}/resources`
+      `/api/courses/${courseId}/resources?page=${page}&limit=${limit}`
     );
-    if (!response.ok) return [];
-    return await response.json();
+
+    if (!response.ok) {
+      return {
+        results: [],
+        pagination: { currentPage: 1, totalPages: 0, totalResults: 0 },
+      };
+    }
+
+    const data = await response.json();
+
+    return {
+      results: data.results || [],
+      pagination: data.pagination || {
+        currentPage: 1,
+        totalPages: 0,
+        totalResults: 0,
+      },
+    };
   } catch (error) {
     console.error('Failed to fetch resources:', error);
-    return [];
+    return {
+      results: [],
+      pagination: { currentPage: 1, totalPages: 0, totalResults: 0 },
+    };
   }
 }
 
