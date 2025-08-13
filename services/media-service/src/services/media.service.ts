@@ -16,26 +16,42 @@ export class MediaService {
     metadata,
   }: UploadUrlParams): Promise<SignedUrlResponse> {
     const rawBucket = env.AWS_RAW_UPLOADS_BUCKET!;
+    const processedBucket = env.AWS_PROCESSED_MEDIA_BUCKET;
+    const region = env.AWS_REGION;
     const tagsToApply = { ...metadata, uploadType: uploadType };
 
     let key: string;
+    let processedKey: string;
+
+    const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}-${filename}`;
+
     switch (uploadType) {
       case 'avatar':
         if (!metadata.userId)
           throw new Error('userId is required for avatar uploads');
         key = `uploads/avatars/${metadata.userId}/${Date.now()}-${filename}`;
+        processedKey = `avatars/${metadata.userId}/large.jpeg`;
         break;
 
       case 'video':
         if (!metadata.lessonId)
           throw new Error('lessonId is required for video uploads');
         key = `uploads/videos/${metadata.lessonId}/${Date.now()}-${filename}`;
+        processedKey = `videos/${metadata.courseId}/${uniqueFilename}/playlist.m3u8`;
         break;
 
       case 'course_thumbnail':
         if (!metadata.courseId)
           throw new Error('courseId is required for thumbnail uploads');
         key = `uploads/thumbnails/${metadata.courseId}/${Date.now()}-${filename}`;
+        processedKey = `thumbnails/${metadata.courseId}/thumbnail.jpeg`;
+        break;
+
+      case 'course_resource':
+        if (!metadata.courseId)
+          throw new Error('courseId is required for resource uploads');
+        key = `uploads/resources/${metadata.courseId}/${Date.now()}-${filename}`;
+        processedKey = `resources/${metadata.courseId}/${uniqueFilename}`;
         break;
 
       default:
@@ -59,6 +75,8 @@ export class MediaService {
       tagsToApply
     );
 
-    return { signedUrl, key };
+    const finalUrl = `https://${processedBucket}.s3.${region}.amazonaws.com/${processedKey}`;
+
+    return { signedUrl, key, finalUrl };
   }
 }

@@ -61,6 +61,14 @@ export type NewResource = typeof resources.$inferInsert;
  *       properties:
  *         title:
  *           type: string
+ *
+ *     UploadUrlPayload:
+ *       type: object
+ *       required: [filename]
+ *       properties:
+ *         filename:
+ *           type: string
+ *           example: "syllabus.pdf"
  */
 export const createResourceSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
@@ -74,5 +82,10 @@ export const updateResourceSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
 });
 
+export const uploadUrlSchema = z.object({
+  filename: z.string().min(1, 'Filename is required.'),
+});
+
 export type CreateResourceDto = z.infer<typeof createResourceSchema>;
 export type UpdateResourceDto = z.infer<typeof updateResourceSchema>;
+export type UploadUrlDto = z.infer<typeof uploadUrlSchema>;

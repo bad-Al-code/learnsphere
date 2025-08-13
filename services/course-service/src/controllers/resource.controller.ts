@@ -63,4 +63,26 @@ export class ResourceController {
       next(error);
     }
   }
+
+  public static async getUploadUrl(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseId } = req.params;
+      const { filename } = req.body;
+      const requester = req.currentUser!;
+
+      const uploadData = await ResourceService.getUploadUrl(
+        courseId,
+        filename,
+        requester
+      );
+
+      res.status(StatusCodes.OK).json(uploadData);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

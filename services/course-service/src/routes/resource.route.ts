@@ -4,14 +4,18 @@ import { ResourceController } from '../controllers';
 import { requireAuth } from '../middlewares/require-auth';
 import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
-import { createResourceSchema, updateResourceSchema } from '../schemas';
+import {
+  createResourceSchema,
+  updateResourceSchema,
+  uploadUrlSchema,
+} from '../schemas';
 
 const router = Router();
 router.use(requireAuth, requireRole(['instructor', 'admin']));
 
 /**
  * @openapi
- * /courses/{courseId}/resources:
+ * /api/courses/{courseId}/resources:
  *   get:
  *     summary: Get all resources for a course
  *     tags:
@@ -37,7 +41,7 @@ router.get('/courses/:courseId/resources', ResourceController.getForCourse);
 
 /**
  * @openapi
- * /courses/{courseId}/resources:
+ * /api/courses/{courseId}/resources:
  *   post:
  *     summary: Create a new resource for a course
  *     tags:
@@ -73,7 +77,7 @@ router.post(
 
 /**
  * @openapi
- * /resources/{resourceId}:
+ * /api/resources/{resourceId}:
  *   put:
  *     summary: Update an existing resource
  *     tags:
@@ -109,7 +113,7 @@ router.put(
 
 /**
  * @openapi
- * /resources/{resourceId}:
+ * /api/resources/{resourceId}:
  *   delete:
  *     summary: Delete a resource
  *     tags:
@@ -128,5 +132,41 @@ router.put(
  *         description: Resource not found
  */
 router.delete('/resources/:resourceId', ResourceController.delete);
+
+/**
+ * @openapi
+ * /api/courses/{courseId}/resources/upload-url:
+ *   post:
+ *     summary: Get a signed upload URL for uploading a course resource
+ *     tags:
+ *       - Resources
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UploadUrlPayload'
+ *     responses:
+ *       200:
+ *         description: Successfully generated upload URL
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Server error
+ */
+router.post(
+  '/courses/:courseId/resources/upload-url',
+  validateRequest(z.object({ body: uploadUrlSchema })),
+  ResourceController.getUploadUrl
+);
 
 export { router as resourceRouter };

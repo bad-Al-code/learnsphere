@@ -1,6 +1,7 @@
 import logger from './config/logger';
 import { ProcessorFactory } from './workers/processor.factory';
 import { AvatarProcessor } from './workers/processors/avatar-processor';
+import { FileProcessor } from './workers/processors/file-processor';
 import { ThumbnailProcessor } from './workers/processors/thumbnail-processor';
 import { VideoProcessor } from './workers/processors/video-processor';
 import { SqsWorker } from './workers/sqs-worker';
@@ -13,6 +14,7 @@ const startWorker = (): void => {
       new AvatarProcessor(),
       new VideoProcessor(),
       new ThumbnailProcessor(),
+      new FileProcessor(),
     ];
 
     const processorFactory = new ProcessorFactory(processors);

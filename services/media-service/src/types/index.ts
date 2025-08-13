@@ -2,13 +2,14 @@ import { mediaAssets } from '../db/schema';
 
 export interface UploadUrlParams {
   filename: string;
-  uploadType: 'avatar' | 'video' | 'course_thumbnail';
+  uploadType: 'avatar' | 'video' | 'course_thumbnail' | 'course_resource';
   metadata: Record<string, string>;
 }
 
 export interface SignedUrlResponse {
   signedUrl: string;
   key: string;
+  finalUrl: string;
 }
 
 export interface TranscodeOptions {

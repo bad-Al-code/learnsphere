@@ -63,7 +63,6 @@ export function AddResourceModal({
 
     startTransition(async () => {
       try {
-        // 1. Get presigned URL
         const { data: urlData, error: urlError } = await getResourceUploadUrl(
           courseId,
           selectedFile.name
@@ -71,7 +70,6 @@ export function AddResourceModal({
         if (urlError || !urlData?.signedUrl)
           throw new Error(urlError || 'Could not get upload URL.');
 
-        // 2. Upload file to S3
         await axios.put(urlData.signedUrl, selectedFile, {
           headers: { 'Content-Type': selectedFile.type },
           onUploadProgress: (progressEvent) => {
@@ -83,10 +81,9 @@ export function AddResourceModal({
           },
         });
 
-        // 3. Create the resource record in our database
         const resourcePayload = {
           title: values.title,
-          fileUrl: urlData.finalUrl, // The final public URL
+          fileUrl: urlData.finalUrl,
           fileName: selectedFile.name,
           fileSize: selectedFile.size,
           fileType: selectedFile.type,

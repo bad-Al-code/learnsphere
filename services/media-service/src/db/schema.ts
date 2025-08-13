@@ -19,6 +19,7 @@ export const uploadTypeEnum = pgEnum('upload_type', [
   'avatar',
   'video',
   'course_thumbnail',
+  'course_resource',
 ]);
 
 export const mediaAssets = pgTable('media_assets', {

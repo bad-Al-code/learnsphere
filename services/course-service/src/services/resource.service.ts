@@ -1,4 +1,5 @@
 import { AuthorizationService } from '.';
+import { MediaClient } from '../clients/media.client';
 import { ResourceRepository } from '../db/repostiories';
 import { NotFoundError } from '../errors';
 import { CreateResourceDto, Resource, UpdateResourceDto } from '../schemas';
@@ -51,5 +52,27 @@ export class ResourceService {
       requester
     );
     await ResourceRepository.delete(resourceId);
+  }
+
+  /**
+   * Get a signed upload URL for uploading a course resource.
+   * @param courseId - The course ID.
+   * @param filename - The name of the file to upload.
+   * @param requester - The user requesting the upload.
+   * @returns The upload URL and metadata from the media service.
+   * @throws Error if the requester does not own the course or media service fails.
+   */
+  public static async getUploadUrl(
+    courseId: string,
+    filename: string,
+    requester: Requester
+  ) {
+    await AuthorizationService.verifyCourseOwnership(courseId, requester);
+
+    return MediaClient.requestGenericFileUpload(
+      courseId,
+      filename,
+      'course_resource'
+    );
   }
 }

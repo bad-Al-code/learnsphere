@@ -75,3 +75,29 @@ export class CourseThumbnailProcessedPublisher extends Publisher<CourseThumbnail
   readonly topic: 'course.thumbnail.processed' =
     'course.thumbnail.processed' as const;
 }
+
+interface CourseResourceProcessedEvent {
+  topic: 'course.resource.processed';
+  data: {
+    courseId: string;
+    fileUrl: string;
+    fileName: string;
+    fileSize: number;
+    fileType: string;
+  };
+}
+
+export class CourseResourceProcessedPublisher extends Publisher<CourseResourceProcessedEvent> {
+  readonly topic = 'course.resource.processed' as const;
+}
+
+interface CourseResourceFailureEvent {
+  topic: 'course.resource.failed';
+  data: {
+    courseId: string;
+    reason: string;
+  };
+}
+export class CourseResourceFailurePublisher extends Publisher<CourseResourceFailureEvent> {
+  readonly topic: 'course.resource.failed' = 'course.resource.failed' as const;
+}

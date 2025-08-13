@@ -12,6 +12,7 @@ import {
   lessons,
   lessonTypeEnum,
   modules,
+  resources,
   textLessonContent,
 } from '../schema';
 
@@ -84,6 +85,24 @@ const realHlsUrls = [
   'https://test-streams.mux.dev/dai-discontinuity-deltatre/manifest.m3u8',
   'https://ireplay.tv/test/blender.m3u8',
   'https://res.cloudinary.com/dannykeane/video/upload/sp_full_hd/q_80:qmax_90,ac_none/v1/dk-memoji-dark.m3u8',
+];
+
+const sampleFileUrls = [
+  'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-file.pdf', // ~142 KB
+  'https://www.getsamplefiles.com/sample-1.pdf', // ~32 KB
+  'https://www.getsamplefiles.com/sample-2.pdf', // ~222 KB
+  'https://www.getsamplefiles.com/sample-4.pdf', // ~299 KB
+  'https://www.getsamplefiles.com/sample-5.pdf', // ~1 MB (just under)
+  'https://www.sample-files.com/documents/pdf/basic-text.pdf', // small text
+  'https://www.sample-files.com/documents/pdf/sample-report.pdf', // small multi-page
+  'https://www.sample-files.com/documents/pdf/fillable-form.pdf', // small form
+  'https://www.sample-files.com/documents/pdf/image-doc.pdf', // small images
+  'https://www.africau.edu/images/default/sample.pdf', // 13 KB
+  'https://www.orimi.com/pdf-test.pdf', // ~36 KB
+  'https://www.hq.nasa.gov/alsj/a17/A17_FlightPlan.pdf', // ~800 KB
+  'https://file-examples.com/storage/fe0b879da643f3e2c813c4e/2017/10/file-sample_150kB.pdf', // 150 KB
+  'https://file-examples.com/storage/fe0b879da643f3e2c813c4e/2017/10/file-sample_500kB.pdf', // 500 KB
+  'https://file-examples.com/storage/fe0b879da643f3e2c813c4e/2017/10/file-sample_700kB.pdf', // 700 KB
 ];
 
 async function seedCategories() {
@@ -304,6 +323,30 @@ async function seedAssignments(moduleIds: string[]): Promise<void> {
   console.log('Assignments seeding complete!');
 }
 
+async function seedResources(courseIds: string[]): Promise<void> {
+  for (const courseId of courseIds) {
+    const resourceContent = faker.number.int({ min: 1, max: 10 });
+
+    for (let i = 0; i < resourceContent; i++) {
+      const fileName = faker.system.commonFileName('pdf');
+
+      await db.insert(resources).values({
+        title: faker.lorem.words({ min: 3, max: 10 }),
+        courseId,
+        fileUrl: faker.helpers.arrayElement(sampleFileUrls),
+        fileName: fileName,
+        fileSize: faker.number.int({ min: 100_000, max: 1_000_000 }),
+        fileType: 'application/pdf',
+        order: i,
+      });
+
+      console.log(`Resource created: ${fileName} (Course: ${courseId})`);
+    }
+  }
+
+  console.log('Resources seeding complete!');
+}
+
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -318,6 +361,7 @@ async function runSeed() {
     const moduleIds = await seedModules(courseIds);
     await seedLessons(moduleIds);
     await seedAssignments(moduleIds);
+    await seedResources(courseIds);
 
     console.log('All data seeded successfully.');
 

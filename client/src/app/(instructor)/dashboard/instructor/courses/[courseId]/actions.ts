@@ -444,7 +444,10 @@ export async function getResourceUploadUrl(courseId: string, filename: string) {
     if (!response.ok) {
       throw new Error('Could not get upload URL.');
     }
-    return { success: true, data: await response.json() };
+
+    const result = await response.json();
+    console.log(result);
+    return { success: true, data: result };
   } catch (error: any) {
     return { error: error.message };
   }

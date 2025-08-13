@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
 import { AddResourceModal } from './add-resource-modal';
 
 type Resource = {
@@ -74,9 +75,9 @@ export function ResourcesManager({
           No resources have been added yet.
         </p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {resources.map((resource) => (
-            <a
+            <Link
               key={resource.id}
               href={resource.fileUrl}
               target="_blank"
@@ -99,7 +100,7 @@ export function ResourcesManager({
                   </Badge>
                 </CardContent>
               </Card>
-            </a>
+            </Link>
           ))}
         </div>
       )}

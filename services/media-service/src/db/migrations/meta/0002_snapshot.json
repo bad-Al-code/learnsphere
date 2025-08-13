@@ -1,0 +1,127 @@
+{
+  "id": "7cbc4fcd-def8-4400-840c-bdea7cdacdb3",
+  "prevId": "de633373-f028-44a0-a2ee-8a7cf79197bf",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.media_assets": {
+      "name": "media_assets",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "s3_key": {
+          "name": "s3_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "owner_user_id": {
+          "name": "owner_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parent_entity_id": {
+          "name": "parent_entity_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "upload_type": {
+          "name": "upload_type",
+          "type": "upload_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "media_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'uploading'"
+        },
+        "error_message": {
+          "name": "error_message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "processed_urls": {
+          "name": "processed_urls",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "media_assets_s3_key_unique": {
+          "name": "media_assets_s3_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "s3_key"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.media_status": {
+      "name": "media_status",
+      "schema": "public",
+      "values": [
+        "uploading",
+        "processing",
+        "completed",
+        "failed"
+      ]
+    },
+    "public.upload_type": {
+      "name": "upload_type",
+      "schema": "public",
+      "values": [
+        "avatar",
+        "video",
+        "course_thumbnail",
+        "course_resource"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

@@ -1,0 +1,1 @@
+ALTER TYPE "public"."upload_type" ADD VALUE 'course_resource';
