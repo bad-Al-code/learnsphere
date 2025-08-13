@@ -1,10 +1,19 @@
 'use client';
 
-import { File, PlusCircle } from 'lucide-react';
+import {
+  File,
+  FileText,
+  Link as LinkIcon,
+  PlusCircle,
+  Video,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AddResourceModal } from './add-resource-modal';
 
 type Resource = {
   id: string;
@@ -29,12 +38,33 @@ export function ResourcesManager({
     setResources((prev) => [...prev, newResource]);
   };
 
+  const getFileIcon = (url: string) => {
+    const lowerUrl = url.toLowerCase();
+    const iconClass = 'h-5 w-5 flex-shrink-0';
+    if (lowerUrl.endsWith('.pdf'))
+      return <FileText className={`${iconClass} text-red-500`} />;
+    if (lowerUrl.includes('youtube.com') || lowerUrl.includes('vimeo.com'))
+      return <Video className={`${iconClass} text-purple-500`} />;
+    if (lowerUrl.startsWith('http'))
+      return <LinkIcon className={`${iconClass} text-blue-500`} />;
+    return <File className={`${iconClass} text-gray-500`} />;
+  };
+
+  const getFileTypeLabel = (url: string) => {
+    const lowerUrl = url.toLowerCase();
+    if (lowerUrl.endsWith('.pdf')) return 'PDF';
+    if (lowerUrl.includes('youtube.com') || lowerUrl.includes('vimeo.com'))
+      return 'Video';
+    if (lowerUrl.startsWith('http')) return 'Link';
+    return 'File';
+  };
+
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-lg font-medium">Course Resources</h3>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-semibold">Course Resources</h3>
         <Button size="sm" onClick={() => setIsModalOpen(true)}>
-          <PlusCircle className="mr-2 h-4 w-4" />
+          <PlusCircle className="mr-1 h-4 w-4" />
           Add Resource
         </Button>
       </div>
@@ -44,22 +74,42 @@ export function ResourcesManager({
           No resources have been added yet.
         </p>
       ) : (
-        <div className="space-y-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {resources.map((resource) => (
-            <div
+            <a
               key={resource.id}
-              className="flex w-full items-center rounded-md border p-3"
+              href={resource.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group block"
             >
-              <File className="mr-2 h-4 w-4 flex-shrink-0" />
-              <p className="line-clamp-1 flex-grow text-xs font-medium">
-                {resource.title}
-              </p>
-            </div>
+              <Card className="hover:bg-accent transition hover:shadow-lg">
+                <CardHeader className="flex flex-row items-center gap-2">
+                  {getFileIcon(resource.fileUrl)}
+                  <CardTitle className="line-clamp-1 text-base font-medium">
+                    {resource.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between">
+                  <span className="text-muted-foreground group-hover:text-primary truncate text-sm">
+                    {resource.fileUrl}
+                  </span>
+                  <Badge variant="secondary">
+                    {getFileTypeLabel(resource.fileUrl)}
+                  </Badge>
+                </CardContent>
+              </Card>
+            </a>
           ))}
         </div>
       )}
 
-      <p className="p-4 text-center">Add Resource Modal placeholder</p>
+      <AddResourceModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        courseId={courseId}
+        onResourceCreated={onResourceCreated}
+      />
     </div>
   );
 }
