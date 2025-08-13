@@ -142,7 +142,15 @@ export function AddResourceModal({
                 />
               </FormControl>
             </FormItem>
-            {isPending && <Progress value={uploadProgress} />}
+            {isPending && (
+              <div className="flex w-full items-center gap-2">
+                <Progress value={uploadProgress} className="flex-1" />
+                <p className="text-muted-foreground text-sm">
+                  {uploadProgress}%
+                </p>
+              </div>
+            )}
+
             <DialogFooter>
               <Button
                 type="button"

@@ -295,7 +295,7 @@ export function AssignmentsList({
                     <div
                       ref={provided.innerRef}
                       {...provided.draggableProps}
-                      className="bg-background flex items-center gap-x-3 rounded-md border p-3"
+                      className="bg-background hover:bg-background/50 flex items-center gap-x-3 rounded-md border p-3"
                     >
                       <div
                         {...provided.dragHandleProps}

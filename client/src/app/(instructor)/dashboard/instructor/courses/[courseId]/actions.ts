@@ -16,6 +16,7 @@ import {
 import {
   CreateResourceDto,
   createResourceSchema,
+  UpdateResourceDto,
 } from '@/lib/schemas/resource';
 import { revalidatePath } from 'next/cache';
 import z from 'zod';
@@ -441,6 +442,26 @@ export async function createResource(
       return { error: error.issues[0].message };
     }
     return { error: error.message };
+  }
+}
+
+export async function updateResource(
+  courseId: string,
+  resourceId: string,
+  data: UpdateResourceDto
+) {
+  try {
+    const response = await courseService.put(
+      `/api/resources/${resourceId}/update`,
+      data
+    );
+    if (!response.ok) {
+      throw new Error('Failed to update resource.');
+    }
+    revalidatePath(`/dashboard/instructor/courses/${courseId}/assignments`);
+    return { success: true };
+  } catch (error: any) {
+    return { error: 'An error occurred.' };
   }
 }
 
