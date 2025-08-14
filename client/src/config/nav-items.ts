@@ -60,7 +60,7 @@ export const adminNavItems: NavItem[] = [
 
 export const instructorNavItems: NavItem[] = [
   {
-    href: '/dashboard/instructor',
+    href: '/dashboard',
     label: 'Dashboard',
     value: 'dashboard',
     icon: LayoutGrid,
