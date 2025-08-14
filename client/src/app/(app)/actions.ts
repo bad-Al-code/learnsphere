@@ -9,34 +9,47 @@ export async function getInstructorDashboardStats() {
       courseService.get('/api/courses/stats'),
     ]);
 
-    if (!enrollmentStatsRes.ok || !courseStatsRes.ok) {
-      console.error('Failed to fetch some dashboard stats');
+    let enrollmentData = { stats: { totalStudents: 0, totalRevenue: 0 } };
+    let courseData = { totalCourses: 0 };
 
-      return {
-        totalStudents: 0,
-        totalRevenue: 0,
-        activeCourses: 0,
-        averageRating: 0,
-      };
+    if (enrollmentStatsRes.ok) {
+      enrollmentData = await enrollmentStatsRes.json();
+    } else {
+      console.error('Failed to fetch enrollment stats');
     }
 
-    const enrollmentData = await enrollmentStatsRes.json();
-    const courseData = await courseStatsRes.json();
+    if (courseStatsRes.ok) {
+      courseData = await courseStatsRes.json();
+    } else {
+      console.error('Failed to fetch course stats');
+    }
 
     return {
-      totalStudents: enrollmentData.stats.totalStudents || 0,
-      totalRevenue: enrollmentData.stats.totalRevenue || 0,
-      activeCourses: courseData.totalCourses || 0,
-      averageRating: 4.6,
+      totalStudents: {
+        value: enrollmentData.stats.totalStudents || 0,
+        change: 15, // Placeholder
+      },
+      totalRevenue: {
+        value: enrollmentData.stats.totalRevenue || 0,
+        change: 20, // Placeholder
+      },
+      activeCourses: {
+        value: courseData.totalCourses || 0,
+        change: 5, // Placeholder
+      },
+      averageRating: {
+        value: 4.6, // Placeholder
+        change: 10, // Placeholder
+      },
     };
   } catch (error) {
     console.error('Error fetching instructor dashboard stats:', error);
 
     return {
-      totalStudents: 0,
-      totalRevenue: 0,
-      activeCourses: 0,
-      averageRating: 0,
+      totalStudents: { value: 0, change: 0 },
+      totalRevenue: { value: 0, change: 0 },
+      activeCourses: { value: 0, change: 0 },
+      averageRating: { value: 0, change: 0 },
     };
   }
 }
