@@ -14,19 +14,17 @@ const loginSchema = z.object({
 export type LoginSchema = z.infer<typeof loginSchema>;
 
 export async function login(values: LoginSchema) {
+  let data;
   try {
     const validatedData = loginSchema.parse(values);
 
     const response = await authService.post('/api/auth/login', validatedData);
-    const responseData = await response.json().catch(() => ({}));
+
+    data = await response.json();
 
     if (!response.ok) {
-      const errorMessage =
-        responseData.errors?.[0]?.message || response.statusText;
-
-      return { error: errorMessage };
+      return { error: data.errors?.[0]?.message || 'Login Failed' };
     }
-
     const setCookieHeaders = response.headers.getSetCookie();
     if (setCookieHeaders.length > 0) {
       setCookieHeaders.forEach(async (cookieString) => {
@@ -54,8 +52,16 @@ export async function login(values: LoginSchema) {
     };
   }
 
-  revalidatePath('/');
-  redirect('/');
+  const userRole = data.user?.role;
+  revalidatePath('/', 'layout');
+
+  if (userRole === 'admin') {
+    redirect('/admin');
+  } else if (userRole === 'instructor') {
+    redirect('/dashboard/instructor');
+  } else {
+    redirect('/');
+  }
 }
 
 export async function getCurrentUser() {
