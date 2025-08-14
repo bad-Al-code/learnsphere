@@ -2,8 +2,11 @@ import { NavItem } from '@/types';
 import {
   Bell,
   BookCopy,
+  BookOpen,
   BookOpenCheck,
+  FileText,
   FolderKanban,
+  Info,
   LayoutGrid,
   Shield,
   User,
@@ -57,6 +60,14 @@ export const adminNavItems: NavItem[] = [
     icon: FolderKanban,
   },
 ];
+
+export const publicNavItems = [
+  { href: '/courses', label: 'Courses', icon: BookOpen },
+  { href: '/blog', label: 'Blog', icon: FileText },
+  { href: '/about', label: 'About', icon: Info },
+];
+
+export default publicNavItems;
 
 export const instructorNavItems: NavItem[] = [
   {

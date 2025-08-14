@@ -10,6 +10,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import publicNavItems, {
+  adminNavItems,
+  instructorNavItems,
+} from '@/config/nav-items'; // Import nav items
 import { getInitials } from '@/lib/utils';
 import { useSessionStore } from '@/stores/session-store';
 import { User } from '@/types/user';
@@ -21,6 +25,7 @@ import {
   User as UserIcon,
 } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { Logo } from '../shared/logo';
 import { ModeToggle } from '../shared/mode-toggle';
@@ -29,7 +34,8 @@ import { Button } from '../ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
 import { InstructorApplyButton } from './instructor-apply-button';
 
-export function Header({ user: initialUser }: { user: User }) {
+export function Header({ user: initialUser }: { user: User | null }) {
+  const pathname = usePathname();
   const { user, setUser } = useSessionStore();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -45,9 +51,21 @@ export function Header({ user: initialUser }: { user: User }) {
     });
   };
 
+  const getMobileNavItems = () => {
+    if (user?.role === 'admin') {
+      return adminNavItems;
+    }
+    if (user?.role === 'instructor') {
+      return instructorNavItems;
+    }
+    return publicNavItems;
+  };
+
+  const mobileNavItems = getMobileNavItems();
+
   return (
     <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+      <div className="container mx-auto flex h-16 items-center justify-between px-0">
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
@@ -57,24 +75,15 @@ export function Header({ user: initialUser }: { user: User }) {
 
         {/* Center Nav (Desktop only) */}
         <nav className="hidden flex-1 items-center justify-center space-x-6 text-sm font-medium sm:flex">
-          <Link
-            href="/courses"
-            className="hover:text-foreground/80 transition-colors"
-          >
-            Courses
-          </Link>
-          <Link
-            href="/blog"
-            className="hover:text-foreground/80 transition-colors"
-          >
-            Blog
-          </Link>
-          <Link
-            href="/about"
-            className="hover:text-foreground/80 transition-colors"
-          >
-            About
-          </Link>
+          {publicNavItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="hover:text-foreground/80 transition-colors"
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
         {/* Right Section */}
@@ -178,27 +187,27 @@ export function Header({ user: initialUser }: { user: User }) {
                   </SheetHeader>
 
                   <nav className="mt-6 flex flex-col space-y-4 px-4 text-sm font-medium">
-                    <Link
-                      href="/courses"
-                      className="hover:text-foreground/80"
-                      onClick={() => setIsSheetOpen(false)}
-                    >
-                      Courses
-                    </Link>
-                    <Link
-                      href="/blog"
-                      className="hover:text-foreground/80"
-                      onClick={() => setIsSheetOpen(false)}
-                    >
-                      Blog
-                    </Link>
-                    <Link
-                      href="/about"
-                      className="hover:text-foreground/80"
-                      onClick={() => setIsSheetOpen(false)}
-                    >
-                      About
-                    </Link>
+                    {mobileNavItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = pathname === item.href;
+
+                      return (
+                        <Button
+                          key={item.href}
+                          asChild
+                          variant={isActive ? 'secondary' : 'ghost'}
+                          className="w-full justify-start gap-2"
+                        >
+                          <Link
+                            href={item.href}
+                            className="flex items-center gap-2"
+                          >
+                            <Icon className="h-4 w-4" />
+                            {item.label}
+                          </Link>
+                        </Button>
+                      );
+                    })}
                   </nav>
                 </div>
 
