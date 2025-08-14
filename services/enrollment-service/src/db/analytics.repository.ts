@@ -1,26 +1,44 @@
-import { countDistinct, desc, eq, inArray, sql } from 'drizzle-orm';
+import {
+  and,
+  countDistinct,
+  desc,
+  eq,
+  gte,
+  inArray,
+  lt,
+  sql,
+} from 'drizzle-orm';
 import { db } from '.';
 import { courses, enrollments } from './schema';
 
-/**
- * @class AnalyticsRepository
- * @description Manages database operations for analytics-related queries.
- * This class provides static methods to aggregate and retrieve statistical data
- * from the database by performing complex queries.
- */
 export class AnalyticsRepository {
   /**
    * @static
    * @async
    * @method getInstructorStats
-   * @description Calculates key statistics for a specific instructor.
-   * This method first finds all courses taught by the instructor. It then uses
-   * the course IDs to calculate the total number of unique students enrolled
-   * in those courses.
+   * @description Calculates enrollment and revenue statistics for the given instructor
+   * for both the current and previous 30-day periods.
+   *
+   * This method:
+   * 1. Finds all courses taught by the instructor.
+   * 2. Counts the number of unique students enrolled in those courses during:
+   *    - The current period (last 30 days)
+   *    - The previous period (30–60 days ago)
+   * 3. Estimates total revenue for each period using a placeholder `revenuePerStudent` value.
+   *
    * @param {string} instructorId - The unique identifier of the instructor.
-   * @returns {Promise<{ totalStudents: number; totalRevenue: number }>} A promise that resolves to an object containing:
-   * - `totalStudents`: The total number of unique students enrolled in the instructor's courses.
-   * - `totalRevenue`: A placeholder for the total revenue, currently hardcoded to 0.
+   * @returns {Promise<{
+   *   currentPeriod: {
+   *     totalStudents: number;
+   *     totalRevenue: number;
+   *   };
+   *   previousPeriod: {
+   *     totalStudents: number;
+   *     totalRevenue: number;
+   *   };
+   * }>} A promise that resolves to an object containing statistics for both periods:
+   * - `totalStudents`: The number of unique students in the period.
+   * - `totalRevenue`: Estimated revenue for the period.
    */
   public static async getInstructorStats(instructorId: string) {
     const instructorCourses = await db
@@ -29,24 +47,55 @@ export class AnalyticsRepository {
       .where(eq(courses.instructorId, instructorId));
 
     if (instructorCourses.length === 0) {
-      return { totalStudents: 0, totalRevenue: 0 };
+      return {
+        currentPeriod: { totalStudents: 0, totalRevenue: 0 },
+        previousPeriod: { totlaStudents: 0, totalRevenue: 0 },
+      };
     }
 
     const courseIds = instructorCourses.map((c) => c.id);
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
 
-    const totalStudentsResult = await db
+    const currentPeriodStats = await db
       .select({
         count: sql<number>`count(distinct ${enrollments.userId})`,
       })
       .from(enrollments)
-      .where(inArray(enrollments.courseId, courseIds));
+      .where(
+        and(
+          inArray(enrollments.courseId, courseIds),
+          gte(enrollments.enrolledAt, thirtyDaysAgo)
+        )
+      );
 
-    // NOTE: Placeholder for revenue calculation.
-    const totalRevenue = 0;
+    const previousPeriodStats = await db
+      .select({
+        count: sql<number>`count(distinct ${enrollments.userId})`,
+      })
+      .from(enrollments)
+      .where(
+        and(
+          inArray(enrollments.courseId, courseIds),
+          gte(enrollments.enrolledAt, sixtyDaysAgo),
+          lt(enrollments.enrolledAt, thirtyDaysAgo)
+        )
+      );
+
+    const revenuePerStudent = 500; //NOTE: Placeholder value
 
     return {
-      totalStudents: Number(totalStudentsResult[0].count),
-      totalRevenue: totalRevenue,
+      currentPeriod: {
+        totalStudents: Number(currentPeriodStats[0]?.count || 0),
+        totalRevenue:
+          Number(currentPeriodStats[0]?.count || 0) * revenuePerStudent,
+      },
+      previousPeriod: {
+        totalStudents: Number(previousPeriodStats[0]?.count || 0),
+        totalRevenue:
+          Number(previousPeriodStats[0]?.count || 0) * revenuePerStudent,
+      },
     };
   }
 

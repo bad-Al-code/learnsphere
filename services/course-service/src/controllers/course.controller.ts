@@ -339,4 +339,20 @@ export class CourseController {
       next(error);
     }
   }
+
+  public static async getInstructorStats(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) {
+        throw new NotAuthorizedError();
+      }
+      const stats = await CourseService.getInstructorStats(req.currentUser.id);
+      res.status(StatusCodes.OK).json(stats);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

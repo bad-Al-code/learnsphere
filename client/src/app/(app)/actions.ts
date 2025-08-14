@@ -6,11 +6,19 @@ export async function getInstructorDashboardStats() {
   try {
     const [enrollmentStatsRes, courseStatsRes] = await Promise.all([
       enrollmentService.get('/api/analytics/instructor'),
-      courseService.get('/api/courses/stats'),
+      courseService.get('/api/courses/instructor/stats'),
     ]);
 
-    let enrollmentData = { stats: { totalStudents: 0, totalRevenue: 0 } };
-    let courseData = { totalCourses: 0 };
+    let enrollmentData = {
+      stats: {
+        totalStudents: { value: 0, change: 0 },
+        totalRevenue: { value: 0, change: 0 },
+      },
+    };
+    let courseData = {
+      activeCourses: { value: 0, change: 0 },
+      averageRating: { value: 0, change: 0 },
+    };
 
     if (enrollmentStatsRes.ok) {
       enrollmentData = await enrollmentStatsRes.json();
@@ -25,22 +33,10 @@ export async function getInstructorDashboardStats() {
     }
 
     return {
-      totalStudents: {
-        value: enrollmentData.stats.totalStudents || 0,
-        change: 15, // Placeholder
-      },
-      totalRevenue: {
-        value: enrollmentData.stats.totalRevenue || 0,
-        change: 20, // Placeholder
-      },
-      activeCourses: {
-        value: courseData.totalCourses || 0,
-        change: 5, // Placeholder
-      },
-      averageRating: {
-        value: 4.6, // Placeholder
-        change: 10, // Placeholder
-      },
+      totalStudents: enrollmentData.stats.totalStudents,
+      totalRevenue: enrollmentData.stats.totalRevenue,
+      activeCourses: courseData.activeCourses,
+      averageRating: courseData.averageRating,
     };
   } catch (error) {
     console.error('Error fetching instructor dashboard stats:', error);

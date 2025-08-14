@@ -425,4 +425,24 @@ export class CourseService {
       },
     };
   }
+
+  /**
+   * Retrieves statistics for an instructor, including total courses and average rating.
+   * @param instructorId The ID of the instructor.
+   * @returns An object containing the instructor's course stats.
+   */
+  public static async getInstructorStats(instructorId: string) {
+    const stats = await CourseRepository.getInstructorCourseStats(instructorId);
+
+    return {
+      activeCourses: {
+        value: stats.totalCourses,
+        change: 5, // NOTE: Placeholder
+      },
+      averageRating: {
+        value: parseFloat(stats.averageRating),
+        change: 10, // NOTE: Placeholder
+      },
+    };
+  }
 }

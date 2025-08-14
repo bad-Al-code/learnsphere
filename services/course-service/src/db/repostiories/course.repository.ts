@@ -402,4 +402,30 @@ export class CourseRepository {
 
     return { totalResults, results };
   }
+
+  /**
+   * Calculates statistics for all courses belonging to a specific instructor.
+   * @param instructorId - The ID of the instructor.
+   * @returns An object with the total number of courses and the average rating.
+   */
+  public static async getInstructorCourseStats(instructorId: string) {
+    const statsQuery = db
+      .select({
+        totalCourses: count(courses.id),
+        averageRating: sql<number>`AVG(${courses.averageRating})`.as(
+          'average_rating'
+        ),
+      })
+      .from(courses)
+      .where(eq(courses.instructorId, instructorId));
+
+    const [result] = await statsQuery;
+
+    return {
+      totalCourses: result.totalCourses || 0,
+      averageRating: parseFloat(
+        result.averageRating?.toString() || '0'
+      ).toFixed(1),
+    };
+  }
 }

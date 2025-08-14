@@ -298,6 +298,25 @@ router.get(
 
 /**
  * @openapi
+ * /api/courses/instructor/stats:
+ *   get:
+ *     summary: "[Instructor] Get statistics for the current instructor"
+ *     tags: [Courses]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: Instructor-specific statistics.
+ */
+router.get(
+  '/instructor/stats',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  CourseController.getInstructorStats
+);
+
+/**
+ * @openapi
  * /api/courses/{courseId}:
  *   get:
  *     summary: Get full details of a single course, including all modules and lessons
