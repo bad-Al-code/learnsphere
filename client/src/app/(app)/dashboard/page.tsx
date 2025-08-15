@@ -13,8 +13,13 @@ import {
   EnrollmentChart,
   EnrollmentChartSkeleton,
 } from '../_components/enrollment-chart';
+import {
+  RevenueBreakdownChart,
+  RevenueBreakdownChartSkeleton,
+} from '../_components/revenue-breakdown-chart';
 import { StatCard } from '../_components/stat-card';
 import {
+  getInstructorDashboardCharts,
   getInstructorDashboardStats,
   getInstructorDashboardTrends,
 } from '../actions';
@@ -36,13 +41,18 @@ export default function DashboardPage() {
 }
 
 async function DashboardStats() {
-  const [stats, trends] = await Promise.all([
+  const [stats, trends, chartsData] = await Promise.all([
     getInstructorDashboardStats(),
     getInstructorDashboardTrends(),
+    getInstructorDashboardCharts(),
   ]);
 
   return (
-    <div className="">
+    <div className="p-4 md:p-8">
+      <DashboardHeader
+        title="Dashboard"
+        description="Here's what's happening with your courses today."
+      />
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <StatCard
           title="Total Students"
@@ -86,12 +96,12 @@ async function DashboardStats() {
         />
       </div>
 
-      <div className="mt-8">
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Student Enrollment Trend</CardTitle>
+            <CardTitle>Student Enrollment & Revenue Trend</CardTitle>
             <CardDescription>
-              Monthly student enrollments over the last 6 months.
+              Monthly enrollment and revenue over the last 6 months.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -103,6 +113,20 @@ async function DashboardStats() {
                   Not enough data to display trends.
                 </p>
               </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue Breakdown</CardTitle>
+            <CardDescription>Revenue sources for this quarter.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {chartsData.breakdown.length > 0 ? (
+              <RevenueBreakdownChart data={chartsData.breakdown} />
+            ) : (
+              <RevenueBreakdownChartSkeleton />
             )}
           </CardContent>
         </Card>

@@ -68,3 +68,37 @@ export async function getInstructorDashboardTrends() {
     return [];
   }
 }
+
+export async function getInstructorDashboardCharts() {
+  try {
+    const trendsResponse = await enrollmentService.get(
+      '/api/analytics/instructor/trends'
+    );
+
+    let trendsData = [];
+    if (trendsResponse.ok) {
+      trendsData = await trendsResponse.json();
+    } else {
+      console.error('Failed to fetch instructor trends');
+    }
+
+    // NOTE: This is placeholder data for the revenue breakdown chart.
+    const revenueBreakdownData = [
+      { name: 'Course Sales', value: 400 },
+      { name: 'Certifications', value: 300 },
+      { name: 'Workshops', value: 300 },
+      { name: 'Consulting', value: 200 },
+    ];
+
+    return {
+      trends: trendsData,
+      breakdown: revenueBreakdownData,
+    };
+  } catch (error) {
+    console.error('Error fetching instructor chart data:', error);
+    return {
+      trends: [],
+      breakdown: [],
+    };
+  }
+}
