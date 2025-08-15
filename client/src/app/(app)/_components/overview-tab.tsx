@@ -18,6 +18,7 @@ import {
   CoursePerformanceChart,
   CoursePerformanceChartSkeleton,
 } from './course-performance-chart';
+import { DashboardTabLayout } from './dashboard-tab-layout';
 import {
   DemographicsChart,
   DemographicsChartSkeleton,
@@ -43,7 +44,7 @@ export async function OverviewTab() {
     getCoursePerformanceData(),
   ]);
 
-  return (
+  const mainContent = (
     <div className="space-y-6">
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <StatCard
@@ -197,6 +198,8 @@ export async function OverviewTab() {
       </div>
     </div>
   );
+
+  return <DashboardTabLayout mainContent={mainContent} />;
 }
 
 export function OverviewTabSkeleton() {

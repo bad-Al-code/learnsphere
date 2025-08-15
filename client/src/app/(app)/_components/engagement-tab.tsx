@@ -5,8 +5,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { getEngagementData } from '../actions';
+import { DashboardTabLayout } from './dashboard-tab-layout';
 import {
   EngagementPatternsChart,
   EngagementPatternsChartSkeleton,
@@ -19,13 +19,16 @@ import {
   ModuleProgressChart,
   ModuleProgressChartSkeleton,
 } from './module-progression-chart';
-import { TopStudentsTable } from './top-students-table';
+import {
+  TopStudentsTable,
+  TopStudentsTableSkeleton,
+} from './top-students-table';
 
 export async function EngagementTab() {
   const { weeklyEngagement, learningAnalytics, moduleProgress, topStudents } =
     await getEngagementData();
 
-  return (
+  const mainContent = (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
@@ -86,38 +89,19 @@ export async function EngagementTab() {
       </Card>
     </div>
   );
+
+  return <DashboardTabLayout mainContent={mainContent} />;
 }
 
 export function EngagementTabSkeleton() {
-  return (
-    <div className="mt-6 space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <Skeleton className="h-5 w-48" />
-          </CardTitle>
-          <CardDescription>
-            <Skeleton className="h-4 w-64" />
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-[350px] w-full" />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <Skeleton className="h-5 w-48" />
-          </CardTitle>
-          <CardDescription>
-            <Skeleton className="h-4 w-64" />
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-[350px] w-full" />
-        </CardContent>
-      </Card>
+  const mainContent = (
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <EngagementPatternsChartSkeleton />
+      <LearningRadarChartSkeleton />
+      <ModuleProgressChartSkeleton />
+      <TopStudentsTableSkeleton />
     </div>
   );
+
+  return <DashboardTabLayout mainContent={mainContent} />;
 }

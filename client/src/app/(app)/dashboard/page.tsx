@@ -62,7 +62,7 @@ async function DashboardStats({ searchParams }: DashboardStatsProps) {
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="engagement" className="mt-5">
+        <TabsContent value="engagement">
           <Suspense fallback={<EngagementTabSkeleton />}>
             <EngagementTab />
           </Suspense>
