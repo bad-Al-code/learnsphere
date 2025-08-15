@@ -11,12 +11,16 @@ import {
   EngagementPatternsChart,
   EngagementPatternsChartSkeleton,
 } from './engagement-patterns-chart';
+import {
+  LearningRadarChart,
+  LearningRadarChartSkeleton,
+} from './learning-radar-chart';
 
 export async function EngagementTab() {
-  const { weeklyEngagement } = await getEngagementData();
+  const { weeklyEngagement, learningAnalytics } = await getEngagementData();
 
   return (
-    <div className="mt-6 space-y-8">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
           <CardTitle>Weekly Engagement Patterns</CardTitle>
@@ -35,15 +39,15 @@ export async function EngagementTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Module Progress Distribution</CardTitle>
-          <CardDescription>
-            Student progress across course modules.
-          </CardDescription>
+          <CardTitle>Learning Analytics Radar</CardTitle>
+          <CardDescription>Current vs target learning metrics.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex h-[350px] items-center justify-center">
-            <p className="text-muted-foreground">(Chart coming soon...)</p>
-          </div>
+          {learningAnalytics.length > 0 ? (
+            <LearningRadarChart data={learningAnalytics} />
+          ) : (
+            <LearningRadarChartSkeleton />
+          )}
         </CardContent>
       </Card>
     </div>

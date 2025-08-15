@@ -26,7 +26,7 @@ interface EnrollmentChartProps {
 }
 
 const chartConfig = {
-  students: { label: 'Students', color: 'var(--chart-1)' },
+  students: { label: 'Enrollments', color: 'var(--chart-1)' },
   revenue: { label: 'Revenue', color: 'var(--chart-2)' },
   completions: { label: 'Completions', color: 'var(--chart-3)' },
 } satisfies ChartConfig;

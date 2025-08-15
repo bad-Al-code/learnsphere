@@ -11,6 +11,7 @@ import { instructorDashboardTabs } from '@/config/nav-items';
 import { BookOpen, IndianRupee, Star, Users } from 'lucide-react';
 import { Suspense } from 'react';
 import { DashboardHeader } from '../_components/dashboard-header';
+
 import {
   EngagementTab,
   EngagementTabSkeleton,

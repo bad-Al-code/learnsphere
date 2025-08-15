@@ -178,18 +178,27 @@ export async function getCoursePerformanceData() {
 }
 
 export async function getEngagementData() {
-  // NOTE: This is placeholder data.
   const weeklyEngagementData = [
-    { name: 'Mon', logins: 820, discussions: 60 },
-    { name: 'Tue', logins: 950, discussions: 75 },
-    { name: 'Wed', logins: 880, discussions: 65 },
-    { name: 'Thu', logins: 980, discussions: 80 },
-    { name: 'Fri', logins: 680, discussions: 85 },
-    { name: 'Sat', logins: 450, discussions: 40 },
-    { name: 'Sun', logins: 520, discussions: 30 },
+    { name: 'Mon', logins: 820, avgTime: 2.2, discussions: 60 },
+    { name: 'Tue', logins: 950, avgTime: 2.5, discussions: 75 },
+    { name: 'Wed', logins: 780, avgTime: 2.1, discussions: 65 },
+    { name: 'Thu', logins: 980, avgTime: 2.8, discussions: 80 },
+    { name: 'Fri', logins: 680, avgTime: 2.5, discussions: 85 },
+    { name: 'Sat', logins: 450, avgTime: 1.5, discussions: 40 },
+    { name: 'Sun', logins: 520, avgTime: 1.8, discussions: 30 },
+  ];
+
+  const learningAnalyticsData = [
+    { subject: 'Content Engagement', current: 85, target: 90 },
+    { subject: 'Quiz Performance', current: 78, target: 80 },
+    { subject: 'Discussion Quality', current: 70, target: 75 },
+    { subject: 'Assignment Timeliness', current: 92, target: 95 },
+    { subject: 'Resource Utilization', current: 65, target: 70 },
+    { subject: 'Avg Session Duration', current: 88, target: 85 },
   ];
 
   return {
     weeklyEngagement: weeklyEngagementData,
+    learningAnalytics: learningAnalyticsData,
   };
 }

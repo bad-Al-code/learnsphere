@@ -7,47 +7,45 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Bar,
-  BarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Bar, ComposedChart, Legend, Line, XAxis, YAxis } from 'recharts';
 
 interface EngagementPatternsChartProps {
   data: {
     name: string;
     logins: number;
+    avgTime: number;
     discussions: number;
   }[];
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-background rounded-md border p-2 shadow-sm">
-        <p className="font-bold">{label}</p>
-        <p className="text-primary text-sm">
-          Daily Logins: {payload[0].value.toLocaleString()}
-        </p>
-        <p className="text-sm text-sky-500">
-          Discussions: {payload[0].payload.discussions.toLocaleString()}
-        </p>
-      </div>
-    );
-  }
-  return null;
-};
+const chartConfig = {
+  logins: {
+    label: 'Daily Logins',
+    color: 'var(--muted-foreground)',
+  },
+  avgTime: {
+    label: 'Avg Time (hrs)',
+    color: 'var(--destructive)',
+  },
+  discussions: {
+    label: 'Discussions',
+    color: 'var(--chart-2)',
+  },
+} satisfies ChartConfig;
 
 export function EngagementPatternsChart({
   data,
 }: EngagementPatternsChartProps) {
   return (
-    <ResponsiveContainer width="100%" height={350}>
-      <BarChart data={data}>
+    <ChartContainer config={chartConfig} className="min-h-[350px] w-full">
+      <ComposedChart data={data}>
         <XAxis
           dataKey="name"
           stroke="#888888"
@@ -62,13 +60,32 @@ export function EngagementPatternsChart({
           axisLine={false}
           tickFormatter={(value) => `${value}`}
         />
-        <Tooltip
-          content={<CustomTooltip />}
+        <ChartTooltip
           cursor={{ fill: 'hsl(var(--muted))' }}
+          content={<ChartTooltipContent />}
         />
-        <Bar dataKey="logins" fill="hsl(var(--chart-1))" radius={2} />
-      </BarChart>
-    </ResponsiveContainer>
+        <Legend iconType="circle" iconSize={10} />
+        <Bar
+          dataKey="logins"
+          fill="var(--color-logins)"
+          radius={[4, 4, 0, 0]}
+        />
+        <Line
+          type="monotone"
+          dataKey="avgTime"
+          stroke="var(--color-avgTime)"
+          strokeWidth={2}
+          dot={false}
+        />
+        <Line
+          type="monotone"
+          dataKey="discussions"
+          stroke="var(--color-discussions)"
+          strokeWidth={2}
+          dot={false}
+        />
+      </ComposedChart>
+    </ChartContainer>
   );
 }
 
