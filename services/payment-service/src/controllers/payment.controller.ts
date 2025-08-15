@@ -66,4 +66,22 @@ export class PaymentController {
       next(error);
     }
   }
+
+  public static async getFinancialTrends(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) {
+        throw new NotAuthorizedError();
+      }
+      const trends = await PaymentService.getFinancialTrends(
+        req.currentUser.id
+      );
+      res.status(StatusCodes.OK).json(trends);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

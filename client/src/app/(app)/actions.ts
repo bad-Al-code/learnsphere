@@ -86,12 +86,14 @@ export async function getInstructorDashboardTrends() {
 
 export async function getInstructorDashboardCharts() {
   try {
-    const [trendsResponse, breakdownResponse] = await Promise.all([
-      enrollmentService.get('/api/analytics/instructor/trends'),
-      paymentService.get(
-        '/api/payments/analytics/instructor/revenue-breakdown'
-      ),
-    ]);
+    const [trendsResponse, breakdownResponse, financialsResponse] =
+      await Promise.all([
+        enrollmentService.get('/api/analytics/instructor/trends'),
+        paymentService.get(
+          '/api/payments/analytics/instructor/revenue-breakdown'
+        ),
+        paymentService.get('/api/payments/analytics/instructor/financials'),
+      ]);
 
     let trendsData = [];
     if (trendsResponse.ok) {
@@ -107,14 +109,12 @@ export async function getInstructorDashboardCharts() {
       console.error('Failed to fetch revenue breakdown');
     }
 
-    const financialPerformanceData = [
-      { month: 'Jan', revenue: 12000, expenses: 4000, profit: 8000 },
-      { month: 'Feb', revenue: 15000, expenses: 3500, profit: 11500 },
-      { month: 'Mar', revenue: 18000, expenses: 5000, profit: 13000 },
-      { month: 'Apr', revenue: 24000, expenses: 6000, profit: 18000 },
-      { month: 'May', revenue: 28000, expenses: 7000, profit: 21000 },
-      { month: 'Jun', revenue: 32000, expenses: 7500, profit: 24500 },
-    ];
+    let financialsData = [];
+    if (financialsResponse.ok) {
+      financialsData = await financialsResponse.json();
+    } else {
+      console.error('Failed to fetch financial trends');
+    }
 
     const demographicsData = [
       { name: '18-25', value: 450, fill: 'hsl(var(--chart-1))' },
@@ -132,7 +132,7 @@ export async function getInstructorDashboardCharts() {
     return {
       trends: trendsData,
       breakdown: breakdownData,
-      financials: financialPerformanceData,
+      financials: financialsData,
       demographics: demographicsData,
       deviceUsage: deviceUsageData,
     };

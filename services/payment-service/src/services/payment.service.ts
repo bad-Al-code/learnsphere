@@ -199,4 +199,18 @@ export class PaymentService {
 
     return breakdown.filter((item) => item.value > 0);
   }
+
+  public static async getFinancialTrends(instructorId: string) {
+    const monthlyData =
+      await PaymentRepository.getMonthlyRevenueByInstructor(instructorId);
+
+    return monthlyData.map((row) => ({
+      month: `${row.month}`,
+      revenue: parseFloat(row.revenue || '0'),
+      // NOTE: Expenses and Profit are not tracked yet.
+      // Returning them as 0 makes the backend the source of truth for this fact.
+      expenses: 0,
+      profit: parseFloat(row.revenue || '0'), // For now, profit equals revenue
+    }));
+  }
 }

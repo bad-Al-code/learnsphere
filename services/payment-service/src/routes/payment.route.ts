@@ -92,4 +92,23 @@ router.get(
   PaymentController.getRevenueBreakdown
 );
 
+/**
+ * @openapi
+ * /api/payments/analytics/instructor/financials:
+ *   get:
+ *     summary: "[Instructor] Get monthly financial performance trends"
+ *     tags: [Payments]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An array of monthly financial data.
+ */
+router.get(
+  '/analytics/instructor/financials',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  PaymentController.getFinancialTrends
+);
+
 export { router as paymentRouter };
