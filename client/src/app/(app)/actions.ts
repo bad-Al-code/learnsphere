@@ -178,6 +178,7 @@ export async function getCoursePerformanceData() {
 }
 
 export async function getEngagementData() {
+  // NOTE: This is placeholder data.
   const weeklyEngagementData = [
     { name: 'Mon', logins: 820, avgTime: 2.2, discussions: 60 },
     { name: 'Tue', logins: 950, avgTime: 2.5, discussions: 75 },
@@ -188,6 +189,7 @@ export async function getEngagementData() {
     { name: 'Sun', logins: 520, avgTime: 1.8, discussions: 30 },
   ];
 
+  // NOTE: This is placeholder data.
   const learningAnalyticsData = [
     { subject: 'Content Engagement', current: 85, target: 90 },
     { subject: 'Quiz Performance', current: 78, target: 80 },
@@ -197,8 +199,58 @@ export async function getEngagementData() {
     { subject: 'Avg Session Duration', current: 88, target: 85 },
   ];
 
+  // NOTE: This is placeholder data.
+  const moduleProgressData = [
+    { name: 'Module 1', completed: 150, inProgress: 80, notStarted: 20 },
+    { name: 'Module 2', completed: 120, inProgress: 90, notStarted: 40 },
+    { name: 'Module 3', completed: 100, inProgress: 70, notStarted: 80 },
+    { name: 'Module 4', completed: 90, inProgress: 60, notStarted: 100 },
+    { name: 'Module 5', completed: 70, inProgress: 50, notStarted: 130 },
+  ];
+
+  // NOTE: This is placeholder data.
+  const topStudentsData = [
+    {
+      student: { name: 'Sarah Chen' },
+      course: 'Data Science',
+      progress: 95,
+      grade: 'A+',
+      lastActive: '2 hours ago',
+    },
+    {
+      student: { name: 'Michael Rodriguez' },
+      course: 'Web Development',
+      progress: 92,
+      grade: 'A',
+      lastActive: '1 hour ago',
+    },
+    {
+      student: { name: 'Emma Thompson' },
+      course: 'Digital Marketing',
+      progress: 88,
+      grade: 'A-',
+      lastActive: '3 hours ago',
+    },
+    {
+      student: { name: 'David Kim' },
+      course: 'Graphic Design',
+      progress: 85,
+      grade: 'B+',
+      lastActive: '5 hours ago',
+    },
+    {
+      student: { name: 'Lisa Wang' },
+      course: 'Data Science',
+      progress: 82,
+      grade: 'B+',
+      lastActive: '1 day ago',
+    },
+  ];
+
   return {
     weeklyEngagement: weeklyEngagementData,
     learningAnalytics: learningAnalyticsData,
+    moduleProgress: moduleProgressData,
+    topStudents: topStudentsData,
   };
 }

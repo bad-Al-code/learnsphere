@@ -15,9 +15,15 @@ import {
   LearningRadarChart,
   LearningRadarChartSkeleton,
 } from './learning-radar-chart';
+import {
+  ModuleProgressChart,
+  ModuleProgressChartSkeleton,
+} from './module-progression-chart';
+import { TopStudentsTable } from './top-students-table';
 
 export async function EngagementTab() {
-  const { weeklyEngagement, learningAnalytics } = await getEngagementData();
+  const { weeklyEngagement, learningAnalytics, moduleProgress, topStudents } =
+    await getEngagementData();
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -48,6 +54,34 @@ export async function EngagementTab() {
           ) : (
             <LearningRadarChartSkeleton />
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Module Progress Distribution</CardTitle>
+          <CardDescription>
+            Student progress across course modules.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {moduleProgress.length > 0 ? (
+            <ModuleProgressChart data={moduleProgress} />
+          ) : (
+            <ModuleProgressChartSkeleton />
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Top Performing Students</CardTitle>
+          <CardDescription>
+            Students with the highest engagement and performance.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TopStudentsTable data={topStudents} />
         </CardContent>
       </Card>
     </div>
