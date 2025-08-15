@@ -176,3 +176,20 @@ export async function getCoursePerformanceData() {
     return [];
   }
 }
+
+export async function getEngagementData() {
+  // NOTE: This is placeholder data.
+  const weeklyEngagementData = [
+    { name: 'Mon', logins: 820, discussions: 60 },
+    { name: 'Tue', logins: 950, discussions: 75 },
+    { name: 'Wed', logins: 880, discussions: 65 },
+    { name: 'Thu', logins: 980, discussions: 80 },
+    { name: 'Fri', logins: 680, discussions: 85 },
+    { name: 'Sat', logins: 450, discussions: 40 },
+    { name: 'Sun', logins: 520, discussions: 30 },
+  ];
+
+  return {
+    weeklyEngagement: weeklyEngagementData,
+  };
+}

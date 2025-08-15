@@ -34,9 +34,9 @@ export function AppTabs({ tabs, basePath, activeTab }: AppTabsProps) {
   const getTabClassNames = () => {
     switch (device) {
       case 'mobile':
-        return 'grid w-full grid-cols-6';
+        return 'grid w-full grid-cols-6 mx-auto';
       case 'tablet':
-        return 'grid w-full grid-cols-6';
+        return 'grid w-full grid-cols-6 ';
       case 'desktop':
       default:
         return 'grid w-full grid-cols-6';
@@ -59,7 +59,7 @@ export function AppTabs({ tabs, basePath, activeTab }: AppTabsProps) {
                       variant="ghost"
                       size="icon"
                       onClick={() => router.push(href)}
-                      className="rounded-md"
+                      className="mx-auto rounded-md"
                     >
                       <Icon className="h-4 w-4" />
                     </Button>

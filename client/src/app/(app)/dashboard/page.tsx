@@ -11,6 +11,10 @@ import { instructorDashboardTabs } from '@/config/nav-items';
 import { BookOpen, IndianRupee, Star, Users } from 'lucide-react';
 import { Suspense } from 'react';
 import { DashboardHeader } from '../_components/dashboard-header';
+import {
+  EngagementTab,
+  EngagementTabSkeleton,
+} from '../_components/engagement-tab';
 import { EnrollmentChartSkeleton } from '../_components/enrollment-chart';
 import { OverviewTab, OverviewTabSkeleton } from '../_components/overview-tab';
 import { StatCard } from '../_components/stat-card';
@@ -58,14 +62,9 @@ async function DashboardStats({ searchParams }: DashboardStatsProps) {
         </TabsContent>
 
         <TabsContent value="engagement" className="mt-5">
-          <Card>
-            <CardHeader>
-              <CardTitle>Engagement</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>Engagement content coming soon...</p>
-            </CardContent>
-          </Card>
+          <Suspense fallback={<EngagementTabSkeleton />}>
+            <EngagementTab />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="performance" className="mt-5">
