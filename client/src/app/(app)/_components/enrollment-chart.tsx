@@ -1,11 +1,17 @@
 'use client';
 
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Bar,
-  BarChart,
-  ResponsiveContainer,
-  Tooltip,
+  CartesianGrid,
+  ComposedChart,
+  Line,
   XAxis,
   YAxis,
 } from 'recharts';
@@ -13,69 +19,75 @@ import {
 interface EnrollmentChartProps {
   data: {
     month: string;
-    revenue: number;
     enrollments: number;
+    revenue: number;
+    completions: number;
   }[];
 }
 
+const chartConfig = {
+  students: { label: 'Students', color: 'var(--chart-1)' },
+  revenue: { label: 'Revenue', color: 'var(--chart-2)' },
+  completions: { label: 'Completions', color: 'var(--chart-3)' },
+} satisfies ChartConfig;
+
 export function EnrollmentChart({ data }: EnrollmentChartProps) {
   return (
-    <ResponsiveContainer width="100%" height={350}>
-      <BarChart data={data}>
+    <ChartContainer config={chartConfig} className="min-h-[350px] w-full">
+      <ComposedChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
         <XAxis
           dataKey="month"
-          stroke="#888888"
-          fontSize={12}
-          tickLine={false}
           axisLine={false}
+          tickLine={false}
+          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
         />
         <YAxis
-          stroke="#888888"
-          fontSize={12}
-          tickLine={false}
           axisLine={false}
-          tickFormatter={(value) => `${value}`}
+          tickLine={false}
+          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
         />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: 'hsl(var(--background))',
-            border: '1px solid hsl(var(--border))',
-          }}
-          labelStyle={{
-            color: 'hsl(var(--foreground))',
-          }}
-          itemStyle={{
-            color: 'hsl(var(--foreground))',
-          }}
-          cursor={{ fill: 'hsl(var(--muted))' }}
+        <ChartTooltip content={<ChartTooltipContent />} />
+        <Line
+          type="monotone"
+          dataKey="enrollments"
+          stroke="var(--color-students)"
+          fill="var(--color-students)"
+          dot={{ r: 3 }}
+          name="Enrollments"
+        />
+        <Line
+          type="monotone"
+          dataKey="revenue"
+          stroke="var(--color-revenue)"
+          fill="var(--color-revenue)"
+          dot={{ r: 3 }}
+          name="Revenue"
         />
         <Bar
-          dataKey="enrollments"
-          fill="hsl(var(--secondary))"
+          dataKey="completions"
+          fill="var(--color-completions)"
           radius={[4, 4, 0, 0]}
-          activeBar={false}
+          name="Completions"
         />
-      </BarChart>
-    </ResponsiveContainer>
+      </ComposedChart>
+    </ChartContainer>
   );
 }
 
 export function EnrollmentChartSkeleton() {
   return (
-    <div className="flex h-[350px] w-full flex-col justify-end space-y-2">
-      <div className="flex h-full items-end justify-between gap-2">
+    <div className="flex h-[350px] w-full flex-col space-y-4">
+      <Skeleton className="h-4 w-40" />
+      <Skeleton className="h-3 w-28" />
+
+      <div className="border-muted bg-muted/30 flex-1 rounded-md border border-dashed" />
+
+      <div className="flex justify-between">
         {[...Array(6)].map((_, i) => (
-          <Skeleton
-            key={i}
-            className="w-full rounded-t-md"
-            style={{
-              height: `${40 + Math.random() * 200}px`,
-            }}
-          />
+          <Skeleton key={i} className="h-3 w-10" />
         ))}
       </div>
-
-      <Skeleton className="h-4 w-full" />
     </div>
   );
 }

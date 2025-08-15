@@ -61,7 +61,8 @@ export async function getInstructorDashboardTrends() {
       return [];
     }
 
-    return await response.json();
+    const result = await response.json();
+    return result;
   } catch (error) {
     console.error('Error fetching instructor trends:', error);
     return [];
