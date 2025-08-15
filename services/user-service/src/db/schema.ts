@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
+  date,
   jsonb,
   pgEnum,
   pgTable,
@@ -62,7 +63,8 @@ export const profiles = pgTable('profiles', {
     .notNull(),
 
   status: userStatusEnum('status').default('active').notNull(),
-
+  dateOfBirth: date('date_of_birth'),
+  lastKnownDevice: text('last_known_device'),
   settings: jsonb('settings')
     .$type<UserSettings>()
     .default({

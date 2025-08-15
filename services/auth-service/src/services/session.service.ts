@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { UAParser } from 'ua-parser-js';
 import logger from '../config/logger';
 import { BlacklistService } from '../controllers/blacklist-service';
 import { Session, SessionRepository } from '../db/session.repository';
@@ -18,6 +19,8 @@ export class SessionService {
   ): Promise<void> {
     try {
       const geoInfo = await this.getGeoInfo(context.ipAddress);
+      const parser = new UAParser(context.userAgent);
+      const deviceType = parser.getDevice().type || 'desktop';
 
       await SessionRepository.create({
         jti,
@@ -26,6 +29,7 @@ export class SessionService {
         userAgent: context.userAgent || null,
         country: geoInfo.country,
         countryCode: geoInfo.countryCode,
+        deviceType: deviceType,
       });
     } catch (error) {
       logger.error('Failed to create user session record', { error, userId });

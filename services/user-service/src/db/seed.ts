@@ -35,6 +35,11 @@ async function main() {
 
   const data = Array.from({ length: 300 }, () => {
     const userId = faker.string.uuid();
+    const dateOfBirth = faker.date
+      .birthdate({ min: 18, max: 65, mode: 'age' })
+      .toISOString()
+      .split('T')[0];
+
     return {
       userId,
       email: faker.internet.email(),
@@ -61,6 +66,12 @@ async function main() {
       },
       fcmTokens: [faker.string.uuid()],
       status: getRandomEnumValue(statuses),
+      dateOfBirth: dateOfBirth,
+      lastKnownDevice: faker.helpers.arrayElement([
+        'desktop',
+        'mobile',
+        'tablet',
+      ]),
       settings: {
         theme: faker.helpers.arrayElement(['light', 'dark']),
         language: faker.helpers.arrayElement(['en', 'es', 'fr']),

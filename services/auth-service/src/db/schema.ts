@@ -68,5 +68,6 @@ export const userSessions = pgTable('user_sessions', {
   userAgent: text('user_agent'),
   country: text('country'),
   countryCode: text('country_code'),
+  deviceType: text('device_type'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

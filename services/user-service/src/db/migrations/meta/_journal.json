@@ -8,6 +8,13 @@
       "when": 1754282432212,
       "tag": "0000_happy_typhoid_mary",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1755296179742,
+      "tag": "0001_bumpy_shooting_star",
+      "breakpoints": true
     }
   ]
 }
