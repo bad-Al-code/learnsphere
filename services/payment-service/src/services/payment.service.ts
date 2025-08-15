@@ -179,4 +179,24 @@ export class PaymentService {
 
     return timingSafeEqual(expectedSignatureBuffer, signatureBuffer);
   }
+
+  /**
+   * Retrieves the revenue breakdown for an instructor.
+   * @param instructorId The ID of the instructor.
+   * @returns An array of revenue sources for use in a pie chart.
+   */
+  public static async getRevenueBreakdown(instructorId: string) {
+    const courseSalesRevenue =
+      await PaymentRepository.getTotalRevenueByInstructor(instructorId);
+
+    // NOTE: The other categories are placeholders for future features.
+    const breakdown = [
+      { name: 'Course Sales', value: courseSalesRevenue },
+      { name: 'Certifications', value: 0 }, // Placeholder
+      { name: 'Workshops', value: 0 }, // Placeholder
+      { name: 'Consulting', value: 0 }, // Placeholder
+    ];
+
+    return breakdown.filter((item) => item.value > 0);
+  }
 }

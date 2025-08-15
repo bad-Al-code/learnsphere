@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import { PaymentController } from '../controllers/payment.controller';
 import { requireAuth } from '../middleware/require-auth';
+import { requireRole } from '../middleware/require-role';
 import { validateRequest } from '../middleware/validate-request.middleware';
 import { createOrderSchema } from '../schemas/payment.schema';
 
@@ -71,5 +72,24 @@ router.post(
  *         description: Invalid signature or missing data.
  */
 router.post('/webhook', PaymentController.handleWebhook);
+
+/**
+ * @openapi
+ * /api/payments/analytics/instructor/revenue-breakdown:
+ *   get:
+ *     summary: "[Instructor] Get a breakdown of revenue sources"
+ *     tags: [Payments]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An array of objects representing revenue sources.
+ */
+router.get(
+  '/analytics/instructor/revenue-breakdown',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  PaymentController.getRevenueBreakdown
+);
 
 export { router as paymentRouter };

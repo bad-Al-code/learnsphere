@@ -1,6 +1,6 @@
 'use server';
 
-import { courseService, enrollmentService } from '@/lib/api';
+import { courseService, enrollmentService, paymentService } from '@/lib/api';
 
 export async function getInstructorDashboardStats() {
   try {
@@ -86,9 +86,12 @@ export async function getInstructorDashboardTrends() {
 
 export async function getInstructorDashboardCharts() {
   try {
-    const trendsResponse = await enrollmentService.get(
-      '/api/analytics/instructor/trends'
-    );
+    const [trendsResponse, breakdownResponse] = await Promise.all([
+      enrollmentService.get('/api/analytics/instructor/trends'),
+      paymentService.get(
+        '/api/payments/analytics/instructor/revenue-breakdown'
+      ),
+    ]);
 
     let trendsData = [];
     if (trendsResponse.ok) {
@@ -97,11 +100,16 @@ export async function getInstructorDashboardCharts() {
       console.error('Failed to fetch instructor trends');
     }
 
-    const breakdownData = [
-      { name: 'Course Sales', value: 12000 },
-      { name: 'Subscriptions', value: 8000 },
-      { name: 'Other', value: 4000 },
-    ];
+    let breakdownData = [];
+    if (breakdownResponse.ok) {
+      const result = await breakdownResponse.json();
+      console.log(result);
+      breakdownData = result;
+    } else {
+      console.error('Failed to fetch revenue breakdown');
+    }
+
+    console.log('BreadkDownData', breakdownData);
 
     const financialPerformanceData = [
       { month: 'Jan', revenue: 12000, expenses: 4000, profit: 8000 },

@@ -1,7 +1,7 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, sum } from 'drizzle-orm';
 import { db } from '..';
 import { NewPayment, Payment, UpdatePayment } from '../../types';
-import { payments } from '../schema';
+import { courses, payments } from '../schema';
 
 export class PaymentRepository {
   /**
@@ -43,5 +43,29 @@ export class PaymentRepository {
       .where(eq(payments.id, id))
       .returning();
     return updatedPayment;
+  }
+
+  /**
+   * Calculates the total revenue from completed course sales for a specific instructor.
+   * @param instructorId The ID of the instructor.
+   * @returns The total revenue as a number.
+   */
+  public static async getTotalRevenueByInstructor(
+    instructorId: string
+  ): Promise<number> {
+    const [result] = await db
+      .select({
+        total: sum(payments.amount),
+      })
+      .from(payments)
+      .innerJoin(courses, eq(payments.courseId, courses.id))
+      .where(
+        and(
+          eq(courses.instructorId, instructorId),
+          eq(payments.status, 'completed')
+        )
+      );
+
+    return parseFloat(result?.total || '0');
   }
 }

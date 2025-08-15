@@ -24,7 +24,7 @@ import {
   DemographicsChartSkeleton,
 } from './demographic-chart';
 import { DeviceUsage, DeviceUsageSkeleton } from './device-usage';
-import { EnrollmentChart } from './enrollment-chart';
+import { EnrollmentChart, EnrollmentChartSkeleton } from './enrollment-chart';
 import { FinancialChart, FinancialChartSkeleton } from './financial-chart';
 import {
   RevenueBreakdownChart,
@@ -99,11 +99,7 @@ export async function OverviewTab() {
             {trends.length > 0 ? (
               <EnrollmentChart data={trends} />
             ) : (
-              <div className="flex h-[350px] items-center justify-center">
-                <p className="text-muted-foreground">
-                  Not enough data to display trends.
-                </p>
-              </div>
+              <EnrollmentChartSkeleton />
             )}
           </CardContent>
         </Card>

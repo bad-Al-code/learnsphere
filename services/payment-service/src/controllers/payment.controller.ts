@@ -48,4 +48,22 @@ export class PaymentController {
       next(error);
     }
   }
+
+  public static async getRevenueBreakdown(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) {
+        throw new NotAuthorizedError();
+      }
+      const breakdown = await PaymentService.getRevenueBreakdown(
+        req.currentUser.id
+      );
+      res.status(StatusCodes.OK).json(breakdown);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
