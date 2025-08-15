@@ -1,5 +1,6 @@
 'use client';
 
+import { Skeleton } from '@/components/ui/skeleton';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface DemographicsChartProps {
@@ -34,5 +35,21 @@ export function DemographicsChart({ data }: DemographicsChartProps) {
         </Pie>
       </PieChart>
     </ResponsiveContainer>
+  );
+}
+
+export function DemographicsChartSkeleton() {
+  return (
+    <div className="flex h-[350px] flex-col items-center justify-center gap-4">
+      <Skeleton className="h-[200px] w-[200px] rounded-full" />
+      <div className="flex flex-wrap justify-center gap-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <Skeleton className="h-3 w-3 rounded-full" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+import { iconMap } from '@/components/shared/icons';
 import { Button } from '@/components/ui/button';
 import { instructorNavItems } from '@/config/nav-items';
 
@@ -17,7 +18,7 @@ export function SidebarNav({ type }: SidebarNavProps) {
   return (
     <nav className="grid items-start gap-1 text-sm font-medium">
       {navItems.map((item) => {
-        const Icon = item.icon;
+        const Icon = iconMap[item.icon];
         const isActive = pathname === item.href;
         return (
           <Button

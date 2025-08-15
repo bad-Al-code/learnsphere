@@ -1,8 +1,8 @@
-import type { LucideIcon } from 'lucide-react';
+import { IconName } from '@/components/shared/icons';
 
 export type NavItem = {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: IconName;
   value: string;
 };

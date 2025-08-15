@@ -1,10 +1,9 @@
 import { getCurrentUser } from '@/app/(auth)/actions';
-import { SidebarNav } from '@/components/layout/sidebar-nav'; // <-- Import the new generic component
-import { NavItem } from '@/types'; // <-- Import the NavItem type
-import { Bell, Shield, User } from 'lucide-react'; // <-- Import icons
+import { SidebarNav } from '@/components/layout/sidebar-nav';
+import { NavItem } from '@/types';
+import { Bell, Shield, User } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
-// Define the navigation items for the settings section
 const settingsNavItems: NavItem[] = [
   {
     href: '/settings/profile',

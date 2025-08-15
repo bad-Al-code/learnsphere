@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   BellRing,
   BookUser,
@@ -87,6 +88,31 @@ export function RecentActivity() {
                 <p className="text-muted-foreground text-xs">{activity.time}</p>
               </div>
               <activity.icon className="text-muted-foreground h-5 w-5 flex-shrink-0" />
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function RecentActivitySkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-4 w-48" /> 
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-start gap-4">
+              <Skeleton className="mt-1 h-8 w-8 rounded-full" /> 
+              <div className="flex-1 space-y-1">
+                <Skeleton className="h-4 w-48" /> 
+                <Skeleton className="h-3 w-24" /> 
+              </div>
+              <Skeleton className="h-5 w-5 rounded" /> 
             </div>
           ))}
         </div>

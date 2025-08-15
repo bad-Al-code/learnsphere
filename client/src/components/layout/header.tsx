@@ -10,10 +10,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import publicNavItems, {
+import {
   adminNavItems,
   instructorNavItems,
-} from '@/config/nav-items'; // Import nav items
+  publicNavItems,
+} from '@/config/nav-items';
 import { getInitials } from '@/lib/utils';
 import { useSessionStore } from '@/stores/session-store';
 import { User } from '@/types/user';
@@ -27,6 +28,7 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
+import { iconMap } from '../shared/icons';
 import { Logo } from '../shared/logo';
 import { ModeToggle } from '../shared/mode-toggle';
 import { SearchBar } from '../shared/search-bar';
@@ -188,7 +190,7 @@ export function Header({ user: initialUser }: { user: User | null }) {
 
                   <nav className="mt-6 flex flex-col space-y-4 px-4 text-sm font-medium">
                     {mobileNavItems.map((item) => {
-                      const Icon = item.icon;
+                      const Icon = iconMap[item.icon];
                       const isActive = pathname === item.href;
 
                       return (

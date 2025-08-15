@@ -1,36 +1,57 @@
 import { NavItem } from '@/types';
-import {
-  Bell,
-  BookCopy,
-  BookOpen,
-  BookOpenCheck,
-  FileText,
-  FolderKanban,
-  Info,
-  LayoutGrid,
-  Shield,
-  User,
-  Users,
-} from 'lucide-react';
+
+export const instructorDashboardTabs: NavItem[] = [
+  {
+    href: '/dashboard',
+    label: 'Overview',
+    value: 'overview',
+    icon: 'LayoutGrid',
+  },
+  {
+    href: '/dashboard',
+    label: 'Engagement',
+    value: 'engagement',
+    icon: 'HeartHandshake',
+  },
+  {
+    href: '/dashboard',
+    label: 'Performance',
+    value: 'performance',
+    icon: 'LineChart',
+  },
+  {
+    href: '/dashboard',
+    label: 'Comparison',
+    value: 'comparison',
+    icon: 'BarChart2',
+  },
+  {
+    href: '/dashboard',
+    label: 'Analytics',
+    value: 'analytics',
+    icon: 'Presentation',
+  },
+  { href: '/dashboard', label: 'Insights', value: 'insights', icon: 'Eye' },
+];
 
 export const settingsNavItems: NavItem[] = [
   {
     href: '/settings/profile',
     label: 'My Account',
     value: 'profile',
-    icon: User,
+    icon: 'User',
   },
   {
     href: '/settings/security',
     label: 'Security',
     value: 'security',
-    icon: Shield,
+    icon: 'Shield',
   },
   {
     href: '/settings/notifications',
     label: 'Notifications',
     value: 'notifications',
-    icon: Bell,
+    icon: 'Bell',
   },
 ];
 
@@ -39,47 +60,70 @@ export const adminNavItems: NavItem[] = [
     href: '/admin',
     label: 'Dashboard',
     value: 'dashboard',
-    icon: LayoutGrid,
+    icon: 'LayoutGrid',
   },
-  {
-    href: '/admin/users',
-    label: 'Users',
-    value: 'users',
-    icon: Users,
-  },
+  { href: '/admin/users', label: 'Users', value: 'users', icon: 'Users' },
   {
     href: '/admin/courses',
     label: 'Courses',
     value: 'courses',
-    icon: BookOpenCheck,
+    icon: 'BookOpenCheck',
   },
   {
     href: '/admin/categories',
     label: 'Categories',
     value: 'categories',
-    icon: FolderKanban,
+    icon: 'FolderKanban',
   },
 ];
 
-export const publicNavItems = [
-  { href: '/courses', label: 'Courses', icon: BookOpen },
-  { href: '/blog', label: 'Blog', icon: FileText },
-  { href: '/about', label: 'About', icon: Info },
+export const publicNavItems: NavItem[] = [
+  { href: '/courses', label: 'Courses', value: 'courses', icon: 'BookOpen' },
+  { href: '/blog', label: 'Blog', value: 'blog', icon: 'FileText' },
+  { href: '/about', label: 'About', value: 'about', icon: 'Info' },
 ];
-
-export default publicNavItems;
 
 export const instructorNavItems: NavItem[] = [
   {
-    href: '/dashboard',
+    href: '/dashboard/instructor',
     label: 'Dashboard',
     value: 'dashboard',
-    icon: LayoutGrid,
+    icon: 'LayoutGrid',
   },
   {
     href: '/dashboard/instructor/courses',
-    label: 'Courses',
+    label: 'My Courses',
     value: 'courses',
-    icon: BookCopy,
+    icon: 'BookCopy',
+  },
+  {
+    href: '/dashboard/instructor/students',
+    label: 'Students',
+    value: 'students',
+    icon: 'Users',
+  },
+  {
+    href: '/dashboard/instructor/analytics',
+    label: 'Analytics',
+    value: 'analytics',
+    icon: 'LineChart',
+  },
+  {
+    href: '/dashboard/instructor/communication',
+    label: 'Communication',
+    value: 'communication',
+    icon: 'MessageSquare',
+  },
+  {
+    href: '/dashboard/instructor/schedule',
+    label: 'Schedule',
+    value: 'schedule',
+    icon: 'Calendar',
+  },
+  {
+    href: '/dashboard/instructor/certificates',
+    label: 'Certificates',
+    value: 'certificates',
+    icon: 'Award',
   },
 ];

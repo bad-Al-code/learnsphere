@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Award,
   Calendar,
@@ -21,32 +22,32 @@ import Link from 'next/link';
 const actions = [
   {
     label: 'Create New Course',
-    href: '/dashboard/instructor/courses/create',
+    href: '/dashboard/courses/create',
     icon: PlusCircle,
   },
   {
     label: 'Send Announcement',
-    href: '/dashboard/instructor/communication?tab=announcements',
+    href: '/dashboard/communication?tab=announcements',
     icon: MessageSquarePlus,
   },
   {
     label: 'View All Students',
-    href: '/dashboard/instructor/students',
+    href: '/dashboard/students',
     icon: Users,
   },
   {
     label: 'Generate Report',
-    href: '/dashboard/instructor/analytics?tab=reports',
+    href: '/dashboard/analytics?tab=reports',
     icon: FileText,
   },
   {
     label: 'Schedule Session',
-    href: '/dashboard/instructor/schedule',
+    href: '/dashboard/schedule',
     icon: Calendar,
   },
   {
     label: 'Issue Certificates',
-    href: '/dashboard/instructor/certificates',
+    href: '/dashboard/certificates',
     icon: Award,
   },
 ];
@@ -72,6 +73,24 @@ export function QuickActions() {
                 {action.label}
               </Link>
             </Button>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function QuickActionsSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-28" />
+        <Skeleton className="h-4 w-44" />
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col space-y-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-9 w-full" />
           ))}
         </div>
       </CardContent>

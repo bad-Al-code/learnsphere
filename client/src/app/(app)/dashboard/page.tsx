@@ -1,3 +1,4 @@
+import { AppTabs } from '@/components/ui/app-tabs';
 import {
   Card,
   CardContent,
@@ -5,217 +6,81 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { formatPrice } from '@/lib/utils';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { instructorDashboardTabs } from '@/config/nav-items';
 import { BookOpen, IndianRupee, Star, Users } from 'lucide-react';
 import { Suspense } from 'react';
-import {
-  CoursePerformanceChart,
-  CoursePerformanceChartSkeleton,
-} from '../_components/course-performance-chart';
 import { DashboardHeader } from '../_components/dashboard-header';
-import { DemographicsChart } from '../_components/demographic-chart';
-import { DeviceUsage } from '../_components/device-usage';
-import {
-  EnrollmentChart,
-  EnrollmentChartSkeleton,
-} from '../_components/enrollment-chart';
-import { FinancialChart } from '../_components/financial-chart';
-import { QuickActions } from '../_components/quick-actions';
-import { RecentActivity } from '../_components/recent-activity';
-import {
-  RevenueBreakdownChart,
-  RevenueBreakdownChartSkeleton,
-} from '../_components/revenue-breakdown-chart';
+import { EnrollmentChartSkeleton } from '../_components/enrollment-chart';
+import { OverviewTab, OverviewTabSkeleton } from '../_components/overview-tab';
 import { StatCard } from '../_components/stat-card';
-import {
-  getCoursePerformanceData,
-  getInstructorDashboardCharts,
-  getInstructorDashboardStats,
-  getInstructorDashboardTrends,
-} from '../actions';
 
-const CHANGE_DESCRIPTION = 'from last month';
+interface DashboardPageProps {
+  searchParams: { [key: string]: string | string[] | undefined };
+}
 
-export default function DashboardPage() {
+export default function DashboardPage({ searchParams }: DashboardPageProps) {
   return (
     <div>
       <Suspense fallback={<StatsGridSkeleton />}>
-        <DashboardStats />
+        <DashboardStats searchParams={searchParams} />
       </Suspense>
     </div>
   );
 }
 
-async function DashboardStats() {
-  const [stats, trends, chartsData, performanceData] = await Promise.all([
-    getInstructorDashboardStats(),
-    getInstructorDashboardTrends(),
-    getInstructorDashboardCharts(),
-    getCoursePerformanceData(),
-  ]);
+interface DashboardStatsProps {
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
+async function DashboardStats({ searchParams }: DashboardStatsProps) {
+  const tab =
+    typeof searchParams.tab === 'string' ? searchParams.tab : 'overview';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <DashboardHeader
         title="Dashboard"
         description="Here's what's happening with your courses today."
       />
-      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <StatCard
-          title="Total Students"
-          value={stats.totalStudents.value.toLocaleString()}
-          change={{
-            value: stats.totalStudents.change,
-            description: CHANGE_DESCRIPTION,
-          }}
-          icon={Users}
-          iconBgColor="bg-sky-500"
-        />
-        <StatCard
-          title="Total Revenue"
-          value={formatPrice(stats.totalRevenue.value)}
-          change={{
-            value: stats.totalRevenue.change,
-            description: CHANGE_DESCRIPTION,
-          }}
-          icon={IndianRupee}
-          iconBgColor="bg-emerald-500"
-        />
-        <StatCard
-          title="Active Courses"
-          value={stats.activeCourses.value}
-          change={{
-            value: stats.activeCourses.change,
-            description: CHANGE_DESCRIPTION,
-          }}
-          icon={BookOpen}
-          iconBgColor="bg-amber-500"
-        />
-        <StatCard
-          title="Average Rating"
-          value={stats.averageRating.value}
-          change={{
-            value: stats.averageRating.change,
-            description: CHANGE_DESCRIPTION,
-          }}
-          icon={Star}
-          iconBgColor="bg-rose-500"
-        />
-      </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Student Enrollment & Revenue Trend</CardTitle>
-            <CardDescription>
-              Monthly enrollment and revenue over the last 6 months.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {trends.length > 0 ? (
-              <EnrollmentChart data={trends} />
-            ) : (
-              <div className="flex h-[350px] items-center justify-center">
-                <p className="text-muted-foreground">
-                  Not enough data to display trends.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      <Tabs value={tab}>
+        <AppTabs
+          tabs={instructorDashboardTabs}
+          basePath="/dashboard"
+          activeTab="tab"
+        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue Breakdown</CardTitle>
-            <CardDescription>Revenue sources for this quarter.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {chartsData.breakdown.length > 0 ? (
-              <RevenueBreakdownChart data={chartsData.breakdown} />
-            ) : (
-              <RevenueBreakdownChartSkeleton />
-            )}
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent value="overview">
+          <Suspense fallback={<OverviewTabSkeleton />}>
+            <OverviewTab />
+          </Suspense>
+        </TabsContent>
 
-      <div className="">
-        <Card>
-          <CardHeader>
-            <CardTitle>Course Performance Overview</CardTitle>
-            <CardDescription>
-              Completion rates and ratings for your active courses.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {performanceData.length > 0 ? (
-              <CoursePerformanceChart data={performanceData} />
-            ) : (
-              <CoursePerformanceChartSkeleton />
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="lg:grid-cols grid grid-cols-1 gap-2 md:gap-8">
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Financial Performance</CardTitle>
-            <CardDescription>
-              Revenue, expenses, and profit trends over time.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {chartsData.financials.length > 0 ? (
-              <FinancialChart data={chartsData.financials} />
-            ) : (
-              <div className="flex h-[350px] items-center justify-center">
-                <p className="text-muted-foreground">No financial data.</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:col-span-2">
+        <TabsContent value="engagement" className="mt-5">
           <Card>
             <CardHeader>
-              <CardTitle>Student Demographics</CardTitle>
+              <CardTitle>Engagement</CardTitle>
             </CardHeader>
             <CardContent>
-              {chartsData.demographics.length > 0 ? (
-                <DemographicsChart data={chartsData.demographics} />
-              ) : (
-                <div className="flex h-[350px] items-center justify-center">
-                  <p className="text-muted-foreground">No data available.</p>
-                </div>
-              )}
+              <p>Engagement content coming soon...</p>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Device Usage</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {chartsData.deviceUsage.length > 0 ? (
-                <DeviceUsage data={chartsData.deviceUsage} />
-              ) : (
-                <div className="flex h-[350px] items-center justify-center">
-                  <p className="text-muted-foreground">No data available.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <RecentActivity />
-        </div>
-        <div>
-          <QuickActions />
-        </div>
-      </div>
+        <TabsContent value="performance" className="mt-5">
+          <p>Performance content coming soon...</p>
+        </TabsContent>
+        <TabsContent value="comparison" className="mt-5">
+          <p>Comparison content coming soon...</p>
+        </TabsContent>
+        <TabsContent value="analytics" className="mt-5">
+          <p>Analytics content coming soon...</p>
+        </TabsContent>
+        <TabsContent value="insights" className="mt-5">
+          <p>Insights content coming soon...</p>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
