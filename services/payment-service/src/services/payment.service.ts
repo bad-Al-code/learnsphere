@@ -49,6 +49,7 @@ export class PaymentService {
     await PaymentRepository.create({
       userId,
       courseId,
+      coursePriceAtPayment: course.price,
       amount: course.price,
       currency: order.currency,
       status: 'pending',

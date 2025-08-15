@@ -135,33 +135,20 @@ async function seedCategories() {
 async function seedCourses(categories: { id: string }[]): Promise<string[]> {
   if (!categories.length) throw new Error('No categories found.');
 
-  const instructorIds =
-    hardcodedInstructorIds.length > 0
-      ? hardcodedInstructorIds
-      : Array.from({ length: 10 }, () => faker.string.uuid());
-
   const courseLevels = [
     'beginner',
     'intermediate',
     'advanced',
     'all-levels',
   ] as const;
-
   const courseStatus = ['draft', 'published'] as const;
-
   const courseIds: string[] = [];
 
-  for (const instructorId of instructorIds) {
+  for (const instructorId of hardcodedInstructorIds) {
     const randomCategory = faker.helpers.arrayElement(categories);
-    const randomLevel = faker.helpers.arrayElement(courseLevels);
-    const randomStatus = faker.helpers.arrayElement(courseStatus);
-    const imageUrl = `https://picsum.photos/600/400?random=${Math.floor(Math.random() * 10000)}`;
     const price = faker.number
-      .float({ min: 0, max: 4999, fractionDigits: 2 })
+      .float({ min: 499, max: 2999, fractionDigits: 2 })
       .toString();
-    const duration = faker.number.int({ min: 0, max: 300 });
-    const averageRating = faker.number.int({ min: 0, max: 5 });
-    const enrollmentCount = faker.number.int({ min: 0, max: 100 });
 
     const [course] = await db
       .insert(courses)
@@ -169,17 +156,19 @@ async function seedCourses(categories: { id: string }[]): Promise<string[]> {
         title: faker.lorem.words(3),
         description: faker.lorem.paragraph(),
         instructorId,
-        status: randomStatus,
+        status: faker.helpers.arrayElement(courseStatus),
         categoryId: randomCategory.id,
-        level: randomLevel,
-        imageUrl: imageUrl,
+        level: faker.helpers.arrayElement(courseLevels),
+        imageUrl: `https://picsum.photos/600/400?random=${Math.random()}`,
         price: price,
-        duration: duration,
-        averageRating: averageRating,
-        enrollmentCount: enrollmentCount,
+        duration: faker.number.int({ min: 60, max: 600 }),
+        averageRating: faker.number.float({
+          min: 3.5,
+          max: 5,
+          fractionDigits: 1,
+        }),
+        enrollmentCount: faker.number.int({ min: 50, max: 1500 }),
         currency: 'INR',
-        createdAt: new Date(),
-        updatedAt: new Date(),
       })
       .returning();
 
@@ -192,6 +181,8 @@ async function seedCourses(categories: { id: string }[]): Promise<string[]> {
         instructorId: course.instructorId,
         status: course.status,
         prerequisiteCourseId: course.prerequisiteCourseId ?? null,
+        price: course.price,
+        currency: course.currency,
       });
 
       console.log(`Published course.created for course ${course.id}`);
@@ -199,9 +190,7 @@ async function seedCourses(categories: { id: string }[]): Promise<string[]> {
       console.error(`Failed to publish course.created for ${course.id}:`, err);
     }
 
-    console.log(
-      `Course created: ${course.title} (ID: ${course.id}, ₹${price} - ${randomLevel})`
-    );
+    console.log(`Course created: ${course.title} (ID: ${course.id})`);
   }
 
   return courseIds;
@@ -355,6 +344,15 @@ async function runSeed() {
   try {
     console.log('Starting full DB seed...');
     await rabbitMQConnection.connect();
+
+    // await db.delete(resources);
+    //     await db.delete(assignments);
+    //     await db.delete(textLessonContent);
+    //     await db.delete(lessons);
+    //     await db.delete(modules);
+    //     await db.delete(courses);
+    //     await db.delete(categoriesTable);
+    // console.log('Cleared existing course data.');
 
     const seededCategories = await seedCategories();
     const courseIds = await seedCourses(seededCategories);

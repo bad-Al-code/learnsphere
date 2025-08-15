@@ -203,6 +203,7 @@ export class EnrollmentService {
       userId,
       courseId,
       courseStructure,
+      coursePriceAtEnrollment: course.price || '0.00',
     });
 
     logger.info(`User ${userId} successfully enrolled in course ${courseId}`);

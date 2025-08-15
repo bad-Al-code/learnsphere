@@ -15,6 +15,20 @@
       "when": 1754504590815,
       "tag": "0001_massive_swarm",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1755215535489,
+      "tag": "0002_absurd_mystique",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1755216015072,
+      "tag": "0003_graceful_ravenous",
+      "breakpoints": true
     }
   ]
 }

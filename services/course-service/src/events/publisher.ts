@@ -30,6 +30,8 @@ interface CourseCreatedEvent {
     instructorId: string;
     status: 'draft' | 'published';
     prerequisiteCourseId: string | null;
+    price: string | null;
+    currency: string | null;
   };
 }
 
@@ -44,6 +46,7 @@ interface CourseUpdatedEvent {
     newStatus?: 'draft' | 'published';
     newPrerequisiteCourseId?: string | null;
     newInstructorId?: string;
+    newPrice?: string | null;
   };
 }
 export class CourseUpdatedPublisher extends Publisher<CourseUpdatedEvent> {

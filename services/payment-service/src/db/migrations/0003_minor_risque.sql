@@ -1,0 +1,1 @@
+ALTER TABLE "payments" ADD COLUMN "course_price_at_payment" numeric(10, 2) NOT NULL;

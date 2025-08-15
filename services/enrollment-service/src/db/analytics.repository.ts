@@ -7,6 +7,7 @@ import {
   inArray,
   lt,
   sql,
+  sum,
 } from 'drizzle-orm';
 import { db } from '.';
 import { courses, enrollments } from './schema';
@@ -20,11 +21,13 @@ export class AnalyticsRepository {
    * for both the current and previous 30-day periods.
    *
    * This method:
-   * 1. Finds all courses taught by the instructor.
-   * 2. Counts the number of unique students enrolled in those courses during:
-   *    - The current period (last 30 days)
-   *    - The previous period (30–60 days ago)
-   * 3. Estimates total revenue for each period using a placeholder `revenuePerStudent` value.
+   * 1. Retrieves all courses taught by the specified instructor.
+   * 2. Uses those course IDs to query the enrollments table and calculate:
+   *    - The total number of unique students enrolled.
+   *    - The total revenue earned (based on `coursePriceAtEnrollment`).
+   * 3. Calculates these metrics for:
+   *    - **Current period**: enrollments within the last 30 days.
+   *    - **Previous period**: enrollments between 30 and 60 days ago.
    *
    * @param {string} instructorId - The unique identifier of the instructor.
    * @returns {Promise<{
@@ -36,10 +39,13 @@ export class AnalyticsRepository {
    *     totalStudents: number;
    *     totalRevenue: number;
    *   };
-   * }>} A promise that resolves to an object containing statistics for both periods:
-   * - `totalStudents`: The number of unique students in the period.
-   * - `totalRevenue`: Estimated revenue for the period.
+   * }>} A promise resolving to an object containing statistics for both time periods:
+   * - `totalStudents`: The count of unique students for the period.
+   * - `totalRevenue`: The total revenue earned during the period.
+   *
+   * @throws {Error} If database queries fail or `instructorId` is invalid.
    */
+
   public static async getInstructorStats(instructorId: string) {
     const instructorCourses = await db
       .select({ id: courses.id })
@@ -49,54 +55,46 @@ export class AnalyticsRepository {
     if (instructorCourses.length === 0) {
       return {
         currentPeriod: { totalStudents: 0, totalRevenue: 0 },
-        previousPeriod: { totlaStudents: 0, totalRevenue: 0 },
+        previousPeriod: { totalStudents: 0, totalRevenue: 0 },
       };
     }
 
     const courseIds = instructorCourses.map((c) => c.id);
+
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
 
-    const currentPeriodStats = await db
-      .select({
-        count: sql<number>`count(distinct ${enrollments.userId})`,
-      })
-      .from(enrollments)
-      .where(
-        and(
-          inArray(enrollments.courseId, courseIds),
-          gte(enrollments.enrolledAt, thirtyDaysAgo)
-        )
-      );
+    const calculateStatsForPeriod = async (start: Date, end?: Date) => {
+      const conditions = [
+        inArray(enrollments.courseId, courseIds),
+        gte(enrollments.enrolledAt, start),
+      ];
+      if (end) {
+        conditions.push(lt(enrollments.enrolledAt, end));
+      }
 
-    const previousPeriodStats = await db
-      .select({
-        count: sql<number>`count(distinct ${enrollments.userId})`,
-      })
-      .from(enrollments)
-      .where(
-        and(
-          inArray(enrollments.courseId, courseIds),
-          gte(enrollments.enrolledAt, sixtyDaysAgo),
-          lt(enrollments.enrolledAt, thirtyDaysAgo)
-        )
-      );
+      const [stats] = await db
+        .select({
+          totalStudents: countDistinct(enrollments.userId),
+          totalRevenue: sum(enrollments.coursePriceAtEnrollment),
+        })
+        .from(enrollments)
+        .where(and(...conditions));
 
-    const revenuePerStudent = 500; //NOTE: Placeholder value
-
-    return {
-      currentPeriod: {
-        totalStudents: Number(currentPeriodStats[0]?.count || 0),
-        totalRevenue:
-          Number(currentPeriodStats[0]?.count || 0) * revenuePerStudent,
-      },
-      previousPeriod: {
-        totalStudents: Number(previousPeriodStats[0]?.count || 0),
-        totalRevenue:
-          Number(previousPeriodStats[0]?.count || 0) * revenuePerStudent,
-      },
+      return {
+        totalStudents: stats.totalStudents || 0,
+        totalRevenue: parseFloat(stats.totalRevenue || '0'),
+      };
     };
+
+    const currentPeriod = await calculateStatsForPeriod(thirtyDaysAgo);
+    const previousPeriod = await calculateStatsForPeriod(
+      sixtyDaysAgo,
+      thirtyDaysAgo
+    );
+
+    return { currentPeriod, previousPeriod };
   }
 
   /**

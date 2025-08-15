@@ -61,6 +61,8 @@ interface CourseCreatedEvent {
     instructorId: string;
     status: 'draft' | 'published';
     prerequisiteCourseId: string | null;
+    price: string | null;
+    currency: string | null;
   };
 }
 
@@ -77,6 +79,8 @@ export class CourseSyncCreatedListener extends Listener<CourseCreatedEvent> {
         instructorId: data.instructorId,
         status: data.status,
         prerequisiteCourseId: data.prerequisiteCourseId,
+        price: data.price,
+        currency: data.currency,
       });
     } catch (error) {
       logger.error('Failed to sync created course', { data, error });
@@ -90,6 +94,7 @@ interface CourseUpdatedEvent {
     courseId: string;
     newStatus?: 'draft' | 'published';
     newPrerequisiteCourseId?: string | null;
+    newPrice?: string | null;
   };
 }
 
@@ -106,6 +111,9 @@ export class CourseSyncUpdatedListener extends Listener<CourseUpdatedEvent> {
       if (data.newStatus) updateData.status = data.newStatus;
       if (data.newPrerequisiteCourseId !== undefined) {
         updateData.prerequisiteCourseId = data.newPrerequisiteCourseId;
+      }
+      if (data.newPrice !== undefined) {
+        updateData.price = data.newPrice;
       }
 
       if (Object.keys(updateData).length > 0) {

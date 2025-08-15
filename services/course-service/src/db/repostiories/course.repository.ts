@@ -1,4 +1,14 @@
-import { and, count, desc, eq, ilike, inArray, sql } from 'drizzle-orm';
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  lt,
+  sql,
+} from 'drizzle-orm';
 
 import { db } from '..';
 import {
@@ -404,12 +414,39 @@ export class CourseRepository {
   }
 
   /**
-   * Calculates statistics for all courses belonging to a specific instructor.
-   * @param instructorId - The ID of the instructor.
-   * @returns An object with the total number of courses and the average rating.
+   * @static
+   * @async
+   * @method getInstructorCourseStats
+   * @description Retrieves course-related statistics for a specific instructor,
+   * including overall totals and period-based comparisons.
+   *
+   * This method:
+   * 1. Calculates the total number of courses the instructor has and their average rating.
+   * 2. Counts how many new courses were created:
+   *    - **Current period**: within the last 30 days.
+   *    - **Previous period**: between 30 and 60 days ago.
+   *
+   * @param {string} instructorId - The unique identifier of the instructor.
+   * @returns {Promise<{
+   *   totalCourses: number;
+   *   averageRating: string; // Formatted to 1 decimal place
+   *   coursesThisPeriod: number;
+   *   coursesLastPeriod: number;
+   * }>} A promise resolving to an object containing:
+   * - `totalCourses`: Total number of courses the instructor has created.
+   * - `averageRating`: Average course rating, formatted to one decimal place.
+   * - `coursesThisPeriod`: Number of courses created in the last 30 days.
+   * - `coursesLastPeriod`: Number of courses created between 30–60 days ago.
+   *
+   * @throws {Error} If the database query fails or `instructorId` is invalid.
    */
+
   public static async getInstructorCourseStats(instructorId: string) {
-    const statsQuery = db
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+    const baseQuery = db
       .select({
         totalCourses: count(courses.id),
         averageRating: sql<number>`AVG(${courses.averageRating})`.as(
@@ -419,13 +456,36 @@ export class CourseRepository {
       .from(courses)
       .where(eq(courses.instructorId, instructorId));
 
-    const [result] = await statsQuery;
+    const [totalStats] = await baseQuery;
+
+    const [currentPeriodStats] = await db
+      .select({ totalCourses: count(courses.id) })
+      .from(courses)
+      .where(
+        and(
+          eq(courses.instructorId, instructorId),
+          gte(courses.createdAt, thirtyDaysAgo)
+        )
+      );
+
+    const [previousPeriodStats] = await db
+      .select({ totalCourses: count(courses.id) })
+      .from(courses)
+      .where(
+        and(
+          eq(courses.instructorId, instructorId),
+          gte(courses.createdAt, sixtyDaysAgo),
+          lt(courses.createdAt, thirtyDaysAgo)
+        )
+      );
 
     return {
-      totalCourses: result.totalCourses || 0,
+      totalCourses: totalStats.totalCourses || 0,
       averageRating: parseFloat(
-        result.averageRating?.toString() || '0'
+        totalStats.averageRating?.toString() || '0'
       ).toFixed(1),
+      coursesThisPeriod: currentPeriodStats.totalCourses || 0,
+      coursesLastPeriod: previousPeriodStats.totalCourses || 0,
     };
   }
 }

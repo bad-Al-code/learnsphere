@@ -6,6 +6,7 @@ import {
   timestamp,
   unique,
   uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
 
 type ModuleSnapshot = {
@@ -35,6 +36,12 @@ export const enrollments = pgTable(
     status: enrollmentStatusEnum('status').notNull().default('active'),
     userId: uuid('user_id').notNull(),
     courseId: uuid('course_id').notNull(),
+    coursePriceAtEnrollment: decimal('course_price_at_enrollment', {
+      precision: 10,
+      scale: 2,
+    })
+      .notNull()
+      .default('0.00'),
     courseStructure: jsonb('course_structure')
       .$type<CourseStructure>()
       .notNull()
@@ -65,6 +72,8 @@ export const courses = pgTable('courses', {
   instructorId: uuid('instructor_id').notNull(),
   status: courseStatusEnum('status').default('draft').notNull(),
   prerequisiteCourseId: uuid('prerequisite_course_id'),
+  price: decimal('price', { precision: 10, scale: 2 }).default('0.00'),
+  currency: varchar('currency', { length: 3 }).default('INR'),
 });
 
 export type Course = typeof courses.$inferSelect;

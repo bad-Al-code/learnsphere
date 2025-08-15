@@ -1,0 +1,1 @@
+ALTER TABLE "enrollments" ADD COLUMN "course_price_at_enrollment" numeric(10, 2) DEFAULT '0.00' NOT NULL;

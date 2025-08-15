@@ -39,6 +39,16 @@ export class CourseService {
     }));
   }
 
+  private static calculatePercentageChange(
+    current: number,
+    previous: number
+  ): number {
+    if (previous === 0) {
+      return current > 0 ? 100 : 0;
+    }
+    return Math.round(((current - previous) / previous) * 100);
+  }
+
   /**
    * Creates a new course.
    * @param data - Contains title, description, and instructorId.
@@ -63,6 +73,8 @@ export class CourseService {
         instructorId: newCourse.instructorId,
         status: newCourse.status,
         prerequisiteCourseId: newCourse.prerequisiteCourseId,
+        price: newCourse.price,
+        currency: newCourse.currency,
       });
     } catch (error) {
       logger.error('Failed to publish course.created event', {
@@ -104,6 +116,8 @@ export class CourseService {
         instructorId: newCourse.instructorId,
         status: newCourse.status,
         prerequisiteCourseId: newCourse.prerequisiteCourseId,
+        price: newCourse.price,
+        currency: newCourse.currency,
       });
     } catch (error) {
       logger.error('Failed to publish course.created event', {
@@ -215,6 +229,7 @@ export class CourseService {
       await publisher.publish({
         courseId: updatedCourse.id,
         newPrerequisiteCourseId: updatedCourse.prerequisiteCourseId,
+        newPrice: updatedCourse.price,
       });
     } catch (error) {
       logger.error('Failed to publish course.updated event', {
@@ -434,14 +449,21 @@ export class CourseService {
   public static async getInstructorStats(instructorId: string) {
     const stats = await CourseRepository.getInstructorCourseStats(instructorId);
 
+    const activeCoursesChange = this.calculatePercentageChange(
+      stats.coursesThisPeriod,
+      stats.coursesLastPeriod
+    );
+
+    const averageRatingChange = 10;
+
     return {
       activeCourses: {
         value: stats.totalCourses,
-        change: 5, // NOTE: Placeholder
+        change: activeCoursesChange,
       },
       averageRating: {
         value: parseFloat(stats.averageRating),
-        change: 10, // NOTE: Placeholder
+        change: averageRatingChange, // NOTE: Still a placeholder as we don't store historical ratings
       },
     };
   }

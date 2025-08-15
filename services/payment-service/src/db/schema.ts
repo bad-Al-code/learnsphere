@@ -31,6 +31,10 @@ export const payments = pgTable('payments', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('user_id').notNull(),
   courseId: uuid('course_id').notNull(),
+  coursePriceAtPayment: decimal('course_price_at_payment', {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
   currency: text('currency').notNull().default('INR'),
   status: paymentStatusEnum('status').notNull().default('pending'),
