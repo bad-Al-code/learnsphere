@@ -73,4 +73,23 @@ router.get(
   AnalyticsController.getInstructorTrends
 );
 
+/**
+ * @openapi
+ * /api/analytics/instructor/course-performance:
+ *   get:
+ *     summary: "[Instructor/Admin] Get performance metrics for each of the instructor's courses"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An array of performance data for each course.
+ */
+router.get(
+  '/instructor/course-performance',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getInstructorCoursePerformance
+);
+
 export { router as analyticsRouter };

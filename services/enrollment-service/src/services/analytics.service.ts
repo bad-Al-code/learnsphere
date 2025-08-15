@@ -1,4 +1,5 @@
 import { AnalyticsRepository } from '../db/analytics.repository';
+import { CourseRepository } from '../db/course.repository';
 
 export class AnalyticsService {
   /**
@@ -84,5 +85,21 @@ export class AnalyticsService {
       revenue: parseFloat(row.revenue || '0'),
       enrollments: row.enrollments,
     }));
+  }
+
+  public static async getInstructorCoursePerformance(instructorId: string) {
+    const instructorCourses =
+      await CourseRepository.findAllByInstructorId(instructorId);
+
+    if (instructorCourses.length === 0) {
+      return [];
+    }
+
+    const courseIds = instructorCourses.map((c) => c.id);
+
+    const performanceData =
+      await AnalyticsRepository.getAverageCompletionByCourse(courseIds);
+
+    return performanceData;
   }
 }

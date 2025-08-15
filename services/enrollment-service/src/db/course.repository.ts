@@ -75,4 +75,17 @@ export class CourseRepository {
       where: eq(courses.id, courseId),
     });
   }
+
+  /**
+   * Finds all courses created by a specific instructor.
+   * @param instructorId - The unique identifier of the instructor.
+   * @returns A promise that resolves with an array of Course objects.
+   */
+  public static async findAllByInstructorId(
+    instructorId: string
+  ): Promise<Course[]> {
+    return db.query.courses.findMany({
+      where: eq(courses.instructorId, instructorId),
+    });
+  }
 }

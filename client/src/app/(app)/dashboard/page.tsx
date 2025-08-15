@@ -8,6 +8,10 @@ import {
 import { formatPrice } from '@/lib/utils';
 import { BookOpen, IndianRupee, Star, Users } from 'lucide-react';
 import { Suspense } from 'react';
+import {
+  CoursePerformanceChart,
+  CoursePerformanceChartSkeleton,
+} from '../_components/course-performance-chart';
 import { DashboardHeader } from '../_components/dashboard-header';
 import {
   EnrollmentChart,
@@ -19,6 +23,7 @@ import {
 } from '../_components/revenue-breakdown-chart';
 import { StatCard } from '../_components/stat-card';
 import {
+  getCoursePerformanceData,
   getInstructorDashboardCharts,
   getInstructorDashboardStats,
   getInstructorDashboardTrends,
@@ -29,10 +34,6 @@ const CHANGE_DESCRIPTION = 'from last month';
 export default function DashboardPage() {
   return (
     <div>
-      <DashboardHeader
-        title="Dashboard"
-        description="Here's what's happening with your courses today."
-      />
       <Suspense fallback={<StatsGridSkeleton />}>
         <DashboardStats />
       </Suspense>
@@ -41,14 +42,15 @@ export default function DashboardPage() {
 }
 
 async function DashboardStats() {
-  const [stats, trends, chartsData] = await Promise.all([
+  const [stats, trends, chartsData, performanceData] = await Promise.all([
     getInstructorDashboardStats(),
     getInstructorDashboardTrends(),
     getInstructorDashboardCharts(),
+    getCoursePerformanceData(),
   ]);
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="">
       <DashboardHeader
         title="Dashboard"
         description="Here's what's happening with your courses today."
@@ -127,6 +129,24 @@ async function DashboardStats() {
               <RevenueBreakdownChart data={chartsData.breakdown} />
             ) : (
               <RevenueBreakdownChartSkeleton />
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Course Performance Overview</CardTitle>
+            <CardDescription>
+              Completion rates and ratings for your active courses.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {performanceData.length > 0 ? (
+              <CoursePerformanceChart data={performanceData} />
+            ) : (
+              <CoursePerformanceChartSkeleton />
             )}
           </CardContent>
         </Card>

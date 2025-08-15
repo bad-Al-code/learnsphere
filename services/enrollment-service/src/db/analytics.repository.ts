@@ -162,4 +162,32 @@ export class AnalyticsRepository {
 
     return result;
   }
+
+  /**
+   * Calculates the average completion percentage for a given list of course IDs.
+   * @param courseIds - An array of course IDs.
+   * @returns A promise that resolves to an array of objects, each containing a courseId and its average completion rate.
+   */
+  public static async getAverageCompletionByCourse(courseIds: string[]) {
+    if (courseIds.length === 0) {
+      return [];
+    }
+
+    const result = await db
+      .select({
+        courseId: enrollments.courseId,
+        averageCompletion:
+          sql<number>`AVG(${enrollments.progressPercentage})`.as(
+            'average_completion'
+          ),
+      })
+      .from(enrollments)
+      .where(inArray(enrollments.courseId, courseIds))
+      .groupBy(enrollments.courseId);
+
+    return result.map((item) => ({
+      ...item,
+      averageCompletion: parseFloat(item.averageCompletion?.toString() || '0'),
+    }));
+  }
 }

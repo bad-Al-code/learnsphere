@@ -46,4 +46,24 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getInstructorCoursePerformance(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const instructorId = req.currentUser?.id;
+      if (!instructorId) {
+        throw new NotAuthorizedError();
+      }
+
+      const performanceData =
+        await AnalyticsService.getInstructorCoursePerformance(instructorId);
+
+      res.status(StatusCodes.OK).json(performanceData);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

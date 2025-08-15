@@ -52,17 +52,32 @@ export async function getInstructorDashboardStats() {
 
 export async function getInstructorDashboardTrends() {
   try {
-    const response = await enrollmentService.get(
-      '/api/analytics/instructor/trends'
-    );
+    const [trendsRes, completionsRes] = await Promise.all([
+      enrollmentService.get('/api/analytics/instructor/trends'),
+      enrollmentService.get('/api/analytics/instructor/course-performance'),
+    ]);
 
-    if (!response.ok) {
-      console.error('Failed to fetch instructor trends');
+    if (!trendsRes.ok || !completionsRes.ok) {
+      console.error('Failed to fetch instructor trends or completions');
       return [];
     }
 
-    const result = await response.json();
-    return result;
+    const [trends, completions] = await Promise.all([
+      trendsRes.json(),
+      completionsRes.json(),
+    ]);
+
+    const merged = trends.map((trend: any) => {
+      const completionData = completions.find(
+        (c: { courseId: string }) => c.courseId === trend.courseId
+      );
+      return {
+        ...trend,
+        completions: completionData?.averageCompletion ?? 0,
+      };
+    });
+
+    return merged;
   } catch (error) {
     console.error('Error fetching instructor trends:', error);
     return [];
@@ -100,5 +115,38 @@ export async function getInstructorDashboardCharts() {
       trends: [],
       breakdown: [],
     };
+  }
+}
+
+export async function getCoursePerformanceData() {
+  try {
+    const [coursesRes, performanceRes] = await Promise.all([
+      courseService.get('/api/courses/my-courses?limit=5&sortBy=popularity'),
+      enrollmentService.get('/api/analytics/instructor/course-performance'),
+    ]);
+
+    if (!coursesRes.ok || !performanceRes.ok) {
+      console.error('Failed to fetch data for performance chart');
+      return [];
+    }
+
+    const { results: courses } = await coursesRes.json();
+    const performanceData: { courseId: string; averageCompletion: number }[] =
+      await performanceRes.json();
+
+    const performanceMap = new Map(
+      performanceData.map((p) => [p.courseId, p.averageCompletion])
+    );
+
+    const chartData = courses.map((course: any) => ({
+      name: course.title,
+      completionRate: performanceMap.get(course.id) || 0,
+      rating: course.averageRating || 0,
+    }));
+
+    return chartData;
+  } catch (error) {
+    console.error('Error fetching course performance data:', error);
+    return [];
   }
 }
