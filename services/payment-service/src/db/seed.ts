@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
+import { v4 as uuidv4 } from 'uuid';
 import { db } from '.';
-import { courses, enrollments } from './schema';
+import { courses, payments, users } from './schema';
 
 const hardcodedInstructorIds = [
   '410e8e92-6056-484a-beb6-803218bd3574',
@@ -141,64 +142,71 @@ export const hardcodedCourseIds = [
   },
 ];
 
-async function main() {
-  const courseData = hardcodedCourseIds.map((c) => ({
-    id: c.id,
-    instructorId: faker.helpers.arrayElement(hardcodedInstructorIds),
-    status: faker.helpers.arrayElement(['draft', 'published']),
-    prerequisiteCourseId: faker.datatype.boolean()
-      ? faker.helpers.arrayElement(hardcodedCourseIds).id
-      : null,
-    price: faker.finance.amount({ min: 100, max: 100000, dec: 2 }),
-    currency: 'INR',
+const statuses = ['completed', 'pending', 'failed'] as const;
+const currencies = ['INR'] as const;
+
+function generateRandomPayment(userId: string, courseId: string) {
+  const status = faker.helpers.arrayElement(statuses);
+  const price = faker.number.float({ min: 100, max: 5000, fractionDigits: 2 });
+
+  return {
+    id: uuidv4(),
+    userId,
+    courseId,
+    coursePriceAtPayment: price.toFixed(2),
+    amount: price.toFixed(2),
+    currency: faker.helpers.arrayElement(currencies),
+    status,
+    razorpayOrderId: uuidv4(),
+    razorpayPaymentId: status === 'completed' ? uuidv4() : undefined,
+    razorpaySignature: status === 'completed' ? uuidv4() : undefined,
+    updatedAt: faker.date.recent(),
+  };
+}
+
+async function seedAll() {
+  const userSeed = hardcodedInstructorIds.map((id) => ({
+    id,
+    email: faker.internet.email(),
+    role: 'instructor' as const,
   }));
 
-  await db.insert(courses).values(courseData).onConflictDoNothing();
+  for (const user of userSeed) {
+    await db.insert(users).values(user).onConflictDoNothing();
+  }
 
-  const enrollmentData = Array.from({ length: 100 }).map(() => {
-    const course = faker.helpers.arrayElement(hardcodedCourseIds);
-    const progressPercentage = faker.number.float({
-      min: 0,
-      max: 100,
+  const courseSeed = hardcodedCourseIds.map((course) => {
+    const instructorId = faker.helpers.arrayElement(hardcodedInstructorIds);
+    const price = faker.number.float({
+      min: 500,
+      max: 5000,
       fractionDigits: 2,
     });
-
     return {
-      status: faker.helpers.arrayElement(['active', 'suspended', 'completed']),
-      userId: faker.string.uuid(),
-      courseId: course.id,
-      coursePriceAtEnrollment: faker.finance.amount({
-        min: 100,
-        max: 100000,
-        dec: 2,
-      }),
-      courseStructure: {
-        totalLessons: faker.number.int({ min: 5, max: 50 }),
-        modules: Array.from({
-          length: faker.number.int({ min: 1, max: 5 }),
-        }).map(() => ({
-          id: faker.string.uuid(),
-          lessonIds: Array.from({
-            length: faker.number.int({ min: 1, max: 10 }),
-          }).map(() => faker.string.uuid()),
-        })),
-      },
-      progress: {
-        completedLessons: [],
-      },
-      progressPercentage: progressPercentage.toFixed(2),
-      enrolledAt: faker.date.past(),
-      lastAccessedAt: faker.date.recent(),
-      updatedAt: faker.date.recent(),
+      id: course.id,
+      title: course.title,
+      instructorId,
+      price: price.toFixed(2),
+      currency: 'INR',
     };
   });
 
-  await db.insert(enrollments).values(enrollmentData).onConflictDoNothing();
+  for (const course of courseSeed) {
+    await db.insert(courses).values(course);
+  }
 
-  console.log('Seed complete');
+  const paymentSeed = courseSeed.map((course) => {
+    const userId = faker.helpers.arrayElement(hardcodedInstructorIds);
+    return generateRandomPayment(userId, course.id);
+  });
+
+  for (const payment of paymentSeed) {
+    await db.insert(payments).values(payment);
+  }
+
+  console.log(
+    `${userSeed.length} users, ${courseSeed.length} courses, ${paymentSeed.length} payments inserted successfully!`
+  );
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+seedAll().catch(console.error);
