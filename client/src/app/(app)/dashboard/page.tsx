@@ -20,6 +20,8 @@ import {
   EnrollmentChartSkeleton,
 } from '../_components/enrollment-chart';
 import { FinancialChart } from '../_components/financial-chart';
+import { QuickActions } from '../_components/quick-actions';
+import { RecentActivity } from '../_components/recent-activity';
 import {
   RevenueBreakdownChart,
   RevenueBreakdownChartSkeleton,
@@ -53,7 +55,7 @@ async function DashboardStats() {
   ]);
 
   return (
-    <div className="">
+    <div className="space-y-6">
       <DashboardHeader
         title="Dashboard"
         description="Here's what's happening with your courses today."
@@ -101,7 +103,7 @@ async function DashboardStats() {
         />
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Student Enrollment & Revenue Trend</CardTitle>
@@ -137,7 +139,7 @@ async function DashboardStats() {
         </Card>
       </div>
 
-      <div className="mt-8">
+      <div className="">
         <Card>
           <CardHeader>
             <CardTitle>Course Performance Overview</CardTitle>
@@ -155,7 +157,7 @@ async function DashboardStats() {
         </Card>
       </div>
 
-      <div className="lg:grid-cols mt-8 grid grid-cols-1 gap-2 md:gap-8">
+      <div className="lg:grid-cols grid grid-cols-1 gap-2 md:gap-8">
         <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle>Financial Performance</CardTitle>
@@ -203,6 +205,15 @@ async function DashboardStats() {
               )}
             </CardContent>
           </Card>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <RecentActivity />
+        </div>
+        <div>
+          <QuickActions />
         </div>
       </div>
     </div>
