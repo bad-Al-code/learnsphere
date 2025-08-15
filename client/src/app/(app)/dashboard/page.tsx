@@ -18,6 +18,10 @@ import {
 } from '../_components/engagement-tab';
 import { EnrollmentChartSkeleton } from '../_components/enrollment-chart';
 import { OverviewTab, OverviewTabSkeleton } from '../_components/overview-tab';
+import {
+  PerformanceTab,
+  PerformanceTabSkeleton,
+} from '../_components/performance-tab';
 import { StatCard } from '../_components/stat-card';
 
 interface DashboardPageProps {
@@ -45,7 +49,7 @@ async function DashboardStats({ searchParams }: DashboardStatsProps) {
   return (
     <div className="space-y-5">
       <DashboardHeader
-        title="Dashboard"
+        title="Welcome back, Badal"
         description="Here's what's happening with your courses today."
       />
 
@@ -69,7 +73,9 @@ async function DashboardStats({ searchParams }: DashboardStatsProps) {
         </TabsContent>
 
         <TabsContent value="performance" className="mt-5">
-          <p>Performance content coming soon...</p>
+          <Suspense fallback={<PerformanceTabSkeleton />}>
+            <PerformanceTab />
+          </Suspense>
         </TabsContent>
         <TabsContent value="comparison" className="mt-5">
           <p>Comparison content coming soon...</p>
