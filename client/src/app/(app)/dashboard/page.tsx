@@ -13,10 +13,13 @@ import {
   CoursePerformanceChartSkeleton,
 } from '../_components/course-performance-chart';
 import { DashboardHeader } from '../_components/dashboard-header';
+import { DemographicsChart } from '../_components/demographic-chart';
+import { DeviceUsage } from '../_components/device-usage';
 import {
   EnrollmentChart,
   EnrollmentChartSkeleton,
 } from '../_components/enrollment-chart';
+import { FinancialChart } from '../_components/financial-chart';
 import {
   RevenueBreakdownChart,
   RevenueBreakdownChartSkeleton,
@@ -150,6 +153,57 @@ async function DashboardStats() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      <div className="lg:grid-cols mt-8 grid grid-cols-1 gap-2 md:gap-8">
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Financial Performance</CardTitle>
+            <CardDescription>
+              Revenue, expenses, and profit trends over time.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {chartsData.financials.length > 0 ? (
+              <FinancialChart data={chartsData.financials} />
+            ) : (
+              <div className="flex h-[350px] items-center justify-center">
+                <p className="text-muted-foreground">No financial data.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Student Demographics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {chartsData.demographics.length > 0 ? (
+                <DemographicsChart data={chartsData.demographics} />
+              ) : (
+                <div className="flex h-[350px] items-center justify-center">
+                  <p className="text-muted-foreground">No data available.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Device Usage</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {chartsData.deviceUsage.length > 0 ? (
+                <DeviceUsage data={chartsData.deviceUsage} />
+              ) : (
+                <div className="flex h-[350px] items-center justify-center">
+                  <p className="text-muted-foreground">No data available.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

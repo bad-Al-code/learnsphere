@@ -97,23 +97,49 @@ export async function getInstructorDashboardCharts() {
       console.error('Failed to fetch instructor trends');
     }
 
-    // NOTE: This is placeholder data for the revenue breakdown chart.
-    const revenueBreakdownData = [
-      { name: 'Course Sales', value: 400 },
-      { name: 'Certifications', value: 300 },
-      { name: 'Workshops', value: 300 },
-      { name: 'Consulting', value: 200 },
+    const breakdownData = [
+      { name: 'Course Sales', value: 12000 },
+      { name: 'Subscriptions', value: 8000 },
+      { name: 'Other', value: 4000 },
+    ];
+
+    const financialPerformanceData = [
+      { month: 'Jan', revenue: 12000, expenses: 4000, profit: 8000 },
+      { month: 'Feb', revenue: 15000, expenses: 3500, profit: 11500 },
+      { month: 'Mar', revenue: 18000, expenses: 5000, profit: 13000 },
+      { month: 'Apr', revenue: 24000, expenses: 6000, profit: 18000 },
+      { month: 'May', revenue: 28000, expenses: 7000, profit: 21000 },
+      { month: 'Jun', revenue: 32000, expenses: 7500, profit: 24500 },
+    ];
+
+    const demographicsData = [
+      { name: '18-25', value: 450, fill: 'hsl(var(--chart-1))' },
+      { name: '26-35', value: 380, fill: 'hsl(var(--chart-2))' },
+      { name: '36-45', value: 250, fill: 'hsl(var(--chart-3))' },
+      { name: '46-55', value: 120, fill: 'hsl(var(--chart-4))' },
+    ];
+
+    const deviceUsageData = [
+      { name: 'Desktop' as const, users: 650, percentage: 52 },
+      { name: 'Mobile' as const, users: 400, percentage: 32 },
+      { name: 'Tablet' as const, users: 200, percentage: 16 },
     ];
 
     return {
       trends: trendsData,
-      breakdown: revenueBreakdownData,
+      breakdown: breakdownData,
+      financials: financialPerformanceData,
+      demographics: demographicsData,
+      deviceUsage: deviceUsageData,
     };
   } catch (error) {
     console.error('Error fetching instructor chart data:', error);
     return {
       trends: [],
       breakdown: [],
+      financials: [],
+      demographics: [],
+      deviceUsage: [],
     };
   }
 }
