@@ -32,7 +32,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="font-bold">{label}</p>
         {completion && (
           <p className="text-sm text-blue-500">
-            Completion Rate: {completion.value}%
+            Completion Rate: {completion.value.toFixed(2)}%
           </p>
         )}
         {students && (

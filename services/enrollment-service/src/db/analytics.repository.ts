@@ -180,6 +180,7 @@ export class AnalyticsRepository {
           sql<number>`AVG(${enrollments.progressPercentage})`.as(
             'average_completion'
           ),
+        studentCount: countDistinct(enrollments.userId),
       })
       .from(enrollments)
       .where(inArray(enrollments.courseId, courseIds))

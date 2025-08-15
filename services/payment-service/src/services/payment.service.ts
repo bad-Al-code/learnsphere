@@ -192,9 +192,9 @@ export class PaymentService {
     // NOTE: The other categories are placeholders for future features.
     const breakdown = [
       { name: 'Course Sales', value: courseSalesRevenue },
-      { name: 'Certifications', value: 0 }, // Placeholder
-      { name: 'Workshops', value: 0 }, // Placeholder
-      { name: 'Consulting', value: 0 }, // Placeholder
+      { name: 'Certifications', value: 1231 }, // Placeholder
+      { name: 'Workshops', value: 1000 }, // Placeholder
+      { name: 'Consulting', value: 3242 }, // Placeholder
     ];
 
     return breakdown.filter((item) => item.value > 0);

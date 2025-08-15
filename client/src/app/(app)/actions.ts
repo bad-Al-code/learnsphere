@@ -102,14 +102,10 @@ export async function getInstructorDashboardCharts() {
 
     let breakdownData = [];
     if (breakdownResponse.ok) {
-      const result = await breakdownResponse.json();
-      console.log(result);
-      breakdownData = result;
+      breakdownData = await breakdownResponse.json();
     } else {
       console.error('Failed to fetch revenue breakdown');
     }
-
-    console.log('BreadkDownData', breakdownData);
 
     const financialPerformanceData = [
       { month: 'Jan', revenue: 12000, expenses: 4000, profit: 8000 },
@@ -165,16 +161,23 @@ export async function getCoursePerformanceData() {
     }
 
     const { results: courses } = await coursesRes.json();
-    const performanceData: { courseId: string; averageCompletion: number }[] =
-      await performanceRes.json();
+    const performanceData: {
+      courseId: string;
+      averageCompletion: number;
+      studentCount: number;
+    }[] = await performanceRes.json();
 
     const performanceMap = new Map(
-      performanceData.map((p) => [p.courseId, p.averageCompletion])
+      performanceData.map((p) => [
+        p.courseId,
+        { completion: p.averageCompletion, students: p.studentCount },
+      ])
     );
 
     const chartData = courses.map((course: any) => ({
       name: course.title,
-      completionRate: performanceMap.get(course.id) || 0,
+      completionRate: performanceMap.get(course.id)?.completion || 0,
+      students: performanceMap.get(course.id)?.students || 0,
       rating: course.averageRating || 0,
     }));
 
