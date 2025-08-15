@@ -13,6 +13,10 @@ import { Suspense } from 'react';
 import { DashboardHeader } from '../_components/dashboard-header';
 
 import {
+  ComparisonTab,
+  ComparisonTabSkeleton,
+} from '../_components/comparison-tab';
+import {
   EngagementTab,
   EngagementTabSkeleton,
 } from '../_components/engagement-tab';
@@ -77,9 +81,13 @@ async function DashboardStats({ searchParams }: DashboardStatsProps) {
             <PerformanceTab />
           </Suspense>
         </TabsContent>
+
         <TabsContent value="comparison" className="mt-5">
-          <p>Comparison content coming soon...</p>
+          <Suspense fallback={<ComparisonTabSkeleton />}>
+            <ComparisonTab />
+          </Suspense>
         </TabsContent>
+
         <TabsContent value="analytics" className="mt-5">
           <p>Analytics content coming soon...</p>
         </TabsContent>

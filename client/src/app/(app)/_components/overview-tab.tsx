@@ -26,8 +26,6 @@ import {
 import { DeviceUsage, DeviceUsageSkeleton } from './device-usage';
 import { EnrollmentChart } from './enrollment-chart';
 import { FinancialChart, FinancialChartSkeleton } from './financial-chart';
-import { QuickActions } from './quick-actions';
-import { RecentActivity } from './recent-activity';
 import {
   RevenueBreakdownChart,
   RevenueBreakdownChartSkeleton,
@@ -185,15 +183,6 @@ export async function OverviewTab() {
               )}
             </CardContent>
           </Card>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <RecentActivity />
-        </div>
-        <div>
-          <QuickActions />
         </div>
       </div>
     </div>

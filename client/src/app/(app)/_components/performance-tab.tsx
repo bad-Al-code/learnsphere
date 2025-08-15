@@ -4,7 +4,10 @@ import {
   ContentPerformanceTable,
   ContentPerformanceTableSkeleton,
 } from './content-performance-table';
-import { DashboardTabLayout } from './dashboard-tab-layout';
+import {
+  DashboardTabLayout,
+  DashboardTabLayoutSkeleton,
+} from './dashboard-tab-layout';
 import { MiniStatCard, MiniStatCardSkeleton } from './mini-start-card';
 
 // Placeholder data
@@ -119,5 +122,5 @@ export function PerformanceTabSkeleton() {
     </div>
   );
 
-  return <DashboardTabLayout mainContent={mainContent} />;
+  return <DashboardTabLayoutSkeleton mainContent={mainContent} />;
 }
