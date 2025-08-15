@@ -25,6 +25,7 @@ import {
   EngagementTabSkeleton,
 } from '../_components/engagement-tab';
 import { EnrollmentChartSkeleton } from '../_components/enrollment-chart';
+import { InsightsTab, InsightsTabSkeleton } from '../_components/insight-tab';
 import { OverviewTab, OverviewTabSkeleton } from '../_components/overview-tab';
 import {
   PerformanceTab,
@@ -97,8 +98,11 @@ async function DashboardStats({ searchParams }: DashboardStatsProps) {
             <AnalyticsTab />
           </Suspense>
         </TabsContent>
+
         <TabsContent value="insights" className="mt-5">
-          <p>Insights content coming soon...</p>
+          <Suspense fallback={<InsightsTabSkeleton />}>
+            <InsightsTab />
+          </Suspense>
         </TabsContent>
       </Tabs>
     </div>
