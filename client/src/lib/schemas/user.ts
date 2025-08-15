@@ -15,6 +15,7 @@ export const profileFormSchema = z.object({
   language: z.string().optional(),
   websiteUrl: z.string().optional().or(z.literal('')).nullable(),
   socialLinks: socialLinksSchema.optional().nullable(),
+  dateOfBirth: z.date().optional().nullable(),
 });
 
 export const updateProfileSchema = profileFormSchema.transform((data) => {
@@ -43,6 +44,7 @@ export const onboardingFormSchema = profileFormSchema.pick({
   bio: true,
   websiteUrl: true,
   socialLinks: true,
+  dateOfBirth: true,
 });
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>;

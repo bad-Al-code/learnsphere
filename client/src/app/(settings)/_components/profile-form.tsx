@@ -6,6 +6,7 @@ import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Form,
   FormControl,
@@ -16,6 +17,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -25,7 +31,9 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { SUPPORTED_LANGUAGES } from '@/config/language';
 import { profileFormSchema, ProfileFormValues } from '@/lib/schemas/user';
-import { Github, Linkedin, Twitter } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { CalendarIcon, Github, Linkedin, Twitter } from 'lucide-react';
 import { toast } from 'sonner';
 import { updateProfile } from '../actions';
 
@@ -47,6 +55,7 @@ export function ProfileForm({ userData }: ProfileFormProps) {
       email: userData.email,
       headline: userData.headline || '',
       bio: userData.bio || '',
+      dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth) : null,
       language: userData.settings?.language || 'en',
       websiteUrl: userData.websiteUrl || '',
       socialLinks: {
@@ -61,10 +70,21 @@ export function ProfileForm({ userData }: ProfileFormProps) {
 
   async function onSubmit(values: ProfileFormValues) {
     startTransition(async () => {
-      const result = await updateProfile(values);
+      const payload = {
+        ...values,
+        dateOfBirth: values.dateOfBirth
+          ? new Date(
+              Date.UTC(
+                values.dateOfBirth.getFullYear(),
+                values.dateOfBirth.getMonth(),
+                values.dateOfBirth.getDate()
+              )
+            )
+          : null,
+      };
+      const result = await updateProfile(payload);
 
       if (result?.error) {
-        result.error;
         toast.error('Update Failed');
       } else {
         toast.success('Profile updated successfully!');
@@ -127,6 +147,52 @@ export function ProfileForm({ userData }: ProfileFormProps) {
               )}
             />
           </div>
+
+          <FormField
+            control={form.control}
+            name="dateOfBirth"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Date of Birth</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          'w-full pl-3 text-left font-normal',
+                          !field.value && 'text-muted-foreground'
+                        )}
+                      >
+                        {field.value
+                          ? format(field.value, 'PPP')
+                          : 'Pick a date'}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-auto overflow-hidden p-0"
+                    align="start"
+                  >
+                    <Calendar
+                      mode="single"
+                      captionLayout="dropdown"
+                      fromYear={1900}
+                      toYear={new Date().getFullYear()}
+                      selected={field.value ?? undefined}
+                      onSelect={(d) => field.onChange(d ?? null)}
+                      disabled={(d) =>
+                        d > new Date() || d < new Date('1900-01-01')
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}
