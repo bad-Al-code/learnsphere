@@ -69,4 +69,20 @@ export class AnalyticsService {
         await AnalyticsRepository.getStudentCountByCourse(instructorId),
     };
   }
+
+  /**
+   * Gets and formats the monthly enrollment and revenue trends for an instructor.
+   * @param instructorId The ID of the instructor.
+   * @returns A formatted array of trend data.
+   */
+  public static async getInstructorTrends(instructorId: string) {
+    const monthlyData =
+      await AnalyticsRepository.getMonthlyEnrollmentAndRevenue(instructorId);
+
+    return monthlyData.map((row) => ({
+      month: `${row.month}`,
+      revenue: parseFloat(row.revenue || '0'),
+      enrollments: row.enrollments,
+    }));
+  }
 }

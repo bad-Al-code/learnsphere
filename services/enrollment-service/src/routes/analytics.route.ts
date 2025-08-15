@@ -54,4 +54,23 @@ router.get(
   AnalyticsController.getInstructorStats
 );
 
+/**
+ * @openapi
+ * /api/analytics/instructor/trends:
+ *   get:
+ *     summary: "[Instructor/Admin] Get monthly enrollment and revenue trends"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An array of monthly trend data for the last 6 months.
+ */
+router.get(
+  '/instructor/trends',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getInstructorTrends
+);
+
 export { router as analyticsRouter };

@@ -29,4 +29,21 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getInstructorTrends(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const instructorId = req.currentUser?.id;
+      if (!instructorId) {
+        throw new NotAuthorizedError();
+      }
+      const trends = await AnalyticsService.getInstructorTrends(instructorId);
+      res.status(StatusCodes.OK).json(trends);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

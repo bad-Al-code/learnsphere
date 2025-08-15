@@ -49,3 +49,21 @@ export async function getInstructorDashboardStats() {
     };
   }
 }
+
+export async function getInstructorDashboardTrends() {
+  try {
+    const response = await enrollmentService.get(
+      '/api/analytics/instructor/trends'
+    );
+
+    if (!response.ok) {
+      console.error('Failed to fetch instructor trends');
+      return [];
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching instructor trends:', error);
+    return [];
+  }
+}

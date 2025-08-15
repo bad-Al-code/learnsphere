@@ -122,4 +122,44 @@ export class AnalyticsRepository {
       .groupBy(enrollments.courseId)
       .orderBy(desc(sql`count(distinct ${enrollments.userId})`));
   }
+
+  /**
+   * Retrieves monthly enrollment counts and revenue for an instructor over the last 6 months.
+   * @param instructorId The ID of the instructor
+   * @returns An array of objects, each containing the month, total enrollments, and total revenue.
+   */
+  public static async getMonthlyEnrollmentAndRevenue(instructorId: string) {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const instructorCourses = await db
+      .select({ id: courses.id })
+      .from(courses)
+      .where(eq(courses.instructorId, instructorId));
+
+    if (instructorCourses.length === 0) {
+      return [];
+    }
+
+    const courseIds = instructorCourses.map((c) => c.id);
+
+    const result = await db
+      .select({
+        month: sql<string>`TO_CHAR(date_trunc('month', ${enrollments.enrolledAt}), 'Mon')`,
+        year: sql<string>`EXTRACT(YEAR FROM date_trunc('month', ${enrollments.enrolledAt}))`,
+        revenue: sum(enrollments.coursePriceAtEnrollment),
+        enrollments: countDistinct(enrollments.id),
+      })
+      .from(enrollments)
+      .where(
+        and(
+          inArray(enrollments.courseId, courseIds),
+          gte(enrollments.enrolledAt, sixMonthsAgo)
+        )
+      )
+      .groupBy(sql`date_trunc('month', ${enrollments.enrolledAt})`)
+      .orderBy(sql`date_trunc('month', ${enrollments.enrolledAt})`);
+
+    return result;
+  }
 }
