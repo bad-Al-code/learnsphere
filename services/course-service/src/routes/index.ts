@@ -1,3 +1,4 @@
+export * from './analytic.route';
 export * from './assignment.route';
 export * from './category.route';
 export * from './course.route';

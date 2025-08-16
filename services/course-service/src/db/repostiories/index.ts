@@ -1,3 +1,4 @@
+export * from './analytic.repository';
 export * from './assignment.repository';
 export * from './category.repository';
 export * from './course.repository';
