@@ -209,8 +209,9 @@ export class PaymentService {
       revenue: parseFloat(row.revenue || '0'),
       // NOTE: Expenses and Profit are not tracked yet.
       // Returning them as 0 makes the backend the source of truth for this fact.
-      expenses: 0,
-      profit: parseFloat(row.revenue || '0'), // For now, profit equals revenue
+      expenses: 3343, // NOTE: placeholder
+      profit: 234, // NOTE: placeholder
+      // profit: parseFloat(row.revenue || '0'), // For now, profit equals revenue
     }));
   }
 }

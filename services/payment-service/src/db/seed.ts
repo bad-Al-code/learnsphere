@@ -3,7 +3,6 @@ import { db } from '.';
 import { rabbitMQConnection } from '../events/connection';
 import { Listener } from '../events/listener';
 import { NewCourse, NewUser } from '../types';
-import { hardcodedInstructorIds } from './ids';
 import { courses, payments, UserRole, users } from './schema';
 
 const receivedCourses: NewCourse[] = [];
@@ -46,7 +45,7 @@ class TempUserListener extends Listener<UserRegisteredEvent> {
     receivedUsers.push({
       id: data.id,
       email: data.email,
-      role: hardcodedInstructorIds.includes(data.id) ? 'instructor' : 'student',
+      role: data.role,
     });
   }
 }
@@ -64,45 +63,60 @@ async function seedLocalTables() {
 }
 
 async function seedPayments() {
-  const studentUsers = receivedUsers.filter((user) => user.role === 'student');
   const paidCourses = receivedCourses.filter(
     (course) => course.price && parseFloat(course.price) > 0
   );
 
-  if (studentUsers.length === 0 || paidCourses.length === 0) {
-    console.log('Not enough student or paid course data to create payments.');
+  if (receivedUsers.length === 0 || paidCourses.length === 0) {
+    console.log('Not enough user or paid course data to create payments.');
     return;
   }
 
-  console.log(
-    `Creating payment records for ${studentUsers.length} students...`
-  );
+  console.log(`Creating payment records for ${receivedUsers.length} users...`);
 
   const paymentData = [];
-  for (const student of studentUsers) {
+  for (const user of receivedUsers) {
+    const availableCourses = paidCourses.filter(
+      (c) => c.instructorId !== user.id
+    );
+
     const coursesToBuy = faker.helpers.arrayElements(
-      paidCourses,
-      faker.number.int({ min: 5, max: 10 })
+      availableCourses,
+      faker.number.int({ min: 0, max: 20 })
     );
 
     for (const course of coursesToBuy) {
+      const status =
+        Math.random() > 0.05 ? ('completed' as const) : ('failed' as const);
+
       paymentData.push({
-        userId: student.id,
+        userId: user.id,
         courseId: course.id,
         coursePriceAtPayment: String(course.price),
         amount: String(course.price),
         currency: course.currency || 'INR',
-        status: 'completed' as const,
+        status,
         razorpayOrderId: `order_${faker.string.alphanumeric(14)}`,
-        razorpayPaymentId: `pay_${faker.string.alphanumeric(14)}`,
-        razorpaySignature: faker.string.hexadecimal({ length: 64 }),
-        createdAt: faker.date.past({ years: 1 }),
+        razorpayPaymentId:
+          status === 'completed'
+            ? `pay_${faker.string.alphanumeric(14)}`
+            : null,
+        razorpaySignature:
+          status === 'completed'
+            ? faker.string.hexadecimal({ length: 64 })
+            : null,
+        createdAt: faker.date.past({ years: 10 }),
       });
     }
   }
 
   if (paymentData.length > 0) {
-    await db.insert(payments).values(paymentData).onConflictDoNothing();
+    console.log(`Inserting ${paymentData.length} payment records...`);
+    for (let i = 0; i < paymentData.length; i += 500) {
+      const batch = paymentData.slice(i, i + 500);
+      await db.insert(payments).values(batch).onConflictDoNothing();
+      console.log(`Batch ${i / 500 + 1} inserted.`);
+    }
     console.log(`Seeded ${paymentData.length} payment records.`);
   }
 }
@@ -117,13 +131,12 @@ async function runSeed() {
     await db.delete(users);
     await db.delete(courses);
 
-    console.log('Listening for course and user events for 5 minutes...');
+    console.log('Listening for course and user events for 20 minutes...');
     new TempCourseListener().listen();
     new TempUserListener().listen();
-    await new Promise((resolve) => setTimeout(resolve, 300000));
+    await new Promise((resolve) => setTimeout(resolve, 1200000));
 
     await seedLocalTables();
-
     await seedPayments();
 
     console.log('Payment service data seeded successfully.');

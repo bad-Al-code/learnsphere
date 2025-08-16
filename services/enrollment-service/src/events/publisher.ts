@@ -48,7 +48,8 @@ interface StudentProgressUpdateEvent {
 }
 
 export class StudentProgressUpdatePublisher extends Publisher<StudentProgressUpdateEvent> {
-  readonly topic: 'student.progress.updated' = 'student.progress.updated' as const;
+  readonly topic: 'student.progress.updated' =
+    'student.progress.updated' as const;
 }
 
 interface StudentCourseCompletedEvent {
@@ -62,7 +63,8 @@ interface StudentCourseCompletedEvent {
 }
 
 export class StudentCourseCompletedPublisher extends Publisher<StudentCourseCompletedEvent> {
-  readonly topic: 'student.course.completed' = 'student.course.completed' as const;
+  readonly topic: 'student.course.completed' =
+    'student.course.completed' as const;
 }
 
 interface UserEnrollmentSuspendedEvent {
@@ -77,7 +79,8 @@ interface UserEnrollmentSuspendedEvent {
 }
 
 export class UserEnrollmentSuspendedPublisher extends Publisher<UserEnrollmentSuspendedEvent> {
-  readonly topic: 'user.enrollment.suspended' = 'user.enrollment.suspended' as const;
+  readonly topic: 'user.enrollment.suspended' =
+    'user.enrollment.suspended' as const;
 }
 
 interface UserEnrollmentReactivatedEvent {
@@ -91,7 +94,8 @@ interface UserEnrollmentReactivatedEvent {
 }
 
 export class UserEnrollmentReactivatedPublisher extends Publisher<UserEnrollmentReactivatedEvent> {
-  readonly topic: 'user.enrollment.reactivated' = 'user.enrollment.reactivated' as const;
+  readonly topic: 'user.enrollment.reactivated' =
+    'user.enrollment.reactivated' as const;
 }
 
 interface StudentProgressResetEvent {

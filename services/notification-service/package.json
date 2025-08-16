@@ -16,6 +16,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "ts-node ./src/db/migrate.ts",
     "db": "pnpm db:generate; pnpm db:migrate",
+    "db:seed": "ts-node src/db/seed.ts",
     "db:studio": "pnpm drizzle-kit studio --port 6967 --verbose"
   },
   "keywords": [],

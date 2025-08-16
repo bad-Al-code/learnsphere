@@ -3,6 +3,7 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  text,
   timestamp,
   unique,
   uuid,
@@ -28,6 +29,9 @@ export const enrollmentStatusEnum = pgEnum('enrollment_status', [
   'suspended',
   'completed',
 ]);
+
+export type EnrolllmentStatus =
+  (typeof enrollmentStatusEnum.enumValues)[number];
 
 export const enrollments = pgTable(
   'enrollments',
@@ -76,6 +80,23 @@ export const courses = pgTable('courses', {
   currency: varchar('currency', { length: 3 }).default('INR'),
 });
 
+export const userRoleEnum = pgEnum('user_role', [
+  'student',
+  'instructor',
+  'admin',
+]);
+
+export type UserRole = (typeof userRoleEnum.enumValues)[number];
+
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  role: userRoleEnum('role').default('student').notNull(),
+});
+
 export type Course = typeof courses.$inferSelect;
 export type NewCourse = typeof courses.$inferInsert;
 export type UpdatedCourse = Partial<Omit<NewCourse, 'id'>>;
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;

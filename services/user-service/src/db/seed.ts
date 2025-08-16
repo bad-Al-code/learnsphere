@@ -2,7 +2,6 @@ import { faker } from '@faker-js/faker';
 import { db } from '.';
 import { rabbitMQConnection } from '../events/connection';
 import { Listener } from '../events/listener';
-import { hardcodedInstructorIds } from './ids';
 import { profiles } from './schema';
 
 interface UserRegisteredEvent {
@@ -13,6 +12,7 @@ interface UserRegisteredEvent {
     firstName?: string;
     lastName?: string;
     avatarUrl?: string;
+    role?: 'student' | 'instructor' | 'admin';
   };
 }
 
@@ -30,28 +30,26 @@ class TempUserListener extends Listener<UserRegisteredEvent> {
 
 async function seedProfiles() {
   if (receivedUsers.length === 0) {
-    console.log(
-      'No users were received to create profiles for. Did you run the auth-service seeder first?'
-    );
+    console.log('No users were received to create profiles for.');
     return;
   }
   console.log(`Creating profiles for ${receivedUsers.length} users...`);
 
   const profileData = receivedUsers.map((user) => {
-    const isInstructor = hardcodedInstructorIds.includes(user.id);
+    const isInstructor = user.role === 'instructor';
     let status: 'active' | 'instructor' | 'pending_instructor_review' =
       'active';
     let applicationData = null;
 
     if (isInstructor) {
       status = 'instructor';
-    } else if (faker.number.int({ min: 1, max: 10 }) > 8) {
+    } else if (Math.random() < 0.09) {
       status = 'pending_instructor_review';
       applicationData = {
         expertise: faker.person.jobArea(),
         experience: faker.lorem.paragraph(),
         motivation: faker.lorem.sentence(),
-        submittedAt: faker.date.recent({ days: 30 }).toISOString(),
+        submittedAt: faker.date.recent({ days: 180 }).toISOString(),
       };
     }
 
@@ -63,7 +61,7 @@ async function seedProfiles() {
       bio: faker.lorem.paragraph(),
       headline: faker.person.bio(),
       dateOfBirth: faker.date
-        .birthdate({ min: 18, max: 65, mode: 'age' })
+        .birthdate({ min: 18, max: 70, mode: 'age' })
         .toISOString(),
       lastKnownDevice: faker.helpers.arrayElement([
         'desktop',
@@ -71,9 +69,9 @@ async function seedProfiles() {
         'tablet',
       ]),
       avatarUrls: {
-        small: faker.image.avatar(),
-        medium: faker.image.avatar(),
-        large: faker.image.avatar(),
+        small: user.avatarUrl || faker.image.avatar(),
+        medium: user.avatarUrl || faker.image.avatar(),
+        large: user.avatarUrl || faker.image.avatar(),
       },
       websiteUrl: faker.internet.url(),
       socialLinks: {
@@ -85,7 +83,7 @@ async function seedProfiles() {
       instructorApplicationData: applicationData,
       settings: {
         theme: faker.helpers.arrayElement(['light', 'dark']),
-        language: faker.helpers.arrayElement(['en', 'es', 'fr']),
+        language: faker.helpers.arrayElement(['en', 'es', 'fr', 'de', 'hi']),
         notifications: {
           newCourseAlerts: faker.datatype.boolean(),
           weeklyNewsletter: faker.datatype.boolean(),
@@ -95,7 +93,12 @@ async function seedProfiles() {
   });
 
   if (profileData.length > 0) {
-    await db.insert(profiles).values(profileData).onConflictDoNothing();
+    console.log(`Inserting ${profileData.length} profile records...`);
+    for (let i = 0; i < profileData.length; i += 500) {
+      const batch = profileData.slice(i, i + 500);
+      await db.insert(profiles).values(batch).onConflictDoNothing();
+      console.log(`Batch ${i / 500 + 1} inserted.`);
+    }
     console.log(`Seeded ${profileData.length} profiles.`);
   }
 }
@@ -108,9 +111,9 @@ async function runSeed() {
     console.log('Clearing existing profiles...');
     await db.delete(profiles);
 
-    console.log('Listening for user.registered events for 60 seconds...');
+    console.log('Listening for user.registered events for 20 minutes...');
     new TempUserListener().listen();
-    await new Promise((resolve) => setTimeout(resolve, 60000));
+    await new Promise((resolve) => setTimeout(resolve, 1200000));
 
     await seedProfiles();
 

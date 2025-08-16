@@ -42,8 +42,13 @@ export const userRoleEnum = pgEnum('user_role', [
   'admin',
 ]);
 
+export type UserRole = (typeof userRoleEnum.enumValues)[number];
+
 export const users = pgTable('users', {
   id: uuid('id').primaryKey(),
   role: userRoleEnum('role').default('student').notNull(),
   email: text('email').notNull().unique(),
 });
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;

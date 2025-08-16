@@ -40,6 +40,7 @@ export class AuthController {
         email: user.email,
         firstName,
         lastName,
+        role: user.role,
       });
 
       const verificationPublisher = new UserVerificationRequiredPublisher();

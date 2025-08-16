@@ -75,43 +75,48 @@ async function seedCourses(categories: { id: string }[]) {
     'advanced',
     'all-levels',
   ] as const;
-  const courseStatus = ['draft', 'published'] as const;
   const createdCourses: (typeof courses.$inferSelect)[] = [];
 
   for (const instructorId of hardcodedInstructorIds) {
-    const courseCount = faker.number.int({ min: 5, max: 10 });
+    const courseCount = faker.number.int({ min: 20, max: 50 });
     for (let i = 0; i < courseCount; i++) {
-      const price = faker.number
-        .float({ min: 499, max: 2999, fractionDigits: 2 })
-        .toString();
+      const price =
+        Math.random() > 0.1
+          ? faker.commerce.price({ min: 500, max: 10000, dec: 0 })
+          : '0.00';
+      const createdAt = faker.date.past({ years: 10 });
+
       const [course] = await db
         .insert(courses)
         .values({
           title: faker.lorem
-            .words(3)
+            .words(faker.number.int({ min: 2, max: 5 }))
             .split(' ')
             .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
             .join(' '),
-          description: faker.lorem.paragraph(),
+          description: faker.lorem.paragraphs(2),
           instructorId,
-          status: faker.helpers.arrayElement(courseStatus),
+          status: Math.random() > 0.15 ? 'published' : 'draft',
           categoryId: faker.helpers.arrayElement(categories).id,
           level: faker.helpers.arrayElement(courseLevels),
-          imageUrl: `https://picsum.photos/seed/${faker.string.alphanumeric(5)}/600/400`,
+          imageUrl: `https://picsum.photos/seed/${faker.string.alphanumeric(
+            5
+          )}/600/400`,
           price: price,
-          duration: faker.number.int({ min: 60, max: 600 }),
+          duration: faker.number.int({ min: 60, max: 1200 }),
           averageRating: faker.number.float({
-            min: 3.5,
+            min: 3.0,
             max: 5,
             fractionDigits: 1,
           }),
-          enrollmentCount: faker.number.int({ min: 50, max: 1500 }),
+          enrollmentCount: faker.number.int({ min: 50, max: 25000 }),
           currency: 'INR',
+          createdAt,
         })
         .returning();
       createdCourses.push(course);
       console.log(
-        `Created course: "${course.title}" for instructor ${instructorId}`
+        `Created course: "${course.title}" on ${createdAt.toDateString()}`
       );
     }
   }
@@ -121,7 +126,7 @@ async function seedCourses(categories: { id: string }[]) {
 async function seedModules(createdCourses: (typeof courses.$inferSelect)[]) {
   const createdModules: (typeof modules.$inferSelect)[] = [];
   for (const course of createdCourses) {
-    const moduleCount = faker.number.int({ min: 4, max: 8 });
+    const moduleCount = faker.number.int({ min: 10, max: 20 });
     for (let i = 0; i < moduleCount; i++) {
       const [module] = await db
         .insert(modules)
@@ -140,7 +145,7 @@ async function seedModules(createdCourses: (typeof courses.$inferSelect)[]) {
 
 async function seedLessons(createdModules: (typeof modules.$inferSelect)[]) {
   for (const module of createdModules) {
-    const lessonCount = faker.number.int({ min: 5, max: 10 });
+    const lessonCount = faker.number.int({ min: 10, max: 20 });
     for (let i = 0; i < lessonCount; i++) {
       const lessonType = faker.helpers.arrayElement(lessonTypeEnum.enumValues);
       const [lesson] = await db
@@ -170,8 +175,8 @@ async function seedLessons(createdModules: (typeof modules.$inferSelect)[]) {
 
 async function seedExtras(createdCourses: (typeof courses.$inferSelect)[]) {
   for (const course of createdCourses) {
-    const resourceCount = faker.number.int({ min: 4, max: 8 });
-    const assignmentCount = faker.number.int({ min: 3, max: 6 });
+    const resourceCount = faker.number.int({ min: 10, max: 20 });
+    const assignmentCount = faker.number.int({ min: 10, max: 20 });
 
     for (let i = 0; i < resourceCount; i++) {
       await db.insert(resources).values({
