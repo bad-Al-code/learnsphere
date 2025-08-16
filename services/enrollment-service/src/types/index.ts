@@ -95,6 +95,7 @@ export interface ResetProgressData {
 export interface CourseStructureSnapshotDetails {
   modules: {
     id: string;
+    title: string;
     lessons: { id: string }[];
   }[];
 }

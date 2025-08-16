@@ -85,6 +85,7 @@ async function seedEnrollmentsAndActivity() {
 
         moduleSnapshots.push({
           id: faker.string.uuid(),
+          title: `Module ${i + 1}: ${faker.lorem.sentence(3)}`,
           lessonIds: lessonIds,
         });
       }
