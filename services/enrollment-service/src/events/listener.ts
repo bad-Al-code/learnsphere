@@ -66,7 +66,6 @@ interface CourseCreatedEvent {
     prerequisiteCourseId: string | null;
     price: string | null;
     currency: string | null;
-    title?: string | null;
   };
 }
 
@@ -85,7 +84,6 @@ export class CourseSyncCreatedListener extends Listener<CourseCreatedEvent> {
         prerequisiteCourseId: data.prerequisiteCourseId,
         price: data.price,
         currency: data.currency,
-        title: data.title,
       });
     } catch (error) {
       logger.error('Failed to sync created course', { data, error });

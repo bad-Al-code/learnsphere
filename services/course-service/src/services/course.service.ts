@@ -75,7 +75,6 @@ export class CourseService {
         prerequisiteCourseId: newCourse.prerequisiteCourseId,
         price: newCourse.price,
         currency: newCourse.currency,
-        title: newCourse.title,
       });
     } catch (error) {
       logger.error('Failed to publish course.created event', {
@@ -119,7 +118,6 @@ export class CourseService {
         prerequisiteCourseId: newCourse.prerequisiteCourseId,
         price: newCourse.price,
         currency: newCourse.currency,
-        title: newCourse.title,
       });
     } catch (error) {
       logger.error('Failed to publish course.created event', {

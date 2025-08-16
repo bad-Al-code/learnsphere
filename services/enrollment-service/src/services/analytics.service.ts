@@ -230,16 +230,18 @@ export class AnalyticsService {
       return [];
     }
 
-    const moduleIds = progressData.map((p: any) => p.module_id);
+    const moduleIds = progressData.map((p) => p.module_id);
 
+    // Inter-service call to get module titles
+    // Note: This assumes a /api/modules/bulk endpoint exists or will be created
     const courseServiceUrl = env.COURSE_SERVICE_URL;
-    const response = await axios.post<any[]>(
-      `${courseServiceUrl}/api/modules/bulk`,
+    const response = await axios.post<ModuleDetails[]>(
+      `${courseServiceUrl}/api/modules/bulk`, // We need to create this endpoint
       { moduleIds }
     );
     const moduleDetailsMap = new Map(response.data.map((m) => [m.id, m.title]));
 
-    return progressData.map((p: any) => ({
+    return progressData.map((p) => ({
       name: moduleDetailsMap.get(p.module_id) || 'Unknown Module',
       completed: p.completed,
       inProgress: p.inProgress,

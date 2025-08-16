@@ -263,22 +263,30 @@ export class AnalyticsRepository {
    */
   public static async getModuleProgressForInstructor(instructorId: string) {
     const instructorCourses = await db
-      .select({ id: courses.id, title: courses.title }) // Select title as well
+      .select({ id: courses.id })
       .from(courses)
       .where(eq(courses.instructorId, instructorId));
 
-    if (instructorCourses.length === 0) {
-      return [];
-    }
+    if (instructorCourses.length === 0) return [];
 
-    const courseMap = new Map(instructorCourses.map((c) => [c.id, c.title]));
-    const courseIds = Array.from(courseMap.keys());
+    const courseIds = instructorCourses.map((c) => c.id);
 
     const result = await db.execute(sql`
-      WITH StudentModuleProgress AS (
+      WITH CourseModules AS (
         SELECT
-          (m.value ->> 'id')::uuid AS module_id,
-          e.course_id,
+          c.id AS course_id,
+          (m.value ->> 'id')::uuid AS module_id
+        FROM
+          courses c,
+          jsonb_array_elements(
+            (SELECT course_structure -> 'modules' FROM enrollments WHERE course_id = c.id LIMIT 1)
+          ) m
+        WHERE c.id IN ${courseIds}
+      ),
+      StudentModuleProgress AS (
+        SELECT
+          e.user_id,
+          cm.module_id,
           (
             SELECT COUNT(*)
             FROM jsonb_array_elements_text(m.value -> 'lessonIds') AS lesson_id
@@ -287,27 +295,29 @@ export class AnalyticsRepository {
           jsonb_array_length(m.value -> 'lessonIds') AS total_lessons
         FROM
           enrollments e
+        JOIN
+          CourseModules cm ON e.course_id = cm.course_id
         CROSS JOIN
           jsonb_array_elements(e.course_structure -> 'modules') WITH ORDINALITY AS m(value, "order")
-        WHERE e.course_id IN ${courseIds}
+        WHERE e.course_id IN ${courseIds} AND (m.value ->> 'id')::uuid = cm.module_id
       )
       SELECT
         module_id,
-        course_id,
         SUM(CASE WHEN completed_lessons = total_lessons AND total_lessons > 0 THEN 1 ELSE 0 END)::int AS completed,
         SUM(CASE WHEN completed_lessons > 0 AND completed_lessons < total_lessons THEN 1 ELSE 0 END)::int AS "inProgress",
         SUM(CASE WHEN completed_lessons = 0 THEN 1 ELSE 0 END)::int AS "notStarted"
       FROM
         StudentModuleProgress
       GROUP BY
-        module_id, course_id;
+        module_id;
     `);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (result.rows as any[]).map((row) => ({
-      ...row,
-      name: `Module for ${courseMap.get(row.course_id) || 'Unknown Course'}`,
-    }));
+    return result.rows as {
+      module_id: string;
+      completed: number;
+      inProgress: number;
+      notStarted: number;
+    }[];
   }
 
   /**
