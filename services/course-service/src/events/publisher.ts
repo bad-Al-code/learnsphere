@@ -1,4 +1,3 @@
-import logger from '../config/logger';
 import { rabbitMQConnection } from './connection';
 
 export abstract class Publisher<T extends { topic: string; data: unknown }> {
@@ -16,10 +15,10 @@ export abstract class Publisher<T extends { topic: string; data: unknown }> {
 
     channel.publish(this.exchange, this.topic, Buffer.from(message));
 
-    logger.info(
-      `Event published to exchange '${this.exchange}' with topic '${this.topic}': %o`,
-      data
-    );
+    // logger.info(
+    //   `Event published to exchange '${this.exchange}' with topic '${this.topic}': %o`,
+    //   data
+    // );
   }
 }
 
@@ -62,4 +61,18 @@ interface CourseDeletedEvent {
 }
 export class CourseDeletedPublisher extends Publisher<CourseDeletedEvent> {
   readonly topic = 'course.deleted' as const;
+}
+
+export interface DiscussionPostCreatedEvent {
+  topic: 'discussion.post.created';
+  data: {
+    discussionId: string;
+    courseId: string;
+    userId: string;
+    createdAt: Date;
+  };
+}
+
+export class DiscussionPostCreatedPublisher extends Publisher<DiscussionPostCreatedEvent> {
+  readonly topic = 'discussion.post.created' as const;
 }

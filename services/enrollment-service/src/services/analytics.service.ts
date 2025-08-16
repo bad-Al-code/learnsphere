@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker';
 import axios from 'axios';
 import { env } from '../config/env';
 import logger from '../config/logger';
@@ -245,6 +246,26 @@ export class AnalyticsService {
       completed: p.completed,
       inProgress: p.inProgress,
       notStarted: p.notStarted,
+    }));
+  }
+
+  /**
+   * @async
+   * @description Gets and formats the weekly engagement patterns for an instructor.
+   * @param {string} instructorId - The UUID of the instructor.
+   * @returns {Promise<any>} Formatted data for the weekly engagement chart.
+   */
+  public static async getWeeklyEngagement(instructorId: string) {
+    const weeklyData =
+      await AnalyticsRepository.getWeeklyActivity(instructorId);
+
+    return weeklyData.map((row) => ({
+      name: new Date(row.date).toLocaleDateString('en-US', {
+        weekday: 'short',
+      }),
+      logins: row.logins,
+      discussions: row.discussions,
+      avgTime: faker.number.float({ min: 1, max: 3, fractionDigits: 1 }), // NOTE: placeholder
     }));
   }
 }

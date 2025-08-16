@@ -153,7 +153,6 @@ export interface DiscussionPostCreatedEvent {
   data: {
     courseId: string;
     userId: string;
-    createdAt: Date;
   };
 }
 
@@ -180,13 +179,13 @@ export class DiscussionPostCreatedListener extends Listener<DiscussionPostCreate
         return;
       }
 
-      const eventDate = new Date(data.createdAt).toISOString().split('T')[0];
+      const today = new Date().toISOString().split('T')[0];
 
       await db
         .insert(dailyActivity)
         .values({
           instructorId: course.instructorId,
-          date: eventDate,
+          date: today,
           discussions: 1,
         })
         .onConflictDoUpdate({
@@ -196,9 +195,9 @@ export class DiscussionPostCreatedListener extends Listener<DiscussionPostCreate
           },
         });
 
-      // logger.info(
-      //   `Logged discussion activity for instructor ${course.instructorId} on ${eventDate}`
-      // );
+      logger.info(
+        `Logged discussion activity for instructor ${course.instructorId} on ${today}`
+      );
     } catch (error) {
       logger.error('Failed to process discussion.post.created event', {
         data,

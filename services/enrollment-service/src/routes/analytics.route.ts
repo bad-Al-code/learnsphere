@@ -161,4 +161,49 @@ router.get(
   AnalyticsController.getModuleProgress
 );
 
+/**
+ * @openapi
+ * /api/analytics/instructor/weekly-engagement:
+ *   get:
+ *     summary: "[Instructor/Admin] Get weekly engagement data"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An array of objects representing engagement metrics for the past 7 days.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                     example: "Mon"
+ *                   logins:
+ *                     type: integer
+ *                     example: 5
+ *                   discussions:
+ *                     type: integer
+ *                     example: 3
+ *                   avgTime:
+ *                     type: number
+ *                     format: float
+ *                     example: 2.1
+ *       '401':
+ *         description: Unauthorized – User is not authenticated.
+ *       '403':
+ *         description: Forbidden – User does not have instructor or admin role.
+ *       '500':
+ *         description: Internal server error.
+ */
+router.get(
+  '/instructor/weekly-engagement',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getWeeklyEngagement
+);
+
 export { router as analyticsRouter };

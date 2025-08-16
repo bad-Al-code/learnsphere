@@ -10,7 +10,7 @@ import {
   sum,
 } from 'drizzle-orm';
 import { db } from '.';
-import { courses, enrollments } from './schema';
+import { courses, dailyActivity, enrollments } from './schema';
 
 export class AnalyticsRepository {
   /**
@@ -318,5 +318,27 @@ export class AnalyticsRepository {
       inProgress: number;
       notStarted: number;
     }[];
+  }
+
+  /**
+   * @async
+   * @description Retrieves the daily activity for an instructor over the last 7 days.
+   * @param instructorId - The UUID of the instructor.
+   * @returns  A promise that resolves with the weekly activity data.
+   */
+  public static async getWeeklyActivity(instructorId: string) {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    return db
+      .select()
+      .from(dailyActivity)
+      .where(
+        and(
+          eq(dailyActivity.instructorId, instructorId),
+          gte(dailyActivity.date, sevenDaysAgo.toISOString().split('T')[0])
+        )
+      )
+      .orderBy(dailyActivity.date);
   }
 }

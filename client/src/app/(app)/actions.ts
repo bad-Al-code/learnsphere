@@ -196,65 +196,69 @@ export async function getCoursePerformanceData() {
 }
 
 export async function getEngagementData() {
-  const [topStudentsData, moduleProgressData] = await Promise.all([
-    (async () => {
-      const topStudentsResponse = await enrollmentService.get(
-        '/api/analytics/instructor/top-students'
-      );
-      if (!topStudentsResponse.ok) return [];
+  const [topStudentsData, moduleProgressData, weeklyEngagementData] =
+    await Promise.all([
+      (async () => {
+        const topStudentsResponse = await enrollmentService.get(
+          '/api/analytics/instructor/top-students'
+        );
+        if (!topStudentsResponse.ok) return [];
 
-      const rawTopStudents = await topStudentsResponse.json();
-      if (rawTopStudents.length === 0) return [];
+        const rawTopStudents = await topStudentsResponse.json();
+        if (rawTopStudents.length === 0) return [];
 
-      const studentIds = rawTopStudents.map((s: any) => s.userId);
-      const courseIds = rawTopStudents.map((s: any) => s.courseId);
+        const studentIds = rawTopStudents.map((s: any) => s.userId);
+        const courseIds = rawTopStudents.map((s: any) => s.courseId);
 
-      const [userProfilesRes, courseDetailsRes] = await Promise.all([
-        userService.post('/api/users/bulk', { userIds: studentIds }),
-        courseService.post('/api/courses/bulk', { courseIds: courseIds }),
-      ]);
+        const [userProfilesRes, courseDetailsRes] = await Promise.all([
+          userService.post('/api/users/bulk', { userIds: studentIds }),
+          courseService.post('/api/courses/bulk', { courseIds: courseIds }),
+        ]);
 
-      const userProfiles = userProfilesRes.ok
-        ? await userProfilesRes.json()
-        : [];
-      const courseDetails = courseDetailsRes.ok
-        ? await courseDetailsRes.json()
-        : [];
+        const userProfiles = userProfilesRes.ok
+          ? await userProfilesRes.json()
+          : [];
+        const courseDetails = courseDetailsRes.ok
+          ? await courseDetailsRes.json()
+          : [];
 
-      const user: any = new Map(userProfiles.map((u: any) => [u.userId, u]));
-      const courseMap: any = new Map(courseDetails.map((c: any) => [c.id, c]));
+        const user: any = new Map(userProfiles.map((u: any) => [u.userId, u]));
+        const courseMap: any = new Map(
+          courseDetails.map((c: any) => [c.id, c])
+        );
 
-      return rawTopStudents.map((student: any) => ({
-        student: {
-          name: user ? `${user.firstName} ${user.lastName}` : 'Unknown Student',
-          avatarUrl: user?.avatarUrls?.small,
-        },
-        course: courseMap.get(student.courseId)?.title || 'Unknown Course',
-        progress: parseFloat(student.progress),
-        grade: 'B+',
-        lastActive: student.lastActive,
-      }));
-    })(),
+        return rawTopStudents.map((student: any) => ({
+          student: {
+            name: user
+              ? `${user.firstName} ${user.lastName}`
+              : 'Unknown Student',
+            avatarUrl: user?.avatarUrls?.small,
+          },
+          course: courseMap.get(student.courseId)?.title || 'Unknown Course',
+          progress: parseFloat(student.progress),
+          grade: 'B+',
+          lastActive: student.lastActive,
+        }));
+      })(),
 
-    (async () => {
-      const moduleProgressResponse = await enrollmentService.get(
-        '/api/analytics/instructor/module-progress'
-      );
-      if (!moduleProgressResponse.ok) return [];
-      return moduleProgressResponse.json();
-    })(),
-  ]);
+      (async () => {
+        const moduleProgressResponse = await enrollmentService.get(
+          '/api/analytics/instructor/module-progress'
+        );
+        if (!moduleProgressResponse.ok) return [];
 
-  // NOTE: This is placeholder data.
-  const weeklyEngagementData = [
-    { name: 'Mon', logins: 820, avgTime: 2.2, discussions: 60 },
-    { name: 'Tue', logins: 950, avgTime: 2.5, discussions: 75 },
-    { name: 'Wed', logins: 780, avgTime: 2.1, discussions: 65 },
-    { name: 'Thu', logins: 980, avgTime: 2.8, discussions: 80 },
-    { name: 'Fri', logins: 680, avgTime: 2.5, discussions: 85 },
-    { name: 'Sat', logins: 450, avgTime: 1.5, discussions: 40 },
-    { name: 'Sun', logins: 520, avgTime: 1.8, discussions: 30 },
-  ];
+        return moduleProgressResponse.json();
+      })(),
+
+      (async () => {
+        const response = await enrollmentService.get(
+          '/api/analytics/instructor/weekly-engagement'
+        );
+        if (!response.ok) return [];
+
+        return response.json();
+      })(),
+    ]);
 
   // NOTE: This is placeholder data.
   const learningAnalyticsData = [

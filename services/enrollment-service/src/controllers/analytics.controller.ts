@@ -116,4 +116,20 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getWeeklyEngagement(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const instructorId = req.currentUser?.id;
+      if (!instructorId) throw new NotAuthorizedError();
+      const engagement =
+        await AnalyticsService.getWeeklyEngagement(instructorId);
+      res.status(StatusCodes.OK).json(engagement);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
