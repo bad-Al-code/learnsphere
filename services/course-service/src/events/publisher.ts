@@ -32,6 +32,7 @@ interface CourseCreatedEvent {
     prerequisiteCourseId: string | null;
     price: string | null;
     currency: string | null;
+    title?: string | null;
   };
 }
 
