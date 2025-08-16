@@ -65,21 +65,49 @@ async function seedEnrollmentsAndActivity() {
     const availableCourses = receivedCourses;
     const coursesToEnrollIn = faker.helpers.arrayElements(
       availableCourses,
-      faker.number.int({ min: 0, max: 25 })
+      faker.number.int({ min: 5, max: 20 })
     );
 
     for (const course of coursesToEnrollIn) {
-      const totalLessons = faker.number.int({ min: 15, max: 100 });
+      let totalLessons = 0;
+      const moduleSnapshots = [];
+      const allLessonIds: string[] = [];
+
+      const moduleCount = faker.number.int({ min: 4, max: 10 });
+      for (let i = 0; i < moduleCount; i++) {
+        const lessonCount = faker.number.int({ min: 5, max: 15 });
+        totalLessons += lessonCount;
+
+        const lessonIds = Array.from({ length: lessonCount }, () =>
+          faker.string.uuid()
+        );
+        allLessonIds.push(...lessonIds);
+
+        moduleSnapshots.push({
+          id: faker.string.uuid(),
+          lessonIds: lessonIds,
+        });
+      }
+
       const completedLessonsCount = faker.number.int({
         min: 0,
         max: totalLessons,
       });
-      const completedLessons = Array.from(
-        { length: completedLessonsCount },
-        () => faker.string.uuid()
+      const completedLessons = faker.helpers.arrayElements(
+        allLessonIds,
+        completedLessonsCount
       );
-      const progressPercentage = (completedLessonsCount / totalLessons) * 100;
-      const courseStructure = { totalLessons, modules: [] };
+      const progressPercentage =
+        totalLessons > 0 ? (completedLessons.length / totalLessons) * 100 : 0;
+
+      const courseStructure = {
+        totalLessons: totalLessons,
+        modules: moduleSnapshots,
+      };
+
+      const progress = {
+        completedLessons: completedLessons,
+      };
 
       const enrolledAt = faker.date.past({ years: 10 });
       const lastAccessedAt = faker.date.between({
@@ -96,7 +124,7 @@ async function seedEnrollmentsAndActivity() {
             ? 'completed'
             : ('active' as EnrollmentStatus),
         courseStructure,
-        progress: { completedLessons },
+        progress,
         progressPercentage: progressPercentage.toFixed(2),
         enrolledAt,
         lastAccessedAt,
@@ -109,7 +137,6 @@ async function seedEnrollmentsAndActivity() {
             .between({ from: enrolledAt, to: new Date() })
             .toISOString()
             .split('T')[0];
-
           const key = `${course.instructorId}:${postCreatedAt}`;
           const currentActivity = instructorActivity.get(key) || {
             discussions: 0,
@@ -140,13 +167,9 @@ async function seedEnrollmentsAndActivity() {
   }
 
   if (dailyActivityData.length > 0) {
-    console.log(
-      `Inserting ${dailyActivityData.length} daily activity records...`
-    );
     const batchSize = 100;
     for (let i = 0; i < dailyActivityData.length; i += batchSize) {
       const batch = dailyActivityData.slice(i, i + batchSize);
-
       await db
         .insert(dailyActivity)
         .values(batch)
