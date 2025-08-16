@@ -75,6 +75,7 @@ export const courseStatusEnum = pgEnum('course_status', ['draft', 'published']);
 
 export const courses = pgTable('courses', {
   id: uuid('id').primaryKey(),
+  title: varchar('title', { length: 255 }),
   instructorId: uuid('instructor_id').notNull(),
   status: courseStatusEnum('status').default('draft').notNull(),
   prerequisiteCourseId: uuid('prerequisite_course_id'),
