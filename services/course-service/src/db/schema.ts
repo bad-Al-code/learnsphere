@@ -130,11 +130,33 @@ export const resources = pgTable('resources', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const resourcesRelations = relations(resources, ({ one }) => ({
+export const assignmentSubmissions = pgTable('assignment_submissions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  assignmentId: uuid('assignment_id')
+    .references(() => assignments.id, { onDelete: 'cascade' })
+    .notNull(),
+  studentId: uuid('student_id').notNull(),
+  courseId: uuid('course_id').notNull(),
+  submittedAt: timestamp('submitted_at').defaultNow().notNull(),
+  grade: integer('grade'),
+});
+
+export const resourceDownloads = pgTable('resource_downloads', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  resourceId: uuid('resource_id')
+    .references(() => resources.id, { onDelete: 'cascade' })
+    .notNull(),
+  studentId: uuid('student_id').notNull(),
+  courseId: uuid('course_id').notNull(),
+  downloadedAt: timestamp('downloaded_at').defaultNow().notNull(),
+});
+
+export const resourcesRelations = relations(resources, ({ one, many }) => ({
   course: one(courses, {
     fields: [resources.courseId],
     references: [courses.id],
   }),
+  downloads: many(resourceDownloads),
 }));
 
 export const categoryRelations = relations(categories, ({ many }) => ({
@@ -180,9 +202,30 @@ export const textLessonContentRelations = relations(
   })
 );
 
-export const assignmentRelations = relations(assignments, ({ one }) => ({
+export const assignmentRelations = relations(assignments, ({ one, many }) => ({
   module: one(modules, {
     fields: [assignments.moduleId],
     references: [modules.id],
   }),
+  submissions: many(assignmentSubmissions),
 }));
+
+export const assignmentSubmissionsRelations = relations(
+  assignmentSubmissions,
+  ({ one }) => ({
+    assignment: one(assignments, {
+      fields: [assignmentSubmissions.assignmentId],
+      references: [assignments.id],
+    }),
+  })
+);
+
+export const resourceDownloadsRelations = relations(
+  resourceDownloads,
+  ({ one }) => ({
+    resource: one(resources, {
+      fields: [resourceDownloads.resourceId],
+      references: [resources.id],
+    }),
+  })
+);
