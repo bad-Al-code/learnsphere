@@ -196,4 +196,17 @@ export class AnalyticsService {
 
     return { demographics, deviceUsage };
   }
+
+  /**
+   * @async
+   * @description Retrieves the top performing students for a givem instructor
+   * @param instructorId The UUID of the instructor
+   * @returns {Promise<any>} A promise the resolves with the top students data
+   */
+  public static async getTopStudents(instructorId: string) {
+    const result =
+      await AnalyticsRepository.getTopStudentsForInstructor(instructorId);
+
+    return result;
+  }
 }

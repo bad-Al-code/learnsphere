@@ -1,13 +1,6 @@
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -19,6 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { getInitials } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
 
 interface TopStudentsTableProps {
   data: {
@@ -67,7 +61,9 @@ export function TopStudentsTable({ data }: TopStudentsTableProps) {
               </div>
             </TableCell>
             <TableCell>{row.grade}</TableCell>
-            <TableCell className="text-right">{row.lastActive}</TableCell>
+            <TableCell className="text-right">
+              {formatDistanceToNow(new Date(row.lastActive))}
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -77,28 +73,53 @@ export function TopStudentsTable({ data }: TopStudentsTableProps) {
 
 export function TopStudentsTableSkeleton() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <Skeleton className="h-5 w-48" />
-        </CardTitle>
-        <CardDescription>
-          <Skeleton className="h-4 w-64" />
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-9 w-9 rounded-full" />
-              <div className="flex flex-col gap-1">
-                <Skeleton className="h-4 w-24" />
-              </div>
-            </div>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>
+            <Skeleton className="h-4 w-20" />
+          </TableHead>
+          <TableHead>
+            <Skeleton className="h-4 w-24" />
+          </TableHead>
+          <TableHead>
+            <Skeleton className="h-4 w-24" />
+          </TableHead>
+          <TableHead>
             <Skeleton className="h-4 w-16" />
-          </div>
+          </TableHead>
+          <TableHead className="text-right">
+            <Skeleton className="ml-auto h-4 w-24" />
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <TableRow key={index}>
+            <TableCell>
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-5 w-32" />
+              </div>
+            </TableCell>
+            <TableCell>
+              <Skeleton className="h-4 w-40" />
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-2 w-20" />
+                <Skeleton className="h-4 w-8" />
+              </div>
+            </TableCell>
+            <TableCell>
+              <Skeleton className="h-4 w-10" />
+            </TableCell>
+            <TableCell className="text-right">
+              <Skeleton className="ml-auto h-4 w-28" />
+            </TableCell>
+          </TableRow>
         ))}
-      </CardContent>
-    </Card>
+      </TableBody>
+    </Table>
   );
 }

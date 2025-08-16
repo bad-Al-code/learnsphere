@@ -82,4 +82,21 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getTopStudents(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const instructorId = req.currentUser?.id;
+      if (!instructorId) throw new NotAuthorizedError();
+
+      const topStudents = await AnalyticsService.getTopStudents(instructorId);
+
+      res.status(StatusCodes.OK).json(topStudents);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

@@ -6,7 +6,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getEngagementData } from '../actions';
-import { DashboardTabLayout } from './dashboard-tab-layout';
+import {
+  DashboardTabLayout,
+  DashboardTabLayoutSkeleton,
+} from './dashboard-tab-layout';
 import {
   EngagementPatternsChart,
   EngagementPatternsChartSkeleton,
@@ -103,5 +106,5 @@ export function EngagementTabSkeleton() {
     </div>
   );
 
-  return <DashboardTabLayout mainContent={mainContent} />;
+  return <DashboardTabLayoutSkeleton mainContent={mainContent} />;
 }

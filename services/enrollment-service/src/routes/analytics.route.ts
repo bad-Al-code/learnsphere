@@ -99,4 +99,47 @@ router.get(
   AnalyticsController.getDemographicAndDeviceStats
 );
 
+/**
+ * @openapi
+ * /api/analytics/instructor/top-students:
+ *   get:
+ *     summary: "[Instructor/Admin] Get top 5 performing students"
+ *     tags: [Analytics]
+ *     description: Retrieves the top 5 students across all of the instructor's courses, ranked by completion progress.
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An array of the top 5 student enrollments.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   userId:
+ *                     type: string
+ *                     format: uuid
+ *                   courseId:
+ *                     type: string
+ *                     format: uuid
+ *                   progress:
+ *                     type: string
+ *                     format: decimal
+ *                   lastActive:
+ *                     type: string
+ *                     format: date-time
+ *       '401':
+ *         description: Unauthorized.
+ *       '403':
+ *         description: Forbidden.
+ */
+router.get(
+  '/instructor/top-students',
+  requireAuth,
+  requireRole(['admin', 'instructor']),
+  AnalyticsController.getTopStudents
+);
+
 export { router as analyticsRouter };

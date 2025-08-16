@@ -217,4 +217,40 @@ export class AnalyticsRepository {
 
     return results.map((r) => r.userId);
   }
+
+  /**
+   * @async
+   * @description Finds the top 5 students enrollments for an instructor based on progress percentage.
+   * @param instructorId The UUID of instructor.
+   * @returns { Promise<Array<{userId: string, courseId: string, progress: string, lastActive: Date}>>} A promise that resolves to an array of the top 5 students enrollments.
+   */
+  public static async getTopStudentsForInstructor(instructorId: string) {
+    const instructorCourses = await db
+      .select({
+        id: courses.id,
+      })
+      .from(courses)
+      .where(eq(courses.instructorId, instructorId));
+
+    if (instructorCourses.length === 0) return [];
+
+    const courseIds = instructorCourses.map((c) => c.id);
+
+    const result = await db
+      .select({
+        userId: enrollments.userId,
+        courseId: enrollments.courseId,
+        progress: enrollments.progressPercentage,
+        lastActive: enrollments.lastAccessedAt,
+      })
+      .from(enrollments)
+      .where(inArray(enrollments.courseId, courseIds))
+      .orderBy(
+        desc(enrollments.progressPercentage),
+        desc(enrollments.lastAccessedAt)
+      )
+      .limit(5);
+
+    return result;
+  }
 }

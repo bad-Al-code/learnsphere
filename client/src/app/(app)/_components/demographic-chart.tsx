@@ -1,55 +1,90 @@
 'use client';
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { useMemo } from 'react';
+import { Pie, PieChart } from 'recharts';
 
 interface DemographicsChartProps {
-  data: { name: string; value: number; fill: string }[];
+  data: { name: string; value: number }[];
 }
 
 export function DemographicsChart({ data }: DemographicsChartProps) {
+  const chartConfig = useMemo(() => {
+    return data.reduce((config, item, index) => {
+      config[item.name] = {
+        label: item.name,
+        color: `var(--chart-${(index % 5) + 1})`,
+      };
+      return config;
+    }, {} as ChartConfig);
+  }, [data]);
+
   return (
-    <ResponsiveContainer width="100%" height={350}>
+    <ChartContainer
+      config={chartConfig}
+      className="mx-auto aspect-square max-h-[350px]"
+    >
       <PieChart>
-        <Tooltip
-          cursor={{ fill: 'hsl(var(--muted))' }}
-          contentStyle={{
-            backgroundColor: 'hsl(var(--background))',
-            border: '1px solid hsl(var(--border))',
-          }}
+        <ChartTooltip
+          cursor={false}
+          content={<ChartTooltipContent hideLabel />}
         />
         <Pie
           data={data}
+          dataKey="value"
+          nameKey="name"
           cx="50%"
           cy="50%"
+          outerRadius={100}
+          label={false}
           labelLine={false}
-          label={({ name, percent }) =>
-            `${name}: ${(percent * 100).toFixed(0)}%`
-          }
-          outerRadius={120}
-          dataKey="value"
-        >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.fill} />
-          ))}
-        </Pie>
+        />
+        <ChartLegend
+          content={<ChartLegendContent nameKey="name" />}
+          className="flex-rows [&>*]:flex-wrap"
+        />
       </PieChart>
-    </ResponsiveContainer>
+    </ChartContainer>
   );
 }
 
 export function DemographicsChartSkeleton() {
   return (
-    <div className="flex h-[350px] flex-col items-center justify-center gap-4">
-      <Skeleton className="h-[200px] w-[200px] rounded-full" />
-      <div className="flex flex-wrap justify-center gap-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <Skeleton className="h-3 w-3 rounded-full" />
-            <Skeleton className="h-3 w-16" />
-          </div>
-        ))}
-      </div>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <Skeleton className="h-5 w-48" />
+        </CardTitle>
+        <CardDescription>
+          <Skeleton className="h-4 w-64" />
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col items-center justify-center gap-4 pt-6">
+        <Skeleton className="h-48 w-48 rounded-full" />
+        <div className="flex w-full max-w-sm flex-wrap justify-center gap-x-6 gap-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <Skeleton className="h-3 w-3 rounded-full" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

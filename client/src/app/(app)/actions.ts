@@ -1,6 +1,11 @@
 'use server';
 
-import { courseService, enrollmentService, paymentService } from '@/lib/api';
+import {
+  courseService,
+  enrollmentService,
+  paymentService,
+  userService,
+} from '@/lib/api';
 
 export async function getInstructorDashboardStats() {
   try {
@@ -191,6 +196,54 @@ export async function getCoursePerformanceData() {
 }
 
 export async function getEngagementData() {
+  const topStudentsResponse = await enrollmentService.get(
+    '/api/analytics/instructor/top-students'
+  );
+  let topStudentsData = [];
+
+  if (topStudentsResponse.ok) {
+    const rawTopStudents = await topStudentsResponse.json();
+
+    if (rawTopStudents.length > 0) {
+      const studentIds = rawTopStudents.map((s: any) => s.userId);
+      const courseIds = rawTopStudents.map((s: any) => s.courseId);
+
+      const [userProfilesRes, courseDetailsRes] = await Promise.all([
+        userService.post('/api/users/bulk', { userIds: studentIds }),
+        courseService.post('/api/courses/bulk', { courseIds: courseIds }),
+      ]);
+
+      const userProfiles = userProfilesRes.ok
+        ? await userProfilesRes.json()
+        : [];
+      const courseDetails = courseDetailsRes.ok
+        ? await courseDetailsRes.json()
+        : [];
+
+      const userMap = new Map(userProfiles.map((u: any) => [u.userId, u]));
+      const courseMap = new Map(courseDetails.map((c: any) => [c.id, c]));
+
+      topStudentsData = rawTopStudents.map((student: any) => {
+        const user: any = userMap.get(student.userId);
+        const course: any = courseMap.get(student.courseId);
+        return {
+          student: {
+            name: user
+              ? `${user.firstName} ${user.lastName}`
+              : 'Unknown Student',
+            avatarUrl: user?.avatarUrls?.small,
+          },
+          course: course?.title || 'Unknown Course',
+          progress: parseFloat(student.progress),
+          grade: 'B+', // Placeholder, as we don't have a grading system
+          lastActive: student.lastActive,
+        };
+      });
+    }
+  } else {
+    console.error('Failed to fetch top students');
+  }
+
   // NOTE: This is placeholder data.
   const weeklyEngagementData = [
     { name: 'Mon', logins: 820, avgTime: 2.2, discussions: 60 },
@@ -219,45 +272,6 @@ export async function getEngagementData() {
     { name: 'Module 3', completed: 100, inProgress: 70, notStarted: 80 },
     { name: 'Module 4', completed: 90, inProgress: 60, notStarted: 100 },
     { name: 'Module 5', completed: 70, inProgress: 50, notStarted: 130 },
-  ];
-
-  // NOTE: This is placeholder data.
-  const topStudentsData = [
-    {
-      student: { name: 'Sarah Chen' },
-      course: 'Data Science',
-      progress: 95,
-      grade: 'A+',
-      lastActive: '2 hours ago',
-    },
-    {
-      student: { name: 'Michael Rodriguez' },
-      course: 'Web Development',
-      progress: 92,
-      grade: 'A',
-      lastActive: '1 hour ago',
-    },
-    {
-      student: { name: 'Emma Thompson' },
-      course: 'Digital Marketing',
-      progress: 88,
-      grade: 'A-',
-      lastActive: '3 hours ago',
-    },
-    {
-      student: { name: 'David Kim' },
-      course: 'Graphic Design',
-      progress: 85,
-      grade: 'B+',
-      lastActive: '5 hours ago',
-    },
-    {
-      student: { name: 'Lisa Wang' },
-      course: 'Data Science',
-      progress: 82,
-      grade: 'B+',
-      lastActive: '1 day ago',
-    },
   ];
 
   return {
