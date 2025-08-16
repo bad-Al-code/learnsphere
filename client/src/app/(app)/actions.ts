@@ -195,12 +195,24 @@ export async function getCoursePerformanceData() {
   }
 }
 
+interface BulkUser {
+  userId: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  avatarUrls?: { small?: string };
+}
+
+interface BulkCourse {
+  id: string;
+  title: string;
+}
+
 export async function getEngagementData() {
   const [
     topStudentsData,
     moduleProgressData,
     weeklyEngagementData,
-    learningAnalyticsData,
+    learningAnalyticsRes,
   ] = await Promise.all([
     (async () => {
       const topStudentsResponse = await enrollmentService.get(
@@ -219,26 +231,32 @@ export async function getEngagementData() {
         courseService.post('/api/courses/bulk', { courseIds: courseIds }),
       ]);
 
-      const userProfiles = userProfilesRes.ok
+      const userProfiles: BulkUser[] = userProfilesRes.ok
         ? await userProfilesRes.json()
         : [];
-      const courseDetails = courseDetailsRes.ok
+      const courseDetails: BulkCourse[] = courseDetailsRes.ok
         ? await courseDetailsRes.json()
         : [];
 
-      const user: any = new Map(userProfiles.map((u: any) => [u.userId, u]));
-      const courseMap: any = new Map(courseDetails.map((c: any) => [c.id, c]));
+      const userMap = new Map(userProfiles.map((u) => [u.userId, u]));
+      const courseMap = new Map(courseDetails.map((c) => [c.id, c]));
 
-      return rawTopStudents.map((student: any) => ({
-        student: {
-          name: user ? `${user.firstName} ${user.lastName}` : 'Unknown Student',
-          avatarUrl: user?.avatarUrls?.small,
-        },
-        course: courseMap.get(student.courseId)?.title || 'Unknown Course',
-        progress: parseFloat(student.progress),
-        grade: 'B+',
-        lastActive: student.lastActive,
-      }));
+      return rawTopStudents.map((student: any) => {
+        const user = userMap.get(student.userId);
+        const course = courseMap.get(student.courseId);
+        return {
+          student: {
+            name: user
+              ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+              : 'Unknown Student',
+            avatarUrl: user?.avatarUrls?.small,
+          },
+          course: course?.title || 'Unknown Course',
+          progress: parseFloat(student.progress),
+          grade: 'B+', // Placeholder
+          lastActive: student.lastActive,
+        };
+      });
     })(),
 
     (async () => {
@@ -246,7 +264,6 @@ export async function getEngagementData() {
         '/api/analytics/instructor/module-progress'
       );
       if (!moduleProgressResponse.ok) return [];
-
       return moduleProgressResponse.json();
     })(),
 
@@ -255,12 +272,11 @@ export async function getEngagementData() {
         '/api/analytics/instructor/weekly-engagement'
       );
       if (!response.ok) return [];
-
       return response.json();
     })(),
 
     (async () => {
-      const response = await enrollmentService.get(
+      const response = await courseService.get(
         '/api/analytics/instructor/learning-analytics'
       );
       if (!response.ok) return [];
@@ -268,10 +284,26 @@ export async function getEngagementData() {
     })(),
   ]);
 
+  let learningAnalyticsData = [
+    { subject: 'Content Engagement', current: 85, target: 90 },
+    { subject: 'Quiz Performance', current: 78, target: 80 },
+    { subject: 'Discussion Quality', current: 70, target: 75 },
+    { subject: 'Assignment Timeliness', current: 0, target: 95 },
+    { subject: 'Resource Utilization', current: 0, target: 70 },
+    { subject: 'Avg Session Duration', current: 88, target: 85 },
+  ];
+
+  if (learningAnalyticsRes) {
+    learningAnalyticsData[3].current = (learningAnalyticsRes as any).timeliness;
+    learningAnalyticsData[4].current = (
+      learningAnalyticsRes as any
+    ).utilization;
+  }
+
   return {
-    weeklyEngagement: weeklyEngagementData,
+    weeklyEngagement: weeklyEngagementData || [],
     learningAnalytics: learningAnalyticsData,
-    moduleProgress: moduleProgressData,
-    topStudents: topStudentsData,
+    moduleProgress: moduleProgressData || [],
+    topStudents: topStudentsData || [],
   };
 }
