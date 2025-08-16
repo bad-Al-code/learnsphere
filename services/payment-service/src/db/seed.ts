@@ -22,7 +22,6 @@ class TempCourseListener extends Listener<CourseCreatedEvent> {
   readonly topic = 'course.created' as const;
   queueGroupName = 'payment-seed-course-listener';
   onMessage(data: CourseCreatedEvent['data']) {
-    console.log(`Seed listener received course: ${data.title}`);
     receivedCourses.push({
       id: data.courseId,
       instructorId: data.instructorId,
@@ -41,7 +40,6 @@ class TempUserListener extends Listener<UserRegisteredEvent> {
   readonly topic = 'user.registered' as const;
   queueGroupName = 'payment-seed-user-listener';
   onMessage(data: UserRegisteredEvent['data']) {
-    console.log(`Seed listener received user: ${data.email}`);
     receivedUsers.push({
       id: data.id,
       email: data.email,
@@ -51,14 +49,11 @@ class TempUserListener extends Listener<UserRegisteredEvent> {
 }
 
 async function seedLocalTables() {
-  console.log('Syncing received data to local tables...');
   if (receivedCourses.length > 0) {
     await db.insert(courses).values(receivedCourses).onConflictDoNothing();
-    console.log(`Synced ${receivedCourses.length} courses locally.`);
   }
   if (receivedUsers.length > 0) {
     await db.insert(users).values(receivedUsers).onConflictDoNothing();
-    console.log(`Synced ${receivedUsers.length} users locally.`);
   }
 }
 
@@ -68,11 +63,8 @@ async function seedPayments() {
   );
 
   if (receivedUsers.length === 0 || paidCourses.length === 0) {
-    console.log('Not enough user or paid course data to create payments.');
     return;
   }
-
-  console.log(`Creating payment records for ${receivedUsers.length} users...`);
 
   const paymentData = [];
   for (const user of receivedUsers) {
@@ -111,19 +103,15 @@ async function seedPayments() {
   }
 
   if (paymentData.length > 0) {
-    console.log(`Inserting ${paymentData.length} payment records...`);
     for (let i = 0; i < paymentData.length; i += 500) {
       const batch = paymentData.slice(i, i + 500);
       await db.insert(payments).values(batch).onConflictDoNothing();
-      console.log(`Batch ${i / 500 + 1} inserted.`);
     }
-    console.log(`Seeded ${paymentData.length} payment records.`);
   }
 }
 
 async function runSeed() {
   try {
-    console.log('Starting rich DB seed for payment-service...');
     await rabbitMQConnection.connect();
 
     console.log('Clearing existing payment data...');
@@ -131,10 +119,10 @@ async function runSeed() {
     await db.delete(users);
     await db.delete(courses);
 
-    console.log('Listening for course and user events for 20 minutes...');
+    console.log('Listening for course and user events for 10 minutes...');
     new TempCourseListener().listen();
     new TempUserListener().listen();
-    await new Promise((resolve) => setTimeout(resolve, 1200000));
+    await new Promise((resolve) => setTimeout(resolve, 600000));
 
     await seedLocalTables();
     await seedPayments();

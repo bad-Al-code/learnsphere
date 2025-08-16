@@ -13,7 +13,7 @@ type UserRole = 'admin' | 'instructor' | 'student';
 
 const publisher = new UserRegisteredPublisher();
 
-const DYNAMIC_USERS_TO_GENERATE = 5000;
+const DYNAMIC_USERS_TO_GENERATE = 500;
 
 async function createUserAndPublish(
   id: string,
@@ -90,14 +90,9 @@ async function createUserAndPublish(
     avatarUrl,
     role,
   });
-
-  console.log(
-    `Created ${role}: ${email} (ID: ${id}) on ${createdAt.toDateString()}`
-  );
 }
 
 async function runSeed() {
-  console.log('Starting rich DB seed for auth-service...');
   let totalStudents = 0;
   try {
     await rabbitMQConnection.connect();
@@ -107,15 +102,11 @@ async function runSeed() {
     await db.delete(userSessions);
     await db.delete(users);
 
-    console.log('Creating admin user...');
     await createUserAndPublish(ADMIN_ID, 'admin', new Date(), {
       firstName: 'Admin',
       email: 'admin@admin.com',
     });
 
-    console.log(
-      `Creating ${hardcodedInstructorIds.length} hardcoded instructors...`
-    );
     for (const instructorId of hardcodedInstructorIds) {
       await createUserAndPublish(
         instructorId,
@@ -124,7 +115,6 @@ async function runSeed() {
       );
     }
 
-    console.log(`Generating ${DYNAMIC_USERS_TO_GENERATE} dynamic users...`);
     for (let i = 0; i < DYNAMIC_USERS_TO_GENERATE; i++) {
       const id = faker.string.uuid();
       const createdAt = faker.date.past({ years: 10 });

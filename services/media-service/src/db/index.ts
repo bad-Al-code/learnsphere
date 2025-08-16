@@ -1,11 +1,11 @@
 import 'dotenv/config';
-import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 
-import * as schema from './schema';
-import logger from '../config/logger';
-import { healthState } from '../config/health-state';
 import { env } from '../config/env';
+import { healthState } from '../config/health-state';
+import logger from '../config/logger';
+import * as schema from './schema';
 
 const DATABASE_URL = env.DATABASE_URL;
 

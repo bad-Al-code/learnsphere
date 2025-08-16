@@ -39,6 +39,7 @@ export abstract class Listener<T extends Event> {
         if (msg) {
           if (msg.fields.routingKey === this.topic) {
             logger.debug(`Message received from topic [${this.topic}]`);
+
             try {
               const parsedData = JSON.parse(msg.content.toString());
               this.onMessage(parsedData, msg);

@@ -38,6 +38,7 @@ export abstract class Listener<T extends Event> {
       channel.consume(q.queue, (msg: ConsumeMessage | null) => {
         if (msg) {
           logger.debug(`Message received from topic [${this.topic}]`);
+
           const parsedData = JSON.parse(msg.content.toString());
           this.onMessage(parsedData, msg);
 

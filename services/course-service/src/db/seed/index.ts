@@ -2,7 +2,10 @@ import { faker } from '@faker-js/faker';
 import { eq } from 'drizzle-orm';
 import slugify from 'slugify';
 import { rabbitMQConnection } from '../../events/connection';
-import { CourseCreatedPublisher } from '../../events/publisher';
+import {
+  CourseCreatedPublisher,
+  DiscussionPostCreatedPublisher,
+} from '../../events/publisher';
 import { db } from '../index';
 import {
   assignments,
@@ -61,9 +64,11 @@ async function seedCategories() {
     name,
     slug: slugify(name, { lower: true, strict: true }),
   }));
+
   await db.insert(categoriesTable).values(categoryData).onConflictDoNothing();
+
   const allCategories = await db.select().from(categoriesTable);
-  console.log(`Seeded or reused ${allCategories.length} categories.`);
+
   return allCategories;
 }
 
@@ -78,7 +83,7 @@ async function seedCourses(categories: { id: string }[]) {
   const createdCourses: (typeof courses.$inferSelect)[] = [];
 
   for (const instructorId of hardcodedInstructorIds) {
-    const courseCount = faker.number.int({ min: 20, max: 30 });
+    const courseCount = faker.number.int({ min: 6, max: 10 });
     for (let i = 0; i < courseCount; i++) {
       const price =
         Math.random() > 0.1
@@ -109,15 +114,12 @@ async function seedCourses(categories: { id: string }[]) {
             max: 5,
             fractionDigits: 1,
           }),
-          enrollmentCount: faker.number.int({ min: 50, max: 25000 }),
+          enrollmentCount: faker.number.int({ min: 50, max: 1000 }),
           currency: 'INR',
           createdAt,
         })
         .returning();
       createdCourses.push(course);
-      console.log(
-        `Created course: "${course.title}" on ${createdAt.toDateString()}`
-      );
     }
   }
   return createdCourses;
@@ -139,13 +141,12 @@ async function seedModules(createdCourses: (typeof courses.$inferSelect)[]) {
       createdModules.push(module);
     }
   }
-  console.log(`Seeded ${createdModules.length} total modules.`);
   return createdModules;
 }
 
 async function seedLessons(createdModules: (typeof modules.$inferSelect)[]) {
   for (const module of createdModules) {
-    const lessonCount = faker.number.int({ min: 5, max: 10 });
+    const lessonCount = faker.number.int({ min: 3, max: 8 });
     for (let i = 0; i < lessonCount; i++) {
       const lessonType = faker.helpers.arrayElement(lessonTypeEnum.enumValues);
       const [lesson] = await db
@@ -170,13 +171,12 @@ async function seedLessons(createdModules: (typeof modules.$inferSelect)[]) {
       }
     }
   }
-  console.log(`Seeded lessons for ${createdModules.length} modules.`);
 }
 
 async function seedExtras(createdCourses: (typeof courses.$inferSelect)[]) {
   for (const course of createdCourses) {
-    const resourceCount = faker.number.int({ min: 5, max: 10 });
-    const assignmentCount = faker.number.int({ min: 5, max: 10 });
+    const resourceCount = faker.number.int({ min: 3, max: 5 });
+    const assignmentCount = faker.number.int({ min: 3, max: 5 });
 
     for (let i = 0; i < resourceCount; i++) {
       await db.insert(resources).values({
@@ -207,14 +207,11 @@ async function seedExtras(createdCourses: (typeof courses.$inferSelect)[]) {
       }
     }
   }
-  console.log(
-    `Seeded resources and assignments for ${createdCourses.length} courses.`
-  );
 }
 
 async function publishEvents(createdCourses: (typeof courses.$inferSelect)[]) {
   const publisher = new CourseCreatedPublisher();
-  console.log(`Publishing ${createdCourses.length} course.created events...`);
+
   for (const course of createdCourses) {
     await publisher.publish({
       courseId: course.id,
@@ -226,15 +223,41 @@ async function publishEvents(createdCourses: (typeof courses.$inferSelect)[]) {
       currency: course.currency,
     });
   }
-  console.log('All course.created events published.');
+}
+
+async function _seedDiscussionsAndPublishEvents(
+  createdCourses: (typeof courses.$inferSelect)[]
+) {
+  const publisher = new DiscussionPostCreatedPublisher();
+  let eventCount = 0;
+
+  for (const course of createdCourses) {
+    const discussionCount = faker.number.int({ min: 0, max: 25 });
+    if (discussionCount === 0) continue;
+
+    for (let i = 0; i < discussionCount; i++) {
+      const createdAt = faker.date.between({
+        from: course.createdAt,
+        to: new Date(),
+      });
+
+      await publisher.publish({
+        discussionId: faker.string.uuid(),
+        courseId: course.id,
+        userId: faker.string.uuid(),
+        createdAt,
+      });
+      eventCount++;
+    }
+  }
+  console.log(`Published ${eventCount} 'discussion.post.created' events.`);
 }
 
 async function runSeed() {
   try {
-    console.log('Starting rich DB seed for course-service...');
     await rabbitMQConnection.connect();
 
-    console.log('Clearing existing data...');
+    console.log('Clearing existing courses data...');
     await db.delete(resources);
     await db.delete(assignments);
     await db.delete(textLessonContent);
@@ -250,6 +273,7 @@ async function runSeed() {
     await seedExtras(seededCourses);
 
     await publishEvents(seededCourses);
+    // await seedDiscussionsAndPublishEvents(seededCourses);
 
     console.log('Course service data seeded successfully.');
   } catch (err) {

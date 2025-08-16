@@ -15,7 +15,6 @@ class TempUserListener extends Listener<UserRegisteredEvent> {
   readonly topic = 'user.registered' as const;
   queueGroupName = 'notification-seed-user-listener';
   onMessage(data: UserRegisteredEvent['data']) {
-    console.log(`Seed listener received user: ${data.email}`);
     receivedUsers.push(data);
   }
 }
@@ -29,13 +28,11 @@ class TempEnrollmentListener extends Listener<UserEnrolledEvent> {
   readonly topic = 'user.enrolled' as const;
   queueGroupName = 'notification-seed-enrollment-listener';
   onMessage(data: UserEnrolledEvent['data']) {
-    console.log(`Seed listener received enrollment for user: ${data.userId}`);
     receivedEnrollments.push(data);
   }
 }
 
 async function seedNotifications() {
-  console.log('Seeding notifications and email logs...');
   const notifData = [];
   const emailLogData = [];
 
@@ -67,41 +64,35 @@ async function seedNotifications() {
   }
 
   if (notifData.length > 0) {
-    console.log(`Inserting ${notifData.length} notification records...`);
-    for (let i = 0; i < notifData.length; i += 500) {
-      const batch = notifData.slice(i, i + 500);
+    for (let i = 0; i < notifData.length; i += 100) {
+      const batch = notifData.slice(i, i + 100);
       await db.insert(notifications).values(batch).onConflictDoNothing();
     }
-    console.log(`Seeded ${notifData.length} notification records.`);
   }
   if (emailLogData.length > 0) {
-    console.log(`Inserting ${emailLogData.length} email outbox records...`);
-    for (let i = 0; i < emailLogData.length; i += 500) {
-      const batch = emailLogData.slice(i, i + 500);
+    for (let i = 0; i < emailLogData.length; i += 100) {
+      const batch = emailLogData.slice(i, i + 100);
       await db.insert(emailOutbox).values(batch).onConflictDoNothing();
     }
-    console.log(`Seeded ${emailLogData.length} email outbox records.`);
   }
 }
 
 async function runSeed() {
   try {
-    console.log('Starting rich DB seed for notification-service...');
     await rabbitMQConnection.connect();
 
-    console.log('Clearing existing data...');
+    console.log('Clearing existing notifications data...');
     await db.delete(notifications);
     await db.delete(emailOutbox);
     await db.delete(users);
 
-    console.log('Listening for user and enrollment events for 20 minutes...');
+    console.log('Listening for user and enrollment events for 10 minutes...');
     new TempUserListener().listen();
     new TempEnrollmentListener().listen();
-    await new Promise((resolve) => setTimeout(resolve, 1200000));
+    await new Promise((resolve) => setTimeout(resolve, 600000));
 
     if (receivedUsers.length > 0) {
       await db.insert(users).values(receivedUsers).onConflictDoNothing();
-      console.log(`Synced ${receivedUsers.length} users locally.`);
     }
     await seedNotifications();
 

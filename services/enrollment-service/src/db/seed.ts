@@ -1,11 +1,12 @@
 import { faker } from '@faker-js/faker';
+import { sql } from 'drizzle-orm';
 import { db } from '.';
 import { rabbitMQConnection } from '../events/connection';
-import { Listener } from '../events/listener';
-import { UserEnrollmentPublisher } from '../events/publisher';
+import { DiscussionPostCreatedListener, Listener } from '../events/listener';
 import { EnrollmentStatus } from '../types';
 import {
   courses,
+  dailyActivity,
   enrollments,
   NewCourse,
   NewUser,
@@ -30,7 +31,6 @@ class TempCourseListener extends Listener<CourseCreatedEvent> {
   readonly topic = 'course.created' as const;
   queueGroupName = 'enrollment-seed-course-listener';
   onMessage(data: CourseCreatedEvent['data']) {
-    console.log(`Seed listener received course: ${data.title}`);
     receivedCourses.push({
       id: data.courseId,
       instructorId: data.instructorId,
@@ -48,35 +48,28 @@ class TempUserListener extends Listener<UserRegisteredEvent> {
   readonly topic = 'user.registered' as const;
   queueGroupName = 'enrollment-seed-user-listener';
   onMessage(data: UserRegisteredEvent['data']) {
-    console.log(`Seed listener received user: ${data.email}`);
     receivedUsers.push({ id: data.id, email: data.email, role: data.role });
   }
 }
 
-async function seedEnrollments() {
+async function seedEnrollmentsAndActivity() {
   if (receivedUsers.length === 0 || receivedCourses.length === 0) {
-    console.log('Not enough user or course data to create enrollments.');
+    console.log('Not enough user or course data to create records.');
     return;
   }
-  console.log(`Creating enrollments for ${receivedUsers.length} users...`);
-
-  const publisher = new UserEnrollmentPublisher();
 
   const enrollmentData = [];
-  const enrollmentEvents = [];
+  const instructorActivity = new Map<string, { discussions: number }>();
 
   for (const user of receivedUsers) {
-    const availableCourses = receivedCourses.filter(
-      (c) => c.instructorId !== user.id
-    );
-
+    const availableCourses = receivedCourses;
     const coursesToEnrollIn = faker.helpers.arrayElements(
       availableCourses,
-      faker.number.int({ min: 0, max: 50 })
+      faker.number.int({ min: 0, max: 25 })
     );
 
     for (const course of coursesToEnrollIn) {
-      const totalLessons = faker.number.int({ min: 20, max: 100 });
+      const totalLessons = faker.number.int({ min: 15, max: 100 });
       const completedLessonsCount = faker.number.int({
         min: 0,
         max: totalLessons,
@@ -88,7 +81,6 @@ async function seedEnrollments() {
       const progressPercentage = (completedLessonsCount / totalLessons) * 100;
       const courseStructure = { totalLessons, modules: [] };
 
-      const enrollmentId = faker.string.uuid();
       const enrolledAt = faker.date.past({ years: 10 });
       const lastAccessedAt = faker.date.between({
         from: enrolledAt,
@@ -96,7 +88,6 @@ async function seedEnrollments() {
       });
 
       enrollmentData.push({
-        id: enrollmentId,
         userId: user.id,
         courseId: course.id,
         coursePriceAtEnrollment: course.price ?? '0.00',
@@ -111,35 +102,62 @@ async function seedEnrollments() {
         lastAccessedAt,
       });
 
-      enrollmentEvents.push({
-        enrollmentId,
-        userId: user.id,
-        courseId: course.id,
-        enrolledAt,
-      });
+      const discussionCount = faker.number.int({ min: 0, max: 15 });
+      if (discussionCount > 0) {
+        for (let i = 0; i < discussionCount; i++) {
+          const postCreatedAt = faker.date
+            .between({ from: enrolledAt, to: new Date() })
+            .toISOString()
+            .split('T')[0];
+
+          const key = `${course.instructorId}:${postCreatedAt}`;
+          const currentActivity = instructorActivity.get(key) || {
+            discussions: 0,
+          };
+          currentActivity.discussions += 1;
+          instructorActivity.set(key, currentActivity);
+        }
+      }
     }
   }
 
   if (enrollmentData.length > 0) {
-    console.log(`Inserting ${enrollmentData.length} enrollment records...`);
-    for (let i = 0; i < enrollmentData.length; i += 500) {
-      const batch = enrollmentData.slice(i, i + 500);
+    const batchSize = 100;
+    for (let i = 0; i < enrollmentData.length; i += batchSize) {
+      const batch = enrollmentData.slice(i, i + batchSize);
       await db.insert(enrollments).values(batch).onConflictDoNothing();
-      console.log(`Batch ${i / 500 + 1} inserted.`);
     }
-    console.log(`Seeded ${enrollmentData.length} enrollment records.`);
   }
 
-  console.log(`Publishing ${enrollmentEvents.length} user.enrolled events...`);
-  for (const event of enrollmentEvents) {
-    await publisher.publish({
-      courseId: event.courseId,
-      enrolledAt: event.enrolledAt,
-      enrollmentId: event.enrollmentId,
-      userId: event.userId,
+  const dailyActivityData = [];
+  for (const [key, activity] of instructorActivity.entries()) {
+    const [instructorId, date] = key.split(':');
+    dailyActivityData.push({
+      instructorId,
+      date,
+      discussions: activity.discussions,
     });
   }
-  console.log('All enrollment events published.');
+
+  if (dailyActivityData.length > 0) {
+    console.log(
+      `Inserting ${dailyActivityData.length} daily activity records...`
+    );
+    const batchSize = 100;
+    for (let i = 0; i < dailyActivityData.length; i += batchSize) {
+      const batch = dailyActivityData.slice(i, i + batchSize);
+
+      await db
+        .insert(dailyActivity)
+        .values(batch)
+        .onConflictDoUpdate({
+          target: [dailyActivity.instructorId, dailyActivity.date],
+          set: {
+            discussions: sql`${dailyActivity.discussions} + excluded.discussions`,
+          },
+        });
+    }
+  }
 }
 
 async function runSeed() {
@@ -147,25 +165,25 @@ async function runSeed() {
     console.log('Starting rich DB seed for enrollment-service...');
     await rabbitMQConnection.connect();
 
-    console.log('Clearing existing data...');
+    console.log('Clearing existing enrollments data...');
+    await db.delete(dailyActivity);
     await db.delete(enrollments);
     await db.delete(users);
     await db.delete(courses);
 
-    console.log('Listening for user and course events for 20 minutes...');
+    console.log('Listening for user and course events for 10 minutes...');
     new TempUserListener().listen();
     new TempCourseListener().listen();
-    await new Promise((resolve) => setTimeout(resolve, 1200000));
+    new DiscussionPostCreatedListener().listen();
+
+    await new Promise((resolve) => setTimeout(resolve, 600000));
 
     if (receivedUsers.length > 0)
       await db.insert(users).values(receivedUsers).onConflictDoNothing();
     if (receivedCourses.length > 0)
       await db.insert(courses).values(receivedCourses).onConflictDoNothing();
-    console.log(
-      `Synced ${receivedUsers.length} users and ${receivedCourses.length} courses locally.`
-    );
 
-    await seedEnrollments();
+    await seedEnrollmentsAndActivity();
 
     console.log('Enrollment service data seeded successfully.');
   } catch (err) {
