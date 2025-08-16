@@ -68,6 +68,8 @@ export class ProfileRepository {
         lastName: profiles.lastName,
         avatarUrls: profiles.avatarUrls,
         headline: profiles.headline,
+        dateOfBirth: profiles.dateOfBirth,
+        lastKnownDevice: profiles.lastKnownDevice,
       })
       .from(profiles)
       .where(inArray(profiles.userId, userIds));

@@ -3,6 +3,7 @@ import { UAParser } from 'ua-parser-js';
 import logger from '../config/logger';
 import { BlacklistService } from '../controllers/blacklist-service';
 import { Session, SessionRepository } from '../db/session.repository';
+import { UserSessionCreatedPublisher } from '../events/publisher';
 import { RequestContext } from '../types/service.types';
 
 export class SessionService {
@@ -31,6 +32,17 @@ export class SessionService {
         countryCode: geoInfo.countryCode,
         deviceType: deviceType,
       });
+
+      try {
+        const publisher = new UserSessionCreatedPublisher();
+
+        await publisher.publish({ userId, deviceType });
+      } catch (error) {
+        logger.error('Failed to publish user.session.created event', {
+          error,
+          userId,
+        });
+      }
     } catch (error) {
       logger.error('Failed to create user session record', { error, userId });
     }

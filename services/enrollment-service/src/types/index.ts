@@ -36,6 +36,15 @@ export interface PublicUserData {
   avatarUrls?: { small?: string };
 }
 
+export interface UserProfileData {
+  userId: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  avatarUrls?: { small?: string };
+  dateOfBirth?: string | null;
+  lastKnownDevice?: string | null;
+}
+
 export interface GetEnrollmentsOptions {
   courseId: string;
   requester: Requester;

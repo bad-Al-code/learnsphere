@@ -104,3 +104,15 @@ interface UserRoleUpdatedEvent {
 export class UserRoleUpdatedPublisher extends Publisher<UserRoleUpdatedEvent> {
   readonly topic = 'user.role.updated' as const;
 }
+
+interface UserSessionCreatedEvent {
+  topic: 'user.session.created';
+  data: {
+    userId: string;
+    deviceType: string | null;
+  };
+}
+
+export class UserSessionCreatedPublisher extends Publisher<UserSessionCreatedEvent> {
+  readonly topic: 'user.session.created' = 'user.session.created' as const;
+}

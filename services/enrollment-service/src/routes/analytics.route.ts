@@ -92,4 +92,11 @@ router.get(
   AnalyticsController.getInstructorCoursePerformance
 );
 
+router.get(
+  '/instructor/demographics',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getDemographicAndDeviceStats
+);
+
 export { router as analyticsRouter };

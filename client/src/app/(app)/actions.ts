@@ -86,14 +86,19 @@ export async function getInstructorDashboardTrends() {
 
 export async function getInstructorDashboardCharts() {
   try {
-    const [trendsResponse, breakdownResponse, financialsResponse] =
-      await Promise.all([
-        enrollmentService.get('/api/analytics/instructor/trends'),
-        paymentService.get(
-          '/api/payments/analytics/instructor/revenue-breakdown'
-        ),
-        paymentService.get('/api/payments/analytics/instructor/financials'),
-      ]);
+    const [
+      trendsResponse,
+      breakdownResponse,
+      financialsResponse,
+      demographicsResponse,
+    ] = await Promise.all([
+      enrollmentService.get('/api/analytics/instructor/trends'),
+      paymentService.get(
+        '/api/payments/analytics/instructor/revenue-breakdown'
+      ),
+      paymentService.get('/api/payments/analytics/instructor/financials'),
+      enrollmentService.get('/api/analytics/instructor/demographics'),
+    ]);
 
     let trendsData = [];
     if (trendsResponse.ok) {
@@ -116,18 +121,15 @@ export async function getInstructorDashboardCharts() {
       console.error('Failed to fetch financial trends');
     }
 
-    const demographicsData = [
-      { name: '18-25', value: 450, fill: 'hsl(var(--chart-1))' },
-      { name: '26-35', value: 380, fill: 'hsl(var(--chart-2))' },
-      { name: '36-45', value: 250, fill: 'hsl(var(--chart-3))' },
-      { name: '46-55', value: 120, fill: 'hsl(var(--chart-4))' },
-    ];
-
-    const deviceUsageData = [
-      { name: 'Desktop' as const, users: 650, percentage: 52 },
-      { name: 'Mobile' as const, users: 400, percentage: 32 },
-      { name: 'Tablet' as const, users: 200, percentage: 16 },
-    ];
+    let demographicsData = [];
+    let deviceUsageData = [];
+    if (demographicsResponse.ok) {
+      const data = await demographicsResponse.json();
+      demographicsData = data.demographics;
+      deviceUsageData = data.deviceUsage;
+    } else {
+      console.error('Failed to fetch demographic stats');
+    }
 
     return {
       trends: trendsData,

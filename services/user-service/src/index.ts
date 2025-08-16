@@ -1,14 +1,15 @@
 import 'dotenv/config';
 
 import { app } from './app';
+import { env } from './config/env';
 import logger from './config/logger';
+import { checkDatabaseConnection } from './db';
 import { rabbitMQConnection } from './events/connection';
 import {
   UserAvatarProcessedListener,
   UserRegisteredListener,
+  UserSessionCreatedListener,
 } from './events/listener';
-import { checkDatabaseConnection } from './db';
-import { env } from './config/env';
 
 const startServer = async () => {
   try {
@@ -17,6 +18,7 @@ const startServer = async () => {
 
     new UserRegisteredListener().listen();
     new UserAvatarProcessedListener().listen();
+    new UserSessionCreatedListener().listen();
 
     const PORT = env.PORT || 8001;
     app.listen(PORT, () => {

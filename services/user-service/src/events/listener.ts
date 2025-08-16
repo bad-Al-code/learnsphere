@@ -135,3 +135,36 @@ export class UserAvatarProcessedListener extends Listener<UserAvatarProcessedEve
     }
   }
 }
+
+interface UserSessionCreatedEvent extends Event {
+  topic: 'user.session.created';
+  data: {
+    userId: string;
+    deviceType: string | null;
+  };
+}
+
+export class UserSessionCreatedListener extends Listener<UserSessionCreatedEvent> {
+  readonly topic: 'user.session.created' = 'user.session.created' as const;
+  queueGroupName: string = 'user-service-session';
+
+  async onMessage(
+    data: UserSessionCreatedEvent['data'],
+    _msg: ConsumeMessage
+  ): Promise<void> {
+    logger.info(`Session event received for user: ${data.userId}`);
+    try {
+      await ProfileService.updateProfile(data.userId, {
+        lastKnownDevice: data.deviceType,
+      });
+      logger.info(
+        `Successfully updated last known device for user: ${data.userId}`
+      );
+    } catch (error) {
+      logger.error('Failed to process user.session.created event', {
+        userId: data.userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+}

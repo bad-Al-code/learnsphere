@@ -191,4 +191,30 @@ export class AnalyticsRepository {
       averageCompletion: parseFloat(item.averageCompletion?.toString() || '0'),
     }));
   }
+
+  /**
+   * Fetches the user IDs for all students enrolled in an instructor's courses.
+   * @param instructorId The ID of the instructor.
+   * @returns An array of unique student UUIDs.
+   */
+  public static async getStudentIdsForInstructor(
+    instructorId: string
+  ): Promise<string[]> {
+    const instructorCourses = await db
+      .select({ id: courses.id })
+      .from(courses)
+      .where(eq(courses.instructorId, instructorId));
+
+    if (instructorCourses.length === 0) {
+      return [];
+    }
+    const courseIds = instructorCourses.map((c) => c.id);
+
+    const results = await db
+      .selectDistinct({ userId: enrollments.userId })
+      .from(enrollments)
+      .where(inArray(enrollments.courseId, courseIds));
+
+    return results.map((r) => r.userId);
+  }
 }

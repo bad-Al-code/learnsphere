@@ -1,5 +1,9 @@
+import axios from 'axios';
+import { env } from '../config/env';
+import logger from '../config/logger';
 import { AnalyticsRepository } from '../db/analytics.repository';
 import { CourseRepository } from '../db/course.repository';
+import { UserProfileData } from '../types';
 
 export class AnalyticsService {
   /**
@@ -101,5 +105,95 @@ export class AnalyticsService {
       await AnalyticsRepository.getAverageCompletionByCourse(courseIds);
 
     return performanceData;
+  }
+
+  /**
+   * Calculates demographic and device usage statistics for an instructor's students.
+   * @param instructorId The ID of the instructor.
+   */
+  public static async getDemographicAndDeviceStats(instructorId: string) {
+    const studentIds =
+      await AnalyticsRepository.getStudentIdsForInstructor(instructorId);
+
+    if (studentIds.length === 0) {
+      return { demographics: [], deviceUsage: [] };
+    }
+
+    const response = await axios.post<UserProfileData[]>(
+      `${env.USER_SERVICE_URL}/api/users/bulk`,
+      { userIds: studentIds }
+    );
+    logger.info('pro:', response);
+    const profiles = response.data;
+
+    const ageGroups = {
+      '18-25': 0,
+      '26-35': 0,
+      '36-45': 0,
+      '46+': 0,
+      Unknown: 0,
+    };
+    profiles.forEach((p) => {
+      if (p.dateOfBirth) {
+        const age =
+          new Date().getFullYear() - new Date(p.dateOfBirth).getFullYear();
+        if (age >= 18 && age <= 25) ageGroups['18-25']++;
+        else if (age >= 26 && age <= 35) ageGroups['26-35']++;
+        else if (age >= 36 && age <= 45) ageGroups['36-45']++;
+        else if (age >= 46) ageGroups['46+']++;
+        else ageGroups.Unknown++;
+      } else {
+        ageGroups.Unknown++;
+      }
+    });
+
+    const demographics = [
+      { name: '18-25', value: ageGroups['18-25'], fill: 'hsl(var(--chart-1))' },
+      { name: '26-35', value: ageGroups['26-35'], fill: 'hsl(var(--chart-2))' },
+      { name: '36-45', value: ageGroups['36-45'], fill: 'hsl(var(--chart-3))' },
+      { name: '46+', value: ageGroups['46+'], fill: 'hsl(var(--chart-4))' },
+    ].filter((g) => g.value > 0);
+
+    const deviceCounts = { desktop: 0, mobile: 0, tablet: 0, unknown: 0 };
+    profiles.forEach((p) => {
+      const device = p.lastKnownDevice || 'unknown';
+      if (device in deviceCounts) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (deviceCounts as any)[device]++;
+      } else {
+        deviceCounts.unknown++;
+      }
+    });
+
+    const totalDevices = profiles.length;
+    logger.info('total:', totalDevices);
+    const deviceUsage = [
+      {
+        name: 'Desktop' as const,
+        users: deviceCounts.desktop,
+        percentage:
+          totalDevices > 0
+            ? Math.round((deviceCounts.desktop / totalDevices) * 100)
+            : 0,
+      },
+      {
+        name: 'Mobile' as const,
+        users: deviceCounts.mobile,
+        percentage:
+          totalDevices > 0
+            ? Math.round((deviceCounts.mobile / totalDevices) * 100)
+            : 0,
+      },
+      {
+        name: 'Tablet' as const,
+        users: deviceCounts.tablet,
+        percentage:
+          totalDevices > 0
+            ? Math.round((deviceCounts.tablet / totalDevices) * 100)
+            : 0,
+      },
+    ].filter((d) => d.users > 0);
+
+    return { demographics, deviceUsage };
   }
 }

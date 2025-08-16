@@ -70,7 +70,9 @@ export class ProfileService {
     logger.debug(
       `Fetching public profiles for ${userIds.length} users in bulk`
     );
-    return ProfileRepository.findPublicByIds(userIds);
+    const profiles = await ProfileRepository.findPublicByIds(userIds);
+
+    return profiles;
   }
 
   /**
