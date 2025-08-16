@@ -35,6 +35,7 @@ class TempCourseListener extends Listener<CourseCreatedEvent> {
       id: data.courseId,
       instructorId: data.instructorId,
       price: data.price,
+      title: data.title,
       currency: data.currency,
     });
   }
@@ -85,6 +86,7 @@ async function seedEnrollmentsAndActivity() {
 
         moduleSnapshots.push({
           id: faker.string.uuid(),
+          title: `Module ${i + 1}: ${faker.lorem.sentence(3)}`,
           lessonIds: lessonIds,
         });
       }
