@@ -78,7 +78,7 @@ async function seedCourses(categories: { id: string }[]) {
   const createdCourses: (typeof courses.$inferSelect)[] = [];
 
   for (const instructorId of hardcodedInstructorIds) {
-    const courseCount = faker.number.int({ min: 20, max: 50 });
+    const courseCount = faker.number.int({ min: 20, max: 30 });
     for (let i = 0; i < courseCount; i++) {
       const price =
         Math.random() > 0.1
@@ -126,7 +126,7 @@ async function seedCourses(categories: { id: string }[]) {
 async function seedModules(createdCourses: (typeof courses.$inferSelect)[]) {
   const createdModules: (typeof modules.$inferSelect)[] = [];
   for (const course of createdCourses) {
-    const moduleCount = faker.number.int({ min: 10, max: 20 });
+    const moduleCount = faker.number.int({ min: 5, max: 10 });
     for (let i = 0; i < moduleCount; i++) {
       const [module] = await db
         .insert(modules)
@@ -145,7 +145,7 @@ async function seedModules(createdCourses: (typeof courses.$inferSelect)[]) {
 
 async function seedLessons(createdModules: (typeof modules.$inferSelect)[]) {
   for (const module of createdModules) {
-    const lessonCount = faker.number.int({ min: 10, max: 20 });
+    const lessonCount = faker.number.int({ min: 5, max: 10 });
     for (let i = 0; i < lessonCount; i++) {
       const lessonType = faker.helpers.arrayElement(lessonTypeEnum.enumValues);
       const [lesson] = await db
@@ -175,8 +175,8 @@ async function seedLessons(createdModules: (typeof modules.$inferSelect)[]) {
 
 async function seedExtras(createdCourses: (typeof courses.$inferSelect)[]) {
   for (const course of createdCourses) {
-    const resourceCount = faker.number.int({ min: 10, max: 20 });
-    const assignmentCount = faker.number.int({ min: 10, max: 20 });
+    const resourceCount = faker.number.int({ min: 5, max: 10 });
+    const assignmentCount = faker.number.int({ min: 5, max: 10 });
 
     for (let i = 0; i < resourceCount; i++) {
       await db.insert(resources).values({

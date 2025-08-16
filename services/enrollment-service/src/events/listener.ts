@@ -1,7 +1,10 @@
 import { ConsumeMessage } from 'amqplib';
 
+import { eq, sql } from 'drizzle-orm';
 import logger from '../config/logger';
+import { db } from '../db';
 import { CourseRepository } from '../db/course.repository';
+import { courses, dailyActivity } from '../db/schema';
 import { rabbitMQConnection } from './connection';
 
 interface Event {
@@ -35,7 +38,7 @@ export abstract class Listener<T extends Event> {
 
       channel.consume(q.queue, (msg: ConsumeMessage | null) => {
         if (msg) {
-          logger.debug(`Message received from topic [${this.topic}]`);
+          // logger.debug(`Message received from topic [${this.topic}]`);
           const parsedData = JSON.parse(msg.content.toString());
           this.onMessage(parsedData, msg);
 
@@ -141,6 +144,66 @@ export class CourseSyncDeletedListener extends Listener<CourseDeletedEvent> {
       await CourseRepository.delete(data.courseId);
     } catch (error) {
       logger.error('Failed to sync deleted course', { data, error });
+    }
+  }
+}
+
+export interface DiscussionPostCreatedEvent {
+  topic: 'discussion.post.created';
+  data: {
+    courseId: string;
+    userId: string;
+    createdAt: Date;
+  };
+}
+
+export class DiscussionPostCreatedListener extends Listener<DiscussionPostCreatedEvent> {
+  readonly topic = 'discussion.post.created' as const;
+  queueGroupName = 'enrollment-service-discussion-activity';
+
+  async onMessage(
+    data: DiscussionPostCreatedEvent['data'],
+    _msg: ConsumeMessage
+  ) {
+    try {
+      const course = await db.query.courses.findFirst({
+        where: eq(courses.id, data.courseId),
+        columns: {
+          instructorId: true,
+        },
+      });
+
+      if (!course) {
+        logger.warn(
+          `Course not found for discussion event, ignoring. CourseID: ${data.courseId}`
+        );
+        return;
+      }
+
+      const eventDate = new Date(data.createdAt).toISOString().split('T')[0];
+
+      await db
+        .insert(dailyActivity)
+        .values({
+          instructorId: course.instructorId,
+          date: eventDate,
+          discussions: 1,
+        })
+        .onConflictDoUpdate({
+          target: [dailyActivity.instructorId, dailyActivity.date],
+          set: {
+            discussions: sql`${dailyActivity.discussions} + 1`,
+          },
+        });
+
+      // logger.info(
+      //   `Logged discussion activity for instructor ${course.instructorId} on ${eventDate}`
+      // );
+    } catch (error) {
+      logger.error('Failed to process discussion.post.created event', {
+        data,
+        error,
+      });
     }
   }
 }

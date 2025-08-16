@@ -1,5 +1,7 @@
 import {
+  date,
   decimal,
+  integer,
   jsonb,
   pgEnum,
   pgTable,
@@ -100,3 +102,15 @@ export type UpdatedCourse = Partial<Omit<NewCourse, 'id'>>;
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+
+export const dailyActivity = pgTable(
+  'daily_activity',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    instructorId: uuid('instructor_id').notNull(),
+    date: date('date').notNull(),
+    logins: integer('logins').default(0).notNull(),
+    discussions: integer('discussions').default(0).notNull(),
+  },
+  (table) => [unique().on(table.instructorId, table.date)]
+);
