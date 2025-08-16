@@ -91,49 +91,51 @@ export function OnboardingForm({ userData, onSuccess }: OnboardingFormProps) {
 
   return (
     <Form {...form}>
-      <FormField
-        control={form.control}
-        name="dateOfBirth"
-        render={({ field }) => (
-          <FormItem className="flex flex-col">
-            <FormLabel>Date of Birth</FormLabel>
-            <Popover>
-              <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full pl-3 text-left font-normal',
-                      !field.value && 'text-muted-foreground'
-                    )}
-                  >
-                    {field.value ? format(field.value, 'PPP') : 'Pick a date'}
-                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                  </Button>
-                </FormControl>
-              </PopoverTrigger>
-              <PopoverContent
-                className="w-auto overflow-hidden p-0"
-                align="start"
-              >
-                <Calendar
-                  mode="single"
-                  captionLayout="dropdown"
-                  fromYear={1900}
-                  toYear={new Date().getFullYear()}
-                  selected={field.value ?? undefined}
-                  onSelect={(d) => field.onChange(d ?? null)}
-                  disabled={(d) => d > new Date() || d < new Date('1900-01-01')}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="dateOfBirth"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Date of Birth</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        'w-full pl-3 text-left font-normal',
+                        !field.value && 'text-muted-foreground'
+                      )}
+                    >
+                      {field.value ? format(field.value, 'PPP') : 'Pick a date'}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto overflow-hidden p-0"
+                  align="start"
+                >
+                  <Calendar
+                    mode="single"
+                    captionLayout="dropdown"
+                    fromYear={1900}
+                    toYear={new Date().getFullYear()}
+                    selected={field.value ?? undefined}
+                    onSelect={(d) => field.onChange(d ?? null)}
+                    disabled={(d) =>
+                      d > new Date() || d < new Date('1900-01-01')
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="headline"

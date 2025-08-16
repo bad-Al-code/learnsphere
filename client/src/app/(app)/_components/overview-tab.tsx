@@ -153,33 +153,34 @@ export async function OverviewTab() {
             )}
           </CardContent>
         </Card>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Student Demographics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {chartsData.demographics.length > 0 ? (
-                <DemographicsChart data={chartsData.demographics} />
-              ) : (
-                <DemographicsChartSkeleton />
-              )}
-            </CardContent>
-          </Card>
+      </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Device Usage</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {chartsData.deviceUsage.length > 0 ? (
-                <DeviceUsage data={chartsData.deviceUsage} />
-              ) : (
-                <DeviceUsageSkeleton />
-              )}
-            </CardContent>
-          </Card>
-        </div>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Student Demographics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {chartsData.demographics.length > 0 ? (
+              <DemographicsChart data={chartsData.demographics} />
+            ) : (
+              <DemographicsChartSkeleton />
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Device Usage</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {chartsData.deviceUsage.length > 0 ? (
+              <DeviceUsage data={chartsData.deviceUsage} />
+            ) : (
+              <DeviceUsageSkeleton />
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

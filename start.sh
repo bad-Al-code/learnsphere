@@ -22,7 +22,7 @@ for dir in *-service; do
   if [ -d "$dir" ]; then
     name="${dir%-service}"
     tmux new-window -t $SESSION -n "$name"
-    tmux send-keys -t $SESSION:"$name" "cd ~/git/learnsphere/services/$dir && pnpm dev" C-m
+    tmux send-keys -t $SESSION:"$name" "cd ~/git/learnsphere/services/$dir && pnpm db && pnpm dev" C-m
   fi
 done
 

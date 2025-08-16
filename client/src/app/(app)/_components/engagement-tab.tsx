@@ -87,7 +87,11 @@ export async function EngagementTab() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <TopStudentsTable data={topStudents} />
+          {topStudents.length > 0 ? (
+            <TopStudentsTable data={topStudents} />
+          ) : (
+            <TopStudentsTableSkeleton />
+          )}
         </CardContent>
       </Card>
     </div>
