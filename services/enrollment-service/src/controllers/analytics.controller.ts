@@ -125,9 +125,29 @@ export class AnalyticsController {
     try {
       const instructorId = req.currentUser?.id;
       if (!instructorId) throw new NotAuthorizedError();
+
       const engagement =
         await AnalyticsService.getWeeklyEngagement(instructorId);
+
       res.status(StatusCodes.OK).json(engagement);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getLearningAnalytics(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const instructorId = req.currentUser?.id;
+      if (!instructorId) throw new NotAuthorizedError();
+
+      const analytics =
+        await AnalyticsService.getLearningAnalytics(instructorId);
+
+      res.status(StatusCodes.OK).json(analytics);
     } catch (error) {
       next(error);
     }

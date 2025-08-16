@@ -206,4 +206,45 @@ router.get(
   AnalyticsController.getWeeklyEngagement
 );
 
+/**
+ * @openapi
+ * /api/analytics/instructor/learning-analytics:
+ *   get:
+ *     summary: "[Instructor/Admin] Get learning analytics metrics"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An array of objects representing learning analytics metrics for the radar chart.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   subject:
+ *                     type: string
+ *                     example: "Content Engagement"
+ *                   current:
+ *                     type: integer
+ *                     example: 85
+ *                   target:
+ *                     type: integer
+ *                     example: 90
+ *       '401':
+ *         description: Unauthorized – User is not authenticated.
+ *       '403':
+ *         description: Forbidden – User does not have instructor or admin role.
+ *       '500':
+ *         description: Internal server error.
+ */
+router.get(
+  '/instructor/learning-analytics',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getLearningAnalytics
+);
+
 export { router as analyticsRouter };

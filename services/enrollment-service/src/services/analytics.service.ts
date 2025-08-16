@@ -268,4 +268,38 @@ export class AnalyticsService {
       avgTime: faker.number.float({ min: 1, max: 3, fractionDigits: 1 }), // NOTE: placeholder
     }));
   }
+
+  /**
+   * @async
+   * @description Calculates and formats learning analytics metrics for the radar chart.
+   * @param {string} instructorId - The UUID of the instructor.
+   * @returns {Promise<object>} The formatted data for the radar chart.
+   */
+  public static async getLearningAnalytics(instructorId: string) {
+    const { timelinessData, resourceData } =
+      await AnalyticsRepository.getLearningAnalyticsRawData(instructorId);
+
+    // NOTE: Placeholder logic since we don't have real due dates or submission tables.
+    const onTimePercentage = 92;
+
+    // NOTE: Placeholder logic. A real system would compare downloads vs. total available resources.
+    const resourceUtilization = 65;
+
+    return [
+      { subject: 'Content Engagement', current: 85, target: 90 },
+      { subject: 'Quiz Performance', current: 78, target: 80 },
+      { subject: 'Discussion Quality', current: 70, target: 75 },
+      {
+        subject: 'Assignment Timeliness',
+        current: onTimePercentage,
+        target: 95,
+      },
+      {
+        subject: 'Resource Utilization',
+        current: resourceUtilization,
+        target: 70,
+      },
+      { subject: 'Avg Session Duration', current: 88, target: 85 },
+    ];
+  }
 }

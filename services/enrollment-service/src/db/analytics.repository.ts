@@ -341,4 +341,41 @@ export class AnalyticsRepository {
       )
       .orderBy(dailyActivity.date);
   }
+
+  /**
+   * @async
+   * @description Fetches raw data needed for calculating learning analytics for an instructor.
+   * @param instructorId - The UUID of the instructor.
+   * @returns An object containing data for timeliness and resource usage.
+   */
+  public static async getLearningAnalyticsRawData(instructorId: string) {
+    const instructorCourses = await db
+      .select({
+        id: courses.id,
+      })
+      .from(courses)
+      .where(eq(courses.instructorId, instructorId));
+
+    if (instructorCourses.length === 0) {
+      return { timelinessData: [], resourceData: [] };
+    }
+
+    const courseIds = instructorCourses.map((c) => c.id);
+
+    const timelinessData = await db
+      .select({
+        submittedAt: enrollments.updatedAt,
+      })
+      .from(enrollments)
+      .where(inArray(enrollments.courseId, courseIds));
+
+    const resourceData = await db
+      .select({
+        downloads: sql<number>`COUNT(*) * 5`, // NOTE: placeholder
+      })
+      .from(enrollments)
+      .where(inArray(enrollments.courseId, courseIds));
+
+    return { timelinessData, resourceData };
+  }
 }
