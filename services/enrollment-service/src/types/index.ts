@@ -95,14 +95,6 @@ export interface ResetProgressData {
 export interface CourseStructureSnapshotDetails {
   modules: {
     id: string;
-    title: string;
     lessons: { id: string }[];
   }[];
-}
-
-export interface ModuleProgressStats {
-  name: string;
-  completed: number;
-  inProgress: number;
-  notStarted: number;
 }

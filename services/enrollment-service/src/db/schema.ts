@@ -14,7 +14,6 @@ import {
 
 type ModuleSnapshot = {
   id: string;
-  title: string;
   lessonIds: string[];
 };
 
