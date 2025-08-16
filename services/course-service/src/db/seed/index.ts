@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import slugify from 'slugify';
 import { rabbitMQConnection } from '../../events/connection';
 import {
@@ -10,15 +10,17 @@ import { db } from '../index';
 import {
   assignments,
   assignmentStatusEnum,
+  assignmentSubmissions,
   categories as categoriesTable,
   courses,
   lessons,
   lessonTypeEnum,
   modules,
+  resourceDownloads,
   resources,
   textLessonContent,
 } from '../schema';
-import { hardcodedInstructorIds } from './ids';
+import { hardcodedInstructorIds, studentIds } from './ids';
 
 const realHlsUrls = [
   'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8',
@@ -253,11 +255,125 @@ async function _seedDiscussionsAndPublishEvents(
   console.log(`Published ${eventCount} 'discussion.post.created' events.`);
 }
 
+async function seedStudentInteractions(
+  createdCourses: (typeof courses.$inferSelect)[]
+) {
+  if (studentIds.length === 0) {
+    console.log(
+      'No student IDs provided, skipping student interaction seeding.'
+    );
+    return;
+  }
+
+  const allSubmissionData = [];
+  const allDownloadData = [];
+
+  const courseIds = createdCourses.map((c) => c.id);
+
+  const allAssignments = await db.query.assignments.findMany({
+    where: inArray(assignments.courseId, courseIds),
+    columns: { id: true, courseId: true },
+  });
+
+  const allResources = await db.query.resources.findMany({
+    where: inArray(resources.courseId, courseIds),
+    columns: { id: true, courseId: true },
+  });
+
+  const courseAssignmentsMap = new Map<string, { id: string }[]>();
+  for (const assignment of allAssignments) {
+    if (!courseAssignmentsMap.has(assignment.courseId)) {
+      courseAssignmentsMap.set(assignment.courseId, []);
+    }
+
+    courseAssignmentsMap.get(assignment.courseId)!.push({ id: assignment.id });
+  }
+
+  const courseResourcesMap = new Map<string, { id: string }[]>();
+  for (const resource of allResources) {
+    if (!courseResourcesMap.has(resource.courseId)) {
+      courseResourcesMap.set(resource.courseId, []);
+    }
+
+    courseResourcesMap.get(resource.courseId)!.push({ id: resource.id });
+  }
+
+  for (const course of createdCourses) {
+    const courseAssignments = courseAssignmentsMap.get(course.id) || [];
+    const courseResources = courseResourcesMap.get(course.id) || [];
+
+    const enrolledStudentCount = faker.number.int({
+      min: 20,
+      max: Math.min(studentIds.length, 50),
+    });
+    const enrolledStudents = faker.helpers.arrayElements(
+      studentIds,
+      enrolledStudentCount
+    );
+
+    for (const studentId of enrolledStudents) {
+      if (courseAssignments.length > 0) {
+        const assignmentsToSubmit = faker.helpers.arrayElements(
+          courseAssignments,
+          faker.number.int({ min: 0, max: courseAssignments.length })
+        );
+        for (const assignment of assignmentsToSubmit) {
+          allSubmissionData.push({
+            assignmentId: assignment.id,
+            studentId: studentId,
+            courseId: course.id,
+            submittedAt: faker.date.between({
+              from: course.createdAt,
+              to: new Date(),
+            }),
+            grade: faker.number.int({ min: 65, max: 100 }),
+          });
+        }
+      }
+
+      if (courseResources.length > 0) {
+        const resourcesToDownload = faker.helpers.arrayElements(
+          courseResources,
+          faker.number.int({ min: 0, max: courseResources.length })
+        );
+
+        for (const resource of resourcesToDownload) {
+          allDownloadData.push({
+            resourceId: resource.id,
+            studentId: studentId,
+            courseId: course.id,
+            downloadedAt: faker.date.between({
+              from: course.createdAt,
+              to: new Date(),
+            }),
+          });
+        }
+      }
+    }
+  }
+
+  if (allSubmissionData.length > 0) {
+    for (let i = 0; i < allSubmissionData.length; i += 100) {
+      const batch = allSubmissionData.slice(i, i + 100);
+      await db.insert(assignmentSubmissions).values(batch);
+    }
+  }
+
+  if (allDownloadData.length > 0) {
+    for (let i = 0; i < allDownloadData.length; i += 100) {
+      const batch = allDownloadData.slice(i, i + 100);
+      await db.insert(resourceDownloads).values(batch);
+    }
+  }
+}
+
 async function runSeed() {
   try {
     await rabbitMQConnection.connect();
 
     console.log('Clearing existing courses data...');
+    await db.delete(assignmentSubmissions);
+    await db.delete(resourceDownloads);
     await db.delete(resources);
     await db.delete(assignments);
     await db.delete(textLessonContent);
@@ -271,6 +387,7 @@ async function runSeed() {
     const seededModules = await seedModules(seededCourses);
     await seedLessons(seededModules);
     await seedExtras(seededCourses);
+    await seedStudentInteractions(seededCourses);
 
     await publishEvents(seededCourses);
     // await seedDiscussionsAndPublishEvents(seededCourses);
