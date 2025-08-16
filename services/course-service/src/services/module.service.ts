@@ -128,4 +128,8 @@ export class ModuleService {
       await CourseCacheService.invalidateCacheDetails(parentCourseId);
     });
   }
+
+  public static async getModulesByIds(moduleIds: string[]) {
+    return ModuleRepository.findManyByIdsSimple(moduleIds);
+  }
 }

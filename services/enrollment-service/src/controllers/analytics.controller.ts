@@ -99,4 +99,21 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getModuleProgress(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const instructorId = req.currentUser?.id;
+      if (!instructorId) throw new NotAuthorizedError();
+
+      const progress = await AnalyticsService.getModuleProgress(instructorId);
+
+      res.status(StatusCodes.OK).json(progress);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

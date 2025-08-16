@@ -111,4 +111,18 @@ export class ModuleRepository {
   public static async delete(moduleId: string): Promise<void> {
     await db.delete(modules).where(eq(modules.id, moduleId));
   }
+
+  /**
+   * Finds multiple modules by their IDs, selecting only title and id.
+   * @param moduleIds - An array of module IDs.
+   * @returns An array of module objects with just id and title.
+   */
+  public static async findManyByIdsSimple(moduleIds: string[]) {
+    if (moduleIds.length === 0) return [];
+
+    return db
+      .select({ id: modules.id, title: modules.title })
+      .from(modules)
+      .where(inArray(modules.id, moduleIds));
+  }
 }

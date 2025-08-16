@@ -142,4 +142,23 @@ router.get(
   AnalyticsController.getTopStudents
 );
 
+/**
+ * @openapi
+ * /api/analytics/instructor/module-progress:
+ *   get:
+ *     summary: "[Instructor/Admin] Get progress distribution across modules"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An array of objects representing progress for each module.
+ */
+router.get(
+  '/instructor/module-progress',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getModuleProgress
+);
+
 export { router as analyticsRouter };

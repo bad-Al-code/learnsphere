@@ -5,6 +5,11 @@ import { AnalyticsRepository } from '../db/analytics.repository';
 import { CourseRepository } from '../db/course.repository';
 import { UserProfileData } from '../types';
 
+interface ModuleDetails {
+  id: string;
+  title: string;
+}
+
 export class AnalyticsService {
   /**
    * @private
@@ -208,5 +213,38 @@ export class AnalyticsService {
       await AnalyticsRepository.getTopStudentsForInstructor(instructorId);
 
     return result;
+  }
+
+  /**
+   * @async
+   * @description Gets and formats the module progress distribution for an instructor.
+   * @param {string} instructorId - The UUID of the instructor.
+   * @returns {Promise<any>} A promise that resolves with the formatted chart data.
+   */
+  public static async getModuleProgress(instructorId: string) {
+    const progressData =
+      await AnalyticsRepository.getModuleProgressForInstructor(instructorId);
+
+    if (progressData.length === 0) {
+      return [];
+    }
+
+    const moduleIds = progressData.map((p) => p.module_id);
+
+    // Inter-service call to get module titles
+    // Note: This assumes a /api/modules/bulk endpoint exists or will be created
+    const courseServiceUrl = env.COURSE_SERVICE_URL;
+    const response = await axios.post<ModuleDetails[]>(
+      `${courseServiceUrl}/api/modules/bulk`, // We need to create this endpoint
+      { moduleIds }
+    );
+    const moduleDetailsMap = new Map(response.data.map((m) => [m.id, m.title]));
+
+    return progressData.map((p) => ({
+      name: moduleDetailsMap.get(p.module_id) || 'Unknown Module',
+      completed: p.completed,
+      inProgress: p.inProgress,
+      notStarted: p.notStarted,
+    }));
   }
 }

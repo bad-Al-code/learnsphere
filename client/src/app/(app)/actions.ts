@@ -196,15 +196,16 @@ export async function getCoursePerformanceData() {
 }
 
 export async function getEngagementData() {
-  const topStudentsResponse = await enrollmentService.get(
-    '/api/analytics/instructor/top-students'
-  );
-  let topStudentsData = [];
+  const [topStudentsData, moduleProgressData] = await Promise.all([
+    (async () => {
+      const topStudentsResponse = await enrollmentService.get(
+        '/api/analytics/instructor/top-students'
+      );
+      if (!topStudentsResponse.ok) return [];
 
-  if (topStudentsResponse.ok) {
-    const rawTopStudents = await topStudentsResponse.json();
+      const rawTopStudents = await topStudentsResponse.json();
+      if (rawTopStudents.length === 0) return [];
 
-    if (rawTopStudents.length > 0) {
       const studentIds = rawTopStudents.map((s: any) => s.userId);
       const courseIds = rawTopStudents.map((s: any) => s.courseId);
 
@@ -220,29 +221,29 @@ export async function getEngagementData() {
         ? await courseDetailsRes.json()
         : [];
 
-      const userMap = new Map(userProfiles.map((u: any) => [u.userId, u]));
-      const courseMap = new Map(courseDetails.map((c: any) => [c.id, c]));
+      const user: any = new Map(userProfiles.map((u: any) => [u.userId, u]));
+      const courseMap: any = new Map(courseDetails.map((c: any) => [c.id, c]));
 
-      topStudentsData = rawTopStudents.map((student: any) => {
-        const user: any = userMap.get(student.userId);
-        const course: any = courseMap.get(student.courseId);
-        return {
-          student: {
-            name: user
-              ? `${user.firstName} ${user.lastName}`
-              : 'Unknown Student',
-            avatarUrl: user?.avatarUrls?.small,
-          },
-          course: course?.title || 'Unknown Course',
-          progress: parseFloat(student.progress),
-          grade: 'B+', // Placeholder, as we don't have a grading system
-          lastActive: student.lastActive,
-        };
-      });
-    }
-  } else {
-    console.error('Failed to fetch top students');
-  }
+      return rawTopStudents.map((student: any) => ({
+        student: {
+          name: user ? `${user.firstName} ${user.lastName}` : 'Unknown Student',
+          avatarUrl: user?.avatarUrls?.small,
+        },
+        course: courseMap.get(student.courseId)?.title || 'Unknown Course',
+        progress: parseFloat(student.progress),
+        grade: 'B+',
+        lastActive: student.lastActive,
+      }));
+    })(),
+
+    (async () => {
+      const moduleProgressResponse = await enrollmentService.get(
+        '/api/analytics/instructor/module-progress'
+      );
+      if (!moduleProgressResponse.ok) return [];
+      return moduleProgressResponse.json();
+    })(),
+  ]);
 
   // NOTE: This is placeholder data.
   const weeklyEngagementData = [
@@ -263,15 +264,6 @@ export async function getEngagementData() {
     { subject: 'Assignment Timeliness', current: 92, target: 95 },
     { subject: 'Resource Utilization', current: 65, target: 70 },
     { subject: 'Avg Session Duration', current: 88, target: 85 },
-  ];
-
-  // NOTE: This is placeholder data.
-  const moduleProgressData = [
-    { name: 'Module 1', completed: 150, inProgress: 80, notStarted: 20 },
-    { name: 'Module 2', completed: 120, inProgress: 90, notStarted: 40 },
-    { name: 'Module 3', completed: 100, inProgress: 70, notStarted: 80 },
-    { name: 'Module 4', completed: 90, inProgress: 60, notStarted: 100 },
-    { name: 'Module 5', completed: 70, inProgress: 50, notStarted: 130 },
   ];
 
   return {

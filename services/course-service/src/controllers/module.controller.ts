@@ -107,4 +107,18 @@ export class ModuleController {
       next(error);
     }
   }
+
+  public static async getBulk(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { moduleIds } = req.body;
+      const modules = await ModuleService.getModulesByIds(moduleIds);
+      res.status(StatusCodes.OK).json(modules);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
