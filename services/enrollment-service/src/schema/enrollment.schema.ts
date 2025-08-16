@@ -99,3 +99,12 @@ export const getEnrollmentsSchema = z.object({
     limit: z.coerce.number().int().min(1).max(100).default(20),
   }),
 });
+
+export const moduleProgressStatsSchema = z.object({
+  name: z.string(),
+  completed: z.number(),
+  inProgress: z.number(),
+  notStarted: z.number(),
+});
+
+export type ModuleProgressStats = z.infer<typeof moduleProgressStatsSchema>;

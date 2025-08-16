@@ -102,6 +102,7 @@ export class EnrollmentService {
       totalLessons += lessonIds.length;
       return {
         id: module.id,
+        title: module.title,
         lessonIds: lessonIds,
       };
     });

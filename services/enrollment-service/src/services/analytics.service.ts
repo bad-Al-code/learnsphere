@@ -6,11 +6,6 @@ import { AnalyticsRepository } from '../db/analytics.repository';
 import { CourseRepository } from '../db/course.repository';
 import { UserProfileData } from '../types';
 
-interface ModuleDetails {
-  id: string;
-  title: string;
-}
-
 export class AnalyticsService {
   /**
    * @private
@@ -218,33 +213,14 @@ export class AnalyticsService {
 
   /**
    * @async
-   * @description Gets and formats the module progress distribution for an instructor.
+   * @description Gets the module progress distribution for an instructor.
    * @param {string} instructorId - The UUID of the instructor.
-   * @returns {Promise<any>} A promise that resolves with the formatted chart data.
+   * @returns {Promise<ModuleProgressStats[]>} Formatted data for the chart.
    */
   public static async getModuleProgress(instructorId: string) {
-    const progressData =
-      await AnalyticsRepository.getModuleProgressForInstructor(instructorId);
-
-    if (progressData.length === 0) {
-      return [];
-    }
-
-    const moduleIds = progressData.map((p: any) => p.module_id);
-
-    const courseServiceUrl = env.COURSE_SERVICE_URL;
-    const response = await axios.post<any[]>(
-      `${courseServiceUrl}/api/modules/bulk`,
-      { moduleIds }
-    );
-    const moduleDetailsMap = new Map(response.data.map((m) => [m.id, m.title]));
-
-    return progressData.map((p: any) => ({
-      name: moduleDetailsMap.get(p.module_id) || 'Unknown Module',
-      completed: p.completed,
-      inProgress: p.inProgress,
-      notStarted: p.notStarted,
-    }));
+    // The service now simply calls the repository and returns the data.
+    // All API calls and data merging logic have been removed.
+    return AnalyticsRepository.getModuleProgressForInstructor(instructorId);
   }
 
   /**

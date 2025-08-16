@@ -9,7 +9,12 @@ import {
   sql,
   sum,
 } from 'drizzle-orm';
+import z from 'zod';
 import { db } from '.';
+import {
+  ModuleProgressStats,
+  moduleProgressStatsSchema,
+} from '../schema/enrollment.schema';
 import { courses, dailyActivity, enrollments } from './schema';
 
 export class AnalyticsRepository {
@@ -261,24 +266,24 @@ export class AnalyticsRepository {
    * @returns {Promise<Array<{moduleId: string, completed: number, inProgress: number, notStarted: number}>>}
    * A promise that resolves to an array of progress stats for each module.
    */
-  public static async getModuleProgressForInstructor(instructorId: string) {
+  public static async getModuleProgressForInstructor(
+    instructorId: string
+  ): Promise<ModuleProgressStats[]> {
     const instructorCourses = await db
-      .select({ id: courses.id, title: courses.title }) // Select title as well
+      .select({ id: courses.id })
       .from(courses)
       .where(eq(courses.instructorId, instructorId));
 
     if (instructorCourses.length === 0) {
       return [];
     }
-
-    const courseMap = new Map(instructorCourses.map((c) => [c.id, c.title]));
-    const courseIds = Array.from(courseMap.keys());
+    const courseIds = instructorCourses.map((c) => c.id);
 
     const result = await db.execute(sql`
       WITH StudentModuleProgress AS (
         SELECT
           (m.value ->> 'id')::uuid AS module_id,
-          e.course_id,
+          (m.value ->> 'title') AS module_title,
           (
             SELECT COUNT(*)
             FROM jsonb_array_elements_text(m.value -> 'lessonIds') AS lesson_id
@@ -288,26 +293,33 @@ export class AnalyticsRepository {
         FROM
           enrollments e
         CROSS JOIN
-          jsonb_array_elements(e.course_structure -> 'modules') WITH ORDINALITY AS m(value, "order")
+          jsonb_array_elements(e.course_structure -> 'modules') m
         WHERE e.course_id IN ${courseIds}
       )
       SELECT
-        module_id,
-        course_id,
+        module_title AS name,
         SUM(CASE WHEN completed_lessons = total_lessons AND total_lessons > 0 THEN 1 ELSE 0 END)::int AS completed,
         SUM(CASE WHEN completed_lessons > 0 AND completed_lessons < total_lessons THEN 1 ELSE 0 END)::int AS "inProgress",
         SUM(CASE WHEN completed_lessons = 0 THEN 1 ELSE 0 END)::int AS "notStarted"
       FROM
         StudentModuleProgress
       GROUP BY
-        module_id, course_id;
+        module_title
+      HAVING module_title IS NOT NULL;
     `);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (result.rows as any[]).map((row) => ({
-      ...row,
-      name: `Module for ${courseMap.get(row.course_id) || 'Unknown Course'}`,
-    }));
+    const validationSchema = z.array(moduleProgressStatsSchema);
+
+    try {
+      return validationSchema.parse(result.rows);
+    } catch (error) {
+      console.error(
+        'SQL query result for module progress did not match expected schema:',
+        error
+      );
+
+      return [];
+    }
   }
 
   /**
