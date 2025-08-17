@@ -1,4 +1,5 @@
 import {
+  Activity,
   Award,
   BarChart2,
   Bell,
@@ -18,6 +19,7 @@ import {
   Shield,
   User,
   Users,
+  UserSquare,
 } from 'lucide-react';
 
 export const iconMap = {
@@ -40,6 +42,8 @@ export const iconMap = {
   BookOpen,
   FileText,
   Info,
+  UserSquare,
+  Activity,
 };
 
 export type IconName = keyof typeof iconMap;

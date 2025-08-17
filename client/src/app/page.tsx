@@ -1,8 +1,5 @@
 import { HomepageClient } from '@/components/shared/homepage-client';
-import {
-  AllStudentsTable,
-  AllStudentsTableSkeleton,
-} from './(app)/_components/all-students-table';
+import { StatCardGrid } from './(app)/dashboard/students/_components/student-minit-stat-card';
 import { getCurrentUser } from './(auth)/actions';
 
 export default async function Home() {
@@ -16,10 +13,8 @@ export default async function Home() {
           This is the homepage. Explore our courses and start learning!
         </p>
 
-        <div className="mt-6 space-y-4">
-          <AllStudentsTable />
-          <AllStudentsTableSkeleton />
-        </div>
+        <div className="mt-6 grid grid-cols-1 space-x-4 md:grid-cols-2"></div>
+        <StatCardGrid />
       </main>
 
       <HomepageClient user={user} />

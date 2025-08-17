@@ -21,7 +21,7 @@ interface StudentData {
   name: string;
   email: string;
   avatarUrl?: string;
-  status: 'Active' | 'Inactive' | 'Risk';
+  status: 'Active' | 'Inactive' | 'At Risk';
   progress: number;
   grade: string;
   timeSpent: string;

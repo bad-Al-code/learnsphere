@@ -34,6 +34,39 @@ export const instructorDashboardTabs: NavItem[] = [
   { href: '/dashboard', label: 'Insights', value: 'insights', icon: 'Eye' },
 ];
 
+export const instructorStudentsTabs: NavItem[] = [
+  {
+    href: '/dashboard/students',
+    label: 'Overview',
+    value: 'overview',
+    icon: 'LayoutGrid',
+  },
+  {
+    href: '/dashboard/students',
+    label: 'All Students',
+    value: 'all-students',
+    icon: 'Users',
+  },
+  {
+    href: '/dashboard/students',
+    label: 'Student Profiles',
+    value: 'student-profiles',
+    icon: 'UserSquare',
+  },
+  {
+    href: '/dashboard/students',
+    label: 'Analytics',
+    value: 'analytics',
+    icon: 'BarChart2',
+  },
+  {
+    href: '/dashboard/students',
+    label: 'Activity',
+    value: 'activity',
+    icon: 'Activity',
+  },
+];
+
 export const settingsNavItems: NavItem[] = [
   {
     href: '/settings/profile',
@@ -97,7 +130,7 @@ export const instructorNavItems: NavItem[] = [
     icon: 'BookCopy',
   },
   {
-    href: '/dashboard/instructor/students',
+    href: '/dashboard/students',
     label: 'Students',
     value: 'students',
     icon: 'Users',

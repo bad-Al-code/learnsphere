@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation';
-
 import { getCurrentUser } from '@/app/(auth)/actions';
 import { Sidebar } from './_components/sidebar';
 
@@ -10,13 +8,13 @@ export default async function AppLayout({
 }) {
   const user = await getCurrentUser();
 
-  if (!user) {
-    redirect('/login');
-  }
+  // if (!user) {
+  //   redirect('/login');
+  // }
 
-  if (!['instructor', 'admin'].includes(user.role)) {
-    redirect('/');
-  }
+  // if (!['instructor', 'admin'].includes(user.role)) {
+  //   redirect('/');
+  // }
 
   return (
     <div className="container mx-auto pb-4 md:py-4">

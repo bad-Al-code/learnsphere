@@ -34,12 +34,12 @@ export function AppTabs({ tabs, basePath, activeTab }: AppTabsProps) {
   const getTabClassNames = () => {
     switch (device) {
       case 'mobile':
-        return 'grid w-full grid-cols-6 mx-auto';
+        return 'flex w-full  mx-auto';
       case 'tablet':
-        return 'grid w-full grid-cols-6 ';
+        return 'flex w-full mx-auto ';
       case 'desktop':
       default:
-        return 'grid w-full grid-cols-6';
+        return 'flex w-full mx-auto ';
     }
   };
 
