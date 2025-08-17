@@ -4,6 +4,7 @@ import OnboardingModal from '@/components/shared/onboarding-modal';
 import { useEffect, useState } from 'react';
 
 type User = {
+  email: string;
   firstName: string | null;
   headline: string | null;
   bio: string | null;

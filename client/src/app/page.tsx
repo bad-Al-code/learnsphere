@@ -1,4 +1,8 @@
 import { HomepageClient } from '@/components/shared/homepage-client';
+import {
+  DemographicsChart,
+  DemographicsChartSkeleton,
+} from './(app)/_components/demographic-chart';
 import { getCurrentUser } from './(auth)/actions';
 
 export default async function Home() {
@@ -11,6 +15,9 @@ export default async function Home() {
         <p className="mt-4">
           This is the homepage. Explore our courses and start learning!
         </p>
+
+        <DemographicsChart />
+        <DemographicsChartSkeleton />
       </main>
 
       <HomepageClient user={user} />

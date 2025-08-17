@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/chart';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMemo } from 'react';
-import { Pie, PieChart } from 'recharts';
+import { Cell, Label, Pie, PieChart } from 'recharts';
 
 interface DemographicsChartProps {
   data: { name: string; value: number }[];
@@ -34,15 +34,33 @@ export function DemographicsChart({ data }: DemographicsChartProps) {
     }, {} as ChartConfig);
   }, [data]);
 
+  const totalValue = useMemo(() => {
+    return data.reduce((acc, curr) => acc + curr.value, 0);
+  }, [data]);
+
   return (
     <ChartContainer
       config={chartConfig}
-      className="mx-auto aspect-square max-h-[350px]"
+      className="mx-auto aspect-square max-h-[300px]"
     >
       <PieChart>
         <ChartTooltip
           cursor={false}
-          content={<ChartTooltipContent hideLabel />}
+          content={
+            <ChartTooltipContent
+              hideLabel
+              formatter={(value, name, item) => (
+                <>
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  {item.payload.name}: {value} (
+                  {((Number(value) / totalValue) * 100).toFixed(1)}%)
+                </>
+              )}
+            />
+          }
         />
         <Pie
           data={data}
@@ -50,10 +68,45 @@ export function DemographicsChart({ data }: DemographicsChartProps) {
           nameKey="name"
           cx="50%"
           cy="50%"
+          innerRadius={60}
           outerRadius={100}
           label={false}
           labelLine={false}
-        />
+          strokeWidth={0}
+        >
+          <Label
+            content={({ viewBox }) => {
+              if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                return (
+                  <text
+                    x={viewBox.cx}
+                    y={viewBox.cy}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                  >
+                    <tspan
+                      x={viewBox.cx}
+                      y={viewBox.cy}
+                      className="fill-foreground text-3xl font-bold"
+                    >
+                      {totalValue.toLocaleString()}
+                    </tspan>
+                    <tspan
+                      x={viewBox.cx}
+                      y={(viewBox.cy || 0) + 20}
+                      className="fill-muted-foreground"
+                    >
+                      Students
+                    </tspan>
+                  </text>
+                );
+              }
+            }}
+          />
+          {data.map((entry) => (
+            <Cell key={entry.name} fill={chartConfig[entry.name]?.color} />
+          ))}
+        </Pie>
         <ChartLegend
           content={<ChartLegendContent nameKey="name" />}
           className="flex-rows [&>*]:flex-wrap"
