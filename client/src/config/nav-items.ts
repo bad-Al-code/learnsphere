@@ -67,6 +67,39 @@ export const instructorStudentsTabs: NavItem[] = [
   },
 ];
 
+export const instructorAnalyticsTabs: NavItem[] = [
+  {
+    href: '/dashboard/analytics',
+    label: 'Overview',
+    value: 'overview',
+    icon: 'LayoutGrid',
+  },
+  {
+    href: '/dashboard/analytics',
+    label: 'Course Analysis',
+    value: 'course-analysis',
+    icon: 'BookOpen',
+  },
+  {
+    href: '/dashboard/analytics',
+    label: 'Student Performance',
+    value: 'student-performance',
+    icon: 'GraduationCap',
+  },
+  {
+    href: '/dashboard/analytics',
+    label: 'Engagement',
+    value: 'engagement',
+    icon: 'HeartHandshake',
+  },
+  {
+    href: '/dashboard/analytics',
+    label: 'Reports',
+    value: 'reports',
+    icon: 'FileBarChart',
+  },
+];
+
 export const settingsNavItems: NavItem[] = [
   {
     href: '/settings/profile',
@@ -136,7 +169,7 @@ export const instructorNavItems: NavItem[] = [
     icon: 'Users',
   },
   {
-    href: '/dashboard/instructor/analytics',
+    href: '/dashboard/analytics',
     label: 'Analytics',
     value: 'analytics',
     icon: 'LineChart',

@@ -8,8 +8,10 @@ import {
   BookOpenCheck,
   Calendar,
   Eye,
+  FileBarChart,
   FileText,
   FolderKanban,
+  GraduationCap,
   HeartHandshake,
   Info,
   LayoutGrid,
@@ -44,6 +46,8 @@ export const iconMap = {
   Info,
   UserSquare,
   Activity,
+  GraduationCap,
+  FileBarChart,
 };
 
 export type IconName = keyof typeof iconMap;
