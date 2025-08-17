@@ -119,10 +119,10 @@ async function runSeed() {
     await db.delete(users);
     await db.delete(courses);
 
-    console.log('Listening for course and user events for 10 minutes...');
+    console.log('Listening for course and user events for 15 minutes...');
     new TempCourseListener().listen();
     new TempUserListener().listen();
-    await new Promise((resolve) => setTimeout(resolve, 600000));
+    await new Promise((resolve) => setTimeout(resolve, 900000));
 
     await seedLocalTables();
     await seedPayments();

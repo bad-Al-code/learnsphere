@@ -195,12 +195,12 @@ async function runSeed() {
     await db.delete(users);
     await db.delete(courses);
 
-    console.log('Listening for user and course events for 10 minutes...');
+    console.log('Listening for user and course events for 15 minutes...');
     new TempUserListener().listen();
     new TempCourseListener().listen();
     new DiscussionPostCreatedListener().listen();
 
-    await new Promise((resolve) => setTimeout(resolve, 600000));
+    await new Promise((resolve) => setTimeout(resolve, 900000));
 
     if (receivedUsers.length > 0)
       await db.insert(users).values(receivedUsers).onConflictDoNothing();

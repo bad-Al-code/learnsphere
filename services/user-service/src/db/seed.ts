@@ -104,8 +104,9 @@ async function runSeed() {
     console.log('Clearing existing profiles data...');
     await db.delete(profiles);
 
+    console.log('Listening for user events for 15 minutes...');
     new TempUserListener().listen();
-    await new Promise((resolve) => setTimeout(resolve, 600000));
+    await new Promise((resolve) => setTimeout(resolve, 900000));
 
     await seedProfiles();
 

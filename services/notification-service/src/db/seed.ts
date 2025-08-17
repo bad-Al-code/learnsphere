@@ -86,10 +86,10 @@ async function runSeed() {
     await db.delete(emailOutbox);
     await db.delete(users);
 
-    console.log('Listening for user and enrollment events for 10 minutes...');
+    console.log('Listening for user and enrollment events for 15 minutes...');
     new TempUserListener().listen();
     new TempEnrollmentListener().listen();
-    await new Promise((resolve) => setTimeout(resolve, 600000));
+    await new Promise((resolve) => setTimeout(resolve, 900000));
 
     if (receivedUsers.length > 0) {
       await db.insert(users).values(receivedUsers).onConflictDoNothing();
