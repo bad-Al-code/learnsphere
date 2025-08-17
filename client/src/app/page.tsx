@@ -1,8 +1,8 @@
 import { HomepageClient } from '@/components/shared/homepage-client';
 import {
-  DemographicsChart,
-  DemographicsChartSkeleton,
-} from './(app)/_components/demographic-chart';
+  AllStudentsTable,
+  AllStudentsTableSkeleton,
+} from './(app)/_components/all-students-table';
 import { getCurrentUser } from './(auth)/actions';
 
 export default async function Home() {
@@ -16,8 +16,10 @@ export default async function Home() {
           This is the homepage. Explore our courses and start learning!
         </p>
 
-        <DemographicsChart />
-        <DemographicsChartSkeleton />
+        <div className="mt-6 space-y-4">
+          <AllStudentsTable />
+          <AllStudentsTableSkeleton />
+        </div>
       </main>
 
       <HomepageClient user={user} />
