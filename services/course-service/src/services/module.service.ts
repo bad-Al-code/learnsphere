@@ -130,6 +130,8 @@ export class ModuleService {
   }
 
   public static async getModulesByIds(moduleIds: string[]) {
-    return ModuleRepository.findManyByIdsSimple(moduleIds);
+    const result = await ModuleRepository.findManyByIdsSimple(moduleIds);
+
+    return result;
   }
 }

@@ -1,8 +1,4 @@
 import { HomepageClient } from '@/components/shared/homepage-client';
-import {
-  EngagementRadarChart,
-  EngagementRadarChartSkeleton,
-} from './(app)/dashboard/analytics/_components/engagement-radar';
 import { getCurrentUser } from './(auth)/actions';
 
 export default async function Home() {
@@ -17,8 +13,6 @@ export default async function Home() {
         </p>
 
         <div className="mt-6 grid grid-cols-1 gap-4 space-y-4 md:grid-cols-2 lg:grid-cols-4"></div>
-        <EngagementRadarChart />
-        <EngagementRadarChartSkeleton />
       </main>
 
       <HomepageClient user={user} />

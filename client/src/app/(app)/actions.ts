@@ -307,3 +307,63 @@ export async function getEngagementData() {
     topStudents: topStudentsData || [],
   };
 }
+
+export async function getPerformanceTabData() {
+  try {
+    const response = await courseService.get(
+      '/api/analytics/instructor/content-performance'
+    );
+    if (!response.ok) {
+      console.error('Failed to fetch content performance data');
+      return { contentPerformance: [], kpis: [] };
+    }
+    const data = await response.json();
+
+    const kpiData = [
+      {
+        title: 'Average Time Spent',
+        value: '2h 30m',
+        change: 10,
+        target: '2h 45m',
+      },
+      { title: 'Quiz Success Rate', value: '85%', change: 3, target: '80%' },
+      {
+        title: 'Assignment Completion',
+        value: '78%',
+        change: -2,
+        target: '85%',
+      },
+      {
+        title: 'Discussion Participation',
+        value: '65%',
+        change: 8,
+        target: '70%',
+      },
+      { title: 'Video Watch Time', value: '92%', change: 5, target: '90%' },
+      {
+        title: 'Resource Downloads',
+        value: '1,240',
+        change: 15,
+        target: '1,000',
+      },
+      { title: 'Forum Posts', value: '2,850', change: 12, target: '2,500' },
+      {
+        title: 'Live Session Attendance',
+        value: '68%',
+        change: 6,
+        target: '75%',
+      },
+      {
+        title: 'Certificate Completion',
+        value: '52%',
+        change: 8,
+        target: '60%',
+      },
+    ];
+
+    return { contentPerformance: data, kpis: kpiData };
+  } catch (error) {
+    console.error('Error fetching performance tab data:', error);
+    return { contentPerformance: [], kpis: [] };
+  }
+}

@@ -81,25 +81,25 @@ async function DashboardStats({ searchParams }: DashboardStatsProps) {
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="performance" className="mt-5">
+        <TabsContent value="performance" className="mt-0">
           <Suspense fallback={<PerformanceTabSkeleton />}>
             <PerformanceTab />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="comparison" className="mt-5">
+        <TabsContent value="comparison" className="mt-0">
           <Suspense fallback={<ComparisonTabSkeleton />}>
             <ComparisonTab />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="analytics" className="mt-5">
+        <TabsContent value="analytics" className="mt-0">
           <Suspense fallback={<AnalyticsTabSkeleton />}>
             <AnalyticsTab />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="insights" className="mt-5">
+        <TabsContent value="insights" className="mt-0">
           <Suspense fallback={<InsightsTabSkeleton />}>
             <InsightsTab />
           </Suspense>

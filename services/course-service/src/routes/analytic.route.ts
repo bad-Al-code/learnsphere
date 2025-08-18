@@ -25,4 +25,23 @@ router.get(
   AnalyticsController.getLearningAnalytics
 );
 
+/**
+ * @openapi
+ * /api/analytics/instructor/content-performance:
+ *   get:
+ *     summary: "[Instructor] Get performance analysis for different content types"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An array of objects representing performance for each content type.
+ */
+router.get(
+  '/instructor/content-performance',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getContentPerformance
+);
+
 export { router as analyticsRouter };

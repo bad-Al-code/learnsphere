@@ -20,4 +20,20 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getContentPerformance(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const instructorId = req.currentUser?.id;
+      if (!instructorId) throw new NotAuthorizedError();
+
+      const data = await AnalyticsService.getContentPerformance(instructorId);
+      res.status(StatusCodes.OK).json(data);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

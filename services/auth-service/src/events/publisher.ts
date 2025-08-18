@@ -1,3 +1,4 @@
+import logger from '../config/logger';
 import { rabbitMQConnection } from './connection';
 
 export abstract class Publisher<T extends { topic: string; data: unknown }> {
@@ -15,10 +16,10 @@ export abstract class Publisher<T extends { topic: string; data: unknown }> {
 
     channel.publish(this.exchange, this.topic, Buffer.from(message));
 
-    // logger.info(
-    //   `Event published to exchange '${this.exchange}' with topic '${this.topic}': %o`,
-    //   data
-    // );
+    logger.info(
+      `Event published to exchange '${this.exchange}' with topic '${this.topic}': %o`,
+      data
+    );
   }
 }
 
