@@ -157,7 +157,7 @@ export const instructorNavItems: NavItem[] = [
     icon: 'LayoutGrid',
   },
   {
-    href: '/dashboard/instructor/courses',
+    href: '/dashboard/courses',
     label: 'My Courses',
     value: 'courses',
     icon: 'BookCopy',
