@@ -82,3 +82,39 @@ export async function getMyCourses(options: {
     },
   };
 }
+
+export async function getCourseDetails(
+  courseId: string
+): Promise<Course | null> {
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  const seededFaker = faker;
+  seededFaker.seed(
+    courseId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  );
+
+  return {
+    id: courseId,
+    title: seededFaker.lorem.words(3).replace(/\b\w/g, (l) => l.toUpperCase()),
+    description: seededFaker.lorem.sentence(),
+    status: seededFaker.helpers.arrayElement(['draft', 'published']),
+    imageUrl: `https://picsum.photos/seed/${courseId}/600/400`,
+    price: seededFaker.number.float({ min: 499, max: 2999, fractionDigits: 2 }),
+    currency: 'INR',
+    level: seededFaker.helpers.arrayElement([
+      'beginner',
+      'intermediate',
+      'advanced',
+    ]),
+    averageRating: seededFaker.number.float({
+      min: 3.5,
+      max: 5,
+      fractionDigits: 1,
+    }),
+    enrollmentCount: seededFaker.number.int({ min: 50, max: 1500 }),
+    modules: Array.from({ length: seededFaker.number.int({ min: 3, max: 8 }) }),
+    completionRate: seededFaker.number.int({ min: 40, max: 95 }),
+    updatedAt: seededFaker.date.recent({ days: 30 }).toISOString(),
+    instructorId: '',
+  };
+}

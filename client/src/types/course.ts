@@ -17,6 +17,7 @@ export type Course = {
   updatedAt?: string | null;
   enrollmentCount?: number | null;
   modules?: number[] | [];
+  instructorId?: string;
 };
 
 export const COURSE_LEVELS = [
