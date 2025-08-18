@@ -19,7 +19,7 @@ export default async function CourseEditorLayout({
   }
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="">
       <div className="mb-4 flex items-center text-sm">
         <Link
           href="/my-courses"
