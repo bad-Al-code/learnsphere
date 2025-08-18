@@ -1,4 +1,8 @@
 import { HomepageClient } from '@/components/shared/homepage-client';
+import {
+  MessageTemplates,
+  MessageTemplatesSkeleton,
+} from './(app)/dashboard/communication/_components/template-card-tab';
 import { getCurrentUser } from './(auth)/actions';
 
 export default async function Home() {
@@ -12,7 +16,9 @@ export default async function Home() {
           This is the homepage. Explore our courses and start learning!
         </p>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 space-y-4 md:grid-cols-2 lg:grid-cols-4"></div>
+        <MessageTemplates />
+        <div className="mt-10"></div>
+        <MessageTemplatesSkeleton />
       </main>
 
       <HomepageClient user={user} />
