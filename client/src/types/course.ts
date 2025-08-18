@@ -7,11 +7,16 @@ export type Course = {
   imageUrl: string | null;
   price: number | null;
   currency: string | undefined;
-  instructor: {
+  instructor?: {
     firstName: string | null;
     lastName: string | null;
     avatarUrls?: { small?: string };
   } | null;
+  averageRating?: number | null;
+  completionRate?: number | null;
+  updatedAt?: string | null;
+  enrollmentCount?: number | null;
+  modules?: number[] | [];
 };
 
 export const COURSE_LEVELS = [
