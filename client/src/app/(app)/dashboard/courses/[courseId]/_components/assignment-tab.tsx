@@ -27,7 +27,6 @@ import {
 } from '@/components/ui/table';
 import { MoreHorizontal, Plus } from 'lucide-react';
 
-// --- TYPE DEFINITIONS ---
 type AssignmentStatusType = 'Active' | 'Upcoming' | 'Completed';
 
 interface Assignment {
@@ -45,7 +44,6 @@ interface AssignmentsTabProps {
   data?: Assignment[];
 }
 
-// --- BUILT-IN PLACEHOLDER DATA ---
 const placeholderData: Assignment[] = [
   {
     title: 'Data Analysis Project',
@@ -89,7 +87,6 @@ const placeholderData: Assignment[] = [
   },
 ];
 
-// --- HELPER FUNCTION for dynamic badge styling ---
 const getStatusBadgeVariant = (
   status: AssignmentStatusType
 ): 'default' | 'outline' | 'secondary' => {
@@ -103,7 +100,6 @@ const getStatusBadgeVariant = (
   }
 };
 
-// --- MAIN COMPONENT ---
 export function AssignmentsTab({
   data = placeholderData,
 }: AssignmentsTabProps) {
@@ -203,7 +199,6 @@ export function AssignmentsTab({
   );
 }
 
-// --- SKELETON COMPONENT ---
 export function AssignmentsTabSkeleton() {
   return (
     <div className="space-y-6">

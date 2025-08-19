@@ -12,6 +12,10 @@ import {
 import { ContentTab, ContentTabSkeleton } from './_components/content-tab';
 import { PageHeader, PageHeaderSkeleton } from './_components/course-header';
 import OverviewTab, { OverviewTabSkeleton } from './_components/overview-tab';
+import {
+  ResourcesTab,
+  ResourcesTabSkeleton,
+} from './_components/resources-tab';
 
 interface CourseEditorPageProps {
   params: { courseId: string };
@@ -62,7 +66,9 @@ async function CourseEditorPageContent({
         </TabsContent>
 
         <TabsContent value="resources" className="mt-2">
-          <p>Resources Tab Content Goes Here...</p>
+          <Suspense fallback={<ResourcesTabSkeleton />}>
+            <ResourcesTab />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-2">
@@ -104,6 +110,8 @@ function CourseEditorPageSkeleton({
         return <ContentTabSkeleton />;
       case 'assignments':
         return <AssignmentsTabSkeleton />;
+      case 'resources':
+        return <ResourcesTabSkeleton />;
       case 'overview':
       default:
         return <OverviewTabSkeleton />;
