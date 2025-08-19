@@ -5,6 +5,10 @@ import { courseEditorTabs } from '@/config/nav-items';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getCourseDetails } from '../actions';
+import {
+  AssignmentsTab,
+  AssignmentsTabSkeleton,
+} from './_components/assignment-tab';
 import { ContentTab, ContentTabSkeleton } from './_components/content-tab';
 import { PageHeader, PageHeaderSkeleton } from './_components/course-header';
 import OverviewTab, { OverviewTabSkeleton } from './_components/overview-tab';
@@ -52,7 +56,9 @@ async function CourseEditorPageContent({
         </TabsContent>
 
         <TabsContent value="assignments" className="mt-2">
-          <p>Assignments Tab Content Goes Here...</p>
+          <Suspense fallback={<AssignmentsTabSkeleton />}>
+            <AssignmentsTab />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="resources" className="mt-2">
@@ -96,8 +102,8 @@ function CourseEditorPageSkeleton({
     switch (tab) {
       case 'content':
         return <ContentTabSkeleton />;
-      // case 'assignments':
-      //   return <AssignmentsTabSkeleton />;
+      case 'assignments':
+        return <AssignmentsTabSkeleton />;
       case 'overview':
       default:
         return <OverviewTabSkeleton />;
