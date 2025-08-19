@@ -1,8 +1,4 @@
 import { HomepageClient } from '@/components/shared/homepage-client';
-import {
-  LessonMiniCard,
-  LessonMiniCardSkeleton,
-} from './(app)/dashboard/courses/[courseId]/_components/lesson-mini-card';
 import { getCurrentUser } from './(auth)/actions';
 
 export default async function Home() {
@@ -16,9 +12,7 @@ export default async function Home() {
           This is the homepage. Explore our courses and start learning!
         </p>
 
-        <LessonMiniCard />
         <div className="mt-10"></div>
-        <LessonMiniCardSkeleton />
       </main>
 
       <HomepageClient user={user} />

@@ -20,6 +20,7 @@ export function PageHeader({ title, description }: PageHeaderProps) {
         size="icon"
         onClick={() => router.back()}
         aria-label="Go back"
+        title="Go back"
       >
         <ArrowLeft className="h-5 w-5" />
       </Button>
