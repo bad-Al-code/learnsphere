@@ -26,14 +26,12 @@ export default async function CourseDetailPage({
   return (
     <div className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {/* Main Content */}
         <div className="space-y-6 md:col-span-2">
           <h1 className="text-3xl font-bold md:text-4xl">{course.title}</h1>
           <p className="text-muted-foreground text-base md:text-lg">
             {course.description}
           </p>
 
-          {/* Instructor */}
           <div className="flex items-center gap-4 pt-4">
             <Avatar className="h-10 w-10 md:h-12 md:w-12">
               <AvatarImage src={course.instructor?.avatarUrls?.medium} />
@@ -56,11 +54,9 @@ export default async function CourseDetailPage({
 
           <hr className="my-6" />
 
-          {/* Curriculum */}
           <Curriculum modules={course.modules} />
         </div>
 
-        {/* Right Sidebar */}
         <div className="md:col-span-1">
           <div className="sticky top-24 space-y-4 md:space-y-6">
             <AspectRatio

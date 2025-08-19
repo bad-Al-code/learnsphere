@@ -68,6 +68,14 @@ export const courseEditorTabs: NavItem[] = [
   },
 ];
 
+export const lessonEditorTabs: NavItem[] = [
+  { value: 'content', label: 'Content', icon: 'FileText', href: '#' },
+  { value: 'analytics', label: 'Analytics', icon: 'BarChart2', href: '#' },
+  { value: 'students', label: 'Students', icon: 'Users', href: '#' },
+  { value: 'comments', label: 'Comments', icon: 'MessageSquare', href: '#' },
+  { value: 'settings', label: 'Settings', icon: 'Settings', href: '#' },
+];
+
 export const instructorStudentsTabs: NavItem[] = [
   {
     href: '/dashboard/students',

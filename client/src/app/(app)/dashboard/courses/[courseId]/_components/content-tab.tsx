@@ -34,6 +34,7 @@ import {
   Upload,
   Video,
 } from 'lucide-react';
+import Link from 'next/link';
 import { AddLessonForm, AddModuleForm, FormDialog } from './course-modal';
 
 type LessonType = 'video' | 'text' | 'quiz';
@@ -55,6 +56,7 @@ interface Module {
 
 interface ContentTabProps {
   initialModules?: Module[];
+  courseId: string;
 }
 
 const placeholderModules: Module[] = [
@@ -120,6 +122,7 @@ const lessonIcons: Record<LessonType, LucideIcon> = {
 
 export function ContentTab({
   initialModules = placeholderModules,
+  courseId,
 }: ContentTabProps) {
   const { items: modules, onDragEnd: onModulesDragEnd } =
     useDndState(initialModules);
@@ -144,7 +147,12 @@ export function ContentTab({
                   className="space-y-4"
                 >
                   {modules.map((module, index) => (
-                    <ModuleItem key={module.id} module={module} index={index} />
+                    <ModuleItem
+                      key={module.id}
+                      module={module}
+                      index={index}
+                      courseId={courseId}
+                    />
                   ))}
                   {provided.placeholder}
                 </div>
@@ -157,56 +165,74 @@ export function ContentTab({
   );
 }
 
-function LessonItem({ lesson, index }: { lesson: Lesson; index: number }) {
+function LessonItem({
+  lesson,
+  index,
+  courseId,
+}: {
+  lesson: Lesson;
+  index: number;
+  courseId: string;
+}) {
   const Icon = lessonIcons[lesson.type];
   return (
-    <Draggable draggableId={lesson.id} index={index}>
-      {(provided) => (
-        <Card
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          className="p-3"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-3">
-              <div {...provided.dragHandleProps}>
-                <GripVertical className="text-muted-foreground h-4 w-4 flex-shrink-0" />
+    <Link href={`/dashboard/courses/${courseId}/lessons/${lesson.id}`}>
+      <Draggable draggableId={lesson.id} index={index}>
+        {(provided) => (
+          <Card
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            className="p-3"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-3">
+                <div {...provided.dragHandleProps}>
+                  <GripVertical className="text-muted-foreground h-4 w-4 flex-shrink-0" />
+                </div>
+                <span className="bg-muted flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-sm font-semibold">
+                  {index + 1}
+                </span>
+                <Icon className="text-muted-foreground h-4 w-4 flex-shrink-0" />
+                <div className="truncate">
+                  <p className="truncate font-medium">{lesson.title}</p>
+                  <p className="text-muted-foreground truncate text-xs">
+                    {lesson.type} • {lesson.duration}
+                  </p>
+                </div>
               </div>
-              <span className="bg-muted flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-sm font-semibold">
-                {index + 1}
-              </span>
-              <Icon className="text-muted-foreground h-4 w-4 flex-shrink-0" />
-              <div className="truncate">
-                <p className="truncate font-medium">{lesson.title}</p>
-                <p className="text-muted-foreground truncate text-xs">
-                  {lesson.type} • {lesson.duration}
-                </p>
+              <div className="flex items-center gap-2">
+                <Badge className="hidden sm:inline-flex">Published</Badge>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                    <DropdownMenuItem className="text-destructive">
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge className="hidden sm:inline-flex">Published</Badge>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Edit</DropdownMenuItem>
-                  <DropdownMenuItem className="text-destructive">
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </Card>
-      )}
-    </Draggable>
+          </Card>
+        )}
+      </Draggable>
+    </Link>
   );
 }
 
-function ModuleItem({ module, index }: { module: Module; index: number }) {
+function ModuleItem({
+  module,
+  index,
+  courseId,
+}: {
+  module: Module;
+  index: number;
+  courseId: string;
+}) {
   const { items: lessons, onDragEnd: onLessonsDragEnd } = useDndState(
     module.lessons
   );
@@ -281,6 +307,7 @@ function ModuleItem({ module, index }: { module: Module; index: number }) {
                         key={lesson.id}
                         lesson={lesson}
                         index={lessonIndex}
+                        courseId={courseId}
                       />
                     ))}
                     {provided.placeholder}

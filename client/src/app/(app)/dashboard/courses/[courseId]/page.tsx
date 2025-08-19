@@ -60,7 +60,7 @@ async function CourseEditorPageContent({
 
         <TabsContent value="content" className="mt-2">
           <Suspense fallback={<ContentTabSkeleton />}>
-            <ContentTab />
+            <ContentTab courseId={courseId} />
           </Suspense>
         </TabsContent>
 
