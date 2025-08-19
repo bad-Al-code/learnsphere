@@ -11,7 +11,7 @@ import {
   Star,
   Users,
 } from 'lucide-react';
-import { getCourseOverviewData } from '../../../actions';
+import { getCourseOverviewData } from '../../actions';
 
 export async function OverviewStatCards({ courseId }: { courseId: string }) {
   const { stats } = await getCourseOverviewData(courseId);

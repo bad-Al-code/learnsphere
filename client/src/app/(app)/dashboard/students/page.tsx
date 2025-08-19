@@ -43,7 +43,7 @@ async function StudentPageStats({ searchParams }: StudentsStatsProps) {
     typeof searchParams.tab === 'string' ? searchParams.tab : 'overview';
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <DashboardHeader
         title="Student Management"
         description="Monitor student progress, engagement, and performance across all courses."
@@ -56,31 +56,31 @@ async function StudentPageStats({ searchParams }: StudentsStatsProps) {
           activeTab="tab"
         />
 
-        <TabsContent value="overview" className="mt-5">
+        <TabsContent value="overview" className="mt-4">
           <Suspense fallback={<OverviewTabSkeleton />}>
             <OverviewTab />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="all-students" className="mt-5">
+        <TabsContent value="all-students" className="mt-4">
           <Suspense fallback={<AllStudentsTabSkeleton />}>
             <AllStudentsTab />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="student-profiles" className="mt-5">
+        <TabsContent value="student-profiles" className="mt-4">
           <Suspense fallback={<StudentProfileCardSkeleton />}>
             <StudentProfilesTab />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="analytics" className="mt-5">
+        <TabsContent value="analytics" className="mt-4">
           <Suspense fallback={<AnalyticsTabSkeleton />}>
             <AnalyticsTab />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="activity" className="mt-5">
+        <TabsContent value="activity" className="mt-4">
           <Suspense fallback={<ActivityLogTabSkeleton />}>
             <ActivityLogTab />
           </Suspense>
@@ -92,19 +92,19 @@ async function StudentPageStats({ searchParams }: StudentsStatsProps) {
 
 function StudentsPageSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="mt-2 h-4 w-96" />
+        <Skeleton className="h-7 w-64" />
+        <Skeleton className="mt-1 h-4 w-96" />
       </div>
 
       <div className="flex border-b">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <Skeleton key={index} className="h-10 w-24" />
+        {Array.from({ length: 6 }).map((_, index) => (
+          <Skeleton key={index} className="h-9 w-24" />
         ))}
       </div>
 
-      <div className="mt-6">
+      <div className="mt-5">
         <OverviewTabSkeleton />
       </div>
     </div>

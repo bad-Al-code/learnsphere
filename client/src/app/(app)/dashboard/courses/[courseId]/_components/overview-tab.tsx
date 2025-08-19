@@ -3,35 +3,29 @@ import { getCourseOverviewData } from '../../actions';
 import {
   AssignmentStatus,
   AssignmentStatusSkeleton,
-} from './_components/assignment-status';
+} from './assignment-status';
 import {
   ModulePerformance,
   ModulePerformanceSkeleton,
-} from './_components/module-performance';
+} from './module-performance';
 import {
   OverviewStatCards,
   OverviewStatCardsSkeleton,
-} from './_components/overview-stat-cards';
-import {
-  RecentActivity,
-  RecentActivitySkeleton,
-} from './_components/recent-activity';
+} from './overview-stat-cards';
+import { RecentActivity, RecentActivitySkeleton } from './recent-activity';
 import {
   StudentsNeedingAttention,
   StudentsNeedingAttentionSkeleton,
-} from './_components/student-needing-attention';
-import {
-  TopPerformers,
-  TopPerformersSkeleton,
-} from './_components/top-performance';
+} from './student-needing-attention';
+import { TopPerformers, TopPerformersSkeleton } from './top-performance';
 
-export default function CourseOverviewPage({
+export default function OverviewTab({
   params,
 }: {
   params: { courseId: string };
 }) {
   return (
-    <Suspense fallback={<CourseOverviewPageSkeleton />}>
+    <Suspense fallback={<OverviewTabSkeleton />}>
       <PageContent courseId={params.courseId} />
     </Suspense>
   );
@@ -60,7 +54,7 @@ async function PageContent({ courseId }: { courseId: string }) {
   );
 }
 
-export function CourseOverviewPageSkeleton() {
+export function OverviewTabSkeleton() {
   return (
     <div className="space-y-6">
       <OverviewStatCardsSkeleton />

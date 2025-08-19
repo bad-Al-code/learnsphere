@@ -34,6 +34,40 @@ export const instructorDashboardTabs: NavItem[] = [
   { href: '/dashboard', label: 'Insights', value: 'insights', icon: 'Eye' },
 ];
 
+export const courseEditorTabs: NavItem[] = [
+  {
+    value: 'overview',
+    label: 'Overview',
+    icon: 'LayoutDashboard',
+    href: '/dashboard/courses',
+  },
+  { value: 'content', label: 'Content', icon: 'ListChecks', href: '/content' },
+  {
+    value: 'assignments',
+    label: 'Assignments',
+    icon: 'FileText',
+    href: '/dashboard/courses',
+  },
+  {
+    value: 'resources',
+    label: 'Resources',
+    icon: 'File',
+    href: '/dashboard/courses',
+  },
+  {
+    value: 'analytics',
+    label: 'Analytics',
+    icon: 'AreaChart',
+    href: '/dashboard/courses',
+  },
+  {
+    value: 'settings',
+    label: 'Settings',
+    icon: 'Settings',
+    href: '/dashboard/courses',
+  },
+];
+
 export const instructorStudentsTabs: NavItem[] = [
   {
     href: '/dashboard/students',
