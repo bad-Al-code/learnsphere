@@ -34,6 +34,7 @@ import {
   Upload,
   Video,
 } from 'lucide-react';
+import { AddModuleForm, FormDialog } from './course-modal';
 
 type LessonType = 'video' | 'text' | 'quiz';
 
@@ -297,9 +298,18 @@ function ContentTabHeader() {
           </p>
         </div>
         <div className="flex flex-shrink-0 items-center gap-2">
-          <Button variant="outline">
-            <Plus className="mr-2 h-4 w-4" /> Add Module
-          </Button>
+          <FormDialog
+            trigger={
+              <Button variant="outline">
+                <Plus className="h-4 w-4" />
+                Add Module
+              </Button>
+            }
+            title="Add New Module"
+            description="Create a new module for your course content."
+            form={<AddModuleForm />}
+            footer={<Button>Create Module</Button>}
+          />
           <Button>
             <Upload className="mr-2 h-4 w-4" /> Upload Content
           </Button>
