@@ -19,7 +19,10 @@ export function SidebarNav({ type }: SidebarNavProps) {
     <nav className="grid items-start gap-1 text-sm font-medium">
       {navItems.map((item) => {
         const Icon = iconMap[item.icon];
-        const isActive = pathname === item.href;
+        const isActive =
+          item.href === '/dashboard'
+            ? pathname === item.href
+            : pathname.startsWith(item.href);
         return (
           <Button
             key={item.href}

@@ -120,8 +120,6 @@ export async function getCourseDetails(
 }
 
 export async function getCourseOverviewData(courseId: string) {
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-
   const seededFaker = faker;
   seededFaker.seed(
     courseId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
@@ -195,7 +193,7 @@ export async function getCourseOverviewData(courseId: string) {
     assignment: seededFaker.lorem.words(4),
     dueDate: faker.date.future({ years: 0.1 }),
     submissions: seededFaker.number.int({
-      min: 100,
+      min: 20,
       max: stats.studentsEnrolled.value,
     }),
     total: stats.studentsEnrolled.value,

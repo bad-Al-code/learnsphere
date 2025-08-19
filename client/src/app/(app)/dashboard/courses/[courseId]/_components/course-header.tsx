@@ -1,28 +1,44 @@
-import { ChevronRight } from 'lucide-react';
-import Link from 'next/link';
+'use client';
 
-interface CourseHeaderProps {
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
+interface PageHeaderProps {
   title: string;
-  description: string | null;
+  description?: string | null;
 }
 
-export function CourseHeader({ title, description }: CourseHeaderProps) {
+export function PageHeader({ title, description }: PageHeaderProps) {
+  const router = useRouter();
+
   return (
-    <div>
-      <div className="flex items-center text-sm">
-        <Link
-          href="/dashboard/courses"
-          className="text-muted-foreground hover:underline"
-        >
-          My Courses
-        </Link>
-        <ChevronRight className="text-muted-foreground mx-1 h-4 w-4" />
-        <span className="truncate font-semibold">{title}</span>
+    <div className="mb-2 flex items-center gap-4">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => router.back()}
+        aria-label="Go back"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        {description && <p className="text-muted-foreground">{description}</p>}
       </div>
-      <h1 className="mt-2 text-3xl font-bold">{title}</h1>
-      {description && (
-        <p className="text-muted-foreground mt-1">{description}</p>
-      )}
+    </div>
+  );
+}
+
+export function PageHeaderSkeleton() {
+  return (
+    <div className="flex items-center gap-4">
+      <Skeleton className="h-10 w-10" />
+      <div>
+        <Skeleton className="h-7 w-48" />
+        <Skeleton className="mt-1 h-4 w-64" />
+      </div>
     </div>
   );
 }

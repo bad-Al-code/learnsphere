@@ -1,10 +1,12 @@
 import { AppTabs } from '@/components/ui/app-tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { courseEditorTabs } from '@/config/nav-items';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getCourseDetails } from '../actions';
-import { CourseHeader } from './_components/course-header';
+import { ContentTab, ContentTabSkeleton } from './_components/content-tab';
+import { PageHeader, PageHeaderSkeleton } from './_components/course-header';
 import OverviewTab, { OverviewTabSkeleton } from './_components/overview-tab';
 
 interface CourseEditorPageProps {
@@ -12,7 +14,7 @@ interface CourseEditorPageProps {
   searchParams: { [key: string]: string | string[] | undefined };
 }
 
-export default async function CourseEditorPage({
+async function CourseEditorPageContent({
   params,
   searchParams,
 }: CourseEditorPageProps) {
@@ -27,8 +29,8 @@ export default async function CourseEditorPage({
   }
 
   return (
-    <div className="space-y-2">
-      <CourseHeader title={course.title} description={course.description} />
+    <div className="">
+      <PageHeader title={course.title} description={course.description} />
 
       <Tabs value={tab} className="w-full">
         <AppTabs
@@ -44,7 +46,9 @@ export default async function CourseEditorPage({
         </TabsContent>
 
         <TabsContent value="content" className="mt-2">
-          <p>Content Tab Content Goes Here...</p>
+          <Suspense fallback={<ContentTabSkeleton />}>
+            <ContentTab />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="assignments" className="mt-2">
@@ -63,6 +67,55 @@ export default async function CourseEditorPage({
           <p>Settings Tab Content Goes Here...</p>
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+export default function CourseEditorPage({
+  params,
+  searchParams,
+}: CourseEditorPageProps) {
+  return (
+    <Suspense
+      fallback={<CourseEditorPageSkeleton searchParams={searchParams} />}
+    >
+      <CourseEditorPageContent params={params} searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+function CourseEditorPageSkeleton({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const tab =
+    typeof searchParams.tab === 'string' ? searchParams.tab : 'overview';
+
+  const renderTabSkeleton = () => {
+    switch (tab) {
+      case 'content':
+        return <ContentTabSkeleton />;
+      // case 'assignments':
+      //   return <AssignmentsTabSkeleton />;
+      case 'overview':
+      default:
+        return <OverviewTabSkeleton />;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <PageHeaderSkeleton />
+      <div className="space-y-4">
+        <div className="flex border-b">
+          {Array.from({ length: courseEditorTabs.length }).map((_, index) => (
+            <Skeleton key={index} className="h-10 flex-1" />
+          ))}
+        </div>
+
+        {renderTabSkeleton()}
+      </div>
     </div>
   );
 }

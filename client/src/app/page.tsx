@@ -1,8 +1,8 @@
 import { HomepageClient } from '@/components/shared/homepage-client';
 import {
-  MessageTemplates,
-  MessageTemplatesSkeleton,
-} from './(app)/dashboard/communication/_components/template-card-tab';
+  LessonMiniCard,
+  LessonMiniCardSkeleton,
+} from './(app)/dashboard/courses/[courseId]/_components/lesson-mini-card';
 import { getCurrentUser } from './(auth)/actions';
 
 export default async function Home() {
@@ -16,9 +16,9 @@ export default async function Home() {
           This is the homepage. Explore our courses and start learning!
         </p>
 
-        <MessageTemplates />
+        <LessonMiniCard />
         <div className="mt-10"></div>
-        <MessageTemplatesSkeleton />
+        <LessonMiniCardSkeleton />
       </main>
 
       <HomepageClient user={user} />
