@@ -94,7 +94,8 @@ export function AddLessonForm() {
         return (
           <div className="grid gap-2">
             <Label>Video Content</Label>
-            <div className="flex h-32 w-full flex-col items-center justify-center rounded-md border-2 border-dashed">
+
+            <div className="flex h-32 w-full flex-col items-center justify-center rounded-md border-2 border-dashed p-2">
               <Upload className="text-muted-foreground mb-2 h-8 w-8" />
               <Button variant="outline">
                 <Video className="h-4 w-4" /> Upload Video
@@ -103,6 +104,7 @@ export function AddLessonForm() {
             </div>
           </div>
         );
+
       case 'quiz':
         return (
           <div className="space-y-4">
@@ -121,6 +123,7 @@ export function AddLessonForm() {
             </div>
           </div>
         );
+
       case 'text':
       default:
         return (
@@ -198,9 +201,10 @@ export function CreateAssignmentForm() {
             </SelectContent>
           </Select>
         </div>
+
         <div className="grid gap-2">
           <Label>Due Date</Label>
-          <Popover>
+          <Popover modal={false}>
             <PopoverTrigger asChild>
               <Button
                 variant={'outline'}
@@ -218,7 +222,8 @@ export function CreateAssignmentForm() {
                 mode="single"
                 selected={date}
                 onSelect={setDate}
-                initialFocus
+                className="rounded-md border shadow-sm"
+                captionLayout="dropdown"
               />
             </PopoverContent>
           </Popover>

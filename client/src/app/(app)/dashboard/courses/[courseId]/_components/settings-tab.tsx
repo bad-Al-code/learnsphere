@@ -302,19 +302,16 @@ export function SettingsTab({ data = placeholderData }: SettingsTabProps) {
         <Separator />
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
+            <Button variant="outline">Preview Course</Button>
+            <Button>Save Changes</Button>
+          </div>
+          <div className="flex items-center gap-2">
             <Button variant="ghost">
               <Copy className="h-4 w-4" /> Duplicate Course
             </Button>
-            <Button
-              variant="ghost"
-              className="text-destructive hover:text-destructive"
-            >
+            <Button variant="destructive" className="">
               <Trash2 className="h-4 w-4" /> Delete Course
             </Button>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline">Preview Course</Button>
-            <Button>Save Changes</Button>
           </div>
         </div>
       </div>

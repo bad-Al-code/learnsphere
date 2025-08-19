@@ -26,6 +26,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { MoreHorizontal, Plus } from 'lucide-react';
+import { CreateAssignmentForm, FormDialog } from './course-modal';
 
 type AssignmentStatusType = 'Active' | 'Upcoming' | 'Completed';
 
@@ -112,10 +113,18 @@ export function AssignmentsTab({
             Manage assignments and track student submissions
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Assignment
-        </Button>
+        <FormDialog
+          trigger={
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Assignment
+            </Button>
+          }
+          title="Create New Assignment"
+          description="Set up a new assignment for your students"
+          form={<CreateAssignmentForm />}
+          footer={<Button>Create Assignmnet</Button>}
+        />
       </div>
 
       <Card>

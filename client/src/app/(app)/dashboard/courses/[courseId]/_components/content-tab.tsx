@@ -34,7 +34,7 @@ import {
   Upload,
   Video,
 } from 'lucide-react';
-import { AddModuleForm, FormDialog } from './course-modal';
+import { AddLessonForm, AddModuleForm, FormDialog } from './course-modal';
 
 type LessonType = 'video' | 'text' | 'quiz';
 
@@ -216,10 +216,10 @@ function ModuleItem({ module, index }: { module: Module; index: number }) {
       {(provided) => (
         <Card ref={provided.innerRef} {...provided.draggableProps}>
           <CardHeader {...provided.dragHandleProps}>
-            <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-3">
                 <GripVertical className="text-muted-foreground h-5 w-5" />
-                <span className="bg-primary text-primary-foreground flex h-7 w-7 items-center justify-center rounded-full text-base font-bold">
+                <span className="bg-primary/80 text-primary-foreground flex h-6 w-6 items-center justify-center rounded text-base font-bold">
                   {index + 1}
                 </span>
                 <div>
@@ -234,10 +234,18 @@ function ModuleItem({ module, index }: { module: Module; index: number }) {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <Plus className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Add Lesson</span>
-                      </Button>
+                      <FormDialog
+                        trigger={
+                          <Button variant="outline" size="sm">
+                            <Plus className="sm: h-4 w-4" />
+                            <span className="hidden sm:inline">Add Lesson</span>
+                          </Button>
+                        }
+                        title="Add New Lesson"
+                        description="Create a new lesson in Data Science"
+                        form={<AddLessonForm />}
+                        footer={<Button>Create Lesson</Button>}
+                      />
                     </TooltipTrigger>
                     <TooltipContent>Add Lesson</TooltipContent>
                   </Tooltip>
@@ -311,7 +319,7 @@ function ContentTabHeader() {
             footer={<Button>Create Module</Button>}
           />
           <Button>
-            <Upload className="mr-2 h-4 w-4" /> Upload Content
+            <Upload className="h-4 w-4" /> Upload Content
           </Button>
         </div>
       </div>

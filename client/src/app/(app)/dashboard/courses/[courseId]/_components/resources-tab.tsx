@@ -33,6 +33,7 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react';
+import { AddResourceForm, FormDialog } from './course-modal';
 
 type ResourceType = 'PDF' | 'Link' | 'Video' | 'Document';
 
@@ -84,10 +85,19 @@ export function ResourcesTab({ data = placeholderData }: ResourcesTabProps) {
             Manage downloadable materials and external links for students
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4" />
-          Add Resource
-        </Button>
+
+        <FormDialog
+          trigger={
+            <Button>
+              <Plus className="h-4 w-4" />
+              Add Resource
+            </Button>
+          }
+          title="Add New Resource"
+          description="Upload a file or add a link for students to access"
+          form={<AddResourceForm />}
+          footer={<Button>Add Resource</Button>}
+        />
       </div>
 
       <Card>

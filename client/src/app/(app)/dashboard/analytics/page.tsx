@@ -42,8 +42,8 @@ async function AnalyticsStats({ searchParams }: AnalyticsStatsProps) {
         />
 
         <TabsContent value="overview" className="mt-5">
-          <Suspense fallback={<OverviewTab />}>
-            <OverviewTabSkeleton />
+          <Suspense fallback={<OverviewTabSkeleton />}>
+            <OverviewTab />
           </Suspense>
         </TabsContent>
       </Tabs>
