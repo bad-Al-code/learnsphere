@@ -6,6 +6,10 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getCourseDetails } from '../actions';
 import {
+  AnalyticsTab,
+  AnalyticsTabSkeleton,
+} from './_components/analytics-tab';
+import {
   AssignmentsTab,
   AssignmentsTabSkeleton,
 } from './_components/assignment-tab';
@@ -73,7 +77,9 @@ async function CourseEditorPageContent({
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-2">
-          <p>Analytics Tab Content Goes Here...</p>
+          <Suspense fallback={<AnalyticsTabSkeleton />}>
+            <AnalyticsTab />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="settings" className="mt-2">
@@ -115,6 +121,8 @@ function CourseEditorPageSkeleton({
         return <AssignmentsTabSkeleton />;
       case 'resources':
         return <ResourcesTabSkeleton />;
+      case 'analytics':
+        return <AnalyticsTabSkeleton />;
       case 'settings':
         return <SettingsTabSkeleton />;
       case 'overview':
