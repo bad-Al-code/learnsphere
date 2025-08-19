@@ -16,6 +16,7 @@ import {
   ResourcesTab,
   ResourcesTabSkeleton,
 } from './_components/resources-tab';
+import { SettingsTab, SettingsTabSkeleton } from './_components/settings-tab';
 
 interface CourseEditorPageProps {
   params: { courseId: string };
@@ -76,7 +77,9 @@ async function CourseEditorPageContent({
         </TabsContent>
 
         <TabsContent value="settings" className="mt-2">
-          <p>Settings Tab Content Goes Here...</p>
+          <Suspense fallback={<SettingsTabSkeleton />}>
+            <SettingsTab />
+          </Suspense>
         </TabsContent>
       </Tabs>
     </div>
@@ -112,6 +115,8 @@ function CourseEditorPageSkeleton({
         return <AssignmentsTabSkeleton />;
       case 'resources':
         return <ResourcesTabSkeleton />;
+      case 'settings':
+        return <SettingsTabSkeleton />;
       case 'overview':
       default:
         return <OverviewTabSkeleton />;
