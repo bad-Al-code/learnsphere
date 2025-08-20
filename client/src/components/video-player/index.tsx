@@ -159,7 +159,19 @@ export function VideoPlayer() {
     }
   };
 
-  const toggleSubtitles = () => setAreSubtitlesEnabled(!areSubtitlesEnabled);
+  const toggleSubtitles = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const subtittleTrack = video.textTracks[0];
+    if (!subtittleTrack) return;
+
+    const newSubtitleState = !areSubtitlesEnabled;
+    subtittleTrack.mode = newSubtitleState ? 'showing' : 'hidden';
+
+    setAreSubtitlesEnabled(newSubtitleState);
+  };
+
   const toggleTheaterMode = () => setIsTheaterMode(!isTheaterMode);
   const toggleMiniPlayer = () => console.log('Mini player toggled');
 
@@ -377,8 +389,15 @@ export function VideoPlayer() {
         playsInline
         onClick={togglePlay}
         onDoubleClick={toggleFullScreen}
+        crossOrigin="anonymous"
       >
-        <track kind="captions" />
+        <track
+          label="English"
+          srcLang="en"
+          src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt"
+          kind="captions"
+          default
+        />
       </video>
 
       {isSettingsOpen && (
