@@ -40,4 +40,6 @@ export interface PlayerControlsProps {
   isVisible: boolean;
   onNext: () => void;
   onPrevious: () => void;
+  isAutoplayEnabled: boolean;
+  toggleAutoplay: () => void;
 }

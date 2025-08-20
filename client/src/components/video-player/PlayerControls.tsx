@@ -6,6 +6,7 @@ import {
   PictureInPicture2,
   Play,
   RectangleHorizontal,
+  Repeat,
   Settings,
   SkipBack,
   SkipForward,
@@ -44,6 +45,8 @@ export function PlayerControls({
   toggleMiniPlayer,
   isVisible,
   onNext,
+  isAutoplayEnabled,
+  toggleAutoplay,
   onPrevious,
 }: PlayerControlsProps) {
   const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
@@ -61,11 +64,11 @@ export function PlayerControls({
           <div className="flex items-center gap-3">
             <Tooltip>
               <TooltipTrigger asChild>
-                <button onClick={onPrevious}>
+                <button onClick={onPrevious} className="cursor-pointer">
                   <SkipBack className="h-6 w-6" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent>Previous</TooltipContent>
+              <TooltipContent>Previous (Shift + P)</TooltipContent>
             </Tooltip>
 
             <Tooltip>
@@ -89,7 +92,7 @@ export function PlayerControls({
                   <SkipForward className="h-6 w-6" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent>Next video</TooltipContent>
+              <TooltipContent>Next video (Shift + N)</TooltipContent>
             </Tooltip>
 
             <div className="group/volume flex items-center gap-0 hover:gap-2">
@@ -122,6 +125,23 @@ export function PlayerControls({
           </div>
 
           <div className="flex items-center gap-3">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={toggleAutoplay}
+                  className="relative cursor-pointer"
+                >
+                  <Repeat className="h-6 w-6" />
+                  {!isAutoplayEnabled && (
+                    <div className="absolute top-1/2 left-0 h-0.5 w-full -rotate-45 rounded-full bg-white" />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isAutoplayEnabled ? 'Autoplay is on' : 'Autoplay is off'}
+              </TooltipContent>
+            </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
