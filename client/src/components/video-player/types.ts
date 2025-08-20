@@ -5,6 +5,8 @@ export interface TimelineProps {
   progress: number;
   buffered: number;
   onSeek: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onHover: (positionX: number, timeFraction: number) => void;
+  onMouseLeave: () => void;
 }
 
 export type SettingsMenuType = 'main' | 'speed' | 'quality';

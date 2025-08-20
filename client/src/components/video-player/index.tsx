@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@/lib/utils';
+import { cn, formatTime } from '@/lib/utils';
 import Hls, { Level } from 'hls.js';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { PlayerControls } from './PlayerControls';
@@ -42,6 +42,9 @@ export function VideoPlayer({
   const [currentQuality, setCurrentQuality] = useState<number>(-1);
   const [isMiniPlayer, setIsMiniPlayer] = useState(false);
   const [isAutoplayEnabled, setIsAutoplayEnabled] = useState(true);
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
+  const [tooltipContent, setTooltipContent] = useState('');
+  const [tooltipPosition, setTooltipPosition] = useState(0);
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -135,6 +138,18 @@ export function VideoPlayer({
       video.removeEventListener('pause', () => setIsPlaying(false));
     };
   }, [isAutoplayEnabled, handleNext]);
+
+  const handleTimelineHover = (positionX: number, timeFraction: number) => {
+    setTooltipPosition(positionX);
+
+    setTooltipContent(formatTime(timeFraction * duration));
+
+    setIsTooltipVisible(true);
+  };
+
+  const handleTimelineMouseLeave = () => {
+    setIsTooltipVisible(false);
+  };
 
   const toggleAutoplay = () => {
     setIsAutoplayEnabled(!isAutoplayEnabled);
@@ -520,6 +535,11 @@ export function VideoPlayer({
           isAutoplayEnabled={isAutoplayEnabled}
           toggleTheaterMode={toggleTheaterMode}
           isTheaterMode={isTheaterMode}
+          isTooltipVisible={isTooltipVisible}
+          tooltipContent={tooltipContent}
+          tooltipPosition={tooltipPosition}
+          onTimelineHover={handleTimelineHover}
+          onTimelineMouseLeave={handleTimelineMouseLeave}
         />
       </div>
     </div>

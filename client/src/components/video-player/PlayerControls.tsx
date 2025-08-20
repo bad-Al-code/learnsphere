@@ -24,6 +24,14 @@ import {
 import { Timeline } from './Timeline';
 import { PlayerControlsProps } from './types';
 
+interface PlayerControlsWithTooltipProps extends PlayerControlsProps {
+  isTooltipVisible: boolean;
+  tooltipContent: string;
+  tooltipPosition: number;
+  onTimelineHover: (positionX: number, timeFraction: number) => void;
+  onTimelineMouseLeave: () => void;
+}
+
 export function PlayerControls({
   isPlaying,
   onPlayPause,
@@ -48,7 +56,12 @@ export function PlayerControls({
   isAutoplayEnabled,
   toggleAutoplay,
   onPrevious,
-}: PlayerControlsProps) {
+  isTooltipVisible,
+  tooltipContent,
+  tooltipPosition,
+  onTimelineHover,
+  onTimelineMouseLeave,
+}: PlayerControlsWithTooltipProps) {
   const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
   return (
@@ -59,7 +72,23 @@ export function PlayerControls({
           isVisible ? 'opacity-100' : 'opacity-0'
         )}
       >
-        <Timeline progress={progress} buffered={buffered} onSeek={onSeek} />
+        {isTooltipVisible && (
+          <div
+            className="bg-popover text-popover-foreground absolute -top-8 z-50 -translate-x-1/2 overflow-hidden rounded-md border px-3 py-1.5 text-sm shadow-md"
+            style={{ left: `${tooltipPosition}px` }}
+          >
+            {tooltipContent}
+          </div>
+        )}
+
+        <Timeline
+          progress={progress}
+          buffered={buffered}
+          onSeek={onSeek}
+          onHover={onTimelineHover}
+          onMouseLeave={onTimelineMouseLeave}
+        />
+
         <div className="mt-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Tooltip>
