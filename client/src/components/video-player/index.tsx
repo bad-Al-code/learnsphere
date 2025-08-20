@@ -5,21 +5,16 @@ import Hls, { Level } from 'hls.js';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { PlayerControls } from './PlayerControls';
 import { SettingsMenu } from './SettingsMenu';
-
-interface VideoPlayerProps {
-  playlist: string[];
-  currentVideoIndex: number;
-  onVideoChange: (newIndex: number) => void;
-  isTheaterMode: boolean;
-  onToggleTheaterMode: () => void;
-}
+import { VideoPlayerProps } from './types';
 
 export function VideoPlayer({
-  playlist,
-  currentVideoIndex,
-  onVideoChange,
-  isTheaterMode,
-  onToggleTheaterMode,
+  src,
+  subtitles = [],
+  playlist = [],
+  currentVideoIndex = 0,
+  onVideoChange = () => {},
+  isTheaterMode = false,
+  onToggleTheaterMode = () => {},
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -46,29 +41,35 @@ export function VideoPlayer({
   const [tooltipContent, setTooltipContent] = useState('');
   const [tooltipPosition, setTooltipPosition] = useState(0);
 
+  const currentSrc =
+    playlist && playlist.length > 0 ? playlist[currentVideoIndex] : src;
+
   useEffect(() => {
     const videoElement = videoRef.current;
-    const currentVideoUrl = playlist[currentVideoIndex];
-    if (!videoElement || !currentVideoUrl) return;
+    if (!videoElement || !currentSrc) return;
+
+    setProgress(0);
+    setBuffered(0);
+    setCurrentTime(0);
+    setDuration(0);
 
     if (hlsRef.current) {
       hlsRef.current.destroy();
     }
 
-    let hls: Hls;
     if (Hls.isSupported()) {
-      hls = new Hls();
+      const hls = new Hls();
       hlsRef.current = hls;
-      hls.loadSource(currentVideoUrl);
+      hls.loadSource(currentSrc);
       hls.attachMedia(videoElement);
       hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         setAvailableQualities([...data.levels]);
-        videoRef.current?.play();
+        videoElement.play();
       });
     } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-      videoElement.src = currentVideoUrl;
+      videoElement.src = currentSrc;
       videoElement.addEventListener('loadedmetadata', () => {
-        videoRef.current?.play();
+        videoElement.play();
       });
     }
 
@@ -78,21 +79,21 @@ export function VideoPlayer({
         hlsRef.current = null;
       }
     };
-  }, [currentVideoIndex, playlist]);
+  }, [currentSrc]);
 
   const handleNext = useCallback(() => {
     const nextIndex = currentVideoIndex + 1;
-    if (nextIndex < playlist.length) {
+    if (playlist && nextIndex < playlist.length) {
       onVideoChange(nextIndex);
     }
-  }, [currentVideoIndex, playlist.length, onVideoChange]);
+  }, [currentVideoIndex, playlist, onVideoChange]);
 
   const handlePrevious = useCallback(() => {
     const prevIndex = currentVideoIndex - 1;
-    if (prevIndex >= 0) {
+    if (playlist && prevIndex >= 0) {
       onVideoChange(prevIndex);
     }
-  }, [currentVideoIndex, onVideoChange]);
+  }, [currentVideoIndex, playlist, onVideoChange]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -103,32 +104,27 @@ export function VideoPlayer({
         handleNext();
       }
     };
-
     const handleTimeUpdate = () => {
       if (video.duration) {
         setProgress((video.currentTime / video.duration) * 100);
         setCurrentTime(video.currentTime);
       }
     };
-
     const handleProgress = () => {
       if (video.buffered.length > 0 && video.duration) {
         const bufferedEnd = video.buffered.end(video.buffered.length - 1);
         setBuffered((bufferedEnd / video.duration) * 100);
       }
     };
-
     const handleLoadedMetadata = () => {
       setDuration(video.duration);
     };
-
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('progress', handleProgress);
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
     video.addEventListener('ended', handleEnded);
     video.addEventListener('play', () => setIsPlaying(true));
     video.addEventListener('pause', () => setIsPlaying(false));
-
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('progress', handleProgress);
@@ -141,9 +137,7 @@ export function VideoPlayer({
 
   const handleTimelineHover = (positionX: number, timeFraction: number) => {
     setTooltipPosition(positionX);
-
     setTooltipContent(formatTime(timeFraction * duration));
-
     setIsTooltipVisible(true);
   };
 
@@ -217,11 +211,13 @@ export function VideoPlayer({
 
   const toggleSubtitles = () => {
     const video = videoRef.current;
-    if (!video) return;
-    const subtittleTrack = video.textTracks[0];
-    if (!subtittleTrack) return;
+    if (!video || subtitles.length === 0) return;
+
     const newSubtitleState = !areSubtitlesEnabled;
-    subtittleTrack.mode = newSubtitleState ? 'showing' : 'hidden';
+    for (let i = 0; i < video.textTracks.length; i++) {
+      video.textTracks[i].mode =
+        newSubtitleState && i === 0 ? 'showing' : 'hidden';
+    }
     setAreSubtitlesEnabled(newSubtitleState);
   };
 
@@ -360,10 +356,8 @@ export function VideoPlayer({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-
       switch (e.key) {
         case ' ':
         case 'k':
@@ -443,9 +437,7 @@ export function VideoPlayer({
           break;
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
-
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
     handleNext,
@@ -468,7 +460,7 @@ export function VideoPlayer({
       className={cn(
         'group transition-all duration-300 focus:outline-none',
         isTheaterMode
-          ? 'fixed top-16 left-0 z-50 w-full'
+          ? 'fixed top-0 left-0 z-50 w-full'
           : 'relative mx-auto w-full max-w-4xl overflow-hidden rounded-lg',
         !areControlsVisible && isPlaying && 'cursor-none'
       )}
@@ -485,13 +477,16 @@ export function VideoPlayer({
           onDoubleClick={toggleFullScreen}
           crossOrigin="anonymous"
         >
-          <track
-            label="English"
-            srcLang="en"
-            src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt"
-            kind="captions"
-            default
-          />
+          {subtitles.map((sub, index) => (
+            <track
+              key={index}
+              label={sub.label}
+              kind="subtitles"
+              srcLang={sub.lang}
+              src={sub.src}
+              default={index === 0}
+            />
+          ))}
         </video>
 
         {isMiniPlayer && (
@@ -546,41 +541,101 @@ export function VideoPlayer({
   );
 }
 
-const samplePlaylist = [
-  'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-  'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
-  'https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8',
-];
+export default function Test() {
+  const singleVideoSrc = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+  const videoSubtitles = [
+    {
+      lang: 'en',
+      label: 'English',
+      src: 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt',
+    },
+  ];
 
-export default function TestPlayerPage() {
-  const [currentVideo, setCurrentVideo] = useState(0);
-  const [isTheaterMode, setIsTheaterMode] = useState(false);
+  const [isTheaterMode1, setIsTheaterMode1] = useState(false);
+  const toggleTheaterMode1 = () => setIsTheaterMode1(!isTheaterMode1);
 
-  const toggleTheaterMode = () => {
-    setIsTheaterMode(!isTheaterMode);
-  };
+  const samplePlaylist = [
+    'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+    'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
+    'https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8',
+  ];
 
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [isTheaterMode2, setIsTheaterMode2] = useState(false);
   const handleVideoChange = (newIndex: number) => {
-    console.log('Changing to video index:', newIndex);
-    setCurrentVideo(newIndex);
+    setCurrentVideoIndex(newIndex);
   };
+  const toggleTheaterMode2 = () => setIsTheaterMode2(!isTheaterMode2);
 
   return (
-    <div className="">
-      {isTheaterMode && (
+    <>
+      {isTheaterMode1 && (
         <div
           className="fixed inset-0 z-40 bg-black/90"
-          onClick={toggleTheaterMode}
+          onClick={toggleTheaterMode1}
+        />
+      )}
+      {isTheaterMode2 && (
+        <div
+          className="fixed inset-0 z-40 bg-black/90"
+          onClick={toggleTheaterMode2}
         />
       )}
 
-      <VideoPlayer
-        playlist={samplePlaylist}
-        currentVideoIndex={currentVideo}
-        onVideoChange={handleVideoChange}
-        isTheaterMode={isTheaterMode}
-        onToggleTheaterMode={toggleTheaterMode}
-      />
-    </div>
+      <main className="container mx-auto p-4 md:p-8">
+        <h1 className="mb-4 text-4xl font-bold">Video Player Test Page</h1>
+        <p className="text-gray-600">
+          This page demonstrates the VideoPlayer component in different
+          scenarios.
+        </p>
+
+        <div className="my-12">
+          <h2 className="mb-4 border-b pb-2 text-2xl font-semibold">
+            Scenario 1: Single Video with Subtitles
+          </h2>
+          <div className="mt-4">
+            <VideoPlayer
+              src={singleVideoSrc}
+              subtitles={videoSubtitles}
+              isTheaterMode={isTheaterMode1}
+              onToggleTheaterMode={toggleTheaterMode1}
+            />
+          </div>
+          <div
+            className={`transition-all duration-300 ${isTheaterMode1 ? 'mt-[56.25vw]' : 'mt-4'}`}
+          >
+            <h3 className="text-xl font-bold">About This Video</h3>
+            <p>
+              This content is pushed down when theatre mode is active for the
+              player above.
+            </p>
+          </div>
+        </div>
+
+        <div className="my-12">
+          <h2 className="mb-4 border-b pb-2 text-2xl font-semibold">
+            Scenario 2: Playlist Functionality
+          </h2>
+          <div className="mt-4">
+            <VideoPlayer
+              playlist={samplePlaylist}
+              currentVideoIndex={currentVideoIndex}
+              onVideoChange={handleVideoChange}
+              isTheaterMode={isTheaterMode2}
+              onToggleTheaterMode={toggleTheaterMode2}
+            />
+          </div>
+          <div
+            className={`transition-all duration-300 ${isTheaterMode2 ? 'mt-[56.25vw]' : 'mt-4'}`}
+          >
+            <h3 className="text-xl font-bold">About This Playlist</h3>
+            <p>
+              This content is pushed down independently when the playlist player
+              enters theatre mode.
+            </p>
+          </div>
+        </div>
+      </main>
+    </>
   );
 }

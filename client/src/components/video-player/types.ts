@@ -45,3 +45,31 @@ export interface PlayerControlsProps {
   isAutoplayEnabled: boolean;
   toggleAutoplay: () => void;
 }
+
+type BasePlayerProps = {
+  subtitles?: {
+    lang: string;
+    label: string;
+    src: string;
+  }[];
+  onToggleTheaterMode?: () => void;
+  isTheaterMode?: boolean;
+};
+
+type SingleVideoPlayerProps = BasePlayerProps & {
+  src: string;
+  playlist?: never;
+  currentVideoIndex?: never;
+  onVideoChange?: never;
+};
+
+type PlaylistVideoPlayerProps = BasePlayerProps & {
+  src?: never;
+  playlist: string[];
+  currentVideoIndex: number;
+  onVideoChange: (newIndex: number) => void;
+};
+
+export type VideoPlayerProps =
+  | SingleVideoPlayerProps
+  | PlaylistVideoPlayerProps;
