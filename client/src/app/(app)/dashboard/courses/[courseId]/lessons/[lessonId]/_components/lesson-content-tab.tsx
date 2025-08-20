@@ -21,9 +21,6 @@ export function LessonContentTab() {
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div className="space-y-6">
-        <LessonSettings />
-      </div>
       <div className="space-y-6 lg:col-span-2">
         <Card>
           <CardHeader className="flex items-center justify-between">
@@ -42,11 +39,11 @@ export function LessonContentTab() {
 
           <CardContent>
             <div className="relative">
-              <VideoPlayer src={videoSrc} />
+              <VideoPlayer src={videoSrc} title={lessonTitle} />
 
-              <div className="pointer-events-none absolute top-4 left-4 rounded-md bg-black/60 px-2 py-1 text-sm font-semibold text-white">
+              {/* <div className="pointer-events-none absolute top-4 left-4 rounded-md bg-black/60 px-2 py-1 text-sm font-semibold text-white">
                 {lessonTitle}
-              </div>
+              </div> */}
             </div>
 
             <Separator className="my-6" />
@@ -64,6 +61,9 @@ export function LessonContentTab() {
             </div>
           </CardContent>
         </Card>
+      </div>
+      <div className="space-y-6">
+        <LessonSettings />
       </div>
     </div>
   );
@@ -97,7 +97,6 @@ export function LessonContentTabSkeleton() {
           </CardContent>
         </Card>
       </div>
-
       <div className="space-y-6">
         <LessonSettingsSkeleton />
       </div>

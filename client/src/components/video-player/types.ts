@@ -47,6 +47,7 @@ export interface PlayerControlsProps {
 }
 
 type BasePlayerProps = {
+  title?: string;
   subtitles?: {
     lang: string;
     label: string;

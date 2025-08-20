@@ -2,6 +2,7 @@
 
 import { cn, formatTime } from '@/lib/utils';
 import Hls, { Level } from 'hls.js';
+import { Play } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { PlayerControls } from './PlayerControls';
 import { SettingsMenu } from './SettingsMenu';
@@ -9,6 +10,7 @@ import { VideoPlayerProps } from './types';
 
 export function VideoPlayer({
   src,
+  title,
   subtitles = [],
   playlist = [],
   currentVideoIndex = 0,
@@ -36,10 +38,11 @@ export function VideoPlayer({
   const [availableQualities, setAvailableQualities] = useState<Level[]>([]);
   const [currentQuality, setCurrentQuality] = useState<number>(-1);
   const [isMiniPlayer, setIsMiniPlayer] = useState(false);
-  const [isAutoplayEnabled, setIsAutoplayEnabled] = useState(true);
+  const [isAutoplayEnabled, setIsAutoplayEnabled] = useState(false);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [tooltipContent, setTooltipContent] = useState('');
   const [tooltipPosition, setTooltipPosition] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false);
 
   const currentSrc =
     playlist && playlist.length > 0 ? playlist[currentVideoIndex] : src;
@@ -48,6 +51,8 @@ export function VideoPlayer({
     const videoElement = videoRef.current;
     if (!videoElement || !currentSrc) return;
 
+    setHasStarted(false);
+    setIsPlaying(false);
     setProgress(0);
     setBuffered(0);
     setCurrentTime(0);
@@ -64,12 +69,13 @@ export function VideoPlayer({
       hls.attachMedia(videoElement);
       hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         setAvailableQualities([...data.levels]);
-        videoElement.play();
+
+        // videoElement.play();
       });
     } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
       videoElement.src = currentSrc;
       videoElement.addEventListener('loadedmetadata', () => {
-        videoElement.play();
+        // videoElement.play();
       });
     }
 
@@ -150,10 +156,14 @@ export function VideoPlayer({
   };
 
   const togglePlay = useCallback(() => {
+    if (!hasStarted) {
+      setHasStarted(true);
+    }
+
     if (videoRef.current) {
       isPlaying ? videoRef.current.pause() : videoRef.current.play();
     }
-  }, [isPlaying]);
+  }, [isPlaying, hasStarted]);
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     if (videoRef.current) {
@@ -469,13 +479,25 @@ export function VideoPlayer({
       tabIndex={0}
     >
       <div className="relative aspect-video w-full bg-black">
+        {title && (
+          <div
+            className={cn(
+              'absolute top-0 right-0 left-0 z-20 bg-gradient-to-b from-black/60 to-transparent p-4 transition-opacity duration-300',
+              areControlsVisible ? 'opacity-100' : 'opacity-0'
+            )}
+          >
+            <h1 className="truncate text-xl font-bold text-white">{title}</h1>
+          </div>
+        )}
+
         <video
           ref={videoRef}
           className={`h-full w-full ${isMiniPlayer ? 'invisible' : ''}`}
           playsInline
-          onClick={togglePlay}
+          onClick={hasStarted ? togglePlay : undefined}
           onDoubleClick={toggleFullScreen}
           crossOrigin="anonymous"
+          autoPlay={false}
         >
           {subtitles.map((sub, index) => (
             <track
@@ -488,6 +510,18 @@ export function VideoPlayer({
             />
           ))}
         </video>
+
+        {!hasStarted && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <button
+              onClick={togglePlay}
+              className="rounded-full bg-white/5 p-4 text-white transition-colors duration-300 hover:bg-white/20"
+              aria-label="Play video"
+            >
+              <Play className="h-16 w-16 fill-white pl-2" />
+            </button>
+          </div>
+        )}
 
         {isMiniPlayer && (
           <div className="absolute inset-0 flex items-center justify-center bg-black text-white">
@@ -523,7 +557,7 @@ export function VideoPlayer({
           toggleSubtitles={toggleSubtitles}
           areSubtitlesEnabled={areSubtitlesEnabled}
           toggleMiniPlayer={toggleMiniPlayer}
-          isVisible={areControlsVisible || isMiniPlayer}
+          isVisible={areControlsVisible && hasStarted}
           onNext={handleNext}
           onPrevious={handlePrevious}
           toggleAutoplay={toggleAutoplay}
