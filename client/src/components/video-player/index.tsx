@@ -1,7 +1,7 @@
 'use client';
 
 import { cn, formatTime } from '@/lib/utils';
-import Hls from 'hls.js';
+import Hls, { Level } from 'hls.js';
 import {
   ChevronLeft,
   Maximize,
@@ -59,15 +59,32 @@ type SettingsMenuType = 'main' | 'speed' | 'quality';
 interface SettingsMenuProps {
   playbackSpeed: number;
   onSpeedChange: (speed: number) => void;
+  availableQualities: Level[];
+  currentQuality: number;
+  onQualityChange: (levelIndex: number) => void;
 }
 
-function SettingsMenu({ playbackSpeed, onSpeedChange }: SettingsMenuProps) {
+function SettingsMenu({
+  playbackSpeed,
+  onSpeedChange,
+  availableQualities,
+  currentQuality,
+  onQualityChange,
+}: SettingsMenuProps) {
   const [activeMenu, setActiveMenu] = useState<SettingsMenuType>('main');
 
   const handleSpeedSelect = (speed: number) => {
     onSpeedChange(speed);
     setActiveMenu('main');
   };
+
+  const handleQualitySelect = (levelIndex: number) => {
+    onQualityChange(levelIndex);
+    setActiveMenu('main');
+  };
+
+  const currentQualityLabel =
+    availableQualities[currentQuality]?.height + 'p' || 'Auto';
 
   return (
     <div className="absolute right-3 bottom-14 z-20 w-52 overflow-hidden rounded-lg border border-white/10 bg-black/80 text-sm text-white shadow-lg backdrop-blur-lg">
@@ -78,7 +95,7 @@ function SettingsMenu({ playbackSpeed, onSpeedChange }: SettingsMenuProps) {
             className="flex w-full cursor-pointer items-center justify-between px-3 py-2 hover:bg-white/10"
           >
             <span>Quality</span>
-            <span className="text-white/70">1080p &gt;</span>
+            <span className="text-white/70">{currentQualityLabel} &gt;</span>
           </button>
 
           <button
@@ -123,14 +140,23 @@ function SettingsMenu({ playbackSpeed, onSpeedChange }: SettingsMenuProps) {
           >
             <ChevronLeft className="mr-2 h-4 w-4" /> Quality
           </button>
-          {['1080p', '720p', '480p', '360p'].map((q) => (
+          <button
+            onClick={() => handleQualitySelect(-1)}
+            className={`w-full rounded p-2 text-left hover:bg-white/10 ${
+              currentQuality === -1 ? 'bg-white/20 font-semibold' : ''
+            }`}
+          >
+            Auto
+          </button>
+          {availableQualities.map((level, index) => (
             <button
-              key={q}
-              className={`cursor-pointer px-3 py-2 text-left hover:bg-white/10 ${
-                q === '1080p' ? 'bg-white/20 font-semibold' : ''
+              key={level.height}
+              onClick={() => handleQualitySelect(index)}
+              className={`w-full rounded p-2 text-left hover:bg-white/10 ${
+                currentQuality === index ? 'bg-white/20 font-semibold' : ''
               }`}
             >
-              {q}
+              {level.height}p
             </button>
           ))}
         </div>
@@ -316,6 +342,7 @@ export function VideoPlayer() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hlsRef = useRef<Hls | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -330,6 +357,8 @@ export function VideoPlayer() {
   const [areSubtitlesEnabled, setAreSubtitlesEnabled] = useState(false);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
   const [areControlsVisible, setAreControlsVisible] = useState(false);
+  const [availableQualities, setAvailableQualities] = useState<Level[]>([]);
+  const [currentQuality, setCurrentQuality] = useState<number>(-1);
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -344,14 +373,26 @@ export function VideoPlayer() {
         // backBufferLength: 90
       });
 
+      hlsRef.current = hls;
+
       hls.loadSource(hlsStreamUrl);
       hls.attachMedia(videoElement);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+        console.log('Manifest parsed, available levels:', data.levels);
+        setAvailableQualities(data.levels.sort((a, b) => b.height - a.height));
+      });
+
+      hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
+        setCurrentQuality(data.level);
+      });
     } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
       videoElement.src = hlsStreamUrl;
     }
     return () => {
-      if (hls) {
-        hls.destroy();
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
       }
     };
   }, []);
@@ -515,6 +556,12 @@ export function VideoPlayer() {
     }
     if (isPlaying && !isSettingsOpen) {
       setAreControlsVisible(false);
+    }
+  };
+
+  const handleQualityChange = (levelIndex: number) => {
+    if (hlsRef.current) {
+      hlsRef.current.currentLevel = levelIndex;
     }
   };
 
@@ -688,6 +735,9 @@ export function VideoPlayer() {
           <SettingsMenu
             playbackSpeed={playbackSpeed}
             onSpeedChange={handlePlaybackSpeedChange}
+            availableQualities={availableQualities}
+            currentQuality={currentQuality}
+            onQualityChange={handleQualityChange}
           />
         </div>
       )}
