@@ -2,7 +2,20 @@
 
 import { formatTime } from '@/lib/utils';
 import Hls from 'hls.js';
-import { Pause, Play } from 'lucide-react';
+import {
+  ChevronLeft,
+  Maximize,
+  Minimize,
+  Pause,
+  PictureInPicture2,
+  Play,
+  RectangleHorizontal,
+  Settings,
+  Subtitles,
+  Volume1,
+  Volume2,
+  VolumeX
+} from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface TimelineProps {
@@ -34,6 +47,90 @@ function Timeline({ progress, buffered, onSeek }: TimelineProps) {
   );
 }
 
+type SettingsMenuType = 'main' | 'speed' | 'quality';
+
+interface SettingsMenuProps {
+  playbackSpeed: number;
+  onSpeedChange: (speed: number) => void;
+}
+
+function SettingsMenu({ playbackSpeed, onSpeedChange }: SettingsMenuProps) {
+  const [activeMenu, setActiveMenu] = useState<SettingsMenuType>('main')
+
+  const handleSpeedSelect = (speed: number) => {
+    onSpeedChange(speed);
+    setActiveMenu('main')
+  }
+
+  return (
+    <div className="absolute bottom-14 right-3 z-20 w-52 rounded-lg border border-white/10 bg-black/80 text-sm text-white shadow-lg backdrop-blur-lg overflow-hidden">
+      {activeMenu === 'main' && (
+        <div className="flex flex-col ">
+          <button
+            onClick={() => setActiveMenu('quality')}
+            className="flex w-full items-center justify-between px-3 py-2 hover:bg-white/10"
+          >
+            <span>Quality</span>
+            <span className="text-white/70">1080p &gt;</span>
+          </button>
+
+          <button
+            onClick={() => setActiveMenu('speed')}
+            className="flex w-full items-center justify-between px-3 py-2 hover:bg-white/10"
+          >
+            <span>Playback speed</span>
+            <span className="text-white/70">
+              {playbackSpeed === 1 ? 'Normal' : `${playbackSpeed}x`} &gt;
+            </span>
+          </button>
+        </div>
+      )}
+
+      {activeMenu === 'speed' && (
+        <div className="flex flex-col ">
+          <button
+            onClick={() => setActiveMenu('main')}
+            className="flex items-center px-3 py-2 hover:bg-white/10"
+          >
+            <ChevronLeft className="mr-2 h-4 w-4" /> Playback speed
+          </button>
+          {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+            <button
+              key={speed}
+              onClick={() => handleSpeedSelect(speed)}
+              className={`px-3 py-2 text-left hover:bg-white/10 ${playbackSpeed === speed ? 'bg-white/20 font-semibold' : ''
+                }`}
+            >
+              {speed === 1 ? 'Normal' : `${speed}x`}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {activeMenu === 'quality' && (
+        <div className="flex flex-col ">
+          <button
+            onClick={() => setActiveMenu('main')}
+            className="flex items-center px-3 py-2 hover:bg-white/10"
+          >
+            <ChevronLeft className="mr-2 h-4 w-4" /> Quality
+          </button>
+          {['1080p', '720p', '480p', '360p'].map((q) => (
+            <button
+              key={q}
+              className={`px-3 py-2 text-left hover:bg-white/10 ${q === '1080p' ? 'bg-white/20 font-semibold' : ''
+                }`}
+            >
+              {q}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+
 interface PlayerControlsProps {
   isPlaying: boolean;
   onPlayPause: () => void;
@@ -42,6 +139,17 @@ interface PlayerControlsProps {
   duration: number;
   currentTime: number;
   onSeek: (e: React.MouseEvent<HTMLDivElement>) => void;
+  volume: number;
+  onVolumeChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  toggleMute: () => void;
+  isFullScreen: boolean;
+  toggleFullScreen: () => void;
+  toggleSettings: () => void;
+  toggleSubtitles: () => void;
+  areSubtitlesEnabled: boolean;
+  toggleTheaterMode: () => void;
+  isTheaterMode: boolean;
+  toggleMiniPlayer: () => void;
 }
 
 function PlayerControls({
@@ -52,7 +160,20 @@ function PlayerControls({
   duration,
   currentTime,
   onSeek,
+  volume,
+  onVolumeChange,
+  toggleMute,
+  isFullScreen,
+  toggleFullScreen,
+  toggleSettings,
+  toggleSubtitles,
+  areSubtitlesEnabled,
+  toggleTheaterMode,
+  isTheaterMode,
+  toggleMiniPlayer,
 }: PlayerControlsProps) {
+  const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
+
   return (
     <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 text-white opacity-0 transition-opacity group-hover:opacity-100">
       <Timeline progress={progress} buffered={buffered} onSeek={onSeek} />
@@ -65,12 +186,44 @@ function PlayerControls({
               <Play className="h-6 w-6" />
             )}
           </button>
+
+          <div className="group/volume flex items-center gap-0 hover:gap-2">
+            <button onClick={toggleMute}>
+              <VolumeIcon className="h-6 w-6" />
+            </button>
+
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={volume}
+              onChange={onVolumeChange}
+              className="h-1 w-0 cursor-pointer appearance-none rounded-full bg-white/80 opacity-0 transition-all duration-300 ease-in-out group-hover/volume:w-20 group-hover/volume:opacity-100 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+            />
+          </div>
+
           <div className="text-sm">
             <span>{formatTime(currentTime)}</span> /{' '}
             <span>{formatTime(duration)}</span>
           </div>
         </div>
-        <div></div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleSubtitles}
+            className="relative"
+          >
+            <Subtitles className="h-6 w-6" />
+            {areSubtitlesEnabled && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4/5 h-0.5 bg-black rounded-full" />}
+          </button>
+
+          <button onClick={toggleSettings}><Settings className="h-6 w-6" /></button>
+
+          <button onClick={toggleMiniPlayer}><PictureInPicture2 className="h-6 w-6" /></button>
+          <button onClick={toggleTheaterMode}><RectangleHorizontal className="h-6 w-6" /></button>
+          <button onClick={toggleFullScreen}>{isFullScreen ? <Minimize className="h-6 w-6" /> : <Maximize className="h-6 w-6" />}</button>
+        </div>
       </div>
     </div>
   );
@@ -78,12 +231,21 @@ function PlayerControls({
 
 export function VideoPlayer() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
 
+  const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [buffered, setBuffered] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [volume, setVolume] = useState(0.5);
+  const [lastVolume, setLastVolume] = useState(0.5);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [areSubtitlesEnabled, setAreSubtitlesEnabled] = useState(false);
+  const [isTheaterMode, setIsTheaterMode] = useState(false);
+
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -167,8 +329,114 @@ export function VideoPlayer() {
     }
   };
 
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume;
+      videoRef.current.muted = newVolume === 0;
+    }
+  };
+
+  const toggleMute = () => {
+    if (volume > 0) {
+      setLastVolume(volume);
+      setVolume(0);
+      if (videoRef.current) videoRef.current.volume = 0;
+    } else {
+      setVolume(lastVolume);
+      if (videoRef.current) videoRef.current.volume = lastVolume;
+    }
+  };
+
+  const toggleFullScreen = () => {
+    const playerContainer = playerContainerRef.current;
+    if (!playerContainer) return;
+
+    if (!document.fullscreenElement) {
+      playerContainer.requestFullscreen().catch((err) => {
+        console.error(
+          `Error attempting to enable full-screen mode: ${err.message} (${err.name})`
+        );
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  const toggleSettings = () => {
+    setIsSettingsOpen(!isSettingsOpen);
+  };
+
+  const handlePlaybackSpeedChange = (speed: number) => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = speed;
+      setPlaybackSpeed(speed);
+      setIsSettingsOpen(false);
+    }
+  };
+
+  const toggleSubtitles = () => {
+    setAreSubtitlesEnabled(!areSubtitlesEnabled);
+    console.log("Subtitles toggled");
+  };
+
+  const toggleTheaterMode = () => {
+    setIsTheaterMode(!isTheaterMode);
+    console.log("Theater mode toggled");
+  };
+
+  const toggleMiniPlayer = () => {
+    console.log("Mini player toggled");
+  };
+
+
+  useEffect(() => {
+    const handleFullScreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullScreenChange);
+    return () =>
+      document.removeEventListener('fullscreenchange', handleFullScreenChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isSettingsOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsSettingsOpen(false);
+      }
+    };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const menu = document.getElementById("settings-menu");
+      const settingsButton = document.getElementById("settings-button");
+      if (
+        menu &&
+        !menu.contains(e.target as Node) &&
+        settingsButton &&
+        !settingsButton.contains(e.target as Node)
+      ) {
+        setIsSettingsOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isSettingsOpen]);
+
+
   return (
-    <div className="group relative aspect-video w-full overflow-hidden rounded-lg bg-black">
+    <div
+      ref={playerContainerRef}
+      className="group relative aspect-video w-full overflow-hidden rounded-lg bg-black"
+    >
       <video
         ref={videoRef}
         className="h-full w-full"
@@ -179,6 +447,15 @@ export function VideoPlayer() {
         <track kind="captions" />
       </video>
 
+      {isSettingsOpen && (
+        <div id="settings-menu">
+          <SettingsMenu
+            playbackSpeed={playbackSpeed}
+            onSpeedChange={handlePlaybackSpeedChange}
+          />
+        </div>
+      )}
+
       <PlayerControls
         isPlaying={isPlaying}
         onPlayPause={togglePlay}
@@ -187,6 +464,17 @@ export function VideoPlayer() {
         duration={duration}
         currentTime={currentTime}
         onSeek={handleSeek}
+        volume={volume}
+        onVolumeChange={handleVolumeChange}
+        toggleMute={toggleMute}
+        isFullScreen={isFullScreen}
+        toggleFullScreen={toggleFullScreen}
+        toggleSettings={toggleSettings}
+        toggleSubtitles={toggleSubtitles}
+        areSubtitlesEnabled={areSubtitlesEnabled}
+        toggleTheaterMode={toggleTheaterMode}
+        isTheaterMode={isTheaterMode}
+        toggleMiniPlayer={toggleMiniPlayer}
       />
     </div>
   );
