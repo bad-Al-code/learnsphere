@@ -11,6 +11,7 @@ import {
   Play,
   RectangleHorizontal,
   Settings,
+  SkipBack,
   SkipForward,
   Subtitles,
   Volume1,
@@ -62,6 +63,7 @@ interface SettingsMenuProps {
   availableQualities: Level[];
   currentQuality: number;
   onQualityChange: (levelIndex: number) => void;
+  currentQualityLabel: string;
 }
 
 function SettingsMenu({
@@ -70,6 +72,7 @@ function SettingsMenu({
   availableQualities,
   currentQuality,
   onQualityChange,
+  currentQualityLabel,
 }: SettingsMenuProps) {
   const [activeMenu, setActiveMenu] = useState<SettingsMenuType>('main');
 
@@ -78,16 +81,8 @@ function SettingsMenu({
     setActiveMenu('main');
   };
 
-  const handleQualitySelect = (levelIndex: number) => {
-    onQualityChange(levelIndex);
-    setActiveMenu('main');
-  };
-
-  const currentQualityLabel =
-    availableQualities[currentQuality]?.height + 'p' || 'Auto';
-
   return (
-    <div className="absolute right-3 bottom-14 z-20 w-52 overflow-hidden rounded-lg border border-white/10 bg-black/80 text-sm text-white shadow-lg backdrop-blur-lg">
+    <div className="absolute right-3 bottom-14 z-20 w-52 overflow-hidden rounded-lg border bg-black/80 text-sm text-white shadow-lg backdrop-blur-lg">
       {activeMenu === 'main' && (
         <div className="flex flex-col">
           <button
@@ -136,29 +131,35 @@ function SettingsMenu({
         <div className="flex flex-col">
           <button
             onClick={() => setActiveMenu('main')}
-            className="flex cursor-pointer items-center px-3 py-2 hover:bg-white/10"
+            className="flex cursor-pointer items-center border-b py-2 hover:bg-white/10"
           >
             <ChevronLeft className="mr-2 h-4 w-4" /> Quality
           </button>
           <button
-            onClick={() => handleQualitySelect(-1)}
+            onClick={() => onQualityChange(-1)}
             className={`w-full rounded p-2 text-left hover:bg-white/10 ${
               currentQuality === -1 ? 'bg-white/20 font-semibold' : ''
             }`}
           >
             Auto
           </button>
-          {availableQualities.map((level, index) => (
-            <button
-              key={level.height}
-              onClick={() => handleQualitySelect(index)}
-              className={`w-full rounded p-2 text-left hover:bg-white/10 ${
-                currentQuality === index ? 'bg-white/20 font-semibold' : ''
-              }`}
-            >
-              {level.height}p
-            </button>
-          ))}
+          {[...availableQualities]
+            .sort((a, b) => b.height - a.height)
+            .map((level) => (
+              <button
+                key={level.height}
+                onClick={() =>
+                  onQualityChange(availableQualities.indexOf(level))
+                }
+                className={`w-full rounded p-2 text-left hover:bg-white/10 ${
+                  currentQuality === availableQualities.indexOf(level)
+                    ? 'bg-white/20 font-semibold'
+                    : ''
+                }`}
+              >
+                {level.height}p
+              </button>
+            ))}
         </div>
       )}
     </div>
@@ -185,6 +186,8 @@ interface PlayerControlsProps {
   isTheaterMode: boolean;
   toggleMiniPlayer: () => void;
   isVisible: boolean;
+  onNext: () => void;
+  onPrevious: () => void;
 }
 
 function PlayerControls({
@@ -207,6 +210,8 @@ function PlayerControls({
   isTheaterMode,
   toggleMiniPlayer,
   isVisible,
+  onNext,
+  onPrevious,
 }: PlayerControlsProps) {
   const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
@@ -221,6 +226,15 @@ function PlayerControls({
         <Timeline progress={progress} buffered={buffered} onSeek={onSeek} />
         <div className="mt-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button onClick={onPrevious}>
+                  <SkipBack className="h-6 w-6" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Previous</TooltipContent>
+            </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <button onClick={onPlayPause} className="cursor-pointer">
@@ -367,28 +381,19 @@ export function VideoPlayer() {
     let hls: Hls;
 
     if (Hls.isSupported()) {
-      hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: true,
-        // backBufferLength: 90
-      });
-
+      hls = new Hls();
       hlsRef.current = hls;
 
       hls.loadSource(hlsStreamUrl);
       hls.attachMedia(videoElement);
 
       hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-        console.log('Manifest parsed, available levels:', data.levels);
-        setAvailableQualities(data.levels.sort((a, b) => b.height - a.height));
-      });
-
-      hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
-        setCurrentQuality(data.level);
+        setAvailableQualities([...data.levels]);
       });
     } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
       videoElement.src = hlsStreamUrl;
     }
+
     return () => {
       if (hlsRef.current) {
         hlsRef.current.destroy();
@@ -435,6 +440,9 @@ export function VideoPlayer() {
       video.removeEventListener('pause', () => setIsPlaying(false));
     };
   }, []);
+
+  const handleNext = () => console.log('Go to next video');
+  const handlePrevious = () => console.log('Go to previous video');
 
   const togglePlay = useCallback(() => {
     if (videoRef.current) {
@@ -488,9 +496,7 @@ export function VideoPlayer() {
     }
   };
 
-  const toggleSettings = () => {
-    setIsSettingsOpen(!isSettingsOpen);
-  };
+  const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen);
 
   const handlePlaybackSpeedChange = (speed: number) => {
     if (videoRef.current) {
@@ -500,19 +506,9 @@ export function VideoPlayer() {
     }
   };
 
-  const toggleSubtitles = () => {
-    setAreSubtitlesEnabled(!areSubtitlesEnabled);
-    console.log('Subtitles toggled');
-  };
-
-  const toggleTheaterMode = () => {
-    setIsTheaterMode(!isTheaterMode);
-    console.log('Theater mode toggled');
-  };
-
-  const toggleMiniPlayer = () => {
-    console.log('Mini player toggled');
-  };
+  const toggleSubtitles = () => setAreSubtitlesEnabled(!areSubtitlesEnabled);
+  const toggleTheaterMode = () => setIsTheaterMode(!isTheaterMode);
+  const toggleMiniPlayer = () => console.log('Mini player toggled');
 
   const seekRelative = useCallback(
     (delta: number) => {
@@ -533,7 +529,7 @@ export function VideoPlayer() {
     [duration]
   );
 
-  const resetInactivityTimer = () => {
+  const resetInactivityTimer = useCallback(() => {
     if (inactivityTimerRef.current) {
       clearTimeout(inactivityTimerRef.current);
     }
@@ -543,7 +539,7 @@ export function VideoPlayer() {
         setAreControlsVisible(false);
       }
     }, 3000);
-  };
+  }, [isPlaying, isSettingsOpen]);
 
   const handleMouseMove = () => {
     setAreControlsVisible(true);
@@ -562,8 +558,17 @@ export function VideoPlayer() {
   const handleQualityChange = (levelIndex: number) => {
     if (hlsRef.current) {
       hlsRef.current.currentLevel = levelIndex;
+      setCurrentQuality(levelIndex);
     }
+    setIsSettingsOpen(false);
   };
+
+  const currentQualityLabel =
+    currentQuality === -1
+      ? `Auto (${
+          hlsRef.current?.levels[hlsRef.current?.currentLevel]?.height ?? '...'
+        }p)`
+      : `${availableQualities[currentQuality]?.height}p`;
 
   useEffect(() => {
     const handleFullScreenChange = () => {
@@ -578,19 +583,13 @@ export function VideoPlayer() {
     if (!isSettingsOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsSettingsOpen(false);
-      }
+      if (e.key === 'Escape') setIsSettingsOpen(false);
     };
 
     const handleClickOutside = (e: MouseEvent) => {
-      const menu = document.getElementById('settings-menu');
-      const settingsButton = document.getElementById('settings-button');
       if (
-        menu &&
-        !menu.contains(e.target as Node) &&
-        settingsButton &&
-        !settingsButton.contains(e.target as Node)
+        playerContainerRef.current &&
+        !playerContainerRef.current.contains(e.target as Node)
       ) {
         setIsSettingsOpen(false);
       }
@@ -614,14 +613,12 @@ export function VideoPlayer() {
         clearTimeout(inactivityTimerRef.current);
       }
     }
-  }, [isPlaying, isSettingsOpen]);
+  }, [isPlaying, isSettingsOpen, resetInactivityTimer]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-        return;
-      }
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
 
       switch (e.key) {
         case ' ':
@@ -697,14 +694,13 @@ export function VideoPlayer() {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
     togglePlay,
     toggleMute,
     toggleFullScreen,
+    toggleSubtitles,
+    toggleTheaterMode,
     seekRelative,
     seekToPercentage,
     volume,
@@ -722,7 +718,6 @@ export function VideoPlayer() {
       <video
         ref={videoRef}
         className="h-full w-full"
-        muted
         playsInline
         onClick={togglePlay}
         onDoubleClick={toggleFullScreen}
@@ -731,23 +726,15 @@ export function VideoPlayer() {
       </video>
 
       {isSettingsOpen && (
-        <div id="settings-menu">
-          <SettingsMenu
-            playbackSpeed={playbackSpeed}
-            onSpeedChange={handlePlaybackSpeedChange}
-            availableQualities={availableQualities}
-            currentQuality={currentQuality}
-            onQualityChange={handleQualityChange}
-          />
-        </div>
+        <SettingsMenu
+          playbackSpeed={playbackSpeed}
+          onSpeedChange={handlePlaybackSpeedChange}
+          availableQualities={availableQualities}
+          currentQuality={currentQuality}
+          onQualityChange={handleQualityChange}
+          currentQualityLabel={currentQualityLabel}
+        />
       )}
-      <button
-        id="settings-button"
-        onClick={toggleSettings}
-        className="cursor-pointer transition-transform duration-300"
-      >
-        <Settings className="h-6 w-6" />
-      </button>
 
       <PlayerControls
         isPlaying={isPlaying}
@@ -769,6 +756,8 @@ export function VideoPlayer() {
         isTheaterMode={isTheaterMode}
         toggleMiniPlayer={toggleMiniPlayer}
         isVisible={areControlsVisible}
+        onNext={handleNext}
+        onPrevious={handlePrevious}
       />
     </div>
   );
