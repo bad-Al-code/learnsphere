@@ -4,6 +4,7 @@ import {
   AssignmentStatus,
   AssignmentStatusSkeleton,
 } from './assignment-status';
+import { AISummaryCard, AISummaryCardSkeleton } from './course-ai-summary-card';
 import {
   ModulePerformance,
   ModulePerformanceSkeleton,
@@ -39,7 +40,8 @@ async function PageContent({ courseId }: { courseId: string }) {
       <OverviewStatCards courseId={courseId} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="space-y-6 lg:col-span-2">
+          <AISummaryCard />
           <RecentActivity data={overviewData.recentActivity} />
         </div>
         <div>
@@ -60,7 +62,8 @@ export function OverviewTabSkeleton() {
       <OverviewStatCardsSkeleton />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="space-y-6 lg:col-span-2">
+          <AISummaryCardSkeleton />
           <RecentActivitySkeleton />
         </div>
         <div>
