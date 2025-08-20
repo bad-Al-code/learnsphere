@@ -43,3 +43,4 @@ export function formatTime(seconds: number): string {
   const remainingSeconds = roundedSeconds % 60;
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
+

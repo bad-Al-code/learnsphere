@@ -26,6 +26,7 @@ export function VideoPlayer() {
   const [areControlsVisible, setAreControlsVisible] = useState(false);
   const [availableQualities, setAvailableQualities] = useState<Level[]>([]);
   const [currentQuality, setCurrentQuality] = useState<number>(-1);
+  const [isMiniPlayer, setIsMiniPlayer] = useState(false);
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -173,7 +174,28 @@ export function VideoPlayer() {
   };
 
   const toggleTheaterMode = () => setIsTheaterMode(!isTheaterMode);
-  const toggleMiniPlayer = () => console.log('Mini player toggled');
+
+  const toggleMiniPlayer = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (!document.pictureInPictureEnabled) {
+      console.warn('Picture-in-Picture is not supported in this browser.');
+      return;
+    }
+
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        setIsMiniPlayer(false);
+      } else {
+        await video.requestPictureInPicture();
+        setIsMiniPlayer(true);
+      }
+    } catch (error) {
+      console.error('Error toggling Picture-in-Picture mode:', error);
+    }
+  };
 
   const seekRelative = useCallback(
     (delta: number) => {
@@ -234,6 +256,21 @@ export function VideoPlayer() {
           hlsRef.current?.levels[hlsRef.current?.currentLevel]?.height ?? '...'
         }p)`
       : `${availableQualities[currentQuality]?.height}p`;
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleLeavePiP = () => {
+      setIsMiniPlayer(false);
+    };
+
+    video.addEventListener('leavepictureinpicture', handleLeavePiP);
+
+    return () => {
+      video.removeEventListener('leavepictureinpicture', handleLeavePiP);
+    };
+  }, []);
 
   useEffect(() => {
     const handleFullScreenChange = () => {
@@ -385,11 +422,12 @@ export function VideoPlayer() {
     >
       <video
         ref={videoRef}
-        className="h-full w-full"
+        className={`h-full w-full ${isMiniPlayer ? 'invisible' : ''}`}
         playsInline
         onClick={togglePlay}
         onDoubleClick={toggleFullScreen}
         crossOrigin="anonymous"
+        // disablePictureInPicture
       >
         <track
           label="English"
@@ -399,6 +437,12 @@ export function VideoPlayer() {
           default
         />
       </video>
+
+      {isMiniPlayer && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black text-white">
+          <p>This video is playing in Picture-in-Picture mode.</p>
+        </div>
+      )}
 
       {isSettingsOpen && (
         <SettingsMenu
@@ -430,7 +474,7 @@ export function VideoPlayer() {
         toggleTheaterMode={toggleTheaterMode}
         isTheaterMode={isTheaterMode}
         toggleMiniPlayer={toggleMiniPlayer}
-        isVisible={areControlsVisible}
+        isVisible={areControlsVisible || isMiniPlayer}
         onNext={handleNext}
         onPrevious={handlePrevious}
       />
