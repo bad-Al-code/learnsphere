@@ -5,6 +5,11 @@ import { lessonEditorTabs } from '@/config/nav-items';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
+import {
+  LessonContentTab,
+  LessonContentTabSkeleton,
+} from './_components/lesson-content-tab';
 
 interface LessonEditorPageProps {
   params: { courseId: string; lessonId: string };
@@ -55,8 +60,10 @@ export default async function LessonEditorPage({
           activeTab="tab"
         />
 
-        <TabsContent value="content" className="">
-          <p>Lesson Content Editor Goes Here...</p>
+        <TabsContent value="content" className="mt-2">
+          <Suspense fallback={<LessonContentTabSkeleton />}>
+            <LessonContentTab />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="analytics" className="">

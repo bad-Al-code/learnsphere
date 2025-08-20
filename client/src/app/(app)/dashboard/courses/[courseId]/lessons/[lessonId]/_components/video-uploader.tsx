@@ -76,12 +76,12 @@ export function VideoUploader({
 
       {currentFile && (
         <div className="bg-muted/50 flex items-center justify-between rounded-lg border p-3">
-          <p className="text-muted-foreground text-sm">
-            Current video:{' '}
+          <div className="flex flex-col">
+            <div className="text-muted-foreground text-sm">Current video: </div>
             <span className="text-foreground font-medium">
               {currentFile.name} ({formatBytes(currentFile.size)})
             </span>
-          </p>
+          </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm">
               <Eye className="h-4 w-4" />
