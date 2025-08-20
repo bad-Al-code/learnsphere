@@ -1,6 +1,6 @@
 'use client';
 
-import { formatTime } from '@/lib/utils';
+import { cn, formatTime } from '@/lib/utils';
 import Hls from 'hls.js';
 import {
   ChevronLeft,
@@ -150,6 +150,8 @@ interface PlayerControlsProps {
   toggleTheaterMode: () => void;
   isTheaterMode: boolean;
   toggleMiniPlayer: () => void;
+  isVisible: boolean;
+
 }
 
 function PlayerControls({
@@ -171,13 +173,19 @@ function PlayerControls({
   toggleTheaterMode,
   isTheaterMode,
   toggleMiniPlayer,
+  isVisible
 }: PlayerControlsProps) {
   const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
   return (
-    <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 text-white opacity-0 transition-opacity group-hover:opacity-100">
+    <div
+      className={cn(
+        "absolute bottom-0 left-0 right-0 z-10 flex flex-col bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 text-white transition-opacity",
+        isVisible ? "opacity-100" : "opacity-0"
+      )}
+    >
       <Timeline progress={progress} buffered={buffered} onSeek={onSeek} />
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mt-2">
         <div className="flex items-center gap-3">
           <button onClick={onPlayPause}>
             {isPlaying ? (
@@ -232,6 +240,7 @@ function PlayerControls({
 export function VideoPlayer() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -245,6 +254,7 @@ export function VideoPlayer() {
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [areSubtitlesEnabled, setAreSubtitlesEnabled] = useState(false);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
+  const [areControlsVisible, setAreControlsVisible] = useState(false);
 
 
   useEffect(() => {
@@ -390,6 +400,33 @@ export function VideoPlayer() {
     console.log("Mini player toggled");
   };
 
+  const resetInactivityTimer = () => {
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+
+    inactivityTimerRef.current = setTimeout(() => {
+      if (isPlaying && !isSettingsOpen) {
+        setAreControlsVisible(false);
+      }
+    }, 3000);
+  };
+
+  const handleMouseMove = () => {
+    setAreControlsVisible(true);
+    resetInactivityTimer();
+  };
+
+  const handleMouseLeave = () => {
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    if (isPlaying && !isSettingsOpen) {
+      setAreControlsVisible(false);
+    }
+  };
+
+
 
   useEffect(() => {
     const handleFullScreenChange = () => {
@@ -431,11 +468,25 @@ export function VideoPlayer() {
     };
   }, [isSettingsOpen]);
 
+  useEffect(() => {
+    if (isPlaying) {
+      resetInactivityTimer();
+    } else {
+      setAreControlsVisible(true);
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+    }
+  }, [isPlaying, isSettingsOpen]);
+
+
 
   return (
     <div
       ref={playerContainerRef}
       className="group relative aspect-video w-full overflow-hidden rounded-lg bg-black"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
     >
       <video
         ref={videoRef}
@@ -455,6 +506,13 @@ export function VideoPlayer() {
           />
         </div>
       )}
+      <button
+        id="settings-button"
+        onClick={toggleSettings}
+        className="transition-transform duration-300"
+      >
+        <Settings className="h-6 w-6" />
+      </button>
 
       <PlayerControls
         isPlaying={isPlaying}
@@ -475,6 +533,8 @@ export function VideoPlayer() {
         toggleTheaterMode={toggleTheaterMode}
         isTheaterMode={isTheaterMode}
         toggleMiniPlayer={toggleMiniPlayer}
+        isVisible={areControlsVisible}
+
       />
     </div>
   );
