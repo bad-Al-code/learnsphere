@@ -1,15 +1,8 @@
-import { AppTabs } from '@/components/ui/app-tabs';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
-import { lessonEditorTabs } from '@/config/nav-items';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
-import {
-  LessonContentTab,
-  LessonContentTabSkeleton,
-} from './_components/lesson-content-tab';
+import { LessonEditor } from './_components/lesson-edtior';
 
 interface LessonEditorPageProps {
   params: { courseId: string; lessonId: string };
@@ -18,7 +11,6 @@ interface LessonEditorPageProps {
 
 export default async function LessonEditorPage({
   params,
-  searchParams,
 }: LessonEditorPageProps) {
   const lesson = {
     title: 'What is Data Science?',
@@ -30,11 +22,8 @@ export default async function LessonEditorPage({
     notFound();
   }
 
-  const tab =
-    typeof searchParams.tab === 'string' ? searchParams.tab : 'content';
-
   return (
-    <div className="space-y-2">
+    <div className="space-y-6">
       <div>
         <Button asChild variant="ghost" className="-ml-4">
           <Link
@@ -53,35 +42,7 @@ export default async function LessonEditorPage({
         </div>
       </div>
 
-      <Tabs value={tab} className="w-full">
-        <AppTabs
-          tabs={lessonEditorTabs}
-          basePath={`/dashboard/courses/${params.courseId}/lessons/${params.lessonId}`}
-          activeTab="tab"
-        />
-
-        <TabsContent value="content" className="mt-2">
-          <Suspense fallback={<LessonContentTabSkeleton />}>
-            <LessonContentTab />
-          </Suspense>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="">
-          <p>Lesson Analytics Goes Here...</p>
-        </TabsContent>
-
-        <TabsContent value="students" className="">
-          <p>Students Progress for this Lesson Goes Here...</p>
-        </TabsContent>
-
-        <TabsContent value="comments" className="">
-          <p>Comments for this Lesson Goes Here...</p>
-        </TabsContent>
-
-        <TabsContent value="settings" className="">
-          <p>Lesson Settings Goes Here...</p>
-        </TabsContent>
-      </Tabs>
+      <LessonEditor courseId={params.courseId} lessonId={params.lessonId} />
     </div>
   );
 }
