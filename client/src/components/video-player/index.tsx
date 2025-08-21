@@ -652,13 +652,7 @@ export function TestVideoPlayer() {
       )}
 
       <main className="container mx-auto">
-        <h1 className="mb-4 text-4xl font-bold">Video Player Test Page</h1>
-        <p className="text-gray-600">
-          This page demonstrates the VideoPlayer component in different
-          scenarios.
-        </p>
-
-        <div className="my-12">
+        <div className="my-4">
           <h2 className="mb-4 border-b pb-2 text-2xl font-semibold">
             Scenario 1: Single Video with Subtitles
           </h2>
@@ -683,7 +677,7 @@ export function TestVideoPlayer() {
           </div>
         </div>
 
-        <div className="my-12">
+        <div className="my-4">
           <h2 className="mb-4 border-b pb-2 text-2xl font-semibold">
             Scenario 2: Playlist Functionality
           </h2>
@@ -693,6 +687,7 @@ export function TestVideoPlayer() {
               currentVideoIndex={currentVideoIndex}
               onVideoChange={handleVideoChange}
               isTheaterMode={isTheaterMode2}
+              subtitles={videoSubtitles}
               onToggleTheaterMode={togglePageTheaterMode2}
             />
           </div>

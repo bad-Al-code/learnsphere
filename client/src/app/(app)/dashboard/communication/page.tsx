@@ -1,7 +1,6 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
 import { FileText, Mail, Megaphone, Pencil } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
@@ -9,10 +8,7 @@ import {
   AnnouncementsPageSkeleton,
 } from './announcements/announcement-page';
 import { ComposePage, ComposePageSkeleton } from './compose/compose-page';
-
-function MessagesPage() {
-  return <div className="p-4">Messages (Inbox) Page Content</div>;
-}
+import { MessagesPage, MessagesPageSkeleton } from './messages/mesage-page';
 
 function TemplatesPage() {
   return <div className="p-4">Templates Page Content</div>;
@@ -20,7 +16,7 @@ function TemplatesPage() {
 
 export default function CommunicationPage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('announcements');
+  const [activeTab, setActiveTab] = useState('messages');
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1500);
@@ -29,6 +25,8 @@ export default function CommunicationPage() {
 
   const renderSkeleton = () => {
     switch (activeTab) {
+      case 'messages':
+        return <MessagesPageSkeleton />;
       case 'announcements':
         return <AnnouncementsPageSkeleton />;
       case 'compose':
@@ -40,7 +38,7 @@ export default function CommunicationPage() {
 
   return (
     <div className="">
-      <Tabs defaultValue="announcements" onValueChange={setActiveTab}>
+      <Tabs defaultValue="messages" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="messages">
             <Mail className="h-4 w-4" />
@@ -60,7 +58,7 @@ export default function CommunicationPage() {
           </TabsTrigger>
         </TabsList>
 
-        <div className="mt-0">
+        <div className="">
           {isLoading ? (
             renderSkeleton()
           ) : (
