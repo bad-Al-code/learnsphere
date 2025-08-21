@@ -29,7 +29,7 @@ function StudentsPageSkeleton() {
 
 export default function StudentsPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <LessonHeader
         title="Student Management"
         description="Monitor student progress, engagement, and performance across all courses."
