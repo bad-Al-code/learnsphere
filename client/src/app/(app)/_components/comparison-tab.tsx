@@ -116,7 +116,7 @@ const geoDistributionData = [
 
 export async function ComparisonTab() {
   const mainContent = (
-    <div className="space-y-8">
+    <div className="space-y-4">
       <Card>
         <CardHeader>
           <CardTitle>Course Performance Comparison</CardTitle>

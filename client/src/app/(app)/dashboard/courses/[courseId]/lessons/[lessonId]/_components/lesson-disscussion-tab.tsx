@@ -34,7 +34,6 @@ import {
   ThumbsUp,
 } from 'lucide-react';
 
-// --- TYPE DEFINITIONS ---
 interface StatCardData {
   title: string;
   value: number;
@@ -64,7 +63,6 @@ interface CommentData {
   aiSuggestion?: string;
 }
 
-// --- BUILT-IN PLACEHOLDER DATA ---
 const placeholderData: {
   stats: StatCardData[];
   aiStats: AIStatCardData[];
@@ -156,15 +154,12 @@ const placeholderData: {
   ],
 };
 
-// ============================================================================
-// MINI COMPONENT 1: DiscussionStatCards
-// ============================================================================
 function DiscussionStatCards({ data }: { data: StatCardData[] }) {
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
       {data.map((stat) => (
         <Card key={stat.title}>
-          <CardContent className="p-4">
+          <CardContent className="">
             <p className="text-muted-foreground text-xs">{stat.title}</p>
             <div className="mt-2 flex items-center gap-2">
               <stat.icon className="text-muted-foreground h-5 w-5" />
@@ -177,9 +172,6 @@ function DiscussionStatCards({ data }: { data: StatCardData[] }) {
   );
 }
 
-// ============================================================================
-// MINI COMPONENT 2: AIModerationDashboard
-// ============================================================================
 function AIModerationDashboard({ data }: { data: AIStatCardData[] }) {
   const variantClasses = {
     green: 'border-green-500/50 bg-green-500/10 text-green-700',
@@ -230,9 +222,6 @@ function AIModerationDashboard({ data }: { data: AIStatCardData[] }) {
   );
 }
 
-// ============================================================================
-// MINI COMPONENT 3: DiscussionFilters
-// ============================================================================
 function DiscussionFilters() {
   return (
     <div className="flex items-center justify-between">
@@ -248,9 +237,6 @@ function DiscussionFilters() {
   );
 }
 
-// ============================================================================
-// MINI COMPONENT 4: CommentThread
-// ============================================================================
 function CommentThread({ comment }: { comment: CommentData }) {
   const statusColors = {
     Approved: 'border-green-500/20',
@@ -344,9 +330,6 @@ function CommentThread({ comment }: { comment: CommentData }) {
   );
 }
 
-// ============================================================================
-// FINAL ASSEMBLY: DiscussionTab
-// ============================================================================
 export function DiscussionTab() {
   return (
     <div className="space-y-6">
@@ -367,9 +350,6 @@ export function DiscussionTab() {
   );
 }
 
-// ============================================================================
-// SKELETONS
-// ============================================================================
 function CommentThreadSkeleton() {
   return (
     <div className="rounded-lg border p-4">
@@ -394,7 +374,7 @@ function CommentThreadSkeleton() {
   );
 }
 
-export function DiscussionTabSkeleton() {
+export function LessonDiscussionTabSkeleton() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">

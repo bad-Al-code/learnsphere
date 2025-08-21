@@ -53,7 +53,7 @@ const placeholderData: Comment[] = [
 function CommentCard({ comment }: { comment: Comment }) {
   return (
     <Card>
-      <CardContent className="p-4">
+      <CardContent className="">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
             <Avatar className="h-9 w-9">

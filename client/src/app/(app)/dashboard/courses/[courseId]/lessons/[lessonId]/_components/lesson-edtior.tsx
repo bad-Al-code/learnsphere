@@ -4,18 +4,20 @@ import { AppTabs } from '@/components/ui/app-tabs';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { lessonEditorTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import React, { Suspense, useTransition } from 'react';
+import React, { Suspense, useState, useTransition } from 'react';
 
 import {
   LessonAnalyticsTab,
   LessonAnalyticsTabSkeleton,
 } from './lesson-analytics-tab';
-import { LessonCommentsTabSkeleton } from './lesson-comments-tab';
 import {
   LessonContentTab,
   LessonContentTabSkeleton,
 } from './lesson-content-tab';
-import { DiscussionTab, DiscussionTabSkeleton } from './lesson-disscussion-tab';
+import {
+  DiscussionTab,
+  LessonDiscussionTabSkeleton,
+} from './lesson-disscussion-tab';
 import {
   LessonSettingsTab,
   LessonSettingsTabSkeleton,
@@ -34,7 +36,7 @@ const skeletonMap: Record<string, React.ReactNode> = {
   content: <LessonContentTabSkeleton />,
   analytics: <LessonAnalyticsTabSkeleton />,
   students: <LessonStudentsTabSkeleton />,
-  comments: <LessonCommentsTabSkeleton />,
+  comments: <LessonDiscussionTabSkeleton />,
   settings: <LessonSettingsTabSkeleton />,
 };
 
@@ -42,26 +44,29 @@ export function LessonEditor({ courseId, lessonId }: LessonEditorProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const currentTabFromUrl = searchParams.get('tab') || 'content';
 
-  const currentTab = searchParams.get('tab') || 'content';
+  const [activeTab, setActiveTab] = useState(currentTabFromUrl);
 
   const [isPending, startTransition] = useTransition();
 
   const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', newTab);
 
     startTransition(() => {
-      router.push(`${pathname}?${params.toString()}`);
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
     });
   };
 
-  const currentSkeleton = skeletonMap[currentTab] || (
+  const pendingSkeleton = skeletonMap[activeTab] || (
     <LessonContentTabSkeleton />
   );
 
   return (
-    <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <AppTabs
         tabs={lessonEditorTabs}
         basePath={`/dashboard/courses/${courseId}/lessons/${lessonId}`}
@@ -70,7 +75,7 @@ export function LessonEditor({ courseId, lessonId }: LessonEditorProps) {
 
       <div className="mt-0">
         {isPending ? (
-          currentSkeleton
+          pendingSkeleton
         ) : (
           <>
             <TabsContent value="content">
@@ -92,7 +97,7 @@ export function LessonEditor({ courseId, lessonId }: LessonEditorProps) {
             </TabsContent>
 
             <TabsContent value="comments">
-              <Suspense fallback={<DiscussionTabSkeleton />}>
+              <Suspense fallback={<LessonDiscussionTabSkeleton />}>
                 <DiscussionTab />
               </Suspense>
             </TabsContent>

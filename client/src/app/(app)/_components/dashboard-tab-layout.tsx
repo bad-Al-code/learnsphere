@@ -11,7 +11,7 @@ export function DashboardTabLayout({
   sideContent,
 }: DashboardTabLayoutProps) {
   return (
-    <div className="mt-6 space-y-8">
+    <div className="space-y-8">
       {mainContent}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

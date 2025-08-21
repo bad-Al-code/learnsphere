@@ -21,8 +21,12 @@ import {
   VideoLessonContent,
 } from './lesson-type-component';
 
+import { LessonActions, LessonActionsSkeleton } from './lesson-actions';
 import { LessonSettings, LessonSettingsSkeleton } from './lesson-settings-card';
-import { VideoPlayerSettings } from './video-player-settings-card';
+import {
+  VideoPlayerSettings,
+  VideoPlayerSettingsSkeleton,
+} from './video-player-settings-card';
 
 const LessonContentRenderer = ({ lesson }: { lesson: LessonData }) => {
   switch (lesson.type) {
@@ -59,6 +63,11 @@ export function LessonContentTab() {
       type: newType,
     }));
   };
+
+  const handleDuplicate = () => alert('Duplicate clicked!');
+  const handleExport = () => alert('Export clicked!');
+  const handleShare = () => alert('Share clicked!');
+  const handleDelete = () => alert('Deleting lesson...');
 
   return (
     <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
@@ -105,6 +114,12 @@ export function LessonContentTab() {
       <div className="space-y-2">
         <LessonSettings />
         {currentLesson.type === 'video' && <VideoPlayerSettings />}
+        <LessonActions
+          onDuplicate={handleDuplicate}
+          onExport={handleExport}
+          onShare={handleShare}
+          onDelete={handleDelete}
+        />
       </div>
     </div>
   );
@@ -125,7 +140,6 @@ export function LessonContentTabSkeleton() {
             </div>
           </CardHeader>
           <CardContent>
-            {/* You might want a more generic skeleton here later, but this is fine for now */}
             <Skeleton className="aspect-video w-full" />
             <div className="mt-6">
               <Skeleton className="h-5 w-40" />
@@ -136,6 +150,8 @@ export function LessonContentTabSkeleton() {
       </div>
       <div className="space-y-6">
         <LessonSettingsSkeleton />
+        <VideoPlayerSettingsSkeleton />
+        <LessonActionsSkeleton />
       </div>
     </div>
   );

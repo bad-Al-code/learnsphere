@@ -2,27 +2,17 @@
 
 import { AppTabs } from '@/components/ui/app-tabs';
 import { Tabs } from '@/components/ui/tabs';
-import { instructorDashboardTabs } from '@/config/nav-items';
+import { instructorAnalyticsTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
 
-import { AnalyticsTabSkeleton } from './analytics-tab';
-import { ComparisonTabSkeleton } from './comparison-tab';
-import { EngagementTabSkeleton } from './engagement-tab';
-import { InsightsTabSkeleton } from './insight-tab';
 import { OverviewTabSkeleton } from './overview-tab';
-import { PerformanceTabSkeleton } from './performance-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
   overview: <OverviewTabSkeleton />,
-  engagement: <EngagementTabSkeleton />,
-  performance: <PerformanceTabSkeleton />,
-  comparison: <ComparisonTabSkeleton />,
-  analytics: <AnalyticsTabSkeleton />,
-  insights: <InsightsTabSkeleton />,
 };
 
-export function DashboardTabs({ children }: { children: React.ReactNode }) {
+export function AnalyticsTabs({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -48,11 +38,10 @@ export function DashboardTabs({ children }: { children: React.ReactNode }) {
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <AppTabs
-        tabs={instructorDashboardTabs}
-        basePath="/dashboard"
+        tabs={instructorAnalyticsTabs}
+        basePath="/dashboard/analytics"
         activeTab="tab"
       />
-
       <div className="">{isPending ? pendingSkeleton : children}</div>
     </Tabs>
   );

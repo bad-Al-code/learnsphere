@@ -1,3 +1,5 @@
+import { Skeleton } from '@/components/ui/skeleton';
+
 export function DashboardHeader({
   title,
   description,
@@ -11,6 +13,15 @@ export function DashboardHeader({
       {description && (
         <p className="text-muted-foreground mt-1">{description}</p>
       )}
+    </div>
+  );
+}
+
+export function DashboardHeaderSkeleton() {
+  return (
+    <div>
+      <Skeleton className="h-8 w-[250px]" />
+      <Skeleton className="mt-1 h-5 w-[400px]" />
     </div>
   );
 }
