@@ -68,7 +68,7 @@ export function PlayerControls({
     <TooltipProvider delayDuration={200}>
       <div
         className={cn(
-          'absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 text-white transition-opacity',
+          'absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 text-white transition-opacity sm:p-3',
           isVisible ? 'opacity-100' : 'opacity-0'
         )}
       >
@@ -89,42 +89,46 @@ export function PlayerControls({
           onMouseLeave={onTimelineMouseLeave}
         />
 
-        <div className="mt-2 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button onClick={onPrevious} className="cursor-pointer">
-                  <SkipBack className="h-6 w-6" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Previous (Shift + P)</TooltipContent>
-            </Tooltip>
+        <div className="mt-1 flex items-center justify-between sm:mt-2">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="hidden items-center gap-2 sm:flex sm:gap-3">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button onClick={onPrevious} className="cursor-pointer">
+                    <SkipBack className="h-5 w-5 fill-white sm:h-6 sm:w-6" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Previous (Shift + P)</TooltipContent>
+              </Tooltip>
+            </div>
 
             <Tooltip>
               <TooltipTrigger asChild>
                 <button onClick={onPlayPause} className="cursor-pointer">
                   {isPlaying ? (
-                    <Pause className="h-6 w-6" />
+                    <Pause className="h-5 w-5 fill-white sm:h-6 sm:w-6" />
                   ) : (
-                    <Play className="h-6 w-6" />
+                    <Play className="h-5 w-5 fill-white sm:h-6 sm:w-6" />
                   )}
                 </button>
               </TooltipTrigger>
               <TooltipContent>
-                {isPlaying ? 'Pause (space/k)' : 'Play (space/k)'}
+                {isPlaying ? 'Pause (k)' : 'Play (k)'}
               </TooltipContent>
             </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button onClick={onNext} className="cursor-pointer">
-                  <SkipForward className="h-6 w-6" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Next video (Shift + N)</TooltipContent>
-            </Tooltip>
+            <div className="hidden items-center gap-2 sm:flex sm:gap-3">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button onClick={onNext} className="cursor-pointer">
+                    <SkipForward className="h-5 w-5 fill-white sm:h-6 sm:w-6" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Next (Shift + N)</TooltipContent>
+              </Tooltip>
+            </div>
 
-            <div className="group/volume flex items-center gap-0 hover:gap-2">
+            <div className="group/volume hidden items-center gap-0 hover:gap-2 sm:flex">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button className="cursor-pointer" onClick={toggleMute}>
@@ -147,79 +151,85 @@ export function PlayerControls({
               />
             </div>
 
-            <div className="text-sm">
+            <div className="text-xs sm:text-sm">
               <span>{formatTime(currentTime)}</span> /{' '}
               <span>{formatTime(duration)}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={toggleAutoplay}
-                  className="relative cursor-pointer"
-                >
-                  <Repeat className="h-6 w-6" />
-                  {!isAutoplayEnabled && (
-                    <div className="absolute top-1/2 left-0 h-0.5 w-full -rotate-45 rounded-full bg-white" />
-                  )}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {isAutoplayEnabled ? 'Autoplay is on' : 'Autoplay is off'}
-              </TooltipContent>
-            </Tooltip>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="hidden items-center gap-2 sm:flex sm:gap-3">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={toggleAutoplay}
+                    className="relative cursor-pointer"
+                  >
+                    <Repeat className="h-5 w-5 sm:h-6 sm:w-6" />
+                    {!isAutoplayEnabled && (
+                      <div className="absolute top-1/2 left-0 h-0.5 w-full -rotate-45 rounded-full bg-white" />
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isAutoplayEnabled ? 'Autoplay is on' : 'Autoplay is off'}
+                </TooltipContent>
+              </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={toggleSubtitles}
-                  className="relative cursor-pointer"
-                >
-                  <Subtitles className="h-6 w-6" />
-                  {areSubtitlesEnabled && (
-                    <div className="absolute bottom-0 left-1/2 h-0.5 w-4/5 -translate-x-1/2 rounded-full bg-black" />
-                  )}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Subtitles (c)</TooltipContent>
-            </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={toggleSubtitles}
+                    className="relative cursor-pointer"
+                  >
+                    <Subtitles className="h-5 w-5 sm:h-6 sm:w-6" />
+                    {areSubtitlesEnabled && (
+                      <div className="absolute bottom-0 left-1/2 h-0.5 w-4/5 -translate-x-1/2 rounded-full bg-white" />
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Subtitles (c)</TooltipContent>
+              </Tooltip>
+            </div>
 
             <Tooltip>
               <TooltipTrigger asChild>
                 <button onClick={toggleSettings} className="cursor-pointer">
-                  <Settings className="h-6 w-6" />
+                  <Settings className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </TooltipTrigger>
               <TooltipContent>Settings</TooltipContent>
             </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button onClick={toggleMiniPlayer} className="cursor-pointer">
-                  <PictureInPicture2 className="h-6 w-6" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Miniplayer (i)</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button onClick={toggleTheaterMode} className="cursor-pointer">
-                  <RectangleHorizontal className="h-6 w-6" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Theater mode (t)</TooltipContent>
-            </Tooltip>
+            <div className="hidden items-center gap-2 md:flex md:gap-3">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button onClick={toggleMiniPlayer} className="cursor-pointer">
+                    <PictureInPicture2 className="h-6 w-6" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Miniplayer (i)</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={toggleTheaterMode}
+                    className="cursor-pointer"
+                  >
+                    <RectangleHorizontal className="h-6 w-6" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Theater mode (t)</TooltipContent>
+              </Tooltip>
+            </div>
 
             <Tooltip>
               <TooltipTrigger asChild>
                 <button onClick={toggleFullScreen} className="cursor-pointer">
                   {isFullScreen ? (
-                    <Minimize className="h-6 w-6" />
+                    <Minimize className="h-5 w-5 sm:h-6 sm:w-6" />
                   ) : (
-                    <Maximize className="h-6 w-6" />
+                    <Maximize className="h-5 w-5 sm:h-6 sm:w-6" />
                   )}
                 </button>
               </TooltipTrigger>

@@ -55,6 +55,8 @@ type BasePlayerProps = {
   }[];
   onToggleTheaterMode?: () => void;
   isTheaterMode?: boolean;
+  toggleTheaterMode?: () => void;
+  theaterModeEnabled?: boolean;
 };
 
 type SingleVideoPlayerProps = BasePlayerProps & {

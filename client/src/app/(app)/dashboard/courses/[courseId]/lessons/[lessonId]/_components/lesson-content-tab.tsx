@@ -18,6 +18,13 @@ import { VideoUploader, VideoUploaderSkeleton } from './video-uploader';
 export function LessonContentTab() {
   const lessonTitle = 'What is Data Science?';
   const videoSrc = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+  const videoSubtitles = [
+    {
+      lang: 'en',
+      label: 'English',
+      src: 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt',
+    },
+  ];
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -39,7 +46,12 @@ export function LessonContentTab() {
 
           <CardContent>
             <div className="relative">
-              <VideoPlayer src={videoSrc} title={lessonTitle} />
+              <VideoPlayer
+                src={videoSrc}
+                title={lessonTitle}
+                subtitles={videoSubtitles} // Pass the static subtitles
+                theaterModeEnabled={true}
+              />
 
               {/* <div className="pointer-events-none absolute top-4 left-4 rounded-md bg-black/60 px-2 py-1 text-sm font-semibold text-white">
                 {lessonTitle}

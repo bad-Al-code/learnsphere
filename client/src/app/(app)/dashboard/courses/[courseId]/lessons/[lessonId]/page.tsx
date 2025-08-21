@@ -23,7 +23,7 @@ export default async function LessonEditorPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="">
       <div>
         <Button asChild variant="ghost" className="-ml-4">
           <Link

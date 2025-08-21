@@ -142,3 +142,8 @@
     font-family: var(--font-mono), monospace;
   }
 }
+
+body.theater-mode-active .main-content-for-theater {
+  transition: margin-top 0.3s ease-in-out;
+  margin-top: 56.25vw; /* This is the height of a 16:9 aspect-ratio video */
+}
