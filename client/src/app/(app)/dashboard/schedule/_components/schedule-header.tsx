@@ -1,8 +1,8 @@
-'use client';
-
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { CreateEventForm } from './create-event-form';
 
 export async function CalendarHeader() {
   const sleep = (ms: number) =>
@@ -21,10 +21,18 @@ export async function CalendarHeader() {
       <Button variant="outline" size="icon">
         <ChevronRight className="h-4 w-4" />
       </Button>
-      <Button className="ml-4">
-        <Plus className="mr-2 h-4 w-4" />
-        New Event
-      </Button>
+
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button className="">
+            <Plus className="h-4 w-4" />
+            New Event
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[480px]">
+          <CreateEventForm />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
