@@ -1,7 +1,4 @@
 import { HomepageClient } from '@/components/shared/homepage-client';
-import TestTextEditor, {
-  RichTextEditorSkeleton,
-} from '@/components/text-editor';
 import { TestVideoPlayer } from '@/components/video-player';
 import { getCurrentUser } from './(auth)/actions';
 
@@ -16,14 +13,8 @@ export default async function Home() {
           This is the homepage. Explore our courses and start learning!
         </p>
         <TestVideoPlayer />
-
         <div className="mt-10"></div>
         <div className="mt-10"></div>
-
-        <TestTextEditor />
-        <div className="mt-10"></div>
-
-        <RichTextEditorSkeleton />
       </main>
 
       <HomepageClient user={user} />
