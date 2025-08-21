@@ -651,7 +651,7 @@ export function TestVideoPlayer() {
         />
       )}
 
-      <main className="container mx-auto p-4 md:p-8">
+      <main className="container mx-auto">
         <h1 className="mb-4 text-4xl font-bold">Video Player Test Page</h1>
         <p className="text-gray-600">
           This page demonstrates the VideoPlayer component in different

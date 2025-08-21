@@ -204,7 +204,7 @@ export function CreateAssignmentForm() {
 
         <div className="grid gap-2">
           <Label>Due Date</Label>
-          <Popover modal={false}>
+          <Popover modal={true}>
             <PopoverTrigger asChild>
               <Button
                 variant={'outline'}

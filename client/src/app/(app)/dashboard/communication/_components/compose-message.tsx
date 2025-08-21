@@ -109,7 +109,7 @@ export function ComposeMessage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="grid w-full items-center gap-1.5">
             <Label>Schedule Send (Optional)</Label>
-            <Popover>
+            <Popover modal={true}>
               <PopoverTrigger asChild>
                 <Button
                   variant={'outline'}

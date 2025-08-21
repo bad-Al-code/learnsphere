@@ -217,19 +217,19 @@ export const instructorNavItems: NavItem[] = [
     icon: 'LineChart',
   },
   {
-    href: '/dashboard/instructor/communication',
+    href: '/dashboard/communication',
     label: 'Communication',
     value: 'communication',
     icon: 'MessageSquare',
   },
   {
-    href: '/dashboard/instructor/schedule',
+    href: '/dashboard/schedule',
     label: 'Schedule',
     value: 'schedule',
     icon: 'Calendar',
   },
   {
-    href: '/dashboard/instructor/certificates',
+    href: '/dashboard/certificates',
     label: 'Certificates',
     value: 'certificates',
     icon: 'Award',
