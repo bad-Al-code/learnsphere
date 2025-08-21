@@ -95,7 +95,9 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
           </SelectContent>
         </Select>
 
-        <Separator orientation="vertical" className="mx-1 h-6" />
+        <div className="self-stretch">
+          <Separator orientation="vertical" className="mx-1 h-6" />
+        </div>
 
         <Tooltip>
           <TooltipTrigger asChild>
@@ -140,7 +142,9 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
           <TooltipContent>Strikethrough</TooltipContent>
         </Tooltip>
 
-        <Separator orientation="vertical" className="mx-1 h-6" />
+        <div className="self-stretch">
+          <Separator orientation="vertical" className="mx-1 h-6" />
+        </div>
 
         <Tooltip>
           <TooltipTrigger asChild>
@@ -209,7 +213,9 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
           />
         </Dialog>
 
-        <Separator orientation="vertical" className="mx-1 h-6" />
+        <div className="self-stretch">
+          <Separator orientation="vertical" className="mx-1 h-6" />
+        </div>
 
         <Tooltip>
           <TooltipTrigger asChild>
@@ -275,7 +281,9 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
           <TooltipContent>Strikethrough</TooltipContent>
         </Tooltip>
 
-        <Separator orientation="vertical" className="mx-1 h-6" />
+        <div className="self-stretch">
+          <Separator orientation="vertical" className="mx-1 h-6" />
+        </div>
 
         <Tooltip>
           <TooltipTrigger asChild>

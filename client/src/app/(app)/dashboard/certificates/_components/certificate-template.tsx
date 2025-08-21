@@ -13,14 +13,14 @@ interface CertificateTemplateProps {
 }
 
 export function CertificateElegant({
-  name = 'Adeline Palmerston',
-  event = 'Digital Marketing Workshop',
-  company = 'Wardiere Company',
-  date = '6 June 2025',
-  signerLeft = 'Adira Monteiro',
-  signerLeftRole = 'Chief Executive Officer',
-  signerRight = 'Shohi Takahashi',
-  signerRightRole = 'Chief Operating Officer',
+  name = 'Spoinky',
+  event = 'Foolish',
+  company = 'Kitty',
+  date = 'threat',
+  signerLeft = 'DoorKnob',
+  signerLeftRole = 'Tuna',
+  signerRight = 'Purrito',
+  signerRightRole = 'Mr.Meow',
 }: CertificateTemplateProps) {
   return (
     <div className="flex w-full items-center justify-center">
@@ -30,7 +30,7 @@ export function CertificateElegant({
 
           <div className="absolute right-0 bottom-0 h-40 w-40 rounded-bl-3xl border-r-8 border-b-8 border-neutral-800"></div>
 
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,black,transparent_70%)] opacity-5"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,black,transparent_70%)] opacity-5 dark:bg-[radial-gradient(circle_at_center,white,transparent_70%)]"></div>
         </div>
 
         <div className="relative z-10 flex h-full flex-col justify-between px-16 py-12 text-center">
@@ -49,7 +49,8 @@ export function CertificateElegant({
 
             <p className="text-foreground mx-auto mt-6 max-w-2xl">
               For successfully participating in the{' '}
-              <span className="font-semibold">{event}</span> held by {company}{' '}
+              <span className="font-semibold">{event}</span> held by{' '}
+              <span className="font-semibold">{company}</span>
               on {date}.
             </p>
           </div>
