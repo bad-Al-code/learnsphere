@@ -14,10 +14,10 @@ import {
 
 export async function OverviewTab() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <StatCardGrid />
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
         <StudentDemographics />
         <DeviceUsageChart />
         <SubscriptionAnalysis />
@@ -28,8 +28,8 @@ export async function OverviewTab() {
 
 export function OverviewTabSkeleton() {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 8 }).map((_, index) => (
           <StatCardSkeleton key={index} />
         ))}

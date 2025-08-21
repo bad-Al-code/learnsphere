@@ -1,34 +1,19 @@
-import { Skeleton } from '@/components/ui/skeleton';
 import { TabsContent } from '@/components/ui/tabs';
-import { instructorAnalyticsTabs } from '@/config/nav-items';
 import { Suspense } from 'react';
 
-import {
-  DashboardHeader as AnalyticsHeader,
-  DashboardHeaderSkeleton as AnalyticsHeaderSkeleton,
-} from '../../_components/dashboard-header';
+import { DashboardHeader as AnalyticsHeader } from '../../_components/dashboard-header';
 import { AnalyticsTabs } from './_components/analytics-tab';
+import {
+  CourseAnalysisTab,
+  CourseAnalysisTabSkeleton,
+} from './_components/course-analysis-tab';
 import { OverviewTab, OverviewTabSkeleton } from './_components/overview-tab';
-
-function AnalyticsPageSkeleton() {
-  return (
-    <div className="space-y-2">
-      <AnalyticsHeaderSkeleton />
-
-      <div className="space-y-2">
-        <div className="flex border-b">
-          {Array.from({ length: instructorAnalyticsTabs.length }).map(
-            (_, index) => (
-              <Skeleton key={index} className="h-10 flex-1" />
-            )
-          )}
-        </div>
-
-        <OverviewTabSkeleton />
-      </div>
-    </div>
-  );
-}
+import { ReportsTab, ReportsTabSkeleton } from './_components/reports-tab';
+import {
+  StudentPerformanceTab,
+  StudentPerformanceTabSkeleton,
+} from './_components/student-performance-tab';
+import { EngagementTab, EngagementTabSkeleton } from './engagement-tab';
 
 export default function AnalyticsPage() {
   return (
@@ -38,15 +23,37 @@ export default function AnalyticsPage() {
         description="Analyze trends and gain insights into your courses and student performance."
       />
 
-      <Suspense fallback={<AnalyticsPageSkeleton />}>
-        <AnalyticsTabs>
-          <TabsContent value="overview">
-            <Suspense fallback={<OverviewTabSkeleton />}>
-              <OverviewTab />
-            </Suspense>
-          </TabsContent>
-        </AnalyticsTabs>
-      </Suspense>
+      <AnalyticsTabs>
+        <TabsContent value="overview">
+          <Suspense fallback={<OverviewTabSkeleton />}>
+            <OverviewTab />
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="course-analysis">
+          <Suspense fallback={<CourseAnalysisTabSkeleton />}>
+            <CourseAnalysisTab />
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="student-performance">
+          <Suspense fallback={<StudentPerformanceTabSkeleton />}>
+            <StudentPerformanceTab />
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <Suspense fallback={<ReportsTabSkeleton />}>
+            <ReportsTab />
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="engagement">
+          <Suspense fallback={<EngagementTabSkeleton />}>
+            <EngagementTab />
+          </Suspense>
+        </TabsContent>
+      </AnalyticsTabs>
     </div>
   );
 }

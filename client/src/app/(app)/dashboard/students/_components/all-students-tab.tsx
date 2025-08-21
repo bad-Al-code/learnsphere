@@ -17,10 +17,10 @@ import {
 
 export async function AllStudentsTab() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <AllStudentsTable />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         <StudentActivityTrends />
         <GradeDistributionChart />
       </div>
@@ -32,10 +32,10 @@ export async function AllStudentsTab() {
 
 export function AllStudentsTabSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <AllStudentsTableSkeleton />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         <StudentActivityTrendsSkeleton />
         <GradeDistributionChartSkeleton />
       </div>

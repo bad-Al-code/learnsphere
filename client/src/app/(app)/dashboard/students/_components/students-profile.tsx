@@ -75,7 +75,7 @@ export async function StudentProfilesTab() {
   const students = placeholderData;
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
       {students.map((student) => (
         <StudentProfileCard key={student.email} data={student} />
       ))}
@@ -85,7 +85,7 @@ export async function StudentProfilesTab() {
 
 export function StudentProfilesTabSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 6 }).map((_, index) => (
         <StudentProfileCardSkeleton key={index} />
       ))}

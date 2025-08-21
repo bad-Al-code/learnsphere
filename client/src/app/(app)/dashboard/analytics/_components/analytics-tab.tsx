@@ -6,10 +6,18 @@ import { instructorAnalyticsTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
 
+import { EngagementTabSkeleton } from '../engagement-tab';
+import { CourseAnalysisTabSkeleton } from './course-analysis-tab';
 import { OverviewTabSkeleton } from './overview-tab';
+import { ReportsTabSkeleton } from './reports-tab';
+import { StudentPerformanceTabSkeleton } from './student-performance-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
   overview: <OverviewTabSkeleton />,
+  'course-analysis': <CourseAnalysisTabSkeleton />,
+  'student-performance': <StudentPerformanceTabSkeleton />,
+  engagement: <EngagementTabSkeleton />,
+  reports: <ReportsTabSkeleton />,
 };
 
 export function AnalyticsTabs({ children }: { children: React.ReactNode }) {

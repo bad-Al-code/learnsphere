@@ -9,7 +9,7 @@ import {
 
 export async function AnalyticsTab() {
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
       <EngagementPattern />
 
       <PerformanceMetrics />
@@ -19,7 +19,7 @@ export async function AnalyticsTab() {
 
 export function AnalyticsTabSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
       <EngagementPatternSkeleton />
 
       <PerformanceMetricsSkeleton />
