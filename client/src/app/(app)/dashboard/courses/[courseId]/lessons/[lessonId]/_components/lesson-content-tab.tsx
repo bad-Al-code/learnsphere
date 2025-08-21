@@ -2,39 +2,73 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
-import { VideoPlayer } from '@/components/video-player';
 import { Eye, Save } from 'lucide-react';
+import { useState } from 'react';
+import {
+  LessonData,
+  LessonType,
+  QuizLessonContent,
+  TextLessonContent,
+  VideoLessonContent,
+} from './lesson-type-component';
 
 import { LessonSettings, LessonSettingsSkeleton } from './lesson-settings-card';
-import {
-  VideoPlayerSettings,
-  VideoPlayerSettingsSkeleton,
-} from './video-player-settings-card';
-import { VideoUploader, VideoUploaderSkeleton } from './video-uploader';
+import { VideoPlayerSettings } from './video-player-settings-card';
+
+const LessonContentRenderer = ({ lesson }: { lesson: LessonData }) => {
+  switch (lesson.type) {
+    case 'video':
+      return <VideoLessonContent lesson={lesson} />;
+    case 'text':
+      return <TextLessonContent lesson={lesson} />;
+    case 'quiz':
+      return <QuizLessonContent lesson={lesson} />;
+    default:
+      return <div>Unknown lesson type</div>;
+  }
+};
 
 export function LessonContentTab() {
-  const lessonTitle = 'What is Data Science?';
-  const videoSrc = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
-  const videoSubtitles = [
-    {
-      lang: 'en',
-      label: 'English',
-      src: 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt',
-    },
-  ];
+  const [currentLesson, setCurrentLesson] = useState<LessonData>({
+    id: 'lesson-1',
+    title: 'What is Data Science?',
+    type: 'text',
+    videoSrc: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+    textContent: '<h2>Start writing your text lesson here!</h2>',
+    videoSubtitles: [
+      {
+        lang: 'en',
+        label: 'English',
+        src: 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt',
+      },
+    ],
+  });
+
+  const handleLessonTypeChange = (newType: LessonType) => {
+    setCurrentLesson((prevLesson) => ({
+      ...prevLesson,
+      type: newType,
+    }));
+  };
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div className="space-y-6 lg:col-span-2">
-        <Card>
-          <CardHeader className="flex items-center justify-between">
+    <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+      <div className="space-y-2 lg:col-span-2">
+        <Card className="pt-3">
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Lesson Content</CardTitle>
             <div className="flex items-center gap-2">
               <Button variant="outline">
-                <Eye className="h-4 w-4" />
+                <Eye className="mr-1 h-4 w-4" />
                 Preview
               </Button>
               <Button>
@@ -45,37 +79,32 @@ export function LessonContentTab() {
           </CardHeader>
 
           <CardContent>
-            <div className="relative">
-              <VideoPlayer
-                src={videoSrc}
-                title={lessonTitle}
-                subtitles={videoSubtitles} // Pass the static subtitles
-                theaterModeEnabled={true}
-              />
-
-              {/* <div className="pointer-events-none absolute top-4 left-4 rounded-md bg-black/60 px-2 py-1 text-sm font-semibold text-white">
-                {lessonTitle}
-              </div> */}
+            <div className="mb-2">
+              <Label htmlFor="lesson-type">Lesson Type</Label>
+              <Select
+                value={currentLesson.type}
+                onValueChange={(value: LessonType) =>
+                  handleLessonTypeChange(value)
+                }
+              >
+                <SelectTrigger id="lesson-type" className="mt-2">
+                  <SelectValue placeholder="Select a lesson type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="video">Video Lesson</SelectItem>
+                  <SelectItem value="text">Text Lesson</SelectItem>
+                  <SelectItem value="quiz">Quiz</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <Separator className="my-6" />
-
-            <div className="space-y-6">
-              <VideoUploader />
-              <div>
-                <h3 className="text-lg font-semibold">Video Description</h3>
-                <Textarea
-                  placeholder="Introduction video explaining the fundamentals of data science..."
-                  className="mt-2 min-h-24"
-                />
-              </div>
-              <VideoPlayerSettings />
-            </div>
+            <LessonContentRenderer lesson={currentLesson} />
           </CardContent>
         </Card>
       </div>
-      <div className="space-y-6">
+      <div className="space-y-2">
         <LessonSettings />
+        {currentLesson.type === 'video' && <VideoPlayerSettings />}
       </div>
     </div>
   );
@@ -96,15 +125,11 @@ export function LessonContentTabSkeleton() {
             </div>
           </CardHeader>
           <CardContent>
+            {/* You might want a more generic skeleton here later, but this is fine for now */}
             <Skeleton className="aspect-video w-full" />
-            <Separator className="my-6" />
-            <VideoUploaderSkeleton />
             <div className="mt-6">
               <Skeleton className="h-5 w-40" />
               <Skeleton className="mt-2 h-24 w-full" />
-            </div>
-            <div className="mt-6">
-              <VideoPlayerSettingsSkeleton />
             </div>
           </CardContent>
         </Card>

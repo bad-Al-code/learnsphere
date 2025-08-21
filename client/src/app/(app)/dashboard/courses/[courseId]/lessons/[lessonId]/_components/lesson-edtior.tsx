@@ -68,7 +68,7 @@ export function LessonEditor({ courseId, lessonId }: LessonEditorProps) {
         activeTab="tab"
       />
 
-      <div className="mt-2">
+      <div className="mt-0">
         {isPending ? (
           currentSkeleton
         ) : (

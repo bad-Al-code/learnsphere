@@ -55,7 +55,7 @@ export function VideoPlayerSettings({
       <CardHeader>
         <CardTitle>Video Player Settings</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-2">
         <SettingsSwitch
           id="enable-subtitles"
           label="Enable Subtitles"

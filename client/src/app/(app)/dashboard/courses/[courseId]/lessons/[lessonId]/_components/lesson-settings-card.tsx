@@ -41,7 +41,7 @@ export function LessonSettings({
       <CardHeader>
         <CardTitle>Lesson Settings</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-2">
         <div className="grid w-full items-center gap-1.5">
           <Label htmlFor="lesson-title">Lesson Title</Label>
           <Input id="lesson-title" defaultValue={data.title} />

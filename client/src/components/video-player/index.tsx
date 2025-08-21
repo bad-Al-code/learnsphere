@@ -549,7 +549,7 @@ export function VideoPlayer({
                 aria-label="Play video"
                 title="Play video"
               >
-                <Play className="fill-foreground h-10 w-10 pl-0.5 sm:h-16 sm:w-16 sm:pl-2" />
+                <Play className="fill-foreground h-6 w-6 pl-0.5 sm:h-10 sm:w-10 sm:pl-1.5" />
               </button>
             </div>
           )}
