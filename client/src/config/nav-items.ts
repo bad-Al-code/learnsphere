@@ -235,3 +235,15 @@ export const instructorNavItems: NavItem[] = [
     icon: 'Award',
   },
 ];
+
+export const communicationTabs: NavItem[] = [
+  { value: 'messages', label: 'Messages', icon: 'Mail', href: '#' },
+  { value: 'compose', label: 'Compose', icon: 'Pencil', href: '#' },
+  {
+    value: 'announcements',
+    label: 'Announcements',
+    icon: 'Megaphone',
+    href: '#',
+  },
+  { value: 'templates', label: 'Templates', icon: 'FileText', href: '#' },
+];

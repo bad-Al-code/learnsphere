@@ -50,7 +50,7 @@ function StatCards() {
     { title: 'Average Score', value: '87.5%', icon: CheckCheck },
   ];
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => (
         <StatCard key={stat.title} {...stat} />
       ))}
@@ -62,7 +62,7 @@ function CertificatesPageSkeleton() {
   return (
     <div className="space-y-6">
       <CertificateHeaderSkeleton />
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i}>
             <CardContent className="p-4">

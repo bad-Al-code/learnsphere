@@ -16,7 +16,7 @@ export function SidebarNav({ type }: SidebarNavProps) {
   const navItems = type === 'instructor' ? instructorNavItems : [];
 
   return (
-    <nav className="grid items-start gap-1 text-sm font-medium">
+    <nav className="fixed grid items-start gap-1 text-sm font-medium">
       {navItems.map((item) => {
         const Icon = iconMap[item.icon];
         const isActive =

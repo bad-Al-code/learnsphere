@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+import { getCurrentUser } from '../(auth)/actions';
 import { Sidebar } from './_components/sidebar';
 
 export default async function AppLayout({
@@ -5,15 +7,15 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // const user = await getCurrentUser();
+  const user = await getCurrentUser();
 
-  // if (!user) {
-  //   redirect('/login');
-  // }
+  if (!user) {
+    redirect('/login');
+  }
 
-  // if (!['instructor', 'admin'].includes(user.role)) {
-  //   redirect('/');
-  // }
+  if (!['instructor', 'admin'].includes(user.role)) {
+    redirect('/');
+  }
 
   return (
     <div className="container mx-auto py-0 pb-4 md:py-4">

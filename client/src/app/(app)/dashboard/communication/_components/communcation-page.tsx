@@ -1,243 +1,114 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { AppTabs } from '@/components/ui/app-tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { NavItem } from '@/types';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useTransition } from 'react';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Filter, Inbox, Search } from 'lucide-react';
-import { useState } from 'react';
+  TemplatesTab,
+  TemplatesTabSkeleton,
+} from '../../certificates/_components/templates-tab';
+import {
+  PageHeader,
+  PageHeaderSkeleton,
+} from '../../courses/[courseId]/_components/course-header';
+import {
+  AnnouncementsPage,
+  AnnouncementsPageSkeleton,
+} from '../announcements/announcement-page';
+import { ComposePage, ComposePageSkeleton } from '../compose/compose-page';
+import { MessagesPage, MessagesPageSkeleton } from '../messages/mesage-page';
 
-import type { Message } from './message-list-item';
-import { MessageListItem, MessageListItemSkeleton } from './message-list-item';
-import { MessageViewer, MessageViewerSkeleton } from './message-viewer';
-
-const messages: Message[] = [
+const communicationTabs: NavItem[] = [
+  { value: 'messages', label: 'Messages', icon: 'Mail', href: '#' },
+  { value: 'compose', label: 'Compose', icon: 'Pencil', href: '#' },
   {
-    id: '1',
-    name: 'Sarah Chen',
-    email: 'sarah.chen@email.com',
-    subject: 'Question about Assignment 3',
-    preview: "Hi Professor, I'm having trouble with the ...",
-    course: 'Data Science',
-    timestamp: '2 hours ago',
-    isRead: false,
-    hasAttachment: true,
-    priority: 'High',
-    avatarUrl: 'https://picsum.photos/seed/sarah/40/40',
+    value: 'announcements',
+    label: 'Announcements',
+    icon: 'Megaphone',
+    href: '#',
   },
-  {
-    id: '2',
-    name: 'Michael Rodriguez',
-    email: 'michael.r@email.com',
-    subject: 'Request for Extension',
-    preview: 'Dear Professor, I would like to request a ...',
-    course: 'Web Development',
-    timestamp: '5 hours ago',
-    isRead: true,
-    hasAttachment: false,
-    priority: 'High',
-    avatarUrl: 'https://picsum.photos/seed/michael/40/40',
-  },
-  {
-    id: '3',
-    name: 'Emma Thompson',
-    email: 'emma.t@email.com',
-    subject: 'Thank you for the feedback',
-    preview: 'Thank you so much for the detailed feed...',
-    course: 'Digital Marketing',
-    timestamp: '1 day ago',
-    isRead: true,
-    hasAttachment: false,
-    priority: 'Normal',
-  },
-  {
-    id: '4',
-    name: 'David Kim',
-    email: 'david.kim@email.com',
-    subject: 'Course Material Access Issue',
-    preview: "I'm unable to access the video lectures f...",
-    course: 'Graphic Design',
-    timestamp: '2 days ago',
-    isRead: true,
-    hasAttachment: false,
-    priority: 'High',
-  },
-  {
-    id: '5',
-    name: 'Lisa Wang',
-    email: 'lisa.w@email.com',
-    subject: 'Quick question about the syllabus',
-    preview: 'Just wanted to clarify a point regarding...',
-    course: 'Data Science',
-    timestamp: '3 days ago',
-    isRead: true,
-    hasAttachment: false,
-    priority: 'Normal',
-  },
+  { value: 'templates', label: 'Templates', icon: 'FileText', href: '#' },
 ];
 
+const skeletonMap: Record<string, React.ReactNode> = {
+  messages: <MessagesPageSkeleton />,
+  compose: <ComposePageSkeleton />,
+  announcements: <AnnouncementsPageSkeleton />,
+  templates: <TemplatesTabSkeleton />,
+};
+
 export default function CommunicationPage() {
-  const [selectedMessageId, setSelectedMessageId] = useState('1');
-  const selectedMessage = messages.find((m) => m.id === selectedMessageId);
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Communication Hub"
+        description="Manage all student and course-related communication from one place."
+      />
+
+      <CommunicationTabsHandler>
+        <TabsContent value="messages">
+          <MessagesPage />
+        </TabsContent>
+        <TabsContent value="compose">
+          <ComposePage />
+        </TabsContent>
+        <TabsContent value="announcements">
+          <AnnouncementsPage />
+        </TabsContent>
+        <TabsContent value="templates">
+          <TemplatesTab />
+        </TabsContent>
+      </CommunicationTabsHandler>
+    </div>
+  );
+}
+
+function CommunicationTabsHandler({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const currentTabFromUrl = searchParams.get('tab') || 'messages';
+  const [activeTab, setActiveTab] = useState(currentTabFromUrl);
+  const [isPending, startTransition] = useTransition();
+
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', newTab);
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    });
+  };
+
+  const pendingSkeleton = skeletonMap[activeTab] || <MessagesPageSkeleton />;
 
   return (
-    <div className="flex h-screen flex-col">
-      <div className="grid flex-1 grid-cols-1 lg:grid-cols-[350px_1fr] xl:grid-cols-[400px_1fr]">
-        <aside
-          className={`flex flex-col border-r ${
-            selectedMessageId ? 'hidden lg:flex' : 'flex'
-          }`}
-        >
-          <div className="flex-shrink-0 border-b p-2">
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
-                <Input placeholder="Search messages..." className="pl-8" />
-              </div>
-
-              <Select defaultValue="all">
-                <SelectTrigger className="hidden w-auto md:flex">
-                  <SelectValue placeholder="All Messages" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Messages</SelectItem>
-                  <SelectItem value="unread">Unread</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="md:hidden">
-                      <Inbox className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Filter messages</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Filter className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>More Filters</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <div className="p-2 md:hidden">
-                    <Select defaultValue="all">
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Messages" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Messages</SelectItem>
-                        <SelectItem value="unread">Unread</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="p-2">
-                    <Select defaultValue="all">
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Priority</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="p-2">
-                    <Select defaultValue="all">
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Courses" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Courses</SelectItem>
-                        <SelectItem value="ds">Data Science</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-
-          <div className="flex-1 space-y-2 overflow-y-auto p-2">
-            {messages.map((msg) => (
-              <div key={msg.id} onClick={() => setSelectedMessageId(msg.id)}>
-                <MessageListItem
-                  message={msg}
-                  isSelected={selectedMessageId === msg.id}
-                />
-              </div>
-            ))}
-          </div>
-        </aside>
-
-        <main
-          className={`flex flex-col ${
-            !selectedMessageId ? 'hidden lg:flex' : 'flex'
-          }`}
-        >
-          {selectedMessage ? (
-            <MessageViewer
-              message={selectedMessage}
-              onBack={() => setSelectedMessageId('')}
-            />
-          ) : (
-            <div className="text-muted-foreground hidden h-full items-center justify-center lg:flex">
-              Select a message to view
-            </div>
-          )}
-        </main>
-      </div>
-    </div>
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+      <AppTabs
+        tabs={communicationTabs}
+        basePath="/dashboard/communication"
+        activeTab="tab"
+      />
+      <div className="mt-6">{isPending ? pendingSkeleton : children}</div>
+    </Tabs>
   );
 }
 
 export function CommunicationPageSkeleton() {
   return (
-    <div className="flex h-screen flex-col">
-      <div className="grid flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[350px_1fr] xl:grid-cols-[400px_1fr]">
-        <aside className="hidden flex-col border-r lg:flex">
-          <div className="flex-shrink-0 border-b p-2">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-10 flex-1" />
-              <Skeleton className="h-10 w-28" />
-              <Skeleton className="h-10 w-10" />
-            </div>
-          </div>
-          <div className="flex-1 space-y-2 overflow-y-auto p-2">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <MessageListItemSkeleton key={i} />
-            ))}
-          </div>
-        </aside>
-        <main className="flex flex-col">
-          <MessageViewerSkeleton />
-        </main>
+    <div className="space-y-6">
+      <PageHeaderSkeleton />
+      <div className="space-y-4">
+        <div className="flex border-b">
+          {Array.from({ length: communicationTabs.length }).map((_, index) => (
+            <Skeleton key={index} className="h-10 flex-1" />
+          ))}
+        </div>
+        <MessagesPageSkeleton />
       </div>
     </div>
   );

@@ -62,7 +62,7 @@ export function EngagementTab() {
               tickFormatter={(value) =>
                 value.length > 20 ? value.slice(0, 20) + '...' : value
               }
-              className="text-sm"
+              className="fill-muted-foreground text-sm"
             />
             <XAxis dataKey="engagement" type="number" hide />
             <ChartTooltip
@@ -83,18 +83,28 @@ export function EngagementTab() {
 }
 
 export function EngagementTabSkeleton() {
+  const skeletonBarWidths = [
+    'w-[55%]',
+    'w-[78%]',
+    'w-[85%]',
+    'w-[72%]',
+    'w-[68%]',
+    'w-[91%]',
+  ];
+
   return (
     <Card>
       <CardHeader>
         <Skeleton className="h-7 w-52" />
         <Skeleton className="mt-1 h-5 w-72" />
       </CardHeader>
-      <CardContent className="flex h-[300px] w-full items-end gap-4 pr-6 pl-12">
-        <Skeleton className="h-[80%] w-full" />
-        <Skeleton className="h-[60%] w-full" />
-        <Skeleton className="h-[90%] w-full" />
-        <Skeleton className="h-[50%] w-full" />
-        <Skeleton className="h-[75%] w-full" />
+      <CardContent className="flex h-[300px] flex-col justify-around pr-4 pl-8">
+        {skeletonBarWidths.map((width, index) => (
+          <div key={index} className="flex items-center gap-4">
+            <Skeleton className="h-5 w-28 shrink-0" />
+            <Skeleton className={`h-5 ${width}`} />
+          </div>
+        ))}
       </CardContent>
     </Card>
   );

@@ -1,6 +1,5 @@
 import { Logo } from '@/components/shared/logo';
 
-// --- PROPS INTERFACE ---
 interface CertificateTemplateProps {
   name?: string;
   event?: string;
@@ -15,10 +14,10 @@ interface CertificateTemplateProps {
 export function CertificateElegant({
   name = 'Spoinky',
   event = 'Foolish',
-  company = 'Kitty',
-  date = 'threat',
-  signerLeft = 'DoorKnob',
-  signerLeftRole = 'Tuna',
+  company = 'Cat World Domination Organization',
+  date = '24th June, 23223',
+  signerLeft = 'Badal',
+  signerLeftRole = 'Hooman, I Will Kill You ALL',
   signerRight = 'Purrito',
   signerRightRole = 'Mr.Meow',
 }: CertificateTemplateProps) {
@@ -50,8 +49,7 @@ export function CertificateElegant({
             <p className="text-foreground mx-auto mt-6 max-w-2xl">
               For successfully participating in the{' '}
               <span className="font-semibold">{event}</span> held by{' '}
-              <span className="font-semibold">{company}</span>
-              on {date}.
+              <span className="font-semibold">{company} </span> on {date}.
             </p>
           </div>
 

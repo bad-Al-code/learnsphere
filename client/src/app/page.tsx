@@ -1,6 +1,7 @@
 import { HomepageClient } from '@/components/shared/homepage-client';
-import CommunicationPage from './(app)/dashboard/communication/page';
-import TestPage from './(app)/dashboard/communication2/page';
+import CommunicationPage, {
+  CommunicationPageSkeleton,
+} from './(app)/dashboard/communication/page';
 import { getCurrentUser } from './(auth)/actions';
 
 export default async function Home() {
@@ -8,19 +9,9 @@ export default async function Home() {
 
   return (
     <>
-      <main className="container mx-auto p-4">
-        <TestPage />
-        <div className="mt-4"></div>
+      <main className="container mx-auto space-y-4 p-4">
         <CommunicationPage />
-        <div className="mt-4">{/* <TestVideoPlayer /> */}</div>
-        {/**/}
-        {/* <div className="mt-10"></div> */}
-        {/* <div className="mt-10"></div> */}
-        {/**/}
-        {/* <TestTextEditor /> */}
-        {/* <div className="mt-10"></div> */}
-        {/**/}
-        {/* <RichTextEditorSkeleton /> */}
+        <CommunicationPageSkeleton />
       </main>
 
       <HomepageClient user={user} />

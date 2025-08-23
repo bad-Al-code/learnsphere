@@ -59,7 +59,7 @@ export function AppTabs({ tabs, basePath, activeTab }: AppTabsProps) {
                       variant="ghost"
                       size="icon"
                       onClick={() => router.push(href)}
-                      className="mx-auto rounded-md"
+                      className="mx-auto cursor-pointer rounded-md"
                     >
                       <Icon className="h-4 w-4" />
                     </Button>
@@ -77,7 +77,7 @@ export function AppTabs({ tabs, basePath, activeTab }: AppTabsProps) {
           <TabsTrigger key={tab.value} value={tab.value} asChild>
             <Link
               href={href}
-              className="flex items-center gap-2 whitespace-nowrap"
+              className="flex cursor-pointer items-center gap-2 whitespace-nowrap"
             >
               <Icon className="h-4 w-4" />
               <span>{tab.label}</span>

@@ -20,7 +20,10 @@ import {
   LayoutGrid,
   LineChart,
   ListChecks,
+  Mail,
+  Megaphone,
   MessageSquare,
+  Pencil,
   Presentation,
   Settings,
   Shield,
@@ -58,6 +61,9 @@ export const iconMap = {
   File,
   AreaChart,
   Settings,
+  Mail,
+  Pencil,
+  Megaphone,
 };
 
 export type IconName = keyof typeof iconMap;

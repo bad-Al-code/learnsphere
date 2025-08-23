@@ -43,9 +43,9 @@ const announcements: Announcement[] = [
 
 export function AnnouncementsPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <AnnouncementsHeader />
-      <div className="space-y-4">
+      <div className="space-y-2">
         {announcements.map((announcement) => (
           <AnnouncementCard key={announcement.id} announcement={announcement} />
         ))}
@@ -56,9 +56,9 @@ export function AnnouncementsPage() {
 
 export function AnnouncementsPageSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <AnnouncementsHeaderSkeleton />
-      <div className="space-y-4">
+      <div className="space-y-2">
         <AnnouncementCardSkeleton />
         <AnnouncementCardSkeleton />
         <AnnouncementCardSkeleton />

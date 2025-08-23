@@ -34,12 +34,12 @@ export function TemplateCard({ data }: TemplateCardProps) {
           {data.bodyPreview}
         </p>
       </CardContent>
-      <CardFooter className="flex justify-end gap-2">
-        <Button variant="outline" className="">
+      <CardFooter className="flex justify-between gap-2 sm:justify-end">
+        <Button variant="outline" className="flex items-center">
           <Eye className="h-4 w-4" />
           Preview
         </Button>
-        <Button className="">
+        <Button className="flex items-center">
           <PenSquare className="h-4 w-4" />
           Use Template
         </Button>

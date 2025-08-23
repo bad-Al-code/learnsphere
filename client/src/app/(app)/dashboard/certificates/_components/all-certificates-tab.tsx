@@ -163,7 +163,7 @@ function CertificateCard({ data }: { data: CertificateData }) {
 
 export function AllCertificatesTab() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg">
         <div className="relative min-w-[250px] flex-1">
           <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
