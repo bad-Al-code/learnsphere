@@ -117,7 +117,7 @@ export function MessageDetailView({ message }: MessageDetailViewProps) {
       </div>
 
       <div
-        className="prose dark:prose-invert flex-1 overflow-y-auto p-4"
+        className="w-full flex-1 overflow-y-auto p-4"
         dangerouslySetInnerHTML={{ __html: message.body }}
       />
 
@@ -137,10 +137,7 @@ export function MessageDetailView({ message }: MessageDetailViewProps) {
       )}
 
       <div className="bg-background mt-auto border-t p-4">
-        <RichTextEditor
-          initialContent="<p>Type your reply here...</p>"
-          onChange={() => {}}
-        />
+        <RichTextEditor onChange={() => {}} />
         <div className="mt-2 flex items-center justify-between">
           <div className="flex gap-1">
             <Tooltip>
