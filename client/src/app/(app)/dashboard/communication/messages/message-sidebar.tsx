@@ -58,14 +58,14 @@ export function MessageSidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <nav className="p-2">
+        <nav className="space-y-2 p-2">
           {messages.map((message) => (
             <button
               key={message.id}
               onClick={() => onSelectMessage(message.id)}
               className={cn(
-                'hover:bg-accent flex w-full flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all',
-                selectedMessageId === message.id && 'bg-muted'
+                'hover:bg-accent/40 flex w-full cursor-pointer flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all',
+                selectedMessageId === message.id && 'bg-muted hover:bg-muted'
               )}
             >
               <div className="flex w-full items-start justify-between">

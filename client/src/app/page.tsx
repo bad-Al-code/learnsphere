@@ -1,8 +1,6 @@
 import { HomepageClient } from '@/components/shared/homepage-client';
-import TestTextEditor, {
-  RichTextEditorSkeleton,
-} from '@/components/text-editor';
-import { TestVideoPlayer } from '@/components/video-player';
+import CommunicationPage from './(app)/dashboard/communication/page';
+import TestPage from './(app)/dashboard/communication2/page';
 import { getCurrentUser } from './(auth)/actions';
 
 export default async function Home() {
@@ -11,19 +9,18 @@ export default async function Home() {
   return (
     <>
       <main className="container mx-auto p-4">
-        <h1 className="text-3xl font-bold">Welcome to LearnSphere</h1>
-        <p className="mt-4">
-          This is the homepage. Explore our courses and start learning!
-        </p>
-        <TestVideoPlayer />
-
-        <div className="mt-10"></div>
-        <div className="mt-10"></div>
-
-        <TestTextEditor />
-        <div className="mt-10"></div>
-
-        <RichTextEditorSkeleton />
+        <TestPage />
+        <div className="mt-4"></div>
+        <CommunicationPage />
+        <div className="mt-4">{/* <TestVideoPlayer /> */}</div>
+        {/**/}
+        {/* <div className="mt-10"></div> */}
+        {/* <div className="mt-10"></div> */}
+        {/**/}
+        {/* <TestTextEditor /> */}
+        {/* <div className="mt-10"></div> */}
+        {/**/}
+        {/* <RichTextEditorSkeleton /> */}
       </main>
 
       <HomepageClient user={user} />
