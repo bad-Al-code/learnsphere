@@ -44,7 +44,7 @@ export async function OverviewTab() {
 
   const mainContent = (
     <div className="space-y-2">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <StatCard
           title="Total Students"
           value={stats.totalStudents.value.toLocaleString()}
@@ -155,7 +155,7 @@ export async function OverviewTab() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:col-span-2 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 lg:col-span-2 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Student Demographics</CardTitle>
@@ -190,8 +190,8 @@ export async function OverviewTab() {
 
 export function OverviewTabSkeleton() {
   return (
-    <div className="space-y-6">
-      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="space-y-2">
+      <div className="mt-6 grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i} className="p-4">
             <div className="flex items-center space-x-4">
@@ -205,7 +205,7 @@ export function OverviewTabSkeleton() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         {[...Array(2)].map((_, i) => (
           <Card key={i}>
             <CardHeader>
