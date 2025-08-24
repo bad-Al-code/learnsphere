@@ -10,6 +10,7 @@ import {
 import { NavItem } from '@/types';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { iconMap } from '../shared/icons';
 
 interface SidebarNavProps {
   type: 'settings' | 'admin' | 'instructor';
@@ -43,36 +44,42 @@ export function SidebarNav({ type }: SidebarNavProps) {
             className={`grid w-full`}
             style={{ gridTemplateColumns: `repeat(${navItems.length}, 1fr)` }}
           >
-            {navItems.map((item) => (
-              <TabsTrigger key={item.value} value={item.value} asChild>
-                <Link
-                  href={item.href}
-                  className="flex items-center gap-1 text-xs"
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              </TabsTrigger>
-            ))}
+            {navItems.map((item) => {
+              const Icon = iconMap[item.icon];
+              return (
+                <TabsTrigger key={item.value} value={item.value} asChild>
+                  <Link
+                    href={item.href}
+                    className="flex items-center gap-1 text-xs"
+                  >
+                    <Icon className="h-3 w-4" />
+                    {item.label}
+                  </Link>
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
         </Tabs>
       </div>
 
       {/* Desktop: Sidebar Buttons */}
       <nav className="hidden flex-col space-y-1 md:flex">
-        {navItems.map((item) => (
-          <Button
-            key={item.href}
-            asChild
-            variant={item.value === activeTab ? 'secondary' : 'ghost'}
-            className="w-full justify-start gap-2"
-          >
-            <Link href={item.href} className="flex items-center gap-2">
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          </Button>
-        ))}
+        {navItems.map((item) => {
+          const Icon = iconMap[item.icon];
+          return (
+            <Button
+              key={item.href}
+              asChild
+              variant={item.value === activeTab ? 'secondary' : 'ghost'}
+              className="w-full justify-start gap-2"
+            >
+              <Link href={item.href} className="flex items-center gap-2">
+                <Icon className="h-4 w-4" />
+                {item.label}
+              </Link>
+            </Button>
+          );
+        })}
       </nav>
     </>
   );

@@ -20,6 +20,7 @@ import {
   LayoutGrid,
   LineChart,
   ListChecks,
+  LucideIcon,
   Mail,
   Megaphone,
   MessageSquare,
@@ -32,7 +33,7 @@ import {
   UserSquare,
 } from 'lucide-react';
 
-export const iconMap = {
+export const iconMap: Record<string, LucideIcon> = {
   Award,
   BarChart2,
   Bell,
