@@ -206,3 +206,48 @@ export class DiscussionPostCreatedListener extends Listener<DiscussionPostCreate
     }
   }
 }
+
+interface UserSessionCreatedEvent {
+  topic: 'user.session.created';
+  data: {
+    userId: string;
+    deviceType: string | null;
+  };
+}
+
+export class UserSessionCreatedListener extends Listener<UserSessionCreatedEvent> {
+  readonly topic: 'user.session.created' = 'user.session.created' as const;
+  queueGroupName: string = 'enrollment-service-session-activity';
+
+  async onMessage(data: UserSessionCreatedEvent['data'], _msg: ConsumeMessage) {
+    try {
+      const coursesTaught = await CourseRepository.findAllByInstructorId(
+        data.userId
+      );
+      if (coursesTaught.length === 0) {
+        return;
+      }
+
+      const today = new Date().toISOString().split('T')[0];
+
+      await db
+        .insert(dailyActivity)
+        .values({ instructorId: data.userId, date: today, logins: 1 })
+        .onConflictDoUpdate({
+          target: [dailyActivity.instructorId, dailyActivity.date],
+          set: {
+            logins: sql`${dailyActivity.logins} + 1`,
+          },
+        });
+
+      logger.info(
+        `Logged login activity for instructor ${data.userId} on ${today}`
+      );
+    } catch (error) {
+      logger.error('Failed to process user.session.created event', {
+        data,
+        error,
+      });
+    }
+  }
+}

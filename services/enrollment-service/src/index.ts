@@ -10,6 +10,7 @@ import {
   CourseSyncDeletedListener,
   CourseSyncUpdatedListener,
   DiscussionPostCreatedListener,
+  UserSessionCreatedListener,
 } from './events/listener';
 
 const startServer = async () => {
@@ -22,6 +23,7 @@ const startServer = async () => {
     new CourseSyncUpdatedListener().listen();
     new CourseSyncDeletedListener().listen();
     new DiscussionPostCreatedListener().listen();
+    new UserSessionCreatedListener().listen();
 
     const PORT = process.env.PORT || 8000;
     app.listen(PORT, () => {
