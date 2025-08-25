@@ -32,7 +32,7 @@ export async function EngagementTab() {
     await getEngagementData();
 
   const mainContent = (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
       <Card>
         <CardHeader>
           <CardTitle>Weekly Engagement Patterns</CardTitle>
@@ -102,7 +102,7 @@ export async function EngagementTab() {
 
 export function EngagementTabSkeleton() {
   const mainContent = (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
       <EngagementPatternsChartSkeleton />
       <LearningRadarChartSkeleton />
       <ModuleProgressChartSkeleton />

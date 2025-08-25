@@ -19,7 +19,7 @@ export default function MyCoursesPage({
   const page =
     typeof searchParams.page === 'string' ? Number(searchParams.page) : 1;
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <DashboardHeader
         title="Course Management"
         description="Create, manage, and track your courses and content."
@@ -31,7 +31,7 @@ export default function MyCoursesPage({
         </Suspense>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-2">
         <CourseFilters />
         <Suspense
           key={query! + page + status}

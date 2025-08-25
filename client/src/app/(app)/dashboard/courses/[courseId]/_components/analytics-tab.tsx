@@ -377,8 +377,8 @@ function StudentPerformanceTable({
 
 export function AnalyticsTab() {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-2xl font-bold">Course Analytics</h2>
           <p className="text-muted-foreground">
@@ -389,16 +389,16 @@ export function AnalyticsTab() {
           <LineChart className="h-4 w-4" /> Export Report
         </Button>
       </div>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {placeholderData.stats.map((stat) => (
           <StatCard key={stat.title} {...stat} />
         ))}
       </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         <PerformanceTrendsChart data={placeholderData.trends} />
         <EngagementDistributionChart data={placeholderData.engagement} />
       </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-5">
         <div className="lg:col-span-2">
           <GradeDistributionBarChart data={placeholderData.gradeDistribution} />
         </div>
@@ -422,7 +422,7 @@ export function AnalyticsTab() {
 function StatCardSkeleton() {
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <Skeleton className="h-4 w-28" />
         <Skeleton className="h-4 w-4" />
       </CardHeader>
@@ -471,7 +471,7 @@ function GradeDistributionBarChartSkeleton() {
       </CardHeader>
       <CardContent className="space-y-4">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="flex gap-4">
+          <div key={i} className="flex gap-2">
             <Skeleton className="h-4 w-8" />
             <Skeleton className="h-4 flex-1" />
           </div>
@@ -490,7 +490,7 @@ function StudentPerformanceTableSkeleton() {
       </CardHeader>
       <CardContent className="space-y-4">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-4">
+          <div key={i} className="flex items-center gap-2">
             <Skeleton className="h-8 w-8 rounded-full" />
             <Skeleton className="h-4 flex-1" />
           </div>
@@ -502,7 +502,7 @@ function StudentPerformanceTableSkeleton() {
 
 export function AnalyticsTabSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
         <div>
           <Skeleton className="h-8 w-48" />
@@ -510,16 +510,16 @@ export function AnalyticsTabSkeleton() {
         </div>
         <Skeleton className="h-10 w-36" />
       </div>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <StatCardSkeleton key={i} />
         ))}
       </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         <PerformanceTrendsChartSkeleton />
         <EngagementDistributionChartSkeleton />
       </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-5">
         <div className="lg:col-span-2">
           <GradeDistributionBarChartSkeleton />
         </div>

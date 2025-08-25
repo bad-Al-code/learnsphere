@@ -17,7 +17,7 @@ export async function OverviewStatCards({ courseId }: { courseId: string }) {
   const { stats } = await getCourseOverviewData(courseId);
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
       <StatCard
         title="Students Enrolled"
         value={stats.studentsEnrolled.value}
@@ -84,7 +84,7 @@ export async function OverviewStatCards({ courseId }: { courseId: string }) {
 export function StatCardSkeleton() {
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <Skeleton className="h-4 w-32" />
         <Skeleton className="h-8 w-8 rounded-full" />
       </CardHeader>
@@ -98,7 +98,7 @@ export function StatCardSkeleton() {
 
 export function OverviewStatCardsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
       {Array.from({ length: 7 }).map((_, index) => (
         <StatCardSkeleton key={index} />
       ))}

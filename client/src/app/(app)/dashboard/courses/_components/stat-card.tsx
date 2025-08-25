@@ -7,7 +7,7 @@ export async function StatCards() {
   const stats = await getMyCoursePageStats();
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <StatCard
         title="Total Courses"
         value={`${stats.totalCourses.value} (${stats.totalCourses.breakdown.published} Published)`}
@@ -57,7 +57,7 @@ export async function StatCards() {
 
 export function StatCardsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <StatCard title="Total Courses" icon={BookOpen} isLoading />
       <StatCard title="Total Enrollments" icon={Users} isLoading />
       <StatCard title="Avg. Completion" icon={CheckCircle} isLoading />

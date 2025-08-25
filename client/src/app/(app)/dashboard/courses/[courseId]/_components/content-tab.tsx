@@ -128,7 +128,7 @@ export function ContentTab({
     useDndState(initialModules);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <ContentTabHeader />
       <Card>
         <CardHeader>
@@ -144,7 +144,7 @@ export function ContentTab({
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="space-y-4"
+                  className="space-y-2"
                 >
                   {modules.map((module, index) => (
                     <ModuleItem
@@ -303,13 +303,15 @@ function ModuleItem({
                     className="space-y-2"
                   >
                     {lessons.map((lesson, lessonIndex) => (
-                      <LessonItem
-                        key={lesson.id}
-                        lesson={lesson}
-                        index={lessonIndex}
-                        courseId={courseId}
-                      />
+                      <div key={lesson.id}>
+                        <LessonItem
+                          lesson={lesson}
+                          index={lessonIndex}
+                          courseId={courseId}
+                        />
+                      </div>
                     ))}
+
                     {provided.placeholder}
                   </div>
                 )}

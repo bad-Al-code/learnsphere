@@ -92,8 +92,8 @@ function CourseDetailsForm({ data }: { data: CourseSettingsData['details'] }) {
           Update your course information and settings
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <CardContent className="space-y-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <div className="grid w-full items-center gap-1.5 sm:col-span-2">
             <Label htmlFor="title">Course Title</Label>
             <Input id="title" defaultValue={data.title} />
@@ -111,7 +111,7 @@ function CourseDetailsForm({ data }: { data: CourseSettingsData['details'] }) {
             className="min-h-24"
           />
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <div className="grid w-full items-center gap-1.5">
             <Label>Category</Label>
             <Select defaultValue={data.category}>
@@ -186,7 +186,7 @@ function CourseSettings({ data }: { data: CourseSettingsData['settings'] }) {
       <CardHeader>
         <CardTitle>Course Settings</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label>Enable Course Reviews</Label>
@@ -234,7 +234,7 @@ function CourseStatistics({ data }: { data: CourseSettingsData['stats'] }) {
       <CardHeader>
         <CardTitle>Course Statistics</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 text-sm">
+      <CardContent className="space-y-2 text-sm">
         <div className="flex justify-between">
           <span>Total Students</span>
           <span className="font-semibold">{data.totalStudents}</span>
@@ -294,8 +294,8 @@ interface SettingsTabProps {
 }
 export function SettingsTab({ data = placeholderData }: SettingsTabProps) {
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div className="space-y-6 lg:col-span-2">
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+      <div className="space-y-2 lg:col-span-2">
         <CourseDetailsForm data={data.details} />
         <CourseThumbnail url={data.details.thumbnailUrl} />
         <CourseSettings data={data.settings} />
@@ -317,7 +317,7 @@ export function SettingsTab({ data = placeholderData }: SettingsTabProps) {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-2">
         <CourseStatistics data={data.stats} />
         <QuickActions />
       </div>
@@ -374,14 +374,14 @@ function QuickActionsSkeleton() {
 
 export function SettingsTabSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div className="space-y-6 lg:col-span-2">
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+      <div className="space-y-2 lg:col-span-2">
         <Card>
           <CardHeader>
             <Skeleton className="h-6 w-32" />
             <Skeleton className="mt-1 h-4 w-64" />
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-2">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-24 w-full" />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -407,7 +407,7 @@ export function SettingsTabSkeleton() {
           <CardHeader>
             <Skeleton className="h-6 w-36" />
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             <div className="flex justify-between">
               <Skeleton className="h-8 w-40" />
               <Skeleton className="h-5 w-10" />
@@ -423,7 +423,7 @@ export function SettingsTabSkeleton() {
           </CardContent>
         </Card>
       </div>
-      <div className="space-y-6">
+      <div className="space-y-2">
         <CourseStatisticsSkeleton />
         <QuickActionsSkeleton />
       </div>

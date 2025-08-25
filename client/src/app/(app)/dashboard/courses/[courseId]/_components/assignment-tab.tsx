@@ -105,8 +105,8 @@ export function AssignmentsTab({
   data = placeholderData,
 }: AssignmentsTabProps) {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-2xl font-bold">Course Assignments</h2>
           <p className="text-muted-foreground">
@@ -210,7 +210,7 @@ export function AssignmentsTab({
 
 export function AssignmentsTabSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
         <div>
           <Skeleton className="h-8 w-48" />

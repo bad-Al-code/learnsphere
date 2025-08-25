@@ -27,7 +27,7 @@ export function StatCard({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-sm font-medium">
           {isLoading ? <Skeleton className="h-4 w-24" /> : title}
         </CardTitle>
@@ -42,7 +42,7 @@ export function StatCard({
       <CardContent>
         {isLoading ? (
           <>
-            <Skeleton className="mb-2 h-6 w-16" />
+            <Skeleton className="h-6 w-16" />
             <Skeleton className="h-3 w-28" />
           </>
         ) : (

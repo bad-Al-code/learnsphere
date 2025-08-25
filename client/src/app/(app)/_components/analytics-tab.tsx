@@ -123,7 +123,7 @@ const recentEnrollmentsData = [
 
 export async function AnalyticsTab() {
   const mainContent = (
-    <div className="space-y-8">
+    <div className="space-y-2">
       <Card>
         <CardHeader>
           <CardTitle>Assignment Performance Analysis</CardTitle>
@@ -155,7 +155,7 @@ export async function AnalyticsTab() {
 
 export function AnalyticsTabSkeleton() {
   const mainContent = (
-    <div className="space-y-8">
+    <div className="space-y-2">
       <Card>
         <CardHeader>
           <CardTitle>

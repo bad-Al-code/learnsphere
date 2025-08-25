@@ -36,11 +36,11 @@ async function PageContent({ courseId }: { courseId: string }) {
   const overviewData = await getCourseOverviewData(courseId);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <OverviewStatCards courseId={courseId} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+        <div className="space-y-2 lg:col-span-2">
           <AISummaryCard />
           <RecentActivity data={overviewData.recentActivity} />
         </div>
@@ -58,11 +58,11 @@ async function PageContent({ courseId }: { courseId: string }) {
 
 export function OverviewTabSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <OverviewStatCardsSkeleton />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+        <div className="space-y-2 lg:col-span-2">
           <AISummaryCardSkeleton />
           <RecentActivitySkeleton />
         </div>

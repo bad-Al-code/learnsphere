@@ -74,8 +74,8 @@ const recommendationsData = [
 
 export async function InsightsTab() {
   const mainContent = (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="space-y-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {insightCardsData.map((card) => (
           <InsightCard key={card.title} {...card} />
         ))}
@@ -88,7 +88,7 @@ export async function InsightsTab() {
             Personalized suggestions to improve course performance.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-2">
           {recommendationsData.map((rec) => (
             <RecommendationCard key={rec.title} {...rec} />
           ))}
@@ -102,8 +102,8 @@ export async function InsightsTab() {
 
 export function InsightsTabSkeleton() {
   const mainContent = (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="space-y-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
           <InsightCardSkeleton key={i} />
         ))}
@@ -118,7 +118,7 @@ export function InsightsTabSkeleton() {
             <Skeleton className="h-4 w-80" />
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <RecommendationCardSkeleton key={i} />
           ))}

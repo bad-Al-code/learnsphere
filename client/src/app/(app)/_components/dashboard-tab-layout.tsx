@@ -29,10 +29,10 @@ export function DashboardTabLayoutSkeleton({
   sideContent,
 }: DashboardTabLayoutProps) {
   return (
-    <div className="mt-6 space-y-8">
+    <div className="mt-0 space-y-2">
       {mainContent}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <RecentActivitySkeleton />
         </div>
