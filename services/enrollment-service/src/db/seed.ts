@@ -90,14 +90,24 @@ async function seedEnrollmentsAndActivity() {
         });
       }
 
-      const completedLessonsCount = faker.number.int({
-        min: 0,
-        max: totalLessons,
-      });
-      const completedLessons = faker.helpers.arrayElements(
-        allLessonIds,
-        completedLessonsCount
-      );
+      let completedLessons: string[] = [];
+      const enrollmentState = Math.random();
+
+      if (enrollmentState < 0.2) {
+        completedLessons = [];
+      } else if (enrollmentState < 0.5) {
+        completedLessons = allLessonIds;
+      } else {
+        const completedCount = faker.number.int({
+          min: 1,
+          max: totalLessons - 1,
+        });
+        completedLessons = faker.helpers.arrayElements(
+          allLessonIds,
+          completedCount
+        );
+      }
+
       const progressPercentage =
         totalLessons > 0 ? (completedLessons.length / totalLessons) * 100 : 0;
 
@@ -200,7 +210,7 @@ async function runSeed() {
     new TempCourseListener().listen();
     new DiscussionPostCreatedListener().listen();
 
-    await new Promise((resolve) => setTimeout(resolve, 900000));
+    await new Promise((resolve) => setTimeout(resolve, 1200000));
 
     if (receivedUsers.length > 0)
       await db.insert(users).values(receivedUsers).onConflictDoNothing();

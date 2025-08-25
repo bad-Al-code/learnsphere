@@ -9,16 +9,16 @@ echo ""
 echo "--- [1/4] Starting listener services in the background ---"
 
 echo "  -> Starting user-service listener..."
-(cd user-service && pnpm db:seed) &
+(cd user-service && pnpm db && pnpm db:seed) &
 
 echo "  -> Starting enrollment-service listener..."
-(cd enrollment-service && pnpm db:seed) &
+(cd enrollment-service &&  pnpm db && pnpm db:seed) &
 
 echo "  -> Starting payment-service listener..."
-(cd payment-service && pnpm db:seed) &
+(cd payment-service &&  pnpm db && pnpm db:seed) &
 
 echo "  -> Starting notification-service listener..."
-(cd notification-service && pnpm db:seed) &
+(cd notification-service &&  pnpm db && pnpm db:seed) &
 
 echo ""
 
@@ -29,12 +29,12 @@ echo ""
 echo "--- [3/4] Starting publisher services (this is the data generation phase) ---"
 
 echo "  -> Running auth-service seeder (publishes 'user.registered'). This will take a moment..."
-(cd auth-service && pnpm db:seed)
+(cd auth-service && pnpm db && pnpm db:seed)
 echo "  -> Auth-service seeder finished."
 echo ""
 
 echo "  -> Running course-service seeder (publishes 'course.created'). This will be intensive..."
-(cd course-service && pnpm db:seed)
+(cd course-service &&  pnpm db && pnpm db:seed)
 echo "  -> Course-service seeder finished."
 echo ""
 

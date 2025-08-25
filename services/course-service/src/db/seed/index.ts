@@ -225,7 +225,7 @@ async function publishEvents(createdCourses: (typeof courses.$inferSelect)[]) {
   }
 }
 
-async function _seedDiscussionsAndPublishEvents(
+async function seedDiscussionsAndPublishEvents(
   createdCourses: (typeof courses.$inferSelect)[]
 ) {
   const publisher = new DiscussionPostCreatedPublisher();
@@ -273,7 +273,15 @@ async function runSeed() {
     await seedExtras(seededCourses);
 
     await publishEvents(seededCourses);
-    // await seedDiscussionsAndPublishEvents(seededCourses);
+    console.log(`Published ${seededCourses.length} 'course.created' events.`);
+
+    const delayInSeconds = 60;
+    console.log(
+      `Waiting for ${delayInSeconds} seconds to allow services to sync courses...`
+    );
+    await new Promise((resolve) => setTimeout(resolve, delayInSeconds * 1000));
+
+    await seedDiscussionsAndPublishEvents(seededCourses);
 
     console.log('Course service data seeded successfully.');
   } catch (err) {
