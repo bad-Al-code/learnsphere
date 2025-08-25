@@ -61,7 +61,7 @@ function TemplateCard({ data }: { data: TemplateData }) {
   return (
     <Card className="flex h-full flex-col">
       <CardHeader>
-        <div className="flex h-[225px] w-full items-center justify-center overflow-hidden rounded-md border bg-gray-100">
+        <div className="bg-muted flex h-[225px] w-full items-center justify-center overflow-hidden rounded-md border">
           <div className="aspect-[4/3] origin-center scale-[0.25]">
             <TemplateComponent />
           </div>

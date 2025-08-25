@@ -1,5 +1,7 @@
 'use server';
 
+import { unstable_noStore as noStore } from 'next/cache';
+
 import {
   courseService,
   enrollmentService,
@@ -366,4 +368,67 @@ export async function getPerformanceTabData() {
     console.error('Error fetching performance tab data:', error);
     return { contentPerformance: [], kpis: [] };
   }
+}
+
+async function fetchData(serviceCall: Promise<Response>) {
+  noStore();
+  try {
+    const response = await serviceCall;
+    if (!response.ok) {
+      console.error(
+        `API call failed with status ${response.status}:`,
+        await response.text()
+      );
+      return { success: false, data: null, error: 'Failed to fetch data.' };
+    }
+    const data = await response.json();
+    return { success: true, data, error: null };
+  } catch (error: any) {
+    console.error('An unexpected error occurred during API call:', error);
+    return {
+      success: false,
+      data: null,
+      error: error.message || 'An unexpected server error occurred.',
+    };
+  }
+}
+
+export async function getWeeklyEngagement(instructorId: string) {
+  return fetchData(
+    enrollmentService.get(
+      `/api/analytics/instructor/weekly-engagement?instructorId=${instructorId}`
+    )
+  );
+}
+
+export async function getTopStudents(instructorId: string) {
+  return fetchData(
+    enrollmentService.get(
+      `/api/analytics/instructor/top-students?instructorId=${instructorId}`
+    )
+  );
+}
+
+export async function getModuleProgress(instructorId: string) {
+  return fetchData(
+    enrollmentService.get(
+      `/api/analytics/instructor/module-progress?instructorId=${instructorId}`
+    )
+  );
+}
+
+export async function getRevenueBreakdown(instructorId: string) {
+  return fetchData(
+    paymentService.get(
+      `/api/payments/analytics/instructor/revenue-breakdown?instructorId=${instructorId}`
+    )
+  );
+}
+
+export async function getFinancialTrends(instructorId: string) {
+  return fetchData(
+    paymentService.get(
+      `/api/payments/analytics/instructor/financials?instructorId=${instructorId}`
+    )
+  );
 }

@@ -1,3 +1,4 @@
+import { getCurrentUser } from '@/app/(auth)/actions';
 import {
   Card,
   CardContent,
@@ -8,6 +9,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatPrice } from '@/lib/utils';
 import { BookOpen, IndianRupee, Star, Users } from 'lucide-react';
+import { redirect } from 'next/navigation';
 import {
   getCoursePerformanceData,
   getInstructorDashboardCharts,
@@ -35,6 +37,9 @@ import { StatCard } from './stat-card';
 const CHANGE_DESCRIPTION = 'from last month';
 
 export async function OverviewTab() {
+  const user = await getCurrentUser();
+  if (!user) redirect('/');
+
   const [stats, trends, chartsData, performanceData] = await Promise.all([
     getInstructorDashboardStats(),
     getInstructorDashboardTrends(),
@@ -87,7 +92,7 @@ export async function OverviewTab() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Student Enrollment & Revenue Trend</CardTitle>
@@ -191,7 +196,7 @@ export async function OverviewTab() {
 export function OverviewTabSkeleton() {
   return (
     <div className="space-y-2">
-      <div className="mt-6 grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i} className="p-4">
             <div className="flex items-center space-x-4">
@@ -240,7 +245,7 @@ export function OverviewTabSkeleton() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:col-span-2">
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:col-span-2">
           {[...Array(2)].map((_, i) => (
             <Card key={i}>
               <CardHeader>
@@ -254,7 +259,7 @@ export function OverviewTabSkeleton() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
             <Skeleton className="h-5 w-48" />

@@ -1,4 +1,6 @@
+import { getCurrentUser } from '@/app/(auth)/actions';
 import { TabsContent } from '@/components/ui/tabs';
+import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import {
   AnalyticsTab,
@@ -21,13 +23,14 @@ import {
   PerformanceTabSkeleton,
 } from '../_components/performance-tab';
 
-export default function DashboardPage() {
-  const userName = 'Badal';
+export default async function DashboardPage() {
+  const user = await getCurrentUser();
+  if (!user) redirect('/');
 
   return (
     <div className="space-y-2">
       <DashboardHeader
-        title={`Welcome back, ${userName}`}
+        title={`Welcome back, ${user.firstName} ${user.lastName}`}
         description="Here's what's happening with your courses today."
       />
 

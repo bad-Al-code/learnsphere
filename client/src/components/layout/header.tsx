@@ -66,7 +66,7 @@ export function Header({ user: initialUser }: { user: User | null }) {
   const mobileNavItems = getMobileNavItems();
 
   return (
-    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
+    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full backdrop-blur">
       <div className="container mx-auto flex h-16 items-center justify-between px-0">
         {/* Logo */}
         <div className="flex items-center">

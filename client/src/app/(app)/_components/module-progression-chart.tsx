@@ -97,7 +97,7 @@ export function ModuleProgressChartSkeleton() {
           <Skeleton className="h-4 w-64" />
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4 pt-4">
+      <CardContent className="space-y-2 pt-4">
         {/* Creates a placeholder that mimics the vertical bar layout */}
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="flex items-center gap-4">

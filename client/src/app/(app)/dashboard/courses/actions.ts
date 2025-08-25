@@ -143,7 +143,7 @@ export async function getCourseOverviewData(courseId: string) {
       reviews: seededFaker.number.int({ min: 10, max: 200 }),
     },
     revenue: {
-      value: seededFaker.number.int({ min: 10000, max: 50000 }),
+      value: seededFaker.number.int({ min: 1000000, max: 500000000 }),
       change: seededFaker.number.int({ min: -15, max: 25 }),
     },
     avgSessionTime: {

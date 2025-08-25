@@ -30,9 +30,7 @@ export function TemplateCard({ data }: TemplateCardProps) {
         <CardDescription>Subject: {data.subject}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow">
-        <p className="text-muted-foreground line-clamp-3 text-sm">
-          {data.bodyPreview}
-        </p>
+        <p className="text-muted line-clamp-3 text-sm">{data.bodyPreview}</p>
       </CardContent>
       <CardFooter className="flex justify-between gap-2 sm:justify-end">
         <Button variant="outline" className="flex items-center">
