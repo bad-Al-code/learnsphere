@@ -1,4 +1,3 @@
-import { faker } from '@faker-js/faker';
 import axios from 'axios';
 import { env } from '../config/env';
 import logger from '../config/logger';
@@ -7,6 +6,11 @@ import { CourseRepository } from '../db/course.repository';
 import { UserProfileData } from '../types';
 
 interface ModuleDetails {
+  id: string;
+  title: string;
+}
+
+interface CourseDetails {
   id: string;
   title: string;
 }
@@ -31,6 +35,81 @@ export class AnalyticsService {
       return current > 0 ? 100 : 0;
     }
     return Math.round(((current - previous) / previous) * 100);
+  }
+
+  /**
+   * Fetches user profiles in bulk from the user-service.
+   */
+  private static async fetchUserProfiles(
+    userIds: string[]
+  ): Promise<Map<string, UserProfileData>> {
+    const userMap = new Map<string, UserProfileData>();
+    if (userIds.length === 0) return userMap;
+
+    try {
+      const response = await axios.post<UserProfileData[]>(
+        `${env.USER_SERVICE_URL}/api/users/bulk`,
+        { userIds }
+      );
+      for (const profile of response.data) {
+        userMap.set(profile.userId, profile);
+      }
+    } catch (error) {
+      logger.error('Failed to fetch user profiles from user-service', {
+        error,
+      });
+    }
+    return userMap;
+  }
+
+  /**
+   * Fetches course details in bulk from the course-service.
+   */
+  private static async fetchCourseDetails(
+    courseIds: string[]
+  ): Promise<Map<string, CourseDetails>> {
+    const courseMap = new Map<string, CourseDetails>();
+    if (courseIds.length === 0) return courseMap;
+
+    try {
+      const response = await axios.post<CourseDetails[]>(
+        `${env.COURSE_SERVICE_URL}/api/courses/bulk`,
+        { courseIds }
+      );
+      for (const course of response.data) {
+        courseMap.set(course.id, course);
+      }
+    } catch (error) {
+      logger.error('Failed to fetch course details from course-service', {
+        error,
+      });
+    }
+    return courseMap;
+  }
+
+  /**
+   * Fetches module details in bulk from the course-service.
+   */
+  private static async fetchModuleDetails(
+    moduleIds: string[]
+  ): Promise<Map<string, string>> {
+    const moduleMap = new Map<string, string>();
+    if (moduleIds.length === 0) return moduleMap;
+
+    try {
+      const response = await axios.post<ModuleDetails[]>(
+        `${env.COURSE_SERVICE_URL}/api/modules/bulk`,
+        { moduleIds }
+      );
+      for (const module of response.data) {
+        moduleMap.set(module.id, module.title);
+      }
+    } catch (error) {
+      logger.error('Failed to fetch module details from course-service', {
+        error,
+      });
+    }
+    return moduleMap;
   }
 
   /**
@@ -154,10 +233,10 @@ export class AnalyticsService {
     });
 
     const demographics = [
-      { name: '18-25', value: ageGroups['18-25'], fill: 'hsl(var(--chart-1))' },
-      { name: '26-35', value: ageGroups['26-35'], fill: 'hsl(var(--chart-2))' },
-      { name: '36-45', value: ageGroups['36-45'], fill: 'hsl(var(--chart-3))' },
-      { name: '46+', value: ageGroups['46+'], fill: 'hsl(var(--chart-4))' },
+      { name: '18-25', value: ageGroups['18-25'], fill: 'var(--chart-1)' },
+      { name: '26-35', value: ageGroups['26-35'], fill: 'var(--chart-2)' },
+      { name: '36-45', value: ageGroups['36-45'], fill: 'var(--chart-3)' },
+      { name: '46+', value: ageGroups['46+'], fill: 'var(--chart-4)' },
     ].filter((g) => g.value > 0);
 
     const deviceCounts = { desktop: 0, mobile: 0, tablet: 0, unknown: 0 };
@@ -210,10 +289,30 @@ export class AnalyticsService {
    * @returns {Promise<any>} A promise the resolves with the top students data
    */
   public static async getTopStudents(instructorId: string) {
-    const result =
+    const topEnrollments =
       await AnalyticsRepository.getTopStudentsForInstructor(instructorId);
+    if (topEnrollments.length === 0) return [];
 
-    return result;
+    const studentIds = topEnrollments.map((e) => e.userId);
+    const courseIds = [...new Set(topEnrollments.map((e) => e.courseId))];
+
+    const [userProfiles, courseDetails] = await Promise.all([
+      this.fetchUserProfiles(studentIds),
+      this.fetchCourseDetails(courseIds),
+    ]);
+
+    return topEnrollments.map((enrollment) => {
+      const student = userProfiles.get(enrollment.userId);
+      const course = courseDetails.get(enrollment.courseId);
+      return {
+        ...enrollment,
+        studentName: student
+          ? `${student.firstName} ${student.lastName}`
+          : 'Unknown User',
+        courseTitle: course ? course.title : 'Unknown Course',
+        progress: parseFloat(enrollment.progress),
+      };
+    });
   }
 
   /**
@@ -231,13 +330,7 @@ export class AnalyticsService {
     }
 
     const moduleIds = progressData.map((p) => p.module_id);
-
-    const courseServiceUrl = env.COURSE_SERVICE_URL;
-    const response = await axios.post<ModuleDetails[]>(
-      `${courseServiceUrl}/api/modules/bulk`,
-      { moduleIds }
-    );
-    const moduleDetailsMap = new Map(response.data.map((m) => [m.id, m.title]));
+    const moduleDetailsMap = await this.fetchModuleDetails(moduleIds);
 
     return progressData.map((p) => ({
       name: moduleDetailsMap.get(p.module_id) || 'Unknown Module',
@@ -263,7 +356,7 @@ export class AnalyticsService {
       }),
       logins: row.logins,
       discussions: row.discussions,
-      avgTime: faker.number.float({ min: 1, max: 3, fractionDigits: 1 }), // NOTE: placeholder
+      // avgTime: faker.number.float({ min: 1, max: 3, fractionDigits: 1 }), // NOTE: placeholder
     }));
   }
 

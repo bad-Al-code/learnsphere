@@ -255,11 +255,9 @@ export class AnalyticsRepository {
   }
 
   /**
-   * @async
-   * @description Aggregates student progress for each module across all of an instructor's courses.
-   * @param {string} instructorId - The UUID of the instructor.
-   * @returns {Promise<Array<{moduleId: string, completed: number, inProgress: number, notStarted: number}>>}
-   * A promise that resolves to an array of progress stats for each module.
+   * Aggregates student progress for each module across all of an instructor's courses.
+   * @param instructorId - The UUID of the instructor.
+   * @returns A promise that resolves to an array of progress stats for each module.
    */
   public static async getModuleProgressForInstructor(instructorId: string) {
     const instructorCourses = await db
@@ -268,7 +266,6 @@ export class AnalyticsRepository {
       .where(eq(courses.instructorId, instructorId));
 
     if (instructorCourses.length === 0) return [];
-
     const courseIds = instructorCourses.map((c) => c.id);
 
     const result = await db.execute(sql`
