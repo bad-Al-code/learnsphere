@@ -122,7 +122,7 @@ export class PaymentService {
         const publisher = new PaymentSuccessfulPublisher();
         await publisher.publish({
           paymentId: updatedPayment.id,
-          userId: updatedPayment.id,
+          userId: updatedPayment.userId,
           courseId: updatedPayment.courseId,
           amount: updatedPayment.amount,
           currency: updatedPayment.currency,

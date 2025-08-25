@@ -105,18 +105,6 @@ services:
     volumes:
       - payment-db-data:/var/lib/postgresql/data
 
-  postgres-analytics:
-    image: postgres:17.5
-    container_name: learnsphere-analytics-postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: analytics_db
-    ports:
-      - "5439:5432"
-    volumes:
-      - analytics-db-data:/var/lib/postgresql/data
-
 volumes:
   auth-db-data:
   user-db-data:
@@ -125,4 +113,3 @@ volumes:
   media-db-data:
   notification-db-data:
   payment-db-data:
-  analytics-db-data:

@@ -30,6 +30,7 @@ interface UserEnrollmentEvent {
     courseId: string;
     enrollmentId: string;
     enrolledAt: Date;
+    instructorId?: string;
   };
 }
 

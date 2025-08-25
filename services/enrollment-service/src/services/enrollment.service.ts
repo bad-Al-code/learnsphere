@@ -215,6 +215,7 @@ export class EnrollmentService {
       courseId: newEnrollment.userId,
       enrolledAt: newEnrollment.enrolledAt,
       enrollmentId: newEnrollment.id,
+      instructorId: course.instructorId,
     });
 
     await this.invalidateUserEnrollmentCache(userId);
