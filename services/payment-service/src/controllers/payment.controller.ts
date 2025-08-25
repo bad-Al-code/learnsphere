@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { BadRequestError, NotAuthorizedError } from '../errors';
+import { AnalyticsService } from '../services';
 import { PaymentService } from '../services/payment.service';
 
 export class PaymentController {
@@ -58,7 +59,7 @@ export class PaymentController {
       if (!req.currentUser) {
         throw new NotAuthorizedError();
       }
-      const breakdown = await PaymentService.getRevenueBreakdown(
+      const breakdown = await AnalyticsService.getRevenueBreakdown(
         req.currentUser.id
       );
       res.status(StatusCodes.OK).json(breakdown);
@@ -76,7 +77,7 @@ export class PaymentController {
       if (!req.currentUser) {
         throw new NotAuthorizedError();
       }
-      const trends = await PaymentService.getFinancialTrends(
+      const trends = await AnalyticsService.getFinancialTrends(
         req.currentUser.id
       );
       res.status(StatusCodes.OK).json(trends);
