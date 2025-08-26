@@ -152,4 +152,24 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getStudentGrade(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseId, studentId } = req.params;
+      const instructorId = req.currentUser?.id;
+      if (!instructorId) throw new NotAuthorizedError();
+
+      const gradeInfo = await AnalyticsService.getStudentAverageGrade(
+        courseId,
+        studentId
+      );
+      res.status(StatusCodes.OK).json(gradeInfo);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

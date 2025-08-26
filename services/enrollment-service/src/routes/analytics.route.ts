@@ -247,4 +247,45 @@ router.get(
   AnalyticsController.getLearningAnalytics
 );
 
+/**
+ * @openapi
+ * /api/analytics/instructor/student-grade/{courseId}/{studentId}:
+ *   get:
+ *     summary: "[Instructor] Get a student's average grade for a course"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *       - in: path
+ *         name: studentId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       '200':
+ *         description: An object containing the student's average numerical and letter grade.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 averageGrade:
+ *                   type: number
+ *                   nullable: true
+ *                   example: 85.5
+ *                 letterGrade:
+ *                   type: string
+ *                   nullable: true
+ *                   example: "B"
+ */
+router.get(
+  '/instructor/student-grade/:courseId/:studentId',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getStudentGrade
+);
+
 export { router as analyticsRouter };

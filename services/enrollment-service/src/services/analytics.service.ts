@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { env } from '../config/env';
 import logger from '../config/logger';
-import { CourseRepository } from '../db/repositories';
+import { CourseRepository, StudentGradeRepository } from '../db/repositories';
 import { AnalyticsRepository } from '../db/repositories/analytics.repository';
 import { UserProfileData } from '../types';
 
@@ -392,5 +392,36 @@ export class AnalyticsService {
       },
       { subject: 'Avg Session Duration', current: 88, target: 85 },
     ];
+  }
+
+  /**
+   * Retrieves the average grade for a student in a specific course using locally replicated data.
+   * @param courseId - The ID of the course.
+   * @param studentId - The ID of the student.
+   * @returns The average grade as a number (0-100) or null if no grades are available.
+   */
+  public static async getStudentAverageGrade(
+    courseId: string,
+    studentId: string
+  ) {
+    logger.info(
+      `Calculating average grade for student ${studentId} in course ${courseId} from local data`
+    );
+    const averageGrade = await StudentGradeRepository.getAverageGradeForCourse(
+      courseId,
+      studentId
+    );
+
+    if (averageGrade === null) {
+      return { averageGrade: null, letterGrade: null };
+    }
+
+    let letterGrade = 'F';
+    if (averageGrade >= 90) letterGrade = 'A';
+    else if (averageGrade >= 80) letterGrade = 'B';
+    else if (averageGrade >= 70) letterGrade = 'C';
+    else if (averageGrade >= 60) letterGrade = 'D';
+
+    return { averageGrade, letterGrade };
   }
 }
