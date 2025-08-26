@@ -249,6 +249,25 @@ router.get(
 
 /**
  * @openapi
+ * /api/analytics/instructor/discussion-engagement:
+ *   get:
+ *     summary: "[Instructor] Get discussion engagement metrics"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An object containing total discussion count and a scaled engagement score.
+ */
+router.get(
+  '/instructor/discussion-engagement',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getDiscussionEngagement
+);
+
+/**
+ * @openapi
  * /api/analytics/instructor/student-grade/{courseId}/{studentId}:
  *   get:
  *     summary: "[Instructor] Get a student's average grade for a course"

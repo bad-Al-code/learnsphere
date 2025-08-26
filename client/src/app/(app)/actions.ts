@@ -216,11 +216,13 @@ export async function getEngagementData() {
       topStudentsRes,
       moduleProgressRes,
       learningAnalyticsRes,
+      discussionEngagementRes,
     ] = await Promise.all([
       enrollmentService.get('/api/analytics/instructor/weekly-engagement'),
       enrollmentService.get('/api/analytics/instructor/top-students'),
       enrollmentService.get('/api/analytics/instructor/module-progress'),
       courseService.get('/api/analytics/instructor/learning-analytics'),
+      enrollmentService.get('/api/analytics/instructor/discussion-engagement'),
     ]);
 
     if (!weeklyEngagementRes.ok)
@@ -230,11 +232,14 @@ export async function getEngagementData() {
       throw new Error('Failed to fetch module progress');
     if (!learningAnalyticsRes.ok)
       throw new Error('Failed to fetch learning analytics');
+    if (!discussionEngagementRes.ok)
+      throw new Error('Failed to fetch discussion engagement');
 
     const weeklyEngagementData = await weeklyEngagementRes.json();
     const rawTopStudents = await topStudentsRes.json();
     const moduleProgressData = await moduleProgressRes.json();
     const learningAnalyticsRaw = await learningAnalyticsRes.json();
+    const discussionEngagement = await discussionEngagementRes.json();
 
     let topStudentsData: any[] = [];
     if (rawTopStudents.length > 0) {
@@ -291,7 +296,11 @@ export async function getEngagementData() {
     const learningAnalyticsData = [
       { subject: 'Content Engagement', current: 85, target: 90 }, // Placeholder
       { subject: 'Quiz Performance', current: 78, target: 80 }, // Placeholder
-      { subject: 'Discussion Quality', current: 70, target: 75 }, // Placeholder
+      {
+        subject: 'Discussion Quality',
+        current: discussionEngagement.engagementScore || 0,
+        target: 75,
+      }, // Placeholder
       {
         subject: 'Assignment Timeliness',
         current: (learningAnalyticsRaw as any).timeliness || 0,

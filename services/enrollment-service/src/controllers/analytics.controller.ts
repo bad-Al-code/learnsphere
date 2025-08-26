@@ -172,4 +172,22 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getDiscussionEngagement(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const engagement = await AnalyticsService.getDiscussionEngagement(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(engagement);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

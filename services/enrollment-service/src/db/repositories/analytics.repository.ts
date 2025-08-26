@@ -375,4 +375,22 @@ export class AnalyticsRepository {
 
     return { timelinessData, resourceData };
   }
+
+  /**
+   * Calculates the total number of discussion posts for an instructor's courses.
+   * @param instructorId The ID of the instructor.
+   * @returns The total number of discussion posts.
+   */
+  public static async getTotalDiscussionsByInstructor(
+    instructorId: string
+  ): Promise<number> {
+    const [result] = await db
+      .select({
+        total: sum(dailyActivity.discussions),
+      })
+      .from(dailyActivity)
+      .where(eq(dailyActivity.instructorId, instructorId));
+
+    return parseInt(result?.total || '0', 10);
+  }
 }

@@ -424,4 +424,19 @@ export class AnalyticsService {
 
     return { averageGrade, letterGrade };
   }
+
+  /**
+   * Retrieves the total discussion count for an instructor.
+   * @param instructorId The ID of the instructor.
+   * @returns The total discussion count.
+   */
+  public static async getDiscussionEngagement(instructorId: string) {
+    const totalDiscussions =
+      await AnalyticsRepository.getTotalDiscussionsByInstructor(instructorId);
+
+    // NOTE: This is a simple heuristic to scale the row count to a 0-100 value for the chart.
+    const engagementScore = Math.min((totalDiscussions / 50) * 100, 100);
+
+    return { totalDiscussions, engagementScore };
+  }
 }
