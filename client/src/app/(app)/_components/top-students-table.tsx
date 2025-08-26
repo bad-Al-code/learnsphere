@@ -35,6 +35,14 @@ interface TopStudentsTableProps {
 }
 
 export function TopStudentsTable({ data }: TopStudentsTableProps) {
+  if (data.length === 0) {
+    return (
+      <p className="text-muted-foreground text-center text-sm">
+        No student activity recorded yet.
+      </p>
+    );
+  }
+
   return (
     <Table>
       <TableHeader>

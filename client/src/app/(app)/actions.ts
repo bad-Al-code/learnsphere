@@ -210,27 +210,42 @@ interface BulkCourse {
 }
 
 export async function getEngagementData() {
-  const [
-    topStudentsData,
-    moduleProgressData,
-    weeklyEngagementData,
-    learningAnalyticsRes,
-  ] = await Promise.all([
-    (async () => {
-      const topStudentsResponse = await enrollmentService.get(
-        '/api/analytics/instructor/top-students'
-      );
-      if (!topStudentsResponse.ok) return [];
+  try {
+    const [
+      weeklyEngagementRes,
+      topStudentsRes,
+      moduleProgressRes,
+      learningAnalyticsRes,
+    ] = await Promise.all([
+      enrollmentService.get('/api/analytics/instructor/weekly-engagement'),
+      enrollmentService.get('/api/analytics/instructor/top-students'),
+      enrollmentService.get('/api/analytics/instructor/module-progress'),
+      courseService.get('/api/analytics/instructor/learning-analytics'),
+    ]);
 
-      const rawTopStudents = await topStudentsResponse.json();
-      if (rawTopStudents.length === 0) return [];
+    if (!weeklyEngagementRes.ok)
+      throw new Error('Failed to fetch weekly engagement');
+    if (!topStudentsRes.ok) throw new Error('Failed to fetch top students');
+    if (!moduleProgressRes.ok)
+      throw new Error('Failed to fetch module progress');
+    if (!learningAnalyticsRes.ok)
+      throw new Error('Failed to fetch learning analytics');
 
+    const weeklyEngagementData = await weeklyEngagementRes.json();
+    const rawTopStudents = await topStudentsRes.json();
+    const moduleProgressData = await moduleProgressRes.json();
+    const learningAnalyticsRaw = await learningAnalyticsRes.json();
+
+    let topStudentsData: any[] = [];
+    if (rawTopStudents.length > 0) {
       const studentIds = rawTopStudents.map((s: any) => s.userId);
-      const courseIds = rawTopStudents.map((s: any) => s.courseId);
+      const courseIds = [
+        ...new Set(rawTopStudents.map((s: any) => s.courseId)),
+      ];
 
       const [userProfilesRes, courseDetailsRes] = await Promise.all([
         userService.post('/api/users/bulk', { userIds: studentIds }),
-        courseService.post('/api/courses/bulk', { courseIds: courseIds }),
+        courseService.post('/api/courses/bulk', { courseIds }),
       ]);
 
       const userProfiles: BulkUser[] = userProfilesRes.ok
@@ -243,9 +258,21 @@ export async function getEngagementData() {
       const userMap = new Map(userProfiles.map((u) => [u.userId, u]));
       const courseMap = new Map(courseDetails.map((c) => [c.id, c]));
 
-      return rawTopStudents.map((student: any) => {
+      const gradePromises = rawTopStudents.map((student: any) =>
+        enrollmentService
+          .get(
+            `/api/analytics/instructor/student-grade/${student.courseId}/${student.userId}`
+          )
+          .then((res) => (res.ok ? res.json() : { letterGrade: null }))
+      );
+
+      const grades = await Promise.all(gradePromises);
+
+      topStudentsData = rawTopStudents.map((student: any, index: number) => {
         const user = userMap.get(student.userId);
         const course = courseMap.get(student.courseId);
+        const gradeInfo = grades[index];
+
         return {
           student: {
             name: user
@@ -255,59 +282,39 @@ export async function getEngagementData() {
           },
           course: course?.title || 'Unknown Course',
           progress: parseFloat(student.progress),
-          grade: 'B+', // Placeholder
+          grade: gradeInfo.letterGrade || 'N/A',
           lastActive: student.lastActive,
         };
       });
-    })(),
+    }
 
-    (async () => {
-      const moduleProgressResponse = await enrollmentService.get(
-        '/api/analytics/instructor/module-progress'
-      );
-      if (!moduleProgressResponse.ok) return [];
-      return moduleProgressResponse.json();
-    })(),
+    const learningAnalyticsData = [
+      { subject: 'Content Engagement', current: 85, target: 90 }, // Placeholder
+      { subject: 'Quiz Performance', current: 78, target: 80 }, // Placeholder
+      { subject: 'Discussion Quality', current: 70, target: 75 }, // Placeholder
+      {
+        subject: 'Assignment Timeliness',
+        current: (learningAnalyticsRaw as any).timeliness || 0,
+        target: 95,
+      },
+      {
+        subject: 'Resource Utilization',
+        current: (learningAnalyticsRaw as any).utilization || 0,
+        target: 70,
+      },
+      { subject: 'Avg Session Duration', current: 88, target: 85 }, // Placeholder
+    ];
 
-    (async () => {
-      const response = await enrollmentService.get(
-        '/api/analytics/instructor/weekly-engagement'
-      );
-      if (!response.ok) return [];
-      return response.json();
-    })(),
-
-    (async () => {
-      const response = await courseService.get(
-        '/api/analytics/instructor/learning-analytics'
-      );
-      if (!response.ok) return [];
-      return response.json();
-    })(),
-  ]);
-
-  let learningAnalyticsData = [
-    { subject: 'Content Engagement', current: 85, target: 90 },
-    { subject: 'Quiz Performance', current: 78, target: 80 },
-    { subject: 'Discussion Quality', current: 70, target: 75 },
-    { subject: 'Assignment Timeliness', current: 0, target: 95 },
-    { subject: 'Resource Utilization', current: 0, target: 70 },
-    { subject: 'Avg Session Duration', current: 88, target: 85 },
-  ];
-
-  if (learningAnalyticsRes) {
-    learningAnalyticsData[3].current = (learningAnalyticsRes as any).timeliness;
-    learningAnalyticsData[4].current = (
-      learningAnalyticsRes as any
-    ).utilization;
+    return {
+      weeklyEngagement: weeklyEngagementData || [],
+      learningAnalytics: learningAnalyticsData,
+      moduleProgress: moduleProgressData || [],
+      topStudents: topStudentsData,
+    };
+  } catch (error: any) {
+    console.error('Error fetching engagement data:', error);
+    return { error: error.message || 'Failed to load engagement data.' };
   }
-
-  return {
-    weeklyEngagement: weeklyEngagementData || [],
-    learningAnalytics: learningAnalyticsData,
-    moduleProgress: moduleProgressData || [],
-    topStudents: topStudentsData || [],
-  };
 }
 
 export async function getPerformanceTabData() {

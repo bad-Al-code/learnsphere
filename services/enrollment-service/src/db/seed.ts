@@ -33,6 +33,7 @@ class TempCourseListener extends Listener<CourseCreatedEvent> {
   onMessage(data: CourseCreatedEvent['data']) {
     receivedCourses.push({
       id: data.courseId,
+      title: data.title,
       instructorId: data.instructorId,
       price: data.price,
       currency: data.currency,
@@ -60,6 +61,28 @@ async function seedEnrollmentsAndActivity() {
 
   const enrollmentData = [];
   const instructorActivity = new Map<string, { discussions: number }>();
+
+  const instructorIdForTesting = '5bdb6c2f-10bc-439d-9740-aadacb7bae46';
+  const coursesForInstructor = receivedCourses.filter(
+    (c) => c.instructorId === instructorIdForTesting
+  );
+
+  if (coursesForInstructor.length > 0) {
+    console.log(
+      `Seeding specific recent activity for instructor ${instructorIdForTesting}...`
+    );
+    for (let i = 0; i < 7; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateString = date.toISOString().split('T')[0];
+
+      const key = `${instructorIdForTesting}:${dateString}`;
+      const currentActivity = instructorActivity.get(key) || { discussions: 0 };
+
+      currentActivity.discussions += faker.number.int({ min: 1, max: 5 });
+      instructorActivity.set(key, currentActivity);
+    }
+  }
 
   for (const user of receivedUsers) {
     const availableCourses = receivedCourses;

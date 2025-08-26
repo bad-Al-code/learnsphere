@@ -62,6 +62,7 @@ interface CourseCreatedEvent {
   data: {
     courseId: string;
     instructorId: string;
+    title: string;
     status: 'draft' | 'published';
     prerequisiteCourseId: string | null;
     price: string | null;
@@ -79,6 +80,7 @@ export class CourseSyncCreatedListener extends Listener<CourseCreatedEvent> {
 
       await CourseRepository.upsert({
         id: data.courseId,
+        title: data.title,
         instructorId: data.instructorId,
         status: data.status,
         prerequisiteCourseId: data.prerequisiteCourseId,
@@ -98,6 +100,7 @@ interface CourseUpdatedEvent {
     newStatus?: 'draft' | 'published';
     newPrerequisiteCourseId?: string | null;
     newPrice?: string | null;
+    newTitle?: string;
   };
 }
 
@@ -117,6 +120,10 @@ export class CourseSyncUpdatedListener extends Listener<CourseUpdatedEvent> {
       }
       if (data.newPrice !== undefined) {
         updateData.price = data.newPrice;
+      }
+
+      if (data.newTitle !== undefined) {
+        updateData.title = data.newTitle;
       }
 
       if (Object.keys(updateData).length > 0) {
