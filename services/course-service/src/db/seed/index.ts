@@ -217,7 +217,7 @@ async function seedExtras(createdCourses: (typeof courses.$inferSelect)[]) {
 
         const studentsToSubmit = faker.helpers.arrayElements(
           studentIds,
-          faker.number.int({ min: 5, max: 50 })
+          faker.number.int({ min: 5, max: 10 })
         );
 
         for (const studentId of studentsToSubmit) {

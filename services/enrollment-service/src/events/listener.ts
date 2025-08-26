@@ -3,7 +3,7 @@ import { ConsumeMessage } from 'amqplib';
 import { eq, sql } from 'drizzle-orm';
 import logger from '../config/logger';
 import { db } from '../db';
-import { CourseRepository } from '../db/course.repository';
+import { CourseRepository, StudentGradeRepository } from '../db/repositories';
 import { courses, dailyActivity } from '../db/schema';
 import { rabbitMQConnection } from './connection';
 
@@ -248,6 +248,43 @@ export class UserSessionCreatedListener extends Listener<UserSessionCreatedEvent
         data,
         error,
       });
+    }
+  }
+}
+
+interface AssignmentSubmissionGradedEvent {
+  topic: 'assignment.submission.graded';
+  data: {
+    submissionId: string;
+    assignmentId: string;
+    courseId: string;
+    studentId: string;
+    grade: number;
+    gradedAt: Date;
+  };
+}
+
+export class GradeSyncListener extends Listener<AssignmentSubmissionGradedEvent> {
+  readonly topic = 'assignment.submission.graded' as const;
+  queueGroupName = 'enrollment-service-grade-sync';
+
+  async onMessage(
+    data: AssignmentSubmissionGradedEvent['data'],
+    _msg: ConsumeMessage
+  ) {
+    try {
+      logger.info(`Syncing grade for submission: ${data.submissionId}`);
+
+      await StudentGradeRepository.upsert({
+        submissionId: data.submissionId,
+        assignmentId: data.assignmentId,
+        courseId: data.courseId,
+        studentId: data.studentId,
+        grade: data.grade,
+        gradedAt: new Date(data.gradedAt),
+      });
+    } catch (error) {
+      logger.error('Failed to sync assignment grade', { data, error });
     }
   }
 }

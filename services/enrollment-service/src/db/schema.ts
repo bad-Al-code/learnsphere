@@ -5,6 +5,7 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
@@ -115,3 +116,23 @@ export const dailyActivity = pgTable(
   },
   (table) => [unique().on(table.instructorId, table.date)]
 );
+
+/**
+@table student_grades
+@description Stores a local replica of graded assignment submissions.
+This table is populated by listening to 'assignment.submission.graded' events from the course-service.
+*/
+export const studentGrades = pgTable(
+  'student_grades',
+  {
+    submissionId: uuid('submission_id').notNull(),
+    assignmentId: uuid('assignment_id').notNull(),
+    courseId: uuid('course_id').notNull(),
+    studentId: uuid('student_id').notNull(),
+    grade: integer('grade').notNull(),
+    gradedAt: timestamp('graded_at').notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.submissionId] })]
+);
+
+export type NewStudentGrade = typeof studentGrades.$inferInsert;

@@ -1,8 +1,8 @@
 import { and, eq, inArray } from 'drizzle-orm';
 
-import { db } from '.';
-import { Enrollment, NewEnrollment, UpdateEnrollment } from '../types';
-import { enrollments } from './schema';
+import { db } from '..';
+import { Enrollment, NewEnrollment, UpdateEnrollment } from '../../types';
+import { enrollments } from '../schema';
 
 export class EnrollRepository {
   /**

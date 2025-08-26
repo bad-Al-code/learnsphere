@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { env } from '../config/env';
 import logger from '../config/logger';
-import { AnalyticsRepository } from '../db/analytics.repository';
-import { CourseRepository } from '../db/course.repository';
+import { CourseRepository } from '../db/repositories';
+import { AnalyticsRepository } from '../db/repositories/analytics.repository';
 import { UserProfileData } from '../types';
 
 interface ModuleDetails {

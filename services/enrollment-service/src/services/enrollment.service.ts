@@ -5,8 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import logger from '../config/logger';
 import { db } from '../db';
-import { CourseRepository } from '../db/course.repository';
-import { EnrollRepository } from '../db/enrollment.repository';
+import { CourseRepository, EnrollRepository } from '../db/repositories';
 import { enrollments } from '../db/schema';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
 import {

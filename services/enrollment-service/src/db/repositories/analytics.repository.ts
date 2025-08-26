@@ -9,8 +9,8 @@ import {
   sql,
   sum,
 } from 'drizzle-orm';
-import { db } from '.';
-import { courses, dailyActivity, enrollments } from './schema';
+import { db } from '..';
+import { courses, dailyActivity, enrollments } from '../schema';
 
 export class AnalyticsRepository {
   /**

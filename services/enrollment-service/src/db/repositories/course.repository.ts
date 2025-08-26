@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
-import { db } from '.';
-import { Course, courses, NewCourse, UpdatedCourse } from './schema';
+import { db } from '..';
+import { Course, courses, NewCourse, UpdatedCourse } from '../schema';
 
 /**
  * @class CourseRepository
