@@ -1,4 +1,7 @@
-import { Course } from '@/types/course';
+'use server';
+
+import { courseService } from '@/lib/api';
+import { Course, CourseFilterOptions } from '@/types/course';
 import { faker } from '@faker-js/faker';
 
 export async function getMyCoursePageStats() {
@@ -30,57 +33,34 @@ export async function getMyCoursePageStats() {
   };
 }
 
-export async function getMyCourses(options: {
-  query?: string;
-  status?: string;
-  page?: number;
-  limit?: number;
-}) {
-  const { query, status, page = 1, limit = 6 } = options;
+export async function getMyCourses(options: CourseFilterOptions = {}) {
+  try {
+    const params = new URLSearchParams();
+    if (options.query) params.set('q', options.query);
+    if (options.status) params.set('status', options.status);
+    if (options.page) params.set('page', String(options.page));
 
-  await new Promise((resolve) => setTimeout(resolve, 1200));
+    params.set('limit', String(options.limit || 10));
 
-  const allCourses: Course[] = Array.from({ length: 25 }, (_, i) => ({
-    id: faker.string.uuid(),
-    title: faker.lorem.words(3).replace(/\b\w/g, (l) => l.toUpperCase()),
-    description: faker.lorem.sentence(),
-    status: i % 3 === 0 ? 'draft' : 'published',
-    imageUrl: `https://picsum.photos/seed/${faker.string.alphanumeric(5)}/600/400`,
-    price: faker.number.float({ min: 499, max: 2999, fractionDigits: 2 }),
-    currency: 'INR',
-    level: faker.helpers.arrayElement(['beginner', 'intermediate', 'advanced']),
-    averageRating: faker.number.float({ min: 3.5, max: 5, fractionDigits: 1 }),
-    enrollmentCount: faker.number.int({ min: 50, max: 1500 }),
-    modules: Array.from({ length: faker.number.int({ min: 3, max: 8 }) }),
-    completionRate: faker.number.int({ min: 40, max: 95 }),
-    updatedAt: faker.date.recent({ days: 30 }).toISOString(),
-    instructorId: '',
-  }));
-
-  let filteredCourses = allCourses;
-  if (query) {
-    filteredCourses = filteredCourses.filter((c) =>
-      c.title.toLowerCase().includes(query.toLowerCase())
+    const response = await courseService.get(
+      `/api/courses/my-courses?${params.toString()}`
     );
-  }
-  if (status && status !== 'all') {
-    filteredCourses = filteredCourses.filter((c) => c.status === status);
-  }
 
-  const totalResults = filteredCourses.length;
-  const totalPages = Math.ceil(totalResults / limit);
-  const paginatedCourses = filteredCourses.slice(
-    (page - 1) * limit,
-    page * limit
-  );
+    if (!response.ok) {
+      throw new Error('Failed to fetch instructor courses.');
+    }
 
-  return {
-    results: paginatedCourses,
-    pagination: {
-      currentPage: page,
-      totalPages: totalPages > 0 ? totalPages : 1,
-    },
-  };
+    const result = await response.json();
+    console.log(result);
+
+    return result;
+  } catch (error) {
+    console.error('Failed to fetch instructor courses:', error);
+    return {
+      results: [],
+      pagination: { currentPage: 1, totalPages: 1, totalResults: 0 },
+    };
+  }
 }
 
 export async function getCourseDetails(

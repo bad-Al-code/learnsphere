@@ -32,6 +32,7 @@ export type CourseFilterOptions = {
   categoryId?: string;
   level?: string;
   price?: 'free' | 'paid';
+  status?: string;
   duration?: string;
   sortBy?: 'newest' | 'rating' | 'popularity';
   page?: number;
