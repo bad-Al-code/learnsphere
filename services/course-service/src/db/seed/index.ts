@@ -1,8 +1,9 @@
 import { faker } from '@faker-js/faker';
-import { eq } from 'drizzle-orm';
+import { eq, isNotNull } from 'drizzle-orm';
 import slugify from 'slugify';
 import { rabbitMQConnection } from '../../events/connection';
 import {
+  AssignmentSubmissionGradedPublisher,
   CourseCreatedPublisher,
   DiscussionPostCreatedPublisher,
 } from '../../events/publisher';
@@ -10,6 +11,7 @@ import { db } from '../index';
 import {
   assignments,
   assignmentStatusEnum,
+  assignmentSubmissions,
   categories as categoriesTable,
   courses,
   lessons,
@@ -18,7 +20,7 @@ import {
   resources,
   textLessonContent,
 } from '../schema';
-import { hardcodedInstructorIds } from './ids';
+import { hardcodedInstructorIds, studentIds } from './ids';
 
 const realHlsUrls = [
   'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8',
@@ -194,16 +196,45 @@ async function seedExtras(createdCourses: (typeof courses.$inferSelect)[]) {
       .select({ id: modules.id })
       .from(modules)
       .where(eq(modules.courseId, course.id));
+
     if (courseModules.length > 0) {
       for (let i = 0; i < assignmentCount; i++) {
-        await db.insert(assignments).values({
-          courseId: course.id,
-          moduleId: faker.helpers.arrayElement(courseModules).id,
-          title: `Assignment ${i + 1}: ${faker.lorem.words(4)}`,
-          description: faker.lorem.sentence(),
-          status: faker.helpers.arrayElement(assignmentStatusEnum.enumValues),
-          order: i,
-        });
+        const assignmentStatus = faker.helpers.arrayElement(
+          assignmentStatusEnum.enumValues
+        );
+
+        const [assignment] = await db
+          .insert(assignments)
+          .values({
+            courseId: course.id,
+            moduleId: faker.helpers.arrayElement(courseModules).id,
+            title: `Assignment ${i + 1}: ${faker.lorem.words(4)}`,
+            description: faker.lorem.sentence(),
+            status: assignmentStatus,
+            order: i,
+          })
+          .returning();
+
+        const studentsToSubmit = faker.helpers.arrayElements(
+          studentIds,
+          faker.number.int({ min: 5, max: 50 })
+        );
+
+        for (const studentId of studentsToSubmit) {
+          await db.insert(assignmentSubmissions).values({
+            assignmentId: assignment.id,
+            studentId: studentId,
+            courseId: course.id,
+            submittedAt: faker.date.between({
+              from: course.createdAt,
+              to: new Date(),
+            }),
+            grade:
+              assignment.status === 'published'
+                ? faker.number.int({ min: 60, max: 100 })
+                : null,
+          });
+        }
       }
     }
   }
@@ -223,6 +254,30 @@ async function publishEvents(createdCourses: (typeof courses.$inferSelect)[]) {
       currency: course.currency,
     });
   }
+}
+
+async function publishGradingEvents() {
+  const publisher = new AssignmentSubmissionGradedPublisher();
+  const submissionsToPublish = await db
+    .select()
+    .from(assignmentSubmissions)
+    .where(isNotNull(assignmentSubmissions.grade));
+
+  console.log(
+    `Publishing ${submissionsToPublish.length} 'assignment.submission.graded' events...`
+  );
+
+  for (const submission of submissionsToPublish) {
+    await publisher.publish({
+      submissionId: submission.id,
+      assignmentId: submission.assignmentId,
+      courseId: submission.courseId,
+      studentId: submission.studentId,
+      grade: submission.grade!,
+      gradedAt: submission.submittedAt,
+    });
+  }
+  console.log('Finished publishing grading events.');
 }
 
 async function seedDiscussionsAndPublishEvents(
@@ -258,6 +313,7 @@ async function runSeed() {
     await rabbitMQConnection.connect();
 
     console.log('Clearing existing courses data...');
+    await db.delete(assignmentSubmissions);
     await db.delete(resources);
     await db.delete(assignments);
     await db.delete(textLessonContent);
@@ -272,6 +328,7 @@ async function runSeed() {
     await seedLessons(seededModules);
     await seedExtras(seededCourses);
 
+    await publishGradingEvents();
     await publishEvents(seededCourses);
     console.log(`Published ${seededCourses.length} 'course.created' events.`);
 
