@@ -1,5 +1,6 @@
 import { PaginationControls } from '@/components/shared/pagination-controls';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Course } from '@/types/course';
 import { getMyCourses } from '../actions';
 import { InstructorCourseCard } from './instructor-course-card';
 
@@ -27,7 +28,7 @@ export async function MyCoursesGrid({
   return (
     <>
       <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {results.map((course) => (
+        {results.map((course: Course) => (
           <InstructorCourseCard key={course.id} course={course} />
         ))}
       </div>

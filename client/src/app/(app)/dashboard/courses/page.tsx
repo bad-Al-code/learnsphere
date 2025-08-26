@@ -1,3 +1,6 @@
+import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
+import Link from 'next/link';
 import { Suspense } from 'react';
 import { DashboardHeader } from '../../_components/dashboard-header';
 import { CourseFilters } from './_components/course-filters';
@@ -20,10 +23,19 @@ export default function MyCoursesPage({
     typeof searchParams.page === 'string' ? Number(searchParams.page) : 1;
   return (
     <div className="space-y-2">
-      <DashboardHeader
-        title="Course Management"
-        description="Create, manage, and track your courses and content."
-      />
+      <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">
+        <DashboardHeader
+          title="Course Management"
+          description="Create, manage, and track your courses and content."
+        />
+
+        <Button asChild className="w-full sm:w-auto">
+          <Link href="/dashboard/courses/create">
+            <PlusCircle className="h-4 w-4" />
+            New Course
+          </Link>
+        </Button>
+      </div>
 
       <div className="">
         <Suspense fallback={<StatCardsSkeleton />}>
