@@ -544,7 +544,6 @@ export class AnalyticsRepository {
   public static async getModuleCompletionRates(courseId: string) {
     const query = sql`
       WITH ModuleLessons AS (
-        -- Unpack the modules and their lessons from the course_structure JSON
         SELECT
           id AS enrollment_id,
           (module ->> 'id')::uuid AS module_id,
@@ -555,8 +554,8 @@ export class AnalyticsRepository {
         WHERE
           course_id = ${courseId}
       ),
+
       CompletedLessons AS (
-        -- Unpack the completed lessons from the progress JSON
         SELECT
           id AS enrollment_id,
           jsonb_array_elements_text(progress -> 'completedLessons') AS lesson_id
@@ -565,8 +564,8 @@ export class AnalyticsRepository {
         WHERE
           course_id = ${courseId}
       ),
+
       ModuleCompletion AS (
-        -- For each module in each enrollment, count total vs completed lessons
         SELECT
           ml.module_id,
           COUNT(ml.lesson_id) AS total_lessons,
@@ -578,14 +577,18 @@ export class AnalyticsRepository {
         GROUP BY
           ml.enrollment_id, ml.module_id
       )
-      -- Aggregate the average completion rate across all students for each module
+
       SELECT
         module_id,
         (AVG(CASE WHEN total_lessons > 0 THEN (completed_lessons::decimal / total_lessons) ELSE 0 END) * 100)::numeric(5, 2) AS completion_rate
       FROM
         ModuleCompletion
       GROUP BY
-        module_id;
+        module_id
+      ORDER BY 
+        completion_rate 
+      DESC 
+      LIMIT 5;
     `;
 
     const result = await db.execute(query);
