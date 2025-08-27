@@ -131,4 +131,49 @@ router.get(
   PaymentController.getCourseRevenue
 );
 
+/**
+ * @openapi
+ * /analytics/course/{courseId}/revenue-trend:
+ *   get:
+ *     summary: Get revenue trend for a course
+ *     description: |
+ *       Returns the total revenue for the last 30 days and the 30 days prior,
+ *       along with the percentage change between the two periods.
+ *     tags:
+ *       - Analytics
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The UUID of the course
+ *     responses:
+ *       200:
+ *         description: Revenue trend data for the course
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 currentRevenue:
+ *                   type: number
+ *                   example: 1200
+ *                 change:
+ *                   type: number
+ *                   description: Percentage change in revenue between periods
+ *                   example: 25.5
+ *       400:
+ *         description: Invalid courseId provided
+ *       404:
+ *         description: Course not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get(
+  '/analytics/course/:courseId/revenue-trend',
+  PaymentController.getCourseRevenueTrend
+);
+
 export { router as paymentRouter };

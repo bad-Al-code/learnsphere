@@ -1,4 +1,4 @@
-import { and, eq, gte, sql, sum } from 'drizzle-orm';
+import { and, eq, gte, lt, sql, sum } from 'drizzle-orm';
 import { db } from '..';
 import { courses, payments } from '../schema';
 
@@ -75,5 +75,50 @@ export class AnalyticsRepository {
       );
 
     return parseFloat(result?.total || '0');
+  }
+
+  /**
+   * Calculates revenue for a course over two periods: the last 30 days and the 30 days prior.
+   * @param courseId The ID of the course.
+   * @returns An object containing revenue for the current and previous periods.
+   */
+  public static async getRevenueTrendForCourse(courseId: string) {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    const revenueLast30DaysQuery = db
+      .select({ total: sum(payments.amount) })
+      .from(payments)
+      .where(
+        and(
+          eq(payments.courseId, courseId),
+          eq(payments.status, 'completed'),
+          gte(payments.createdAt, thirtyDaysAgo)
+        )
+      );
+
+    const revenuePrevious30DaysQuery = db
+      .select({ total: sum(payments.amount) })
+      .from(payments)
+      .where(
+        and(
+          eq(payments.courseId, courseId),
+          eq(payments.status, 'completed'),
+          gte(payments.createdAt, sixtyDaysAgo),
+          lt(payments.createdAt, thirtyDaysAgo)
+        )
+      );
+
+    const [[currentPeriod], [previousPeriod]] = await Promise.all([
+      revenueLast30DaysQuery,
+      revenuePrevious30DaysQuery,
+    ]);
+
+    return {
+      currentPeriodRevenue: parseFloat(currentPeriod?.total || '0'),
+      previousPeriodRevenue: parseFloat(previousPeriod?.total || '0'),
+    };
   }
 }

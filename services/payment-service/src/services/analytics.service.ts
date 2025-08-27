@@ -47,4 +47,33 @@ export class AnalyticsService {
       await AnalyticsRepository.getTotalRevenueForCourse(courseId);
     return { totalRevenue };
   }
+
+  /**
+   * Calculates the percentage change in revenue for a course.
+   * @param courseId The ID of the course.
+   */
+  public static async getCourseRevenueTrend(courseId: string) {
+    const { currentPeriodRevenue, previousPeriodRevenue } =
+      await AnalyticsRepository.getRevenueTrendForCourse(courseId);
+
+    const change = this.calculatePercentageChange(
+      currentPeriodRevenue,
+      previousPeriodRevenue
+    );
+
+    return {
+      currentRevenue: currentPeriodRevenue,
+      change,
+    };
+  }
+
+  private static calculatePercentageChange(
+    current: number,
+    previous: number
+  ): number {
+    if (previous === 0) {
+      return current > 0 ? 100 : 0;
+    }
+    return Math.round(((current - previous) / previous) * 100);
+  }
 }

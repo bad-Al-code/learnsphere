@@ -99,4 +99,18 @@ export class PaymentController {
       next(error);
     }
   }
+
+  public static async getCourseRevenueTrend(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseId } = req.params;
+      const trend = await AnalyticsService.getCourseRevenueTrend(courseId);
+      res.status(StatusCodes.OK).json(trend);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

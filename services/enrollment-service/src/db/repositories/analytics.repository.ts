@@ -409,7 +409,12 @@ export class AnalyticsRepository {
    * @returns An object with total students and average completion rate.
    */
   public static async getStatsForCourse(courseId: string) {
-    const [result] = await db
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    const currentStatsQuery = db
       .select({
         totalStudents: countDistinct(enrollments.userId),
         avgCompletion: avg(enrollments.progressPercentage),
@@ -417,9 +422,28 @@ export class AnalyticsRepository {
       .from(enrollments)
       .where(eq(enrollments.courseId, courseId));
 
+    const previousCompletionQuery = db
+      .select({
+        avgCompletion: avg(enrollments.progressPercentage),
+      })
+      .from(enrollments)
+      .where(
+        and(
+          eq(enrollments.courseId, courseId),
+          lt(enrollments.updatedAt, thirtyDaysAgo),
+          gte(enrollments.updatedAt, sixtyDaysAgo)
+        )
+      );
+
+    const [[currentStats], [previousStats]] = await Promise.all([
+      currentStatsQuery,
+      previousCompletionQuery,
+    ]);
+
     return {
-      totalStudents: result.totalStudents || 0,
-      avgCompletion: parseFloat(result.avgCompletion || '0'),
+      totalStudents: currentStats.totalStudents || 0,
+      avgCompletion: parseFloat(currentStats.avgCompletion || '0'),
+      previousAvgCompletion: parseFloat(previousStats?.avgCompletion || '0'),
     };
   }
 

@@ -445,7 +445,15 @@ export class AnalyticsService {
    * @param courseId
    */
   public static async getCourseStats(courseId: string) {
-    return AnalyticsRepository.getStatsForCourse(courseId);
+    const { totalStudents, avgCompletion, previousAvgCompletion } =
+      await AnalyticsRepository.getStatsForCourse(courseId);
+
+    const completionRateChange = this.calculatePercentageChange(
+      avgCompletion,
+      previousAvgCompletion
+    );
+
+    return { totalStudents, avgCompletion, completionRateChange };
   }
 
   /**

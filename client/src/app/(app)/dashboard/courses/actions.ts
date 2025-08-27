@@ -225,6 +225,7 @@ export async function getCourseOverviewData(courseId: string) {
       activityStatsRes,
       modulePerformanceRes,
       assignmentStatusRes,
+      revenueTrendRes,
     ] = await Promise.all([
       enrollmentService.get(`/api/analytics/course/${courseId}/stats`),
       courseService.get(`/api/courses/${courseId}`),
@@ -237,6 +238,9 @@ export async function getCourseOverviewData(courseId: string) {
         `/api/analytics/course/${courseId}/module-performance`
       ),
       courseService.get(`/api/courses/${courseId}/assignment-status`),
+      paymentService.get(
+        `/api/payments/analytics/course/${courseId}/revenue-trend`
+      ),
     ]);
 
     if (!enrollmentStatsRes.ok)
@@ -252,6 +256,7 @@ export async function getCourseOverviewData(courseId: string) {
       throw new Error('Failed to fetch module performance.');
     if (!assignmentStatusRes.ok)
       throw new Error('Failed to fetch assignment status.');
+    if (!revenueTrendRes.ok) throw new Error('Failed to fetch revenue trend.');
 
     const courseDetails = await courseDetailsRes.json();
     const enrollmentStats = await enrollmentStatsRes.json();
@@ -260,6 +265,7 @@ export async function getCourseOverviewData(courseId: string) {
     const activityStats = await activityStatsRes.json();
     const modulePerformance = await modulePerformanceRes.json();
     const assignmentStatus = await assignmentStatusRes.json();
+    const revenueTrend = await revenueTrendRes.json();
 
     const allStudentIds = [
       ...studentPerformance.topPerformers.map((s: any) => s.userId),
@@ -358,20 +364,26 @@ export async function getCourseOverviewData(courseId: string) {
         title: courseDetails.title,
         description: courseDetails.description,
       },
+
       stats: {
         studentsEnrolled: {
           value: enrollmentStats.totalStudents,
           change: activityStats.enrollmentChange,
         },
+
         completionRate: {
           value: parseFloat(enrollmentStats.avgCompletion).toFixed(1),
-          change: 0, // Placeholder
+          change: enrollmentStats.completionRateChange || 0,
         },
+
         averageRating: {
           value: courseDetails.averageRating || 4.5,
           reviews: 150,
         }, // Placeholder
-        revenue: { value: paymentStats.totalRevenue || 0, change: 10 }, // Placeholder
+        revenue: {
+          value: paymentStats.totalRevenue || 0,
+          change: revenueTrend.change || 0,
+        },
         avgSessionTime: activityStats.avgSessionTime, // Placeholder from service
         forumActivity: { value: activityStats.totalDiscussions },
         resourceDownloads: {
