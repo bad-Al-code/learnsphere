@@ -354,8 +354,6 @@ export async function getCourseOverviewData(courseId: string) {
       studentsNeedingAttention,
     };
 
-    console.log(data.recentActivity);
-
     return data;
   } catch (error: any) {
     console.error(
