@@ -77,4 +77,19 @@ export class ResourceService {
       'course_resource'
     );
   }
+
+  public static async getResourceForDownload(
+    resourceId: string,
+    requester: Requester
+  ) {
+    const resource = await ResourceRepository.findById(resourceId);
+    if (!resource) throw new NotFoundError('Resource');
+
+    await AuthorizationService.verifyCourseOwnership(
+      resource.courseId,
+      requester
+    );
+
+    return resource;
+  }
 }

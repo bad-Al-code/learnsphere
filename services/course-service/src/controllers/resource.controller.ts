@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { ResourceDownloadedPublisher } from '../events/publisher';
 import { ResourceService } from '../services';
 
 export class ResourceController {
@@ -87,6 +88,36 @@ export class ResourceController {
       );
 
       res.status(StatusCodes.OK).json(uploadData);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async downloadResource(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { resourceId } = req.params;
+      const requester = req.currentUser!;
+
+      const resource = await ResourceService.getResourceForDownload(
+        resourceId,
+        requester
+      );
+
+      const publisher = new ResourceDownloadedPublisher();
+      await publisher.publish({
+        resourceId: resource.id,
+        courseId: resource.courseId,
+        userId: requester.id,
+        downloadedAt: new Date(),
+      });
+
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'Download event tracked.', url: resource.fileUrl });
     } catch (error) {
       next(error);
     }

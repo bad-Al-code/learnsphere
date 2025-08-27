@@ -360,3 +360,36 @@ export class PaymentSuccessListener extends Listener<PaymentSuccessfulEvent> {
     }
   }
 }
+
+interface ResourceDownloadedEvent {
+  topic: 'resource.downloaded';
+  data: {
+    resourceId: string;
+    courseId: string;
+    userId: string;
+    downloadedAt: Date;
+  };
+}
+
+export class ResourceDownloadedListener extends Listener<ResourceDownloadedEvent> {
+  readonly topic = 'resource.downloaded' as const;
+  queueGroupName = 'enrollment-service-resource-download';
+
+  async onMessage(data: ResourceDownloadedEvent['data'], _msg: ConsumeMessage) {
+    try {
+      logger.info(
+        `Logging 'resource_download' activity for course ${data.courseId}`
+      );
+
+      await AnalyticsRepository.createActivityLog({
+        courseId: data.courseId,
+        userId: data.userId,
+        activityType: 'resource_download',
+        metadata: { resourceId: data.resourceId },
+        createdAt: new Date(data.downloadedAt),
+      });
+    } catch (error) {
+      logger.error('Failed to log resource download activity', { data, error });
+    }
+  }
+}

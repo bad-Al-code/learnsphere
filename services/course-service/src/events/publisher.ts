@@ -93,3 +93,17 @@ export interface AssignmentSubmissionGradedEvent {
 export class AssignmentSubmissionGradedPublisher extends Publisher<AssignmentSubmissionGradedEvent> {
   readonly topic = 'assignment.submission.graded' as const;
 }
+
+export interface ResourceDownloadedEvent {
+  topic: 'resource.downloaded';
+  data: {
+    resourceId: string;
+    courseId: string;
+    userId: string;
+    downloadedAt: Date;
+  };
+}
+
+export class ResourceDownloadedPublisher extends Publisher<ResourceDownloadedEvent> {
+  readonly topic = 'resource.downloaded' as const;
+}

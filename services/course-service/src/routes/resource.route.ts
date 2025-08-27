@@ -135,6 +135,25 @@ router.delete('/resources/:resourceId', ResourceController.delete);
 
 /**
  * @openapi
+ * /api/resources/{resourceId}/download:
+ *   post:
+ *     summary: "Track a resource download"
+ *     tags: [Resources]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: resourceId
+ *         required: true
+ */
+router.post(
+  '/resources/:resourceId/download',
+  requireAuth,
+  ResourceController.downloadResource
+);
+
+/**
+ * @openapi
  * /api/courses/{courseId}/resources/upload-url:
  *   post:
  *     summary: Get a signed upload URL for uploading a course resource
