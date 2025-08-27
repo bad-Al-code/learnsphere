@@ -1,6 +1,6 @@
 'use server';
 
-import { courseService, enrollmentService } from '@/lib/api';
+import { courseService, enrollmentService, paymentService } from '@/lib/api';
 import { CourseFormValues, courseSchema } from '@/lib/schemas/course';
 import { CourseFilterOptions } from '@/types/course';
 import { faker } from '@faker-js/faker';
@@ -211,18 +211,24 @@ export async function getCourseDetailsForEditor(courseId: string) {
 
 export async function getCourseOverviewData(courseId: string) {
   try {
-    const [enrollmentStatsRes, courseDetailsRes] = await Promise.all([
-      enrollmentService.get(`/api/analytics/course/${courseId}/stats`),
-      courseService.get(`/api/courses/${courseId}`),
-    ]);
+    const [enrollmentStatsRes, courseDetailsRes, paymentStatsRes] =
+      await Promise.all([
+        enrollmentService.get(`/api/analytics/course/${courseId}/stats`),
+        courseService.get(`/api/courses/${courseId}`),
+        paymentService.get(
+          `/api/payments/analytics/course/${courseId}/revenue`
+        ),
+      ]);
 
     if (!enrollmentStatsRes.ok)
       throw new Error('Failed to fetch enrollment stats.');
     if (!courseDetailsRes.ok)
       throw new Error('Failed to fetch course details.');
+    if (!paymentStatsRes.ok) throw new Error('Failed to fetch payment stats.');
 
     const courseDetails = await courseDetailsRes.json();
     const enrollmentStats = await enrollmentStatsRes.json();
+    const paymentStats = await paymentStatsRes.json();
 
     const data = {
       details: {
@@ -242,7 +248,7 @@ export async function getCourseOverviewData(courseId: string) {
           value: courseDetails.averageRating || 4.5,
           reviews: 150,
         }, // Placeholder
-        revenue: { value: 12500, change: 10 }, // Placeholder
+        revenue: { value: paymentStats.totalRevenue || 0, change: 10 }, // Placeholder
         avgSessionTime: { value: '15m', change: 5 }, // Placeholder
         forumActivity: { value: 42 }, // Placeholder
         resourceDownloads: { value: 250, change: 15 }, // Placeholder

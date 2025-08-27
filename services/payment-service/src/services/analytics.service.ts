@@ -1,3 +1,4 @@
+import logger from '../config/logger';
 import { AnalyticsRepository } from '../db/repostiories/analytics.repository';
 
 export class AnalyticsService {
@@ -34,5 +35,16 @@ export class AnalyticsService {
       expenses: 0,
       profit: parseFloat(row.revenue || '0'),
     }));
+  }
+
+  /**
+   * Retrieves the total revenue for a single course.
+   * @param courseId The ID of the course.
+   */
+  public static async getCourseRevenue(courseId: string) {
+    logger.info(`Fetching total revenue for course ${courseId}`);
+    const totalRevenue =
+      await AnalyticsRepository.getTotalRevenueForCourse(courseId);
+    return { totalRevenue };
   }
 }

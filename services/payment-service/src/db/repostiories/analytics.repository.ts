@@ -56,4 +56,24 @@ export class AnalyticsRepository {
 
     return result;
   }
+
+  /**
+   * Calculates the total revenue for a single course.
+   * @param courseId The ID of the course.
+   * @returns The total revenue as a number.
+   */
+  public static async getTotalRevenueForCourse(
+    courseId: string
+  ): Promise<number> {
+    const [result] = await db
+      .select({
+        total: sum(payments.amount),
+      })
+      .from(payments)
+      .where(
+        and(eq(payments.courseId, courseId), eq(payments.status, 'completed'))
+      );
+
+    return parseFloat(result?.total || '0');
+  }
 }

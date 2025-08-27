@@ -111,4 +111,24 @@ router.get(
   PaymentController.getFinancialTrends
 );
 
+/**
+ * @openapi
+ * /api/payments/analytics/course/{courseId}/revenue:
+ *   get:
+ *     summary: "[Internal] Get total revenue for a single course"
+ *     tags: [Payments]
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       '200':
+ *         description: The total revenue for the course.
+ */
+router.get(
+  '/analytics/course/:courseId/revenue',
+  PaymentController.getCourseRevenue
+);
+
 export { router as paymentRouter };

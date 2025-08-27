@@ -85,4 +85,18 @@ export class PaymentController {
       next(error);
     }
   }
+
+  public static async getCourseRevenue(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseId } = req.params;
+      const revenue = await AnalyticsService.getCourseRevenue(courseId);
+      res.status(StatusCodes.OK).json(revenue);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
