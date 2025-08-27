@@ -26,7 +26,11 @@ export function PageHeader({ title, description }: PageHeaderProps) {
       </Button>
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-        {description && <p className="text-muted-foreground">{description}</p>}
+        {description && (
+          <p className="text-muted-foreground line-clamp-2" title={description}>
+            {description}
+          </p>
+        )}
       </div>
     </div>
   );

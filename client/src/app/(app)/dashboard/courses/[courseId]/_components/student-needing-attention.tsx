@@ -27,7 +27,6 @@ interface StudentsNeedingAttentionProps {
       name: string;
       avatarUrl?: string;
     };
-    course: string;
     lastActive: Date;
     reason: string;
     details: string;

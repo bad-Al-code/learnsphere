@@ -285,6 +285,28 @@ router.get('/course/:courseId/stats', AnalyticsController.getCourseStats);
 
 /**
  * @openapi
+ * /api/analytics/course/{courseId}/student-performance:
+ *   get:
+ *     summary: "[Instructor] Get top performers and at-risk students for a course"
+ *     tags: [Analytics]
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       '200':
+ *         description: An object containing lists of top performers and at-risk students.
+ */
+router.get(
+  '/course/:courseId/student-performance',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getStudentPerformance
+);
+
+/**
+ * @openapi
  * /api/analytics/instructor/student-grade/{courseId}/{studentId}:
  *   get:
  *     summary: "[Instructor] Get a student's average grade for a course"

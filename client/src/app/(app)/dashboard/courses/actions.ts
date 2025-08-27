@@ -1,8 +1,14 @@
 'use server';
 
-import { courseService, enrollmentService, paymentService } from '@/lib/api';
+import {
+  courseService,
+  enrollmentService,
+  paymentService,
+  userService,
+} from '@/lib/api';
 import { CourseFormValues, courseSchema } from '@/lib/schemas/course';
 import { CourseFilterOptions } from '@/types/course';
+import { BulkUser } from '@/types/user';
 import { faker } from '@faker-js/faker';
 import { revalidatePath } from 'next/cache';
 
@@ -211,24 +217,74 @@ export async function getCourseDetailsForEditor(courseId: string) {
 
 export async function getCourseOverviewData(courseId: string) {
   try {
-    const [enrollmentStatsRes, courseDetailsRes, paymentStatsRes] =
-      await Promise.all([
-        enrollmentService.get(`/api/analytics/course/${courseId}/stats`),
-        courseService.get(`/api/courses/${courseId}`),
-        paymentService.get(
-          `/api/payments/analytics/course/${courseId}/revenue`
-        ),
-      ]);
+    const [
+      enrollmentStatsRes,
+      courseDetailsRes,
+      paymentStatsRes,
+      studentPerformanceRes,
+    ] = await Promise.all([
+      enrollmentService.get(`/api/analytics/course/${courseId}/stats`),
+      courseService.get(`/api/courses/${courseId}`),
+      paymentService.get(`/api/payments/analytics/course/${courseId}/revenue`),
+      enrollmentService.get(
+        `/api/analytics/course/${courseId}/student-performance`
+      ),
+    ]);
 
     if (!enrollmentStatsRes.ok)
       throw new Error('Failed to fetch enrollment stats.');
     if (!courseDetailsRes.ok)
       throw new Error('Failed to fetch course details.');
     if (!paymentStatsRes.ok) throw new Error('Failed to fetch payment stats.');
+    if (!studentPerformanceRes.ok)
+      throw new Error('Failed to fetch student performance.');
 
     const courseDetails = await courseDetailsRes.json();
     const enrollmentStats = await enrollmentStatsRes.json();
     const paymentStats = await paymentStatsRes.json();
+    const studentPerformance = await studentPerformanceRes.json();
+
+    const allStudentIds = [
+      ...studentPerformance.topPerformers.map((s: any) => s.userId),
+      ...studentPerformance.studentsAtRisk.map((s: any) => s.userId),
+    ];
+    const uniqueStudentIds = [...new Set(allStudentIds)];
+
+    let userMap = new Map<string, BulkUser>();
+    if (uniqueStudentIds.length > 0) {
+      const userProfilesRes = await userService.post('/api/users/bulk', {
+        userIds: uniqueStudentIds,
+      });
+      if (userProfilesRes.ok) {
+        const userProfiles: BulkUser[] = await userProfilesRes.json();
+        userMap = new Map(userProfiles.map((u) => [u.userId, u]));
+      }
+    }
+
+    const mapStudentData = (student: any) => {
+      const user = userMap.get(student.userId);
+      return {
+        student: {
+          name: user
+            ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+            : 'Unknown Student',
+          avatarUrl: user?.avatarUrls?.small,
+        },
+        progress: parseFloat(student.progressPercentage),
+        grade: student.averageGrade
+          ? `${student.averageGrade.toFixed(1)}%`
+          : 'N/A',
+
+        // Placeholder
+        lastActive: new Date(),
+        reason: 'Low Progress',
+        details: `Avg. Grade: ${student.averageGrade ? student.averageGrade.toFixed(1) : 'N/A'}%`,
+      };
+    };
+
+    const topPerformers = studentPerformance.topPerformers.map(mapStudentData);
+    const studentsNeedingAttention =
+      studentPerformance.studentsAtRisk.map(mapStudentData);
 
     const data = {
       details: {
@@ -255,10 +311,10 @@ export async function getCourseOverviewData(courseId: string) {
       },
 
       recentActivity: [],
-      topPerformers: [],
+      topPerformers,
       modulePerformance: [],
       assignmentStatus: [],
-      studentsNeedingAttention: [],
+      studentsNeedingAttention,
     };
 
     return data;

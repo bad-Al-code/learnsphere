@@ -208,4 +208,19 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getStudentPerformance(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseId } = req.params;
+      const performanceData =
+        await AnalyticsService.getStudentPerformance(courseId);
+      res.status(StatusCodes.OK).json(performanceData);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

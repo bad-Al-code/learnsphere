@@ -26,3 +26,12 @@ export type Session = {
   countryCode: string | null;
   createdAt: string;
 };
+
+export interface BulkUser {
+  userId: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  avatarUrls?: {
+    small?: string;
+  };
+}

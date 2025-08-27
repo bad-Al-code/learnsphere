@@ -40,3 +40,8 @@ export type CourseFilterOptions = {
 };
 
 export type PrerequisiteCourse = { id: string; title: string };
+
+export interface BulkCourse {
+  id: string;
+  title: string;
+}

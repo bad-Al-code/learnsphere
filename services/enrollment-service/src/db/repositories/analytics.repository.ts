@@ -11,7 +11,7 @@ import {
   sum,
 } from 'drizzle-orm';
 import { db } from '..';
-import { courses, dailyActivity, enrollments } from '../schema';
+import { courses, dailyActivity, enrollments, studentGrades } from '../schema';
 
 export class AnalyticsRepository {
   /**
@@ -413,5 +413,39 @@ export class AnalyticsRepository {
       totalStudents: result.totalStudents || 0,
       avgCompletion: parseFloat(result.avgCompletion || '0'),
     };
+  }
+
+  /**
+   * Finds all enrollments for a course, sorted by progress and grade.
+   * @param courseId The ID of the course.
+   * @returns A promise that resolves to an array of enrollments with grade data.
+   */
+  public static async getStudentPerformanceForCourse(courseId: string) {
+    // This query joins enrollments with the locally replicated student grades
+    const result = await db
+      .select({
+        userId: enrollments.userId,
+        progressPercentage: enrollments.progressPercentage,
+        averageGrade: sql<number>`AVG(${studentGrades.grade})`.as(
+          'average_grade'
+        ),
+      })
+      .from(enrollments)
+      .leftJoin(
+        studentGrades,
+        and(
+          eq(enrollments.userId, studentGrades.studentId),
+          eq(enrollments.courseId, studentGrades.courseId)
+        )
+      )
+      .where(eq(enrollments.courseId, courseId))
+      .groupBy(enrollments.id)
+      .orderBy(
+        desc(
+          sql`(${enrollments.progressPercentage} + COALESCE(AVG(${studentGrades.grade}), 0)) / 2`
+        )
+      );
+
+    return result;
   }
 }

@@ -447,4 +447,20 @@ export class AnalyticsService {
   public static async getCourseStats(courseId: string) {
     return AnalyticsRepository.getStatsForCourse(courseId);
   }
+
+  /**
+   * Gets top performers and students at risk for a specific course.
+   * @param courseId The ID of the course.
+   */
+  public static async getStudentPerformance(courseId: string) {
+    logger.info(`Fetching student performance data for course ${courseId}`);
+
+    const allStudents =
+      await AnalyticsRepository.getStudentPerformanceForCourse(courseId);
+
+    const topPerformers = allStudents.slice(0, 3);
+    const studentsAtRisk = allStudents.slice(-3).reverse();
+
+    return { topPerformers, studentsAtRisk };
+  }
 }
