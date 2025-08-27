@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike } from 'drizzle-orm';
+import { and, avg, count, desc, eq, ilike } from 'drizzle-orm';
 import { db } from '..';
 import {
   Assignment,
@@ -6,7 +6,7 @@ import {
   NewAssignment,
   UpdateAssignmentDto,
 } from '../../schemas';
-import { assignments } from '../schema';
+import { assignments, assignmentSubmissions } from '../schema';
 
 export class AssignmentRepository {
   /**
@@ -138,5 +138,32 @@ export class AssignmentRepository {
     ]);
 
     return { totalResults, results };
+  }
+
+  /**
+   * Retrieves status and stats for all assignments in a given course.
+   * @param {string} courseId - The ID of the course.
+   * @returns {Promise<any[]>} A promise that resolves to an array of assignment statuses.
+   */
+  public static async getAssignmentStatusForCourse(courseId: string) {
+    const result = await db
+      .select({
+        assignmentId: assignments.id,
+        title: assignments.title,
+        dueDate: assignments.dueDate,
+        totalSubmissions: count(assignmentSubmissions.id),
+        averageGrade: avg(assignmentSubmissions.grade),
+      })
+      .from(assignments)
+      .leftJoin(
+        assignmentSubmissions,
+        eq(assignments.id, assignmentSubmissions.assignmentId)
+      )
+      .where(eq(assignments.courseId, courseId))
+      .groupBy(assignments.id)
+      .orderBy(desc(assignments.dueDate))
+      .limit(5);
+
+    return result;
   }
 }

@@ -1,3 +1,4 @@
+import logger from '../config/logger';
 import { AssignmentRepository, ModuleRepository } from '../db/repostiories';
 import { NotFoundError } from '../errors';
 import {
@@ -145,5 +146,15 @@ export class AssignmentService {
         totalResults,
       },
     };
+  }
+
+  /**
+   * Retrieves the status and stats for all assignments in a given course
+   * @param courseId The Course ID
+   */
+  public static async getAssignmentStatusForCourse(courseId: string) {
+    logger.info(`Fetching assignment status for course ${courseId}`);
+
+    return AssignmentRepository.getAssignmentStatusForCourse(courseId);
   }
 }

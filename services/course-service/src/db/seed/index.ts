@@ -212,6 +212,7 @@ async function seedExtras(createdCourses: (typeof courses.$inferSelect)[]) {
             description: faker.lorem.sentence(),
             status: assignmentStatus,
             order: i,
+            dueDate: faker.date.future({ years: 0.2 }),
           })
           .returning();
 

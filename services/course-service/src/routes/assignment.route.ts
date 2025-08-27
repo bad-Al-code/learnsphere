@@ -239,4 +239,24 @@ router.post('/assignments/reorder', AssignmentController.reorder);
  */
 router.get('/courses/:courseId/assignments', AssignmentController.getForCourse);
 
+/**
+ * @openapi
+ * /api/courses/{courseId}/assignment-status:
+ *   get:
+ *     summary: "[Instructor] Get status and stats for all assignments in a course"
+ *     tags: [Assignments]
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       200:
+ *         description: An array of assignment statuses including submission counts and average grades.
+ */
+router.get(
+  '/courses/:courseId/assignment-status',
+  AssignmentController.getStatusesForCourse
+);
+
 export { router as assignmentRouter };

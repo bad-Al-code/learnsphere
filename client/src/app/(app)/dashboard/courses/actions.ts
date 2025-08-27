@@ -224,6 +224,7 @@ export async function getCourseOverviewData(courseId: string) {
       studentPerformanceRes,
       activityStatsRes,
       modulePerformanceRes,
+      assignmentStatusRes,
     ] = await Promise.all([
       enrollmentService.get(`/api/analytics/course/${courseId}/stats`),
       courseService.get(`/api/courses/${courseId}`),
@@ -235,6 +236,7 @@ export async function getCourseOverviewData(courseId: string) {
       enrollmentService.get(
         `/api/analytics/course/${courseId}/module-performance`
       ),
+      courseService.get(`/api/courses/${courseId}/assignment-status`),
     ]);
 
     if (!enrollmentStatsRes.ok)
@@ -248,6 +250,8 @@ export async function getCourseOverviewData(courseId: string) {
       throw new Error('Failed to fetch activity stats.');
     if (!modulePerformanceRes.ok)
       throw new Error('Failed to fetch module performance.');
+    if (!assignmentStatusRes.ok)
+      throw new Error('Failed to fetch assignment status.');
 
     const courseDetails = await courseDetailsRes.json();
     const enrollmentStats = await enrollmentStatsRes.json();
@@ -255,6 +259,7 @@ export async function getCourseOverviewData(courseId: string) {
     const studentPerformance = await studentPerformanceRes.json();
     const activityStats = await activityStatsRes.json();
     const modulePerformance = await modulePerformanceRes.json();
+    const assignmentStatus = await assignmentStatusRes.json();
 
     const allStudentIds = [
       ...studentPerformance.topPerformers.map((s: any) => s.userId),
@@ -338,6 +343,16 @@ export async function getCourseOverviewData(courseId: string) {
       module: moduleTitleMap.get(perf.moduleId) || 'Unknown Module',
     }));
 
+    const assignmentStatusData = assignmentStatus.map((a: any) => ({
+      assignment: a.title,
+      dueDate: new Date(a.dueDate),
+      submissions: a.totalSubmissions,
+      total: enrollmentStats.totalStudents,
+      avgGrade: a.averageGrade
+        ? `${parseFloat(a.averageGrade).toFixed(1)}%`
+        : 'N/A',
+    }));
+
     const data = {
       details: {
         title: courseDetails.title,
@@ -365,7 +380,7 @@ export async function getCourseOverviewData(courseId: string) {
       recentActivity,
       topPerformers,
       modulePerformance: enrichedModulePerformance,
-      assignmentStatus: [],
+      assignmentStatus: assignmentStatusData,
       studentsNeedingAttention,
     };
 

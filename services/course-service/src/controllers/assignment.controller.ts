@@ -105,4 +105,22 @@ export class AssignmentController {
       next(error);
     }
   }
+
+  /**
+   * @description Controller to get assignment statuses for a course.
+   */
+  public static async getStatusesForCourse(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseId } = req.params;
+      const statuses =
+        await AssignmentService.getAssignmentStatusForCourse(courseId);
+      res.status(StatusCodes.OK).json(statuses);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
