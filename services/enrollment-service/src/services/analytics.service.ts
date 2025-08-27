@@ -483,11 +483,19 @@ export class AnalyticsService {
       stats.enrollmentsPrevious30Days
     );
 
+    const resourceDownloadsChange = this.calculatePercentageChange(
+      stats.resourceDownloadsLast30Days,
+      stats.resourceDownloadsPrevious30DaysQuery
+    );
+
     return {
       enrollmentChange,
       totalDiscussions: stats.totalDiscussions,
       recentActivity: stats.recentActivity,
-      resourceDownloads: stats.resourceDownloads,
+      resourceDownloads: {
+        value: stats.resourceDownloadsLast30Days,
+        change: resourceDownloadsChange,
+      },
       avgSessionTime: { value: '12m', change: 5 }, // Placeholder
     };
   }

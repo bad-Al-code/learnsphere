@@ -515,16 +515,43 @@ export class AnalyticsRepository {
       limit: 5,
     });
 
+    const resourceDownloadsLast30DaysQuery = db
+      .select({ value: count() })
+      .from(courseActivityLogs)
+      .where(
+        and(
+          eq(courseActivityLogs.courseId, courseId),
+          eq(courseActivityLogs.activityType, 'resource_download'),
+          gte(courseActivityLogs.createdAt, thirtyDaysAgo)
+        )
+      );
+
+    const resourceDownloadsPrevious30DaysQuery = db
+      .select({ value: count() })
+      .from(courseActivityLogs)
+      .where(
+        and(
+          eq(courseActivityLogs.courseId, courseId),
+          eq(courseActivityLogs.activityType, 'resource_download'),
+          gte(courseActivityLogs.createdAt, sixtyDaysAgo),
+          lt(courseActivityLogs.createdAt, thirtyDaysAgo)
+        )
+      );
+
     const [
       enrollmentsLast30Days,
       enrollmentsPrevious30Days,
       totalDiscussions,
       recentActivity,
+      resourceDownloadsLast30Days,
+      resourceDownloadsPrevious30Days,
     ] = await Promise.all([
       enrollmentsLast30DaysQuery,
       enrollmentsPrevious30DaysQuery,
       totalDiscussionsQuery,
       recentActivityQuery,
+      resourceDownloadsLast30DaysQuery,
+      resourceDownloadsPrevious30DaysQuery,
     ]);
 
     return {
@@ -532,7 +559,9 @@ export class AnalyticsRepository {
       enrollmentsPrevious30Days: enrollmentsPrevious30Days[0].value,
       totalDiscussions: totalDiscussions[0].value,
       recentActivity,
-      resourceDownloads: 0, // Placeholder until we track this event
+      resourceDownloadsLast30Days: resourceDownloadsLast30Days[0].value,
+      resourceDownloadsPrevious30DaysQuery:
+        resourceDownloadsPrevious30Days[0].value,
     };
   }
 

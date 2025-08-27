@@ -373,8 +373,11 @@ export async function getCourseOverviewData(courseId: string) {
         }, // Placeholder
         revenue: { value: paymentStats.totalRevenue || 0, change: 10 }, // Placeholder
         avgSessionTime: activityStats.avgSessionTime, // Placeholder from service
-        forumActivity: { value: activityStats.resourceDownloads },
-        resourceDownloads: { value: 250, change: 15 }, // Placeholder
+        forumActivity: { value: activityStats.totalDiscussions },
+        resourceDownloads: {
+          value: activityStats.resourceDownloads.value,
+          change: activityStats.resourceDownloads.change,
+        },
       },
 
       recentActivity,

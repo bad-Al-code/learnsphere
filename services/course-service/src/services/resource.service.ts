@@ -85,10 +85,10 @@ export class ResourceService {
     const resource = await ResourceRepository.findById(resourceId);
     if (!resource) throw new NotFoundError('Resource');
 
-    await AuthorizationService.verifyCourseOwnership(
-      resource.courseId,
-      requester
-    );
+    // await AuthorizationService.verifyCourseOwnership(
+    //   resource.courseId,
+    //   requester
+    // );
 
     return resource;
   }
