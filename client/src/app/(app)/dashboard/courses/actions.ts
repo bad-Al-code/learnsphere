@@ -211,26 +211,37 @@ export async function getCourseDetailsForEditor(courseId: string) {
 
 export async function getCourseOverviewData(courseId: string) {
   try {
-    const [enrollmentStatsRes] = await Promise.all([
+    const [enrollmentStatsRes, courseDetailsRes] = await Promise.all([
       enrollmentService.get(`/api/analytics/course/${courseId}/stats`),
+      courseService.get(`/api/courses/${courseId}`),
     ]);
 
     if (!enrollmentStatsRes.ok)
       throw new Error('Failed to fetch enrollment stats.');
+    if (!courseDetailsRes.ok)
+      throw new Error('Failed to fetch course details.');
 
+    const courseDetails = await courseDetailsRes.json();
     const enrollmentStats = await enrollmentStatsRes.json();
 
     const data = {
+      details: {
+        title: courseDetails.title,
+        description: courseDetails.description,
+      },
       stats: {
         studentsEnrolled: {
           value: enrollmentStats.totalStudents,
           change: 0, // Placeholder
         },
         completionRate: {
-          value: enrollmentStats.avgCompletion.toFixed(1),
+          value: parseFloat(enrollmentStats.avgCompletion).toFixed(1),
           change: 0, // Placeholder
         },
-        averageRating: { value: 4.5, reviews: 150 }, // Placeholder
+        averageRating: {
+          value: courseDetails.averageRating || 4.5,
+          reviews: 150,
+        }, // Placeholder
         revenue: { value: 12500, change: 10 }, // Placeholder
         avgSessionTime: { value: '15m', change: 5 }, // Placeholder
         forumActivity: { value: 42 }, // Placeholder
@@ -252,6 +263,7 @@ export async function getCourseOverviewData(courseId: string) {
     );
 
     return {
+      details: null,
       stats: {
         studentsEnrolled: { value: 0, change: 0 },
         completionRate: { value: 0, change: 0 },

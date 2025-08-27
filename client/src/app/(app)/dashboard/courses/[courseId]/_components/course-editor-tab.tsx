@@ -15,6 +15,7 @@ import { SettingsTab, SettingsTabSkeleton } from './settings-tab';
 
 interface CourseEditorProps {
   courseId: string;
+  initialOverviewData: any;
 }
 
 const skeletonMap: Record<string, React.ReactNode> = {
@@ -26,7 +27,10 @@ const skeletonMap: Record<string, React.ReactNode> = {
   settings: <SettingsTabSkeleton />,
 };
 
-export function CourseEditor({ courseId }: CourseEditorProps) {
+export function CourseEditor({
+  courseId,
+  initialOverviewData,
+}: CourseEditorProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -63,7 +67,7 @@ export function CourseEditor({ courseId }: CourseEditorProps) {
           <TabsContent value={currentTabFromUrl}>
             {currentTabFromUrl === 'overview' && (
               <Suspense fallback={<OverviewTabSkeleton />}>
-                <OverviewTab params={{ courseId }} />
+                <OverviewTab data={initialOverviewData} />
               </Suspense>
             )}
 

@@ -11,18 +11,47 @@ import {
   Star,
   Users,
 } from 'lucide-react';
-import { getCourseOverviewData } from '../../actions';
 
-export async function OverviewStatCards({ courseId }: { courseId: string }) {
-  const { stats } = await getCourseOverviewData(courseId);
+interface OverviewStatCardsProps {
+  data: {
+    studentsEnrolled: {
+      value: any;
+      change: number;
+    };
+    completionRate: {
+      value: any;
+      change: number;
+    };
+    averageRating: {
+      value: number;
+      reviews: number;
+    };
+    revenue: {
+      value: number;
+      change: number;
+    };
+    avgSessionTime: {
+      value: string;
+      change: number;
+    };
+    forumActivity: {
+      value: number;
+    };
+    resourceDownloads: {
+      value: number;
+      change: number;
+    };
+  };
+}
 
+export async function OverviewStatCards({ data }: OverviewStatCardsProps) {
   return (
     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
       <StatCard
         title="Students Enrolled"
-        value={stats.studentsEnrolled.value}
+        value={data.studentsEnrolled.value}
         change={{
-          value: stats.studentsEnrolled.change,
+          value: data.studentsEnrolled.change,
           description: 'this month',
         }}
         icon={Users}
@@ -30,9 +59,9 @@ export async function OverviewStatCards({ courseId }: { courseId: string }) {
       />
       <StatCard
         title="Completion Rate"
-        value={`${stats.completionRate.value}%`}
+        value={`${data.completionRate.value}%`}
         change={{
-          value: stats.completionRate.change,
+          value: data.completionRate.change,
           description: 'from last month',
         }}
         icon={CheckCircle}
@@ -40,22 +69,22 @@ export async function OverviewStatCards({ courseId }: { courseId: string }) {
       />
       <StatCard
         title="Average Rating"
-        value={`${stats.averageRating.value} (${stats.averageRating.reviews} reviews)`}
+        value={`${data.averageRating.value} (${data.averageRating.reviews} reviews)`}
         icon={Star}
         iconBgColor="bg-amber-500"
       />
       <StatCard
         title="Revenue"
-        value={formatPrice(stats.revenue.value)}
-        change={{ value: stats.revenue.change, description: 'this month' }}
+        value={formatPrice(data.revenue.value)}
+        change={{ value: data.revenue.change, description: 'this month' }}
         icon={DollarSign}
         iconBgColor="bg-emerald-500"
       />
       <StatCard
         title="Avg Session Time"
-        value={stats.avgSessionTime.value}
+        value={data.avgSessionTime.value}
         change={{
-          value: stats.avgSessionTime.change,
+          value: data.avgSessionTime.change,
           description: 'from last week',
         }}
         icon={Clock}
@@ -63,15 +92,15 @@ export async function OverviewStatCards({ courseId }: { courseId: string }) {
       />
       <StatCard
         title="Forum Activity"
-        value={`${stats.forumActivity.value} posts this month`}
+        value={`${data.forumActivity.value} posts this month`}
         icon={MessageSquare}
         iconBgColor="bg-sky-500"
       />
       <StatCard
         title="Resource Downloads"
-        value={stats.resourceDownloads.value.toLocaleString()}
+        value={data.resourceDownloads.value.toLocaleString()}
         change={{
-          value: stats.resourceDownloads.change,
+          value: data.resourceDownloads.change,
           description: 'this week',
         }}
         icon={Download}

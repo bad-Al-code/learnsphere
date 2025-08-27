@@ -1,5 +1,3 @@
-import { Suspense } from 'react';
-import { getCourseOverviewData } from '../../actions';
 import {
   AssignmentStatus,
   AssignmentStatusSkeleton,
@@ -20,38 +18,24 @@ import {
 } from './student-needing-attention';
 import { TopPerformers, TopPerformersSkeleton } from './top-performance';
 
-export default function OverviewTab({
-  params,
-}: {
-  params: { courseId: string };
-}) {
-  return (
-    <Suspense fallback={<OverviewTabSkeleton />}>
-      <PageContent courseId={params.courseId} />
-    </Suspense>
-  );
-}
-
-async function PageContent({ courseId }: { courseId: string }) {
-  const overviewData = await getCourseOverviewData(courseId);
-
+export default function OverviewTab({ data }: { data: any }) {
   return (
     <div className="space-y-2">
-      <OverviewStatCards courseId={courseId} />
+      <OverviewStatCards data={data.stats} />
 
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
         <div className="space-y-2 lg:col-span-2">
           <AISummaryCard />
-          <RecentActivity data={overviewData.recentActivity} />
+          <RecentActivity data={data.recentActivity} />
         </div>
         <div>
-          <TopPerformers data={overviewData.topPerformers} />
+          <TopPerformers data={data.topPerformers} />
         </div>
       </div>
 
-      <ModulePerformance data={overviewData.modulePerformance} />
-      <AssignmentStatus data={overviewData.assignmentStatus} />
-      <StudentsNeedingAttention data={overviewData.studentsNeedingAttention} />
+      <ModulePerformance data={data.modulePerformance} />
+      <AssignmentStatus data={data.assignmentStatus} />
+      <StudentsNeedingAttention data={data.studentsNeedingAttention} />
     </div>
   );
 }
