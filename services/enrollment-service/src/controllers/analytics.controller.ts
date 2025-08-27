@@ -216,9 +216,30 @@ export class AnalyticsController {
   ) {
     try {
       const { courseId } = req.params;
+      const instructorId = req.currentUser?.id;
+      if (!instructorId) throw new NotAuthorizedError();
+
       const performanceData =
         await AnalyticsService.getStudentPerformance(courseId);
       res.status(StatusCodes.OK).json(performanceData);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getCourseActivityStats(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseId } = req.params;
+      const instructorId = req.currentUser?.id;
+      if (!instructorId) throw new NotAuthorizedError();
+
+      const stats = await AnalyticsService.getCourseActivityStats(courseId);
+
+      res.status(StatusCodes.OK).json(stats);
     } catch (error) {
       next(error);
     }

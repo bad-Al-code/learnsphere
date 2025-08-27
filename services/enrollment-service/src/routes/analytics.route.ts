@@ -285,6 +285,69 @@ router.get('/course/:courseId/stats', AnalyticsController.getCourseStats);
 
 /**
  * @openapi
+ * /course/{courseId}/activity-stats:
+ *   get:
+ *     summary: Get activity stats for a course
+ *     description: Returns time-based and aggregate analytics for a single course, including enrollments, discussions, and recent activity.
+ *     tags:
+ *       - Analytics
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the course.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Course activity statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 enrollmentChange:
+ *                   type: number
+ *                   description: Percentage change in enrollments (last 30 days vs previous 30 days).
+ *                 totalDiscussions:
+ *                   type: integer
+ *                   description: Total number of discussion posts for this course.
+ *                 recentActivity:
+ *                   type: array
+ *                   description: Last 5 recorded activity events.
+ *                   items:
+ *                     type: object
+ *                 resourceDownloads:
+ *                   type: integer
+ *                   description: Number of resource downloads (currently placeholder).
+ *                 avgSessionTime:
+ *                   type: object
+ *                   properties:
+ *                     value:
+ *                       type: string
+ *                       example: "12m"
+ *                     change:
+ *                       type: number
+ *                       example: 5
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (insufficient role)
+ *       500:
+ *         description: Server error
+ */
+router.get(
+  '/course/:courseId/activity-stats',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getCourseActivityStats
+);
+
+/**
+ * @openapi
  * /api/analytics/course/{courseId}/student-performance:
  *   get:
  *     summary: "[Instructor] Get top performers and at-risk students for a course"

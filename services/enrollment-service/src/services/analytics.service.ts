@@ -463,4 +463,32 @@ export class AnalyticsService {
 
     return { topPerformers, studentsAtRisk };
   }
+
+  /**
+   * Aggregates activity statistics for a given course.
+   * - Calculates enrollment trends (last 30 vs previous 30 days).
+   * - Counts total discussions.
+   * - Fetches last 5 activity events.
+   * - Placeholder for resource downloads & session times.
+   *
+   * @param courseId The ID of the course.
+   * @returns Aggregated activity stats for the course.
+   */
+  public static async getCourseActivityStats(courseId: string) {
+    logger.info(`Fetching activity stats for course ${courseId}`);
+    const stats = await AnalyticsRepository.getActivityStatsForCourse(courseId);
+
+    const enrollmentChange = this.calculatePercentageChange(
+      stats.enrollmentsLast30Days,
+      stats.enrollmentsPrevious30Days
+    );
+
+    return {
+      enrollmentChange,
+      totalDiscussions: stats.totalDiscussions,
+      recentActivity: stats.recentActivity,
+      resourceDownloads: stats.resourceDownloads,
+      avgSessionTime: { value: '12m', change: 5 }, // Placeholder
+    };
+  }
 }

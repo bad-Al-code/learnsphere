@@ -222,6 +222,7 @@ export async function getCourseOverviewData(courseId: string) {
       courseDetailsRes,
       paymentStatsRes,
       studentPerformanceRes,
+      activityStatsRes,
     ] = await Promise.all([
       enrollmentService.get(`/api/analytics/course/${courseId}/stats`),
       courseService.get(`/api/courses/${courseId}`),
@@ -229,6 +230,7 @@ export async function getCourseOverviewData(courseId: string) {
       enrollmentService.get(
         `/api/analytics/course/${courseId}/student-performance`
       ),
+      enrollmentService.get(`/api/analytics/course/${courseId}/activity-stats`),
     ]);
 
     if (!enrollmentStatsRes.ok)
@@ -238,11 +240,14 @@ export async function getCourseOverviewData(courseId: string) {
     if (!paymentStatsRes.ok) throw new Error('Failed to fetch payment stats.');
     if (!studentPerformanceRes.ok)
       throw new Error('Failed to fetch student performance.');
+    if (!activityStatsRes.ok)
+      throw new Error('Failed to fetch activity stats.');
 
     const courseDetails = await courseDetailsRes.json();
     const enrollmentStats = await enrollmentStatsRes.json();
     const paymentStats = await paymentStatsRes.json();
     const studentPerformance = await studentPerformanceRes.json();
+    const activityStats = await activityStatsRes.json();
 
     const allStudentIds = [
       ...studentPerformance.topPerformers.map((s: any) => s.userId),
@@ -286,6 +291,38 @@ export async function getCourseOverviewData(courseId: string) {
     const studentsNeedingAttention =
       studentPerformance.studentsAtRisk.map(mapStudentData);
 
+    const recentActivityUserIds = activityStats.recentActivity.map(
+      (a: any) => a.userId
+    );
+    let recentActivityUserMap = new Map<string, BulkUser>();
+    if (recentActivityUserIds.length > 0) {
+      const userProfilesRes = await userService.post('/api/users/bulk', {
+        userIds: recentActivityUserIds,
+      });
+
+      if (userProfilesRes.ok) {
+        const userProfiles: BulkUser[] = await userProfilesRes.json();
+
+        recentActivityUserMap = new Map(userProfiles.map((u) => [u.userId, u]));
+      }
+    }
+
+    const recentActivity = activityStats.recentActivity.map((activity: any) => {
+      const user = recentActivityUserMap.get(activity.userId);
+      let actionText = activity.activityType.replace('_', ' ');
+
+      return {
+        user: {
+          name: user
+            ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+            : 'A Student',
+          image: user?.avatarUrls?.small,
+        },
+        action: actionText,
+        timestamp: new Date(activity.createdAt),
+      };
+    });
+
     const data = {
       details: {
         title: courseDetails.title,
@@ -294,7 +331,7 @@ export async function getCourseOverviewData(courseId: string) {
       stats: {
         studentsEnrolled: {
           value: enrollmentStats.totalStudents,
-          change: 0, // Placeholder
+          change: activityStats.enrollmentChange,
         },
         completionRate: {
           value: parseFloat(enrollmentStats.avgCompletion).toFixed(1),
@@ -305,17 +342,19 @@ export async function getCourseOverviewData(courseId: string) {
           reviews: 150,
         }, // Placeholder
         revenue: { value: paymentStats.totalRevenue || 0, change: 10 }, // Placeholder
-        avgSessionTime: { value: '15m', change: 5 }, // Placeholder
-        forumActivity: { value: 42 }, // Placeholder
+        avgSessionTime: activityStats.avgSessionTime, // Placeholder from service
+        forumActivity: { value: activityStats.resourceDownloads },
         resourceDownloads: { value: 250, change: 15 }, // Placeholder
       },
 
-      recentActivity: [],
+      recentActivity,
       topPerformers,
       modulePerformance: [],
       assignmentStatus: [],
       studentsNeedingAttention,
     };
+
+    console.log(data.recentActivity);
 
     return data;
   } catch (error: any) {

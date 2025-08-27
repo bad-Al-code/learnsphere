@@ -1,6 +1,7 @@
 import {
   and,
   avg,
+  count,
   countDistinct,
   desc,
   eq,
@@ -462,5 +463,76 @@ export class AnalyticsRepository {
    */
   public static async createActivityLog(data: NewActivityLog): Promise<void> {
     await db.insert(courseActivityLogs).values(data);
+  }
+
+  /**
+   * Calculates various time-based and aggregate stats from the activity log for a single course.
+   * @param courseId The ID of the course.
+   * @returns Enrollment counts, discussion totals, and recent activity
+   */
+  public static async getActivityStatsForCourse(courseId: string) {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    const enrollmentsLast30DaysQuery = db
+      .select({ value: count() })
+      .from(courseActivityLogs)
+      .where(
+        and(
+          eq(courseActivityLogs.courseId, courseId),
+          eq(courseActivityLogs.activityType, 'enrollment'),
+          gte(courseActivityLogs.createdAt, thirtyDaysAgo)
+        )
+      );
+
+    const enrollmentsPrevious30DaysQuery = db
+      .select({ value: count() })
+      .from(courseActivityLogs)
+      .where(
+        and(
+          eq(courseActivityLogs.courseId, courseId),
+          eq(courseActivityLogs.activityType, 'enrollment'),
+          gte(courseActivityLogs.createdAt, sixtyDaysAgo),
+          lt(courseActivityLogs.createdAt, thirtyDaysAgo)
+        )
+      );
+
+    const totalDiscussionsQuery = db
+      .select({ value: count() })
+      .from(courseActivityLogs)
+      .where(
+        and(
+          eq(courseActivityLogs.courseId, courseId),
+          eq(courseActivityLogs.activityType, 'discussion_post')
+        )
+      );
+
+    const recentActivityQuery = db.query.courseActivityLogs.findMany({
+      where: eq(courseActivityLogs.courseId, courseId),
+      orderBy: [desc(courseActivityLogs.createdAt)],
+      limit: 5,
+    });
+
+    const [
+      enrollmentsLast30Days,
+      enrollmentsPrevious30Days,
+      totalDiscussions,
+      recentActivity,
+    ] = await Promise.all([
+      enrollmentsLast30DaysQuery,
+      enrollmentsPrevious30DaysQuery,
+      totalDiscussionsQuery,
+      recentActivityQuery,
+    ]);
+
+    return {
+      enrollmentsLast30Days: enrollmentsLast30Days[0].value,
+      enrollmentsPrevious30Days: enrollmentsPrevious30Days[0].value,
+      totalDiscussions: totalDiscussions[0].value,
+      recentActivity,
+      resourceDownloads: 0, // Placeholder until we track this event
+    };
   }
 }
