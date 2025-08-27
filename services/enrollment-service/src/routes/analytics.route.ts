@@ -285,6 +285,28 @@ router.get('/course/:courseId/stats', AnalyticsController.getCourseStats);
 
 /**
  * @openapi
+ * /api/analytics/course/{courseId}/module-performance:
+ *   get:
+ *     summary: "[Instructor] Get performance metrics for each module in a course"
+ *     tags: [Analytics]
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       '200':
+ *         description: An array of performance data for each module.
+ */
+router.get(
+  '/course/:courseId/module-performance',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getModulePerformance
+);
+
+/**
+ * @openapi
  * /course/{courseId}/activity-stats:
  *   get:
  *     summary: Get activity stats for a course

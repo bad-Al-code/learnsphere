@@ -535,4 +535,61 @@ export class AnalyticsRepository {
       resourceDownloads: 0, // Placeholder until we track this event
     };
   }
+
+  /**
+   * Calculates the completion rate for each module in a given course.
+   * @param courseId The ID of the course.
+   * @returns A promise that resolves to an array of objects, each with a moduleId and its completion rate.
+   */
+  public static async getModuleCompletionRates(courseId: string) {
+    const query = sql`
+      WITH ModuleLessons AS (
+        -- Unpack the modules and their lessons from the course_structure JSON
+        SELECT
+          id AS enrollment_id,
+          (module ->> 'id')::uuid AS module_id,
+          jsonb_array_elements_text(module -> 'lessonIds') AS lesson_id
+        FROM
+          enrollments,
+          jsonb_array_elements(course_structure -> 'modules') AS module
+        WHERE
+          course_id = ${courseId}
+      ),
+      CompletedLessons AS (
+        -- Unpack the completed lessons from the progress JSON
+        SELECT
+          id AS enrollment_id,
+          jsonb_array_elements_text(progress -> 'completedLessons') AS lesson_id
+        FROM
+          enrollments
+        WHERE
+          course_id = ${courseId}
+      ),
+      ModuleCompletion AS (
+        -- For each module in each enrollment, count total vs completed lessons
+        SELECT
+          ml.module_id,
+          COUNT(ml.lesson_id) AS total_lessons,
+          COUNT(cl.lesson_id) AS completed_lessons
+        FROM
+          ModuleLessons ml
+        LEFT JOIN
+          CompletedLessons cl ON ml.enrollment_id = cl.enrollment_id AND ml.lesson_id = cl.lesson_id
+        GROUP BY
+          ml.enrollment_id, ml.module_id
+      )
+      -- Aggregate the average completion rate across all students for each module
+      SELECT
+        module_id,
+        (AVG(CASE WHEN total_lessons > 0 THEN (completed_lessons::decimal / total_lessons) ELSE 0 END) * 100)::numeric(5, 2) AS completion_rate
+      FROM
+        ModuleCompletion
+      GROUP BY
+        module_id;
+    `;
+
+    const result = await db.execute(query);
+
+    return result.rows as { module_id: string; completion_rate: string }[];
+  }
 }

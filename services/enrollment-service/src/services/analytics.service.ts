@@ -491,4 +491,21 @@ export class AnalyticsService {
       avgSessionTime: { value: '12m', change: 5 }, // Placeholder
     };
   }
+
+  public static async getModulePerformance(courseId: string) {
+    logger.info(`Fetching module performance for course ${courseId}`);
+
+    const moduleCompletionRates =
+      await AnalyticsRepository.getModuleCompletionRates(courseId);
+
+    const performanceData = moduleCompletionRates.map((item) => ({
+      moduleId: item.module_id,
+      completionRate: parseFloat(item.completion_rate),
+      avgScore: 88, // Placeholder
+      timeSpent: '1h 30m', // Placeholder
+      satisfaction: 4.5, // Placeholder
+    }));
+
+    return performanceData;
+  }
 }

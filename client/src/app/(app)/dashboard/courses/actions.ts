@@ -223,6 +223,7 @@ export async function getCourseOverviewData(courseId: string) {
       paymentStatsRes,
       studentPerformanceRes,
       activityStatsRes,
+      modulePerformanceRes,
     ] = await Promise.all([
       enrollmentService.get(`/api/analytics/course/${courseId}/stats`),
       courseService.get(`/api/courses/${courseId}`),
@@ -231,6 +232,9 @@ export async function getCourseOverviewData(courseId: string) {
         `/api/analytics/course/${courseId}/student-performance`
       ),
       enrollmentService.get(`/api/analytics/course/${courseId}/activity-stats`),
+      enrollmentService.get(
+        `/api/analytics/course/${courseId}/module-performance`
+      ),
     ]);
 
     if (!enrollmentStatsRes.ok)
@@ -242,12 +246,15 @@ export async function getCourseOverviewData(courseId: string) {
       throw new Error('Failed to fetch student performance.');
     if (!activityStatsRes.ok)
       throw new Error('Failed to fetch activity stats.');
+    if (!modulePerformanceRes.ok)
+      throw new Error('Failed to fetch module performance.');
 
     const courseDetails = await courseDetailsRes.json();
     const enrollmentStats = await enrollmentStatsRes.json();
     const paymentStats = await paymentStatsRes.json();
     const studentPerformance = await studentPerformanceRes.json();
     const activityStats = await activityStatsRes.json();
+    const modulePerformance = await modulePerformanceRes.json();
 
     const allStudentIds = [
       ...studentPerformance.topPerformers.map((s: any) => s.userId),
@@ -323,6 +330,14 @@ export async function getCourseOverviewData(courseId: string) {
       };
     });
 
+    const moduleTitleMap = new Map(
+      courseDetails.modules.map((m: any) => [m.id, m.title])
+    );
+    const enrichedModulePerformance = modulePerformance.map((perf: any) => ({
+      ...perf,
+      module: moduleTitleMap.get(perf.moduleId) || 'Unknown Module',
+    }));
+
     const data = {
       details: {
         title: courseDetails.title,
@@ -349,7 +364,7 @@ export async function getCourseOverviewData(courseId: string) {
 
       recentActivity,
       topPerformers,
-      modulePerformance: [],
+      modulePerformance: enrichedModulePerformance,
       assignmentStatus: [],
       studentsNeedingAttention,
     };

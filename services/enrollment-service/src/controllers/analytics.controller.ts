@@ -244,4 +244,18 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getModulePerformance(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseId } = req.params;
+      const performance = await AnalyticsService.getModulePerformance(courseId);
+      res.status(StatusCodes.OK).json(performance);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
