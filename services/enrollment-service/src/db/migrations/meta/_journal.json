@@ -57,6 +57,13 @@
       "when": 1756193954650,
       "tag": "0007_warm_malice",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1756275340486,
+      "tag": "0008_magical_moira_mactaggert",
+      "breakpoints": true
     }
   ]
 }

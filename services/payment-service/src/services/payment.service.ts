@@ -118,6 +118,15 @@ export class PaymentService {
 
       logger.info(`Payment record ${updatedPayment.id} marked as completed.`);
 
+      const course = await CourseRepository.findById(paymentRecord.courseId);
+      if (!course) {
+        logger.error(
+          `Course ${paymentRecord.courseId} not found for successful payment ${paymentRecord.id}`
+        );
+
+        return;
+      }
+
       try {
         const publisher = new PaymentSuccessfulPublisher();
         await publisher.publish({
@@ -127,6 +136,7 @@ export class PaymentService {
           amount: updatedPayment.amount,
           currency: updatedPayment.currency,
           completedAt: updatedPayment.updatedAt,
+          instructorId: course.instructorId,
         });
       } catch (error) {
         logger.error(

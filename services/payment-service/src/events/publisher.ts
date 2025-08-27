@@ -32,6 +32,7 @@ interface PaymentSuccessfulEvent {
     amount: string;
     currency: string;
     completedAt: Date;
+    instructorId: string;
   };
 }
 

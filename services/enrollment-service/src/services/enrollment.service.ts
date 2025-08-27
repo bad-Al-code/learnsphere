@@ -5,7 +5,11 @@ import { StatusCodes } from 'http-status-codes';
 
 import logger from '../config/logger';
 import { db } from '../db';
-import { CourseRepository, EnrollRepository } from '../db/repositories';
+import {
+  AnalyticsRepository,
+  CourseRepository,
+  EnrollRepository,
+} from '../db/repositories';
 import { enrollments } from '../db/schema';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
 import {
@@ -208,10 +212,29 @@ export class EnrollmentService {
 
     logger.info(`User ${userId} successfully enrolled in course ${courseId}`);
 
+    try {
+      await AnalyticsRepository.createActivityLog({
+        courseId: newEnrollment.courseId,
+        userId: newEnrollment.userId,
+        activityType: 'enrollment',
+        metadata: { enrollmentId: newEnrollment.id },
+        createdAt: newEnrollment.enrolledAt,
+      });
+
+      logger.info(
+        `Logged 'enrollment' activity for course ${newEnrollment.courseId}`
+      );
+    } catch (error) {
+      logger.error('Failed to log enrollment activity', {
+        enrollmentId: newEnrollment.id,
+        error,
+      });
+    }
+
     const publiser = new UserEnrollmentPublisher();
     await publiser.publish({
       userId: newEnrollment.userId,
-      courseId: newEnrollment.userId,
+      courseId: newEnrollment.courseId,
       enrolledAt: newEnrollment.enrolledAt,
       enrollmentId: newEnrollment.id,
       instructorId: course.instructorId,

@@ -88,7 +88,7 @@ async function seedEnrollmentsAndActivity() {
     const availableCourses = receivedCourses;
     const coursesToEnrollIn = faker.helpers.arrayElements(
       availableCourses,
-      faker.number.int({ min: 5, max: 20 })
+      faker.number.int({ min: 5, max: 10 })
     );
 
     for (const course of coursesToEnrollIn) {

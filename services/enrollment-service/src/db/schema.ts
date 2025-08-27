@@ -137,3 +137,25 @@ export const studentGrades = pgTable(
 );
 
 export type NewStudentGrade = typeof studentGrades.$inferInsert;
+
+export const activityTypeEnum = pgEnum('activity_type', [
+  'enrollment',
+  'lesson_completion',
+  'discussion_post',
+  'resource_download',
+]);
+
+/**
+@table course_activity_logs
+@description A central log for all significant, time-stamped events related to a course.
+*/
+export const courseActivityLogs = pgTable('course_activity_logs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  courseId: uuid('course_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  activityType: activityTypeEnum('activity_type').notNull(),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type NewActivityLog = typeof courseActivityLogs.$inferInsert;

@@ -11,7 +11,14 @@ import {
   sum,
 } from 'drizzle-orm';
 import { db } from '..';
-import { courses, dailyActivity, enrollments, studentGrades } from '../schema';
+import {
+  courseActivityLogs,
+  courses,
+  dailyActivity,
+  enrollments,
+  NewActivityLog,
+  studentGrades,
+} from '../schema';
 
 export class AnalyticsRepository {
   /**
@@ -447,5 +454,13 @@ export class AnalyticsRepository {
       );
 
     return result;
+  }
+
+  /**
+   * Creates a new course activity log entry.
+   * @param data The data for the new log entry.
+   */
+  public static async createActivityLog(data: NewActivityLog): Promise<void> {
+    await db.insert(courseActivityLogs).values(data);
   }
 }
