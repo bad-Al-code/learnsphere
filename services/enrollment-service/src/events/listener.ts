@@ -3,8 +3,13 @@ import { ConsumeMessage } from 'amqplib';
 import { eq, sql } from 'drizzle-orm';
 import logger from '../config/logger';
 import { db } from '../db';
-import { CourseRepository, StudentGradeRepository } from '../db/repositories';
+import {
+  AnalyticsRepository,
+  CourseRepository,
+  StudentGradeRepository,
+} from '../db/repositories';
 import { courses, dailyActivity } from '../db/schema';
+import { EnrollmentService } from '../services/enrollment.service';
 import { rabbitMQConnection } from './connection';
 
 interface Event {
@@ -160,6 +165,8 @@ export interface DiscussionPostCreatedEvent {
   data: {
     courseId: string;
     userId: string;
+    discussionId: string;
+    createdAt: Date;
   };
 }
 
@@ -201,6 +208,14 @@ export class DiscussionPostCreatedListener extends Listener<DiscussionPostCreate
             discussions: sql`${dailyActivity.discussions} + 1`,
           },
         });
+
+      await AnalyticsRepository.createActivityLog({
+        courseId: data.courseId,
+        userId: data.userId,
+        activityType: 'discussion_post',
+        metadata: { discussionId: data.discussionId },
+        createdAt: new Date(data.createdAt),
+      });
 
       logger.info(
         `Logged discussion activity for instructor ${course.instructorId} on ${today}`
@@ -292,6 +307,56 @@ export class GradeSyncListener extends Listener<AssignmentSubmissionGradedEvent>
       });
     } catch (error) {
       logger.error('Failed to sync assignment grade', { data, error });
+    }
+  }
+}
+
+interface PaymentSuccessfulEvent {
+  topic: 'payment.successful';
+  data: {
+    userId: string;
+    courseId: string;
+    paymentId: string;
+    completedAt: Date;
+  };
+}
+
+export class PaymentSuccessListener extends Listener<PaymentSuccessfulEvent> {
+  readonly topic = 'payment.successful' as const;
+  queueGroupName = 'enrollment-service-payment-success';
+
+  async onMessage(data: PaymentSuccessfulEvent['data'], _msg: ConsumeMessage) {
+    try {
+      logger.info(
+        `Processing successful payment for user ${data.userId} in course ${data.courseId}`
+      );
+
+      await EnrollmentService.enrollUserInCourse({
+        userId: data.userId,
+        courseId: data.courseId,
+      });
+
+      await AnalyticsRepository.createActivityLog({
+        courseId: data.courseId,
+        userId: data.userId,
+        activityType: 'enrollment',
+        metadata: { paymentId: data.paymentId },
+        createdAt: new Date(data.completedAt),
+      });
+      logger.info(`Logged 'enrollment' activity for course ${data.courseId}`);
+    } catch (err) {
+      const error = err as Error;
+
+      if (error.message && error.message.includes('already enrolled')) {
+        logger.warn(
+          `User ${data.userId} already enrolled in course ${data.courseId}. Ignoring event.`
+        );
+      } else {
+        logger.error('Failed to process payment.successful event', {
+          data,
+          error: error.message,
+        });
+      }
     }
   }
 }
