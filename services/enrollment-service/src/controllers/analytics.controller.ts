@@ -190,4 +190,22 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getCourseStats(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseId } = req.params;
+      const instructorId = req.currentUser?.id;
+      if (!instructorId) throw new NotAuthorizedError();
+
+      const stats = await AnalyticsService.getCourseStats(courseId);
+
+      res.status(StatusCodes.OK).json(stats);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

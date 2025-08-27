@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 import { getCourseDetailsForEditor } from '../actions';
 import { CourseEditor } from './_components/course-editor-tab';
-import { PageHeader } from './_components/course-header';
+import { PageHeader, PageHeaderSkeleton } from './_components/course-header';
 
 interface CourseEditorPageProps {
   params: { courseId: string };
@@ -20,7 +21,9 @@ export default async function CourseEditorPage({
 
   return (
     <div className="space-y-2">
-      <PageHeader title={course.title} description={course.description} />
+      <Suspense fallback={<PageHeaderSkeleton />}>
+        <PageHeader title={course.title} description={course.description} />
+      </Suspense>
 
       <CourseEditor courseId={params.courseId} />
     </div>

@@ -268,6 +268,23 @@ router.get(
 
 /**
  * @openapi
+ * /api/analytics/course/{courseId}/stats:
+ *   get:
+ *     summary: "[Internal] Get statistics for a single course"
+ *     tags: [Analytics]
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       '200':
+ *         description: Aggregated statistics for the course.
+ */
+router.get('/course/:courseId/stats', AnalyticsController.getCourseStats);
+
+/**
+ * @openapi
  * /api/analytics/instructor/student-grade/{courseId}/{studentId}:
  *   get:
  *     summary: "[Instructor] Get a student's average grade for a course"

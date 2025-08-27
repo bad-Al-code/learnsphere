@@ -439,4 +439,12 @@ export class AnalyticsService {
 
     return { totalDiscussions, engagementScore };
   }
+
+  /**
+   * Retrievves statistics for a single course.
+   * @param courseId
+   */
+  public static async getCourseStats(courseId: string) {
+    return AnalyticsRepository.getStatsForCourse(courseId);
+  }
 }

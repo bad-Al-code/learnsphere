@@ -1,6 +1,6 @@
 'use server';
 
-import { courseService } from '@/lib/api';
+import { courseService, enrollmentService } from '@/lib/api';
 import { CourseFormValues, courseSchema } from '@/lib/schemas/course';
 import { CourseFilterOptions } from '@/types/course';
 import { faker } from '@faker-js/faker';
@@ -103,108 +103,169 @@ export async function getCourseDetailsForEditor(courseId: string) {
   }
 }
 
+// export async function getCourseOverviewData(courseId: string) {
+//   const seededFaker = faker;
+//   seededFaker.seed(
+//     courseId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+//   );
+
+//   const stats = {
+//     studentsEnrolled: {
+//       value: seededFaker.number.int({ min: 50, max: 500 }),
+//       change: seededFaker.number.int({ min: -15, max: 25 }),
+//     },
+//     completionRate: {
+//       value: seededFaker.number.int({ min: 60, max: 95 }),
+//       change: seededFaker.number.int({ min: -5, max: 10 }),
+//     },
+//     averageRating: {
+//       value: seededFaker.number.float({
+//         min: 3.8,
+//         max: 4.9,
+//         fractionDigits: 1,
+//       }),
+//       reviews: seededFaker.number.int({ min: 10, max: 200 }),
+//     },
+//     revenue: {
+//       value: seededFaker.number.int({ min: 1000000, max: 500000000 }),
+//       change: seededFaker.number.int({ min: -15, max: 25 }),
+//     },
+//     avgSessionTime: {
+//       value: `${seededFaker.number.int({ min: 8, max: 25 })}m`,
+//       change: seededFaker.number.int({ min: -10, max: 15 }),
+//     },
+//     forumActivity: { value: seededFaker.number.int({ min: 20, max: 150 }) },
+//     resourceDownloads: {
+//       value: seededFaker.number.int({ min: 100, max: 1000 }),
+//       change: seededFaker.number.int({ min: -10, max: 30 }),
+//     },
+//   };
+
+//   const recentActivity = Array.from({ length: 3 }, () => ({
+//     user: { name: seededFaker.person.fullName(), image: faker.image.avatar() },
+//     action: seededFaker.helpers.arrayElement([
+//       'enrolled in the course',
+//       'completed a lesson',
+//       'posted a comment',
+//     ]),
+//     timestamp: faker.date.recent({ days: 7 }),
+//   }));
+
+//   const topPerformers = Array.from({ length: 3 }, () => ({
+//     student: {
+//       name: seededFaker.person.fullName(),
+//       avatarUrl: faker.image.avatar(),
+//     },
+//     progress: seededFaker.number.int({ min: 90, max: 100 }),
+//     grade: faker.helpers.arrayElement(['A+', 'A', 'A-']),
+//     lastActive: faker.date.recent({ days: 3 }),
+//   }));
+
+//   const modulePerformance = Array.from({ length: 4 }, (_, i) => ({
+//     module: `Module ${i + 1}: ${seededFaker.lorem.words(3)}`,
+//     completionRate: seededFaker.number.int({ min: 60, max: 98 }),
+//     avgScore: seededFaker.number.int({ min: 75, max: 95 }),
+//     timeSpent: `${seededFaker.number.int({ min: 45, max: 180 })}m`,
+//     satisfaction: seededFaker.number.float({
+//       min: 4.0,
+//       max: 4.9,
+//       fractionDigits: 1,
+//     }),
+//   }));
+
+//   const assignmentStatus = Array.from({ length: 3 }, () => ({
+//     assignment: seededFaker.lorem.words(4),
+//     dueDate: faker.date.future({ years: 0.1 }),
+//     submissions: seededFaker.number.int({
+//       min: 20,
+//       max: stats.studentsEnrolled.value,
+//     }),
+//     total: stats.studentsEnrolled.value,
+//     avgGrade: faker.helpers.arrayElement(['A', 'B+', 'A-']),
+//   }));
+
+//   const studentsNeedingAttention = Array.from({ length: 2 }, () => ({
+//     student: {
+//       name: faker.person.fullName(),
+//       avatarUrl: faker.image.avatar(),
+//     },
+//     course: faker.lorem.words(3).replace(/\b\w/g, (l) => l.toUpperCase()),
+//     lastActive: faker.date.recent({ days: 14 }),
+//     reason: faker.helpers.arrayElement([
+//       'Low quiz scores',
+//       'Inactive for 2 weeks',
+//       'Missed deadline',
+//     ]),
+//     details: 'Avg score: 55%',
+//   }));
+
+//   return {
+//     stats,
+//     recentActivity,
+//     topPerformers,
+//     modulePerformance,
+//     assignmentStatus,
+//     studentsNeedingAttention,
+//   };
+// }
+
 export async function getCourseOverviewData(courseId: string) {
-  const seededFaker = faker;
-  seededFaker.seed(
-    courseId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  );
+  try {
+    const [enrollmentStatsRes] = await Promise.all([
+      enrollmentService.get(`/api/analytics/course/${courseId}/stats`),
+    ]);
 
-  const stats = {
-    studentsEnrolled: {
-      value: seededFaker.number.int({ min: 50, max: 500 }),
-      change: seededFaker.number.int({ min: -15, max: 25 }),
-    },
-    completionRate: {
-      value: seededFaker.number.int({ min: 60, max: 95 }),
-      change: seededFaker.number.int({ min: -5, max: 10 }),
-    },
-    averageRating: {
-      value: seededFaker.number.float({
-        min: 3.8,
-        max: 4.9,
-        fractionDigits: 1,
-      }),
-      reviews: seededFaker.number.int({ min: 10, max: 200 }),
-    },
-    revenue: {
-      value: seededFaker.number.int({ min: 1000000, max: 500000000 }),
-      change: seededFaker.number.int({ min: -15, max: 25 }),
-    },
-    avgSessionTime: {
-      value: `${seededFaker.number.int({ min: 8, max: 25 })}m`,
-      change: seededFaker.number.int({ min: -10, max: 15 }),
-    },
-    forumActivity: { value: seededFaker.number.int({ min: 20, max: 150 }) },
-    resourceDownloads: {
-      value: seededFaker.number.int({ min: 100, max: 1000 }),
-      change: seededFaker.number.int({ min: -10, max: 30 }),
-    },
-  };
+    if (!enrollmentStatsRes.ok)
+      throw new Error('Failed to fetch enrollment stats.');
 
-  const recentActivity = Array.from({ length: 3 }, () => ({
-    user: { name: seededFaker.person.fullName(), image: faker.image.avatar() },
-    action: seededFaker.helpers.arrayElement([
-      'enrolled in the course',
-      'completed a lesson',
-      'posted a comment',
-    ]),
-    timestamp: faker.date.recent({ days: 7 }),
-  }));
+    const enrollmentStats = await enrollmentStatsRes.json();
 
-  const topPerformers = Array.from({ length: 3 }, () => ({
-    student: {
-      name: seededFaker.person.fullName(),
-      avatarUrl: faker.image.avatar(),
-    },
-    progress: seededFaker.number.int({ min: 90, max: 100 }),
-    grade: faker.helpers.arrayElement(['A+', 'A', 'A-']),
-    lastActive: faker.date.recent({ days: 3 }),
-  }));
+    const data = {
+      stats: {
+        studentsEnrolled: {
+          value: enrollmentStats.totalStudents,
+          change: 0, // Placeholder
+        },
+        completionRate: {
+          value: enrollmentStats.avgCompletion.toFixed(1),
+          change: 0, // Placeholder
+        },
+        averageRating: { value: 4.5, reviews: 150 }, // Placeholder
+        revenue: { value: 12500, change: 10 }, // Placeholder
+        avgSessionTime: { value: '15m', change: 5 }, // Placeholder
+        forumActivity: { value: 42 }, // Placeholder
+        resourceDownloads: { value: 250, change: 15 }, // Placeholder
+      },
 
-  const modulePerformance = Array.from({ length: 4 }, (_, i) => ({
-    module: `Module ${i + 1}: ${seededFaker.lorem.words(3)}`,
-    completionRate: seededFaker.number.int({ min: 60, max: 98 }),
-    avgScore: seededFaker.number.int({ min: 75, max: 95 }),
-    timeSpent: `${seededFaker.number.int({ min: 45, max: 180 })}m`,
-    satisfaction: seededFaker.number.float({
-      min: 4.0,
-      max: 4.9,
-      fractionDigits: 1,
-    }),
-  }));
+      recentActivity: [],
+      topPerformers: [],
+      modulePerformance: [],
+      assignmentStatus: [],
+      studentsNeedingAttention: [],
+    };
 
-  const assignmentStatus = Array.from({ length: 3 }, () => ({
-    assignment: seededFaker.lorem.words(4),
-    dueDate: faker.date.future({ years: 0.1 }),
-    submissions: seededFaker.number.int({
-      min: 20,
-      max: stats.studentsEnrolled.value,
-    }),
-    total: stats.studentsEnrolled.value,
-    avgGrade: faker.helpers.arrayElement(['A', 'B+', 'A-']),
-  }));
+    return data;
+  } catch (error: any) {
+    console.error(
+      `Error fetching overview data for course ${courseId}:`,
+      error
+    );
 
-  const studentsNeedingAttention = Array.from({ length: 2 }, () => ({
-    student: {
-      name: faker.person.fullName(),
-      avatarUrl: faker.image.avatar(),
-    },
-    course: faker.lorem.words(3).replace(/\b\w/g, (l) => l.toUpperCase()),
-    lastActive: faker.date.recent({ days: 14 }),
-    reason: faker.helpers.arrayElement([
-      'Low quiz scores',
-      'Inactive for 2 weeks',
-      'Missed deadline',
-    ]),
-    details: 'Avg score: 55%',
-  }));
-
-  return {
-    stats,
-    recentActivity,
-    topPerformers,
-    modulePerformance,
-    assignmentStatus,
-    studentsNeedingAttention,
-  };
+    return {
+      stats: {
+        studentsEnrolled: { value: 0, change: 0 },
+        completionRate: { value: 0, change: 0 },
+        averageRating: { value: 0, reviews: 0 },
+        revenue: { value: 0, change: 0 },
+        avgSessionTime: { value: '0m', change: 0 },
+        forumActivity: { value: 0 },
+        resourceDownloads: { value: 0, change: 0 },
+      },
+      recentActivity: [],
+      topPerformers: [],
+      modulePerformance: [],
+      assignmentStatus: [],
+      studentsNeedingAttention: [],
+    };
+  }
 }

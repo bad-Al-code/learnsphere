@@ -1,5 +1,6 @@
 import {
   and,
+  avg,
   countDistinct,
   desc,
   eq,
@@ -392,5 +393,25 @@ export class AnalyticsRepository {
       .where(eq(dailyActivity.instructorId, instructorId));
 
     return parseInt(result?.total || '0', 10);
+  }
+
+  /**
+   * Calculates statistics for a single course.
+   * @param courseId The ID of the course.
+   * @returns An object with total students and average completion rate.
+   */
+  public static async getStatsForCourse(courseId: string) {
+    const [result] = await db
+      .select({
+        totalStudents: countDistinct(enrollments.userId),
+        avgCompletion: avg(enrollments.progressPercentage),
+      })
+      .from(enrollments)
+      .where(eq(enrollments.courseId, courseId));
+
+    return {
+      totalStudents: result.totalStudents || 0,
+      avgCompletion: parseFloat(result.avgCompletion || '0'),
+    };
   }
 }
