@@ -286,6 +286,10 @@ export async function getCourseOverviewData(courseId: string) {
 
     const mapStudentData = (student: any) => {
       const user = userMap.get(student.userId);
+      const lastActivityEntry = activityStats.recentActivity.find(
+        (a: any) => a.userId === student.userId
+      );
+
       return {
         student: {
           name: user
@@ -299,7 +303,9 @@ export async function getCourseOverviewData(courseId: string) {
           : 'N/A',
 
         // Placeholder
-        lastActive: new Date(),
+        lastActive: lastActivityEntry
+          ? new Date(lastActivityEntry.createdAt)
+          : new Date(),
         reason: 'Low Progress',
         details: `Avg. Grade: ${student.averageGrade ? student.averageGrade.toFixed(1) : 'N/A'}%`,
       };

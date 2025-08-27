@@ -493,7 +493,7 @@ export class AnalyticsService {
 
     const resourceDownloadsChange = this.calculatePercentageChange(
       stats.resourceDownloadsLast30Days,
-      stats.resourceDownloadsPrevious30DaysQuery
+      stats.resourceDownloadsPrevious30Days
     );
 
     return {
@@ -517,7 +517,7 @@ export class AnalyticsService {
     const performanceData = moduleCompletionRates.map((item) => ({
       moduleId: item.module_id,
       completionRate: parseFloat(item.completion_rate),
-      avgScore: 88, // Placeholder
+      avgScore: item.average_grade ? parseFloat(item.average_grade) : 0,
       timeSpent: '1h 30m', // Placeholder
       satisfaction: 4.5, // Placeholder
     }));

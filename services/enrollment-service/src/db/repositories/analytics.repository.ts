@@ -535,6 +535,15 @@ export class AnalyticsRepository {
 
     const recentActivityQuery = db.query.courseActivityLogs.findMany({
       where: eq(courseActivityLogs.courseId, courseId),
+      with: {
+        enrollment: {
+          columns: {
+            lastAccessedAt: true,
+          },
+          where: (enrollments: { userId: string }, { eq }: { eq: any }) =>
+            eq(enrollments.userId, courseActivityLogs.userId),
+        },
+      },
       orderBy: [desc(courseActivityLogs.createdAt)],
       limit: 5,
     });
@@ -584,8 +593,7 @@ export class AnalyticsRepository {
       totalDiscussions: totalDiscussions[0].value,
       recentActivity,
       resourceDownloadsLast30Days: resourceDownloadsLast30Days[0].value,
-      resourceDownloadsPrevious30DaysQuery:
-        resourceDownloadsPrevious30Days[0].value,
+      resourceDownloadsPrevious30Days: resourceDownloadsPrevious30Days[0].value,
     };
   }
 
@@ -631,21 +639,42 @@ export class AnalyticsRepository {
           ml.enrollment_id, ml.module_id
       )
 
-      SELECT
-        module_id,
-        (AVG(CASE WHEN total_lessons > 0 THEN (completed_lessons::decimal / total_lessons) ELSE 0 END) * 100)::numeric(5, 2) AS completion_rate
+    ModuleGrades AS (
+        SELECT
+          a.module_id,
+          s.student_id,
+          AVG(s.grade) as avg_grade
+        FROM
+          student_grades s
+        JOIN
+          assignments a ON s.assignment_id = a.id
+        WHERE
+          s.course_id = ${courseId}
+        GROUP BY
+          a.module_id, s.student_id
+      )
+
+     SELECT
+        mc.module_id,
+        (AVG(CASE WHEN mc.total_lessons > 0 THEN (mc.completed_lessons::decimal / mc.total_lessons) ELSE 0 END) * 100)::numeric(5, 2) AS completion_rate,
+        AVG(mg.avg_grade)::numeric(5, 2) AS average_grade -- Aggregate the average grades
       FROM
-        ModuleCompletion
+        ModuleCompletion mc
+      LEFT JOIN
+        ModuleGrades mg ON mc.module_id = mg.module_id
       GROUP BY
-        module_id
-      ORDER BY 
-        completion_rate 
-      DESC 
+        mc.module_id
+      ORDER BY
+        completion_rate DESC
       LIMIT 5;
     `;
 
     const result = await db.execute(query);
 
-    return result.rows as { module_id: string; completion_rate: string }[];
+    return result.rows as {
+      module_id: string;
+      completion_rate: string;
+      average_grade: string | null;
+    }[];
   }
 }
