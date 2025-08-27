@@ -398,6 +398,23 @@ export class EnrollmentService {
       `Progress updated for user ${userId}. New percentage: ${updatedEnrollment.progressPercentage}`
     );
 
+    try {
+      await AnalyticsRepository.createActivityLog({
+        courseId: updatedEnrollment.courseId,
+        userId: updatedEnrollment.userId,
+        activityType: 'lesson_completion',
+        metadata: { lessonId: lessonId },
+        createdAt: new Date(),
+      });
+
+      logger.info(`Logged 'lesson_completion' activity for course ${courseId}`);
+    } catch (error) {
+      logger.error('Failed to log lesson completion activity', {
+        enrollmentId: updatedEnrollment.id,
+        error,
+      });
+    }
+
     const publisher = new StudentProgressUpdatePublisher();
     await publisher.publish({
       userId: updatedEnrollment.userId,
