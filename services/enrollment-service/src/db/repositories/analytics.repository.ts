@@ -17,7 +17,9 @@ import {
   courses,
   dailyActivity,
   enrollments,
+  lessonSessions,
   NewActivityLog,
+  NewLessonSession,
   studentGrades,
 } from '../schema';
 
@@ -685,5 +687,39 @@ export class AnalyticsRepository {
     return result && result.avgDuration
       ? Math.round(parseFloat(result.avgDuration) / 60)
       : 0;
+  }
+
+  /**
+   * @description Creates a new lesson session record in the database.
+   * This method is typically called when a user begins interacting with a lesson.
+   *
+   * @param {NewLessonSession} data - An object containing the initial details of the session,
+   * such as sessionId, userId, lessonId, and startedAt.
+   * @returns {Promise<void>} A promise that resolves when the session has been successfully created.
+   */
+  public static async startLessonSession(
+    data: NewLessonSession
+  ): Promise<void> {
+    await db.insert(lessonSessions).values(data);
+  }
+
+  /**
+   * @description Updates an existing lesson session to mark its completion.
+   * This sets the session's end time and calculated duration.
+   *
+   * @param {string} sessionId - The unique identifier for the session to be ended.
+   * @param {Date} endedAt - The timestamp marking when the session concluded.
+   * @param {number} duration - The total duration of the session in minutes.
+   * @returns {Promise<void>} A promise that resolves when the session has been successfully updated.
+   */
+  public static async endLessonSession(
+    sessionId: string,
+    endedAt: Date,
+    duration: number
+  ): Promise<void> {
+    await db
+      .update(lessonSessions)
+      .set({ endedAt, durationMinutes: duration })
+      .where(eq(lessonSessions.sessionId, sessionId));
   }
 }

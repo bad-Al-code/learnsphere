@@ -175,3 +175,16 @@ export const courseActivityLogsRelations = relations(
     }),
   })
 );
+
+export const lessonSessions = pgTable('lesson_sessions', {
+  sessionId: uuid('session_id').primaryKey(),
+  userId: uuid('user_id').notNull(),
+  courseId: uuid('course_id').notNull(),
+  moduleId: uuid('module_id').notNull(),
+  lessonId: uuid('lesson_id').notNull(),
+  startedAt: timestamp('started_at').notNull(),
+  endedAt: timestamp('ended_at'),
+  durationMinutes: integer('duration_minutes'),
+});
+
+export type NewLessonSession = typeof lessonSessions.$inferInsert;

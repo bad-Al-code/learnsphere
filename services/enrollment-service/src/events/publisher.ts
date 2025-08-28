@@ -112,3 +112,31 @@ interface StudentProgressResetEvent {
 export class StudentProgressResetPublisher extends Publisher<StudentProgressResetEvent> {
   readonly topic: 'student.progress.reset' = 'student.progress.reset' as const;
 }
+
+export interface LessonSessionStartedEvent {
+  topic: 'lesson.session.started';
+  data: {
+    sessionId: string;
+    userId: string;
+    courseId: string;
+    moduleId: string;
+    lessonId: string;
+    startedAt: Date;
+  };
+}
+
+export class LessonSessionStartedPublisher extends Publisher<LessonSessionStartedEvent> {
+  readonly topic = 'lesson.session.started' as const;
+}
+
+export interface LessonSessionEndedEvent {
+  topic: 'lesson.session.ended';
+  data: {
+    sessionId: string;
+    endedAt: Date;
+  };
+}
+
+export class LessonSessionEndedPublisher extends Publisher<LessonSessionEndedEvent> {
+  readonly topic = 'lesson.session.ended' as const;
+}
