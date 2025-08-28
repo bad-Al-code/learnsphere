@@ -1,5 +1,6 @@
 import { relations } from 'drizzle-orm';
 import {
+  boolean,
   decimal,
   integer,
   pgEnum,
@@ -60,6 +61,7 @@ export const modules = pgTable('modules', {
     .references(() => courses.id, { onDelete: 'cascade' })
     .notNull(),
   order: integer('order').default(0).notNull(),
+  isPublished: boolean('is_published').default(false).notNull(),
 });
 
 export const lessonTypeEnum = pgEnum('lesson_type', ['video', 'text', 'quiz']);
@@ -73,6 +75,7 @@ export const lessons = pgTable('lessons', {
   order: integer('order').default(0).notNull(),
   lessonType: lessonTypeEnum('lesson_type').notNull(),
   contentId: text('content_id'),
+  isPublished: boolean('is_published').default(false).notNull(),
 });
 
 export const textLessonContent = pgTable('text_lesson_content', {

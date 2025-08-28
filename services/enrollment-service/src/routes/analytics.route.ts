@@ -445,6 +445,28 @@ router.get(
 
 /**
  * @openapi
+ * /api/analytics/course/{courseId}/time-spent:
+ *   get:
+ *     summary: "[Instructor] Get time-spent analytics for a course"
+ *     tags: [Analytics]
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       '200':
+ *         description: An object containing average session time and total time spent per module.
+ */
+router.get(
+  '/course/:courseId/time-spent',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getTimeSpentAnalytics
+);
+
+/**
+ * @openapi
  * /api/analytics/instructor/student-grade/{courseId}/{studentId}:
  *   get:
  *     summary: "[Instructor] Get a student's average grade for a course"
