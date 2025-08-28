@@ -162,10 +162,20 @@ export class CourseService {
    * @returns The detailed course object.
    */
   public static async getCourseDetails(
-    courseId: string
+    courseId: string,
+    requester?: Requester
   ): Promise<CourseWithInstructor> {
     const cachedCourse = await CourseCacheService.getCourseDetails(courseId);
     if (cachedCourse) {
+      if (cachedCourse.status === 'draft') {
+        if (
+          !requester ||
+          (requester.id !== cachedCourse.instructorId &&
+            requester.role !== 'admin')
+        ) {
+          throw new NotFoundError('Course');
+        }
+      }
       return cachedCourse;
     }
 
@@ -176,6 +186,19 @@ export class CourseService {
 
     if (!courseDetails) {
       throw new NotFoundError('Course');
+    }
+
+    if (courseDetails.status === 'draft') {
+      if (!requester) {
+        throw new NotFoundError('Course');
+      }
+
+      if (
+        requester.id !== courseDetails.instructorId &&
+        requester.role !== 'admin'
+      ) {
+        throw new NotFoundError('Course');
+      }
     }
 
     const enrichedModules = courseDetails.modules.map((module) => {
@@ -198,7 +221,9 @@ export class CourseService {
 
     const [result] = await this._enrichCourseWithInstructors([enrichedCourse]);
 
-    await CourseCacheService.setCourseDetails(courseId, result);
+    if (result.status === 'published' || requester) {
+      await CourseCacheService.setCourseDetails(courseId, result);
+    }
 
     return result;
   }

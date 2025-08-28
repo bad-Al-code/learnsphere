@@ -62,8 +62,9 @@ export class CourseController {
   ): Promise<void> {
     try {
       const { courseId } = req.params;
+      const requester = req.currentUser;
 
-      const course = await CourseService.getCourseDetails(courseId);
+      const course = await CourseService.getCourseDetails(courseId, requester);
 
       res.status(StatusCodes.OK).json(course);
     } catch (error) {
