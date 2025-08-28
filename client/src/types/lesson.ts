@@ -1,7 +1,8 @@
 export type Lesson = {
   id: string;
   title: string;
-  lessonType?: 'video' | 'text' | 'quiz';
+  isPublished: boolean;
+  lessonType: 'video' | 'text' | 'quiz';
+  duration: string;
   order: number;
-  isPublished?: boolean;
 };

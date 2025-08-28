@@ -1,8 +1,6 @@
 import { HomepageClient } from '@/components/shared/homepage-client';
-import CommunicationPage, {
-  CommunicationPageSkeleton,
-} from './(app)/dashboard/communication/page';
 import { getCurrentUser } from './(auth)/actions';
+import NotFound from './not-found';
 
 export default async function Home() {
   const user = await getCurrentUser();
@@ -10,8 +8,7 @@ export default async function Home() {
   return (
     <>
       <main className="container mx-auto space-y-4 p-4">
-        <CommunicationPage />
-        <CommunicationPageSkeleton />
+        <NotFound />
       </main>
 
       <HomepageClient user={user} />

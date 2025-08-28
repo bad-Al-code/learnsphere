@@ -75,7 +75,7 @@ function LessonItem({
 }) {
   const Icon = lessonIcons[lesson.lessonType];
   return (
-    <Draggable draggableId={lesson.id} index={index}>
+    <Draggable draggableId={String(lesson.id)} index={index}>
       {(provided) => (
         <Card
           ref={provided.innerRef}
@@ -145,11 +145,11 @@ function ModuleItem({
   courseId: string;
 }) {
   const { items: lessons, onDragEnd: onLessonsDragEnd } = useDndState(
-    module.lessons
+    module.lessons ?? []
   );
 
   return (
-    <Draggable draggableId={module.id} index={index}>
+    <Draggable draggableId={String(module.id)} index={index}>
       {(provided) => (
         <Card ref={provided.innerRef} {...provided.draggableProps}>
           <CardHeader {...provided.dragHandleProps}>
@@ -217,12 +217,13 @@ function ModuleItem({
                   >
                     {lessons.map((lesson, lessonIndex) => (
                       <LessonItem
-                        key={lesson.id}
+                        key={String(lesson.id) || `lesson-${lessonIndex}`}
                         lesson={lesson}
                         index={lessonIndex}
                         courseId={courseId}
                       />
                     ))}
+
                     {provided.placeholder}
                   </div>
                 )}
@@ -250,12 +251,13 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
           >
             {modules.map((module, index) => (
               <ModuleItem
-                key={module.id}
+                key={String(module.id) || `module-${index}`}
                 module={module}
                 index={index}
                 courseId={courseId}
               />
             ))}
+
             {provided.placeholder}
           </div>
         )}

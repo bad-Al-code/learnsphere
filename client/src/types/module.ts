@@ -3,6 +3,9 @@ import { Lesson } from './lesson';
 export type Module = {
   id: string;
   title: string;
-  order?: number;
+  isPublished: boolean;
+  lessonCount: number;
+  totalDuration: string;
   lessons: Lesson[];
+  order: number;
 };

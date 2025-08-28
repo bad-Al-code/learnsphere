@@ -1,23 +1,19 @@
+import { Module } from './module';
+
 export type Course = {
-  status: 'draft' | 'published';
   id: string;
   title: string;
   description: string | null;
+  status: 'draft' | 'published';
   level: string;
   imageUrl: string | null;
   price: number | null;
-  currency: string | undefined;
-  instructor?: {
-    firstName: string | null;
-    lastName: string | null;
-    avatarUrls?: { small?: string };
-  } | null;
+  currency?: string | null;
+  instructorId: string;
   averageRating?: number | null;
-  completionRate?: number | null;
-  updatedAt?: string | null;
   enrollmentCount?: number | null;
-  modules?: number[] | [];
-  instructorId?: string;
+  updatedAt?: string | null;
+  modules: Module[];
 };
 
 export const COURSE_LEVELS = [

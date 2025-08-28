@@ -73,7 +73,11 @@ export function CourseEditor({
 
             {currentTabFromUrl === 'content' && (
               <Suspense fallback={<ContentTabSkeleton />}>
-                <ContentTab courseId={courseId} />
+                <ContentTab
+                  courseId={courseId}
+                  initialModules={initialOverviewData.modulePerformance}
+                  courseTitle={initialOverviewData.details.title}
+                />
               </Suspense>
             )}
 
