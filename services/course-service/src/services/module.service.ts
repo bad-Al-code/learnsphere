@@ -6,6 +6,7 @@ import { CourseRepository } from '../db/repostiories';
 import { ModuleRepository } from '../db/repostiories/module.repository';
 import { modules } from '../db/schema';
 import { BadRequestError, NotFoundError } from '../errors';
+import { moduleUpdateSchema } from '../schemas';
 import { CreateModuleDto, Requester, UpdateModuleDto } from '../types';
 import { AuthorizationService } from './authorization.service';
 import { CourseCacheService } from './course-cache.service';
@@ -58,6 +59,12 @@ export class ModuleService {
     requester: Requester
   ) {
     await AuthorizationService.verifyModuleOwnership(moduleId, requester);
+
+    const validatedData = moduleUpdateSchema.parse(data);
+
+    if (Object.keys(validatedData).length === 0) {
+      throw new BadRequestError('No valid fields provided for update.');
+    }
 
     const updatedModule = await ModuleRepository.update(moduleId, data);
     const parentCourseId = (await ModuleRepository.findById(moduleId))!.course

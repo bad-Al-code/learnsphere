@@ -12,7 +12,7 @@ import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
 import {
   createLessonSchema,
-  createModuleSchema,
+  moduleUpdateSchema,
   reorderSchema,
 } from '../schemas';
 
@@ -63,7 +63,7 @@ router.put(
   '/:moduleId',
   requireAuth,
   requireRole(['instructor', 'admin']),
-  validateRequest(createModuleSchema),
+  validateRequest(moduleUpdateSchema),
   ModuleController.update
 );
 

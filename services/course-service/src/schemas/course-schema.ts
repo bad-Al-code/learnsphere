@@ -161,6 +161,13 @@ export const createModuleSchema = z.object({
   }),
 });
 
+export const moduleUpdateSchema = z
+  .object({
+    title: z.string().min(3).optional(),
+    isPublished: z.boolean().optional(),
+  })
+  .strict();
+
 export const createLessonSchema = z.object({
   body: z.object({
     title: z.string({ required_error: 'Title is required' }).min(3),

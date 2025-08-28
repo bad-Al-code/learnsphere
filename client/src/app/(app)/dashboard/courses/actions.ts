@@ -16,6 +16,7 @@ import {
   moduleSchema,
   ModuleSchemaValues,
   moduleUpdateSchema,
+  ModuleUpdateSchemaValues,
 } from '@/lib/schemas/module';
 import { CourseFilterOptions } from '@/types/course';
 import { BulkUser } from '@/types/user';
@@ -448,10 +449,11 @@ export async function reorderModules(
 export async function updateModule(
   courseId: string,
   moduleId: string,
-  values: { title?: string; isPublished?: boolean }
+  values: ModuleUpdateSchemaValues
 ) {
   try {
     const validatedData = moduleUpdateSchema.parse(values);
+    console.log(validatedData);
     const response = await courseService.put(
       `/api/modules/${moduleId}`,
       validatedData

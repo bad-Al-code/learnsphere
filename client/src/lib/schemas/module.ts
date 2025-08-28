@@ -9,5 +9,5 @@ export const moduleUpdateSchema = z.object({
   isPublished: z.boolean().optional(),
 });
 
-export type ModuleUpdateSchemaValues = z.infer<typeof moduleSchema>;
+export type ModuleUpdateSchemaValues = z.infer<typeof moduleUpdateSchema>;
 export type ModuleSchemaValues = z.infer<typeof moduleSchema>;

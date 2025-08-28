@@ -49,7 +49,7 @@ export class ModuleController {
   ): Promise<void> {
     try {
       const { moduleId } = req.params;
-      const { title } = req.body;
+      const updateData = req.body;
       const requester = req.currentUser;
       if (!requester) {
         throw new NotAuthorizedError();
@@ -57,7 +57,7 @@ export class ModuleController {
 
       const updatedModule = await ModuleService.updateModule(
         moduleId,
-        { title },
+        updateData,
         requester
       );
       res.status(StatusCodes.OK).json(updatedModule);
