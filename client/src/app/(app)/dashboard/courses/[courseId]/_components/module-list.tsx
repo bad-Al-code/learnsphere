@@ -1,5 +1,15 @@
 'use client';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,11 +20,19 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
@@ -26,18 +44,21 @@ import { useDndState } from '@/hooks/use-dnd-state';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import {
   CheckCircle,
+  Copy,
   FileText,
   GripVertical,
   LucideIcon,
   MoreHorizontal,
+  Pencil,
   Plus,
+  Trash2,
   Upload,
   Video,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useTransition } from 'react';
 import { toast } from 'sonner';
-import { reorderModules } from '../../actions';
+import { deleteModule, reorderModules, updateModule } from '../../actions';
 import { AddLessonForm, AddModuleForm, FormDialog } from './course-modal';
 
 type Lesson = {
@@ -143,10 +164,14 @@ function ModuleItem({
   module,
   index,
   courseId,
+  onEdit,
+  onDelete,
 }: {
   module: Module;
   index: number;
   courseId: string;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
   const { items: lessons, onDragEnd: onLessonsDragEnd } = useDndState(
     module.lessons ?? []
@@ -200,9 +225,18 @@ function ModuleItem({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>Edit Module</DropdownMenuItem>
-                    <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">
+                    <DropdownMenuItem onClick={onEdit}>
+                      <Pencil className="h-4 w-4" /> Edit Module
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Copy className="h-4 w-4" />
+                      Duplicate
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-destructive hover:!text-destructive focus:!text-destructive"
+                      onClick={onDelete}
+                    >
+                      <Trash2 className="text-destructive h-4 w-4" />
                       Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -244,6 +278,10 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
   const [modules, setModules] = useState(initialModules);
   const [isPending, startTransition] = useTransition();
 
+  const [editingModule, setEditingModule] = useState<Module | null>(null);
+  const [newTitle, setNewTitle] = useState('');
+  const [deletingModule, setDeletingModule] = useState<Module | null>(null);
+
   useEffect(() => {
     setModules(initialModules);
   }, [initialModules]);
@@ -275,29 +313,144 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
     });
   };
 
-  return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <Droppable droppableId="modules">
-        {(provided) => (
-          <div
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-            className="space-y-2"
-          >
-            {modules.map((module, index) => (
-              <ModuleItem
-                key={module.id}
-                module={module}
-                index={index}
-                courseId={courseId}
-              />
-            ))}
+  const handleEditClick = (module: Module) => {
+    setEditingModule(module);
+    setNewTitle(module.title);
+  };
 
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
-    </DragDropContext>
+  const handleSaveEdit = () => {
+    if (
+      !editingModule ||
+      !newTitle.trim() ||
+      newTitle === editingModule.title
+    ) {
+      setEditingModule(null);
+      return;
+    }
+
+    const previousModules = modules;
+    setModules((prev) =>
+      prev.map((m) =>
+        m.id === editingModule.id ? { ...m, title: newTitle } : m
+      )
+    );
+    setEditingModule(null);
+
+    startTransition(() => {
+      toast.promise(
+        updateModule(courseId, editingModule.id, { title: newTitle }),
+        {
+          loading: 'Updating module...',
+          success: 'Module updated!',
+          error: (err) => {
+            setModules(previousModules);
+            return err.message || 'Failed to update.';
+          },
+        }
+      );
+    });
+  };
+
+  const handleDeleteClick = (module: Module) => {
+    setDeletingModule(module);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingModule) return;
+
+    const previousModules = modules;
+    // Optimistic update
+    setModules((prev) => prev.filter((m) => m.id !== deletingModule.id));
+    setDeletingModule(null);
+
+    startTransition(() => {
+      toast.promise(deleteModule(courseId, deletingModule.id), {
+        loading: 'Deleting module...',
+        success: 'Module deleted!',
+        error: (err) => {
+          setModules(previousModules); // Revert on error
+          return err.message || 'Failed to delete.';
+        },
+      });
+    });
+  };
+
+  return (
+    <>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="modules">
+          {(provided) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className="space-y-2"
+            >
+              {modules.map((module, index) => (
+                <ModuleItem
+                  key={module.id}
+                  module={module}
+                  index={index}
+                  courseId={courseId}
+                  onEdit={() => handleEditClick(module)}
+                  onDelete={() => handleDeleteClick(module)}
+                />
+              ))}
+
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+
+      <Dialog
+        open={!!editingModule}
+        onOpenChange={() => setEditingModule(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Module Title</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            disabled={isPending}
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditingModule(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={isPending}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog
+        open={!!deletingModule}
+        onOpenChange={() => setDeletingModule(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the module "{deletingModule?.title}"
+              and all of its lessons. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={isPending}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 

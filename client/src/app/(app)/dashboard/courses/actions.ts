@@ -7,7 +7,11 @@ import {
   userService,
 } from '@/lib/api';
 import { CourseFormValues, courseSchema } from '@/lib/schemas/course';
-import { moduleSchema, ModuleSchemaValues } from '@/lib/schemas/module';
+import {
+  moduleSchema,
+  ModuleSchemaValues,
+  moduleUpdateSchema,
+} from '@/lib/schemas/module';
 import { CourseFilterOptions } from '@/types/course';
 import { BulkUser } from '@/types/user';
 import { faker } from '@faker-js/faker';
@@ -430,6 +434,52 @@ export async function reorderModules(
     }
 
     revalidatePath(`/dashboard/courses/${courseId}/content`);
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function updateModule(
+  courseId: string,
+  moduleId: string,
+  values: { title: string }
+) {
+  try {
+    const validatedData = moduleUpdateSchema.parse(values);
+    const response = await courseService.put(
+      `/api/modules/${moduleId}`,
+      validatedData
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.errors?.[0]?.message || 'Failed to update module.');
+    }
+
+    revalidatePath(`/dashboard/courses/${courseId}/content`);
+
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+
+    return { error: error.message };
+  }
+}
+
+export async function deleteModule(courseId: string, moduleId: string) {
+  try {
+    const response = await courseService.delete(`/api/modules/${moduleId}`);
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+
+      throw new Error(data.errors?.[0]?.message || 'Failed to delete module.');
+    }
+
+    revalidatePath(`/dashboard/courses/${courseId}/content`);
+
     return { success: true };
   } catch (error: any) {
     return { error: error.message };
