@@ -1,5 +1,5 @@
 {
-  "id": "b8be16b7-9bb8-4cff-8e06-2da3e9773be9",
+  "id": "7964cdd9-10fd-4764-aa1e-12d6e795e710",
   "prevId": "ab637c22-6e9d-45c3-8dda-5a992e69d89a",
   "version": "7",
   "dialect": "postgresql",
@@ -294,7 +294,7 @@
           "name": "module_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "student_id": {
           "name": "student_id",

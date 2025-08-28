@@ -129,7 +129,7 @@ export const studentGrades = pgTable(
     submissionId: uuid('submission_id').notNull(),
     assignmentId: uuid('assignment_id').notNull(),
     courseId: uuid('course_id').notNull(),
-    moduleId: uuid('module_id').notNull(),
+    moduleId: uuid('module_id'),
     studentId: uuid('student_id').notNull(),
     grade: integer('grade').notNull(),
     gradedAt: timestamp('graded_at').notNull(),

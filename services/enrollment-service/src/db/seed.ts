@@ -10,6 +10,7 @@ import {
   enrollments,
   NewCourse,
   NewUser,
+  studentGrades,
   UserRole,
   users,
 } from './schema';
@@ -224,6 +225,7 @@ async function runSeed() {
 
     console.log('Clearing existing enrollments data...');
     await db.delete(dailyActivity);
+    await db.delete(studentGrades);
     await db.delete(enrollments);
     await db.delete(users);
     await db.delete(courses);
