@@ -216,122 +216,148 @@ export async function getCourseDetailsForEditor(courseId: string) {
 // }
 
 export async function getCourseOverviewData(courseId: string) {
-  try {
-    const [
-      enrollmentStatsRes,
-      courseDetailsRes,
-      paymentStatsRes,
-      studentPerformanceRes,
-      activityStatsRes,
-      modulePerformanceRes,
-      assignmentStatusRes,
-      revenueTrendRes,
-    ] = await Promise.all([
+  const safeFetch = async (
+    fetchPromise: Promise<Response>,
+    serviceName: string
+  ) => {
+    try {
+      const response = await fetchPromise;
+      if (!response.ok) {
+        console.error(
+          `Failed to fetch from ${serviceName}: ${response.statusText}`
+        );
+        return null;
+      }
+      return await response.json();
+    } catch (error) {
+      console.error(`Error connecting to ${serviceName}:`, error);
+      return null;
+    }
+  };
+
+  const [
+    enrollmentStats,
+    courseDetails,
+    paymentStats,
+    studentPerformance,
+    activityStats,
+    modulePerformance,
+    assignmentStatus,
+    revenueTrend,
+  ] = await Promise.all([
+    safeFetch(
       enrollmentService.get(`/api/analytics/course/${courseId}/stats`),
-      courseService.get(`/api/courses/${courseId}`),
+      'enrollment-stats'
+    ),
+    safeFetch(courseService.get(`/api/courses/${courseId}`), 'course-details'),
+    safeFetch(
       paymentService.get(`/api/payments/analytics/course/${courseId}/revenue`),
+      'payment-stats'
+    ),
+    safeFetch(
       enrollmentService.get(
         `/api/analytics/course/${courseId}/student-performance`
       ),
+      'student-performance'
+    ),
+    safeFetch(
       enrollmentService.get(`/api/analytics/course/${courseId}/activity-stats`),
+      'activity-stats'
+    ),
+    safeFetch(
       enrollmentService.get(
         `/api/analytics/course/${courseId}/module-performance`
       ),
+      'module-performance'
+    ),
+    safeFetch(
       courseService.get(`/api/courses/${courseId}/assignment-status`),
+      'assignment-status'
+    ),
+    safeFetch(
       paymentService.get(
         `/api/payments/analytics/course/${courseId}/revenue-trend`
       ),
-    ]);
+      'revenue-trend'
+    ),
+  ]);
 
-    if (!enrollmentStatsRes.ok)
-      throw new Error('Failed to fetch enrollment stats.');
-    if (!courseDetailsRes.ok)
-      throw new Error('Failed to fetch course details.');
-    if (!paymentStatsRes.ok) throw new Error('Failed to fetch payment stats.');
-    if (!studentPerformanceRes.ok)
-      throw new Error('Failed to fetch student performance.');
-    if (!activityStatsRes.ok)
-      throw new Error('Failed to fetch activity stats.');
-    if (!modulePerformanceRes.ok)
-      throw new Error('Failed to fetch module performance.');
-    if (!assignmentStatusRes.ok)
-      throw new Error('Failed to fetch assignment status.');
-    if (!revenueTrendRes.ok) throw new Error('Failed to fetch revenue trend.');
+  if (!courseDetails) {
+    throw new Error('Failed to fetch essential course details.');
+  }
 
-    const courseDetails = await courseDetailsRes.json();
-    const enrollmentStats = await enrollmentStatsRes.json();
-    const paymentStats = await paymentStatsRes.json();
-    const studentPerformance = await studentPerformanceRes.json();
-    const activityStats = await activityStatsRes.json();
-    const modulePerformance = await modulePerformanceRes.json();
-    const assignmentStatus = await assignmentStatusRes.json();
-    const revenueTrend = await revenueTrendRes.json();
+  const allStudentIds = [
+    ...(studentPerformance?.topPerformers.map((s: any) => s.userId) || []),
+    ...(studentPerformance?.studentsAtRisk.map((s: any) => s.userId) || []),
+  ];
+  const uniqueStudentIds = [...new Set(allStudentIds)];
 
-    const allStudentIds = [
-      ...studentPerformance.topPerformers.map((s: any) => s.userId),
-      ...studentPerformance.studentsAtRisk.map((s: any) => s.userId),
-    ];
-    const uniqueStudentIds = [...new Set(allStudentIds)];
-
-    let userMap = new Map<string, BulkUser>();
-    if (uniqueStudentIds.length > 0) {
-      const userProfilesRes = await userService.post('/api/users/bulk', {
-        userIds: uniqueStudentIds,
-      });
-      if (userProfilesRes.ok) {
-        const userProfiles: BulkUser[] = await userProfilesRes.json();
-        userMap = new Map(userProfiles.map((u) => [u.userId, u]));
-      }
+  let userMap = new Map<string, BulkUser>();
+  if (uniqueStudentIds.length > 0) {
+    const userProfiles: BulkUser[] | null = await safeFetch(
+      userService.post('/api/users/bulk', { userIds: uniqueStudentIds }),
+      'user-bulk-profiles'
+    );
+    if (userProfiles) {
+      userMap = new Map(userProfiles.map((u) => [u.userId, u]));
     }
+  }
 
-    const mapStudentData = (student: any) => {
-      const user = userMap.get(student.userId);
-      const lastActivityEntry = activityStats.recentActivity.find(
-        (a: any) => a.userId === student.userId
-      );
+  const mapStudentData = (student: any) => {
+    const user = userMap.get(student.userId);
+    const lastActivityEntry = activityStats.recentActivity.find(
+      (a: any) => a.userId === student.userId
+    );
 
-      return {
-        student: {
-          name: user
-            ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
-            : 'Unknown Student',
-          avatarUrl: user?.avatarUrls?.small,
-        },
-        progress: parseFloat(student.progressPercentage),
-        grade: student.averageGrade
-          ? `${student.averageGrade.toFixed(1)}%`
+    return {
+      student: {
+        name: user
+          ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+          : 'Unknown Student',
+        avatarUrl: user?.avatarUrls?.small,
+      },
+      progress: parseFloat(student.progressPercentage),
+      grade:
+        student.averageGrade != null && !isNaN(Number(student.averageGrade))
+          ? `${Number(student.averageGrade).toFixed(1)}%`
           : 'N/A',
 
-        // Placeholder
-        lastActive: lastActivityEntry
-          ? new Date(lastActivityEntry.createdAt)
-          : new Date(),
-        reason: 'Low Progress',
-        details: `Avg. Grade: ${student.averageGrade ? student.averageGrade.toFixed(1) : 'N/A'}%`,
-      };
+      // Placeholder
+      lastActive: lastActivityEntry
+        ? new Date(lastActivityEntry.createdAt)
+        : new Date(),
+      reason: 'Low Progress',
+      details: `Avg. Grade: ${
+        student.averageGrade != null && !isNaN(Number(student.averageGrade))
+          ? Number(student.averageGrade).toFixed(1)
+          : 'N/A'
+      }%`,
     };
+  };
 
-    const topPerformers = studentPerformance.topPerformers.map(mapStudentData);
-    const studentsNeedingAttention =
-      studentPerformance.studentsAtRisk.map(mapStudentData);
+  const topPerformers =
+    studentPerformance?.topPerformers.map(mapStudentData) || [];
+  const studentsNeedingAttention =
+    studentPerformance?.studentsAtRisk.map(mapStudentData) || [];
 
-    const recentActivityUserIds = activityStats.recentActivity.map(
-      (a: any) => a.userId
-    );
-    let recentActivityUserMap = new Map<string, BulkUser>();
-    if (recentActivityUserIds.length > 0) {
-      const userProfilesRes = await userService.post('/api/users/bulk', {
-        userIds: recentActivityUserIds,
-      });
+  const recentActivityUserIds = activityStats.recentActivity.map(
+    (a: any) => a.userId
+  );
+  let recentActivityUserMap = new Map<string, BulkUser>();
+  if (recentActivityUserIds.length > 0) {
+    const userProfilesRes = await userService.post('/api/users/bulk', {
+      userIds: recentActivityUserIds,
+    });
 
-      if (userProfilesRes.ok) {
-        const userProfiles: BulkUser[] = await userProfilesRes.json();
+    if (userProfilesRes.ok) {
+      const userProfiles: BulkUser[] = await userProfilesRes.json();
 
-        recentActivityUserMap = new Map(userProfiles.map((u) => [u.userId, u]));
-      }
+      recentActivityUserMap = new Map(userProfiles.map((u) => [u.userId, u]));
     }
+  }
 
-    const recentActivity = activityStats.recentActivity.map((activity: any) => {
+  const recentActivity =
+    activityStats.recentActivity.map((activity: any) => {
       const user = recentActivityUserMap.get(activity.userId);
       let actionText = activity.activityType.replace('_', ' ');
 
@@ -345,17 +371,19 @@ export async function getCourseOverviewData(courseId: string) {
         action: actionText,
         timestamp: new Date(activity.createdAt),
       };
-    });
+    }) || [];
 
-    const moduleTitleMap = new Map(
-      courseDetails.modules.map((m: any) => [m.id, m.title])
-    );
-    const enrichedModulePerformance = modulePerformance.map((perf: any) => ({
+  const moduleTitleMap = new Map(
+    courseDetails.modules.map((m: any) => [m.id, m.title])
+  );
+  const enrichedModulePerformance =
+    modulePerformance.map((perf: any) => ({
       ...perf,
       module: moduleTitleMap.get(perf.moduleId) || 'Unknown Module',
-    }));
+    })) || [];
 
-    const assignmentStatusData = assignmentStatus.map((a: any) => ({
+  const assignmentStatusData =
+    assignmentStatus.map((a: any) => ({
       assignment: a.title,
       dueDate: new Date(a.dueDate),
       submissions: a.totalSubmissions,
@@ -363,71 +391,47 @@ export async function getCourseOverviewData(courseId: string) {
       avgGrade: a.averageGrade
         ? `${parseFloat(a.averageGrade).toFixed(1)}%`
         : 'N/A',
-    }));
+    })) || [];
 
-    const data = {
-      details: {
-        title: courseDetails.title,
-        description: courseDetails.description,
+  const data = {
+    details: {
+      title: courseDetails.title,
+      description: courseDetails.description,
+    },
+
+    stats: {
+      studentsEnrolled: {
+        value: enrollmentStats.totalStudents,
+        change: activityStats.enrollmentChange,
       },
 
-      stats: {
-        studentsEnrolled: {
-          value: enrollmentStats.totalStudents,
-          change: activityStats.enrollmentChange,
-        },
-
-        completionRate: {
-          value: parseFloat(enrollmentStats.avgCompletion).toFixed(1),
-          change: enrollmentStats.completionRateChange || 0,
-        },
-
-        averageRating: {
-          value: courseDetails.averageRating || 4.5,
-          reviews: 150,
-        }, // Placeholder
-        revenue: {
-          value: paymentStats.totalRevenue || 0,
-          change: revenueTrend.change || 0,
-        },
-        avgSessionTime: activityStats.avgSessionTime, // Placeholder from service
-        forumActivity: { value: activityStats.totalDiscussions },
-        resourceDownloads: {
-          value: activityStats.resourceDownloads.value,
-          change: activityStats.resourceDownloads.change,
-        },
+      completionRate: {
+        value: parseFloat(enrollmentStats.avgCompletion).toFixed(1),
+        change: enrollmentStats.completionRateChange || 0,
       },
 
-      recentActivity,
-      topPerformers,
-      modulePerformance: enrichedModulePerformance,
-      assignmentStatus: assignmentStatusData,
-      studentsNeedingAttention,
-    };
-
-    return data;
-  } catch (error: any) {
-    console.error(
-      `Error fetching overview data for course ${courseId}:`,
-      error
-    );
-
-    return {
-      details: null,
-      stats: {
-        studentsEnrolled: { value: 0, change: 0 },
-        completionRate: { value: 0, change: 0 },
-        averageRating: { value: 0, reviews: 0 },
-        revenue: { value: 0, change: 0 },
-        avgSessionTime: { value: '0m', change: 0 },
-        forumActivity: { value: 0 },
-        resourceDownloads: { value: 0, change: 0 },
+      averageRating: {
+        value: courseDetails.averageRating || 4.5,
+        reviews: 150,
+      }, // Placeholder
+      revenue: {
+        value: paymentStats.totalRevenue || 0,
+        change: revenueTrend.change || 0,
       },
-      recentActivity: [],
-      topPerformers: [],
-      modulePerformance: [],
-      assignmentStatus: [],
-      studentsNeedingAttention: [],
-    };
-  }
+      avgSessionTime: activityStats.avgSessionTime, // Placeholder from service
+      forumActivity: { value: activityStats.totalDiscussions },
+      resourceDownloads: {
+        value: activityStats.resourceDownloads.value,
+        change: activityStats.resourceDownloads.change,
+      },
+    },
+
+    recentActivity,
+    topPerformers,
+    modulePerformance: enrichedModulePerformance,
+    assignmentStatus: assignmentStatusData,
+    studentsNeedingAttention,
+  };
+
+  return data;
 }

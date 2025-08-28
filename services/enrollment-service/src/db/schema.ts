@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm';
 import {
   date,
   decimal,
@@ -160,3 +161,17 @@ export const courseActivityLogs = pgTable('course_activity_logs', {
 });
 
 export type NewActivityLog = typeof courseActivityLogs.$inferInsert;
+
+export const enrollmentRelations = relations(enrollments, ({ one, many }) => ({
+  activities: many(courseActivityLogs),
+}));
+
+export const courseActivityLogsRelations = relations(
+  courseActivityLogs,
+  ({ one }) => ({
+    enrollment: one(enrollments, {
+      fields: [courseActivityLogs.userId, courseActivityLogs.courseId],
+      references: [enrollments.userId, enrollments.courseId],
+    }),
+  })
+);

@@ -540,8 +540,6 @@ export class AnalyticsRepository {
           columns: {
             lastAccessedAt: true,
           },
-          where: (enrollments: { userId: string }, { eq }: { eq: any }) =>
-            eq(enrollments.userId, courseActivityLogs.userId),
         },
       },
       orderBy: [desc(courseActivityLogs.createdAt)],
@@ -636,7 +634,7 @@ export class AnalyticsRepository {
           CompletedLessons cl ON ml.enrollment_id = cl.enrollment_id AND ml.lesson_id = cl.lesson_id
         GROUP BY
           ml.enrollment_id, ml.module_id
-      ),
+      )
 
       SELECT
         mc.module_id,
