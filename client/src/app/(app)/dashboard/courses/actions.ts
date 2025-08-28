@@ -351,3 +351,21 @@ export async function getCourseOverviewData(courseId: string) {
 
   return data;
 }
+
+export async function getCourseDetails(courseId: string) {
+  try {
+    const response = await courseService.get(`/api/courses/${courseId}`);
+    if (!response.ok) {
+      throw new Error('Course not found.');
+    }
+
+    const result = await response.json();
+    // console.log(result);
+
+    return result;
+  } catch (error) {
+    console.error(`Error fetching course details for ${courseId}`);
+
+    return null;
+  }
+}

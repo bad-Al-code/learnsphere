@@ -1,6 +1,3 @@
-'use client';
-
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -9,318 +6,34 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { useDndState } from '@/hooks/use-dnd-state';
-import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
-import {
-  CheckCircle,
-  FileText,
-  GripVertical,
-  LucideIcon,
-  MoreHorizontal,
-  Plus,
-  Upload,
-  Video,
-} from 'lucide-react';
-import Link from 'next/link';
-import { AddLessonForm, AddModuleForm, FormDialog } from './course-modal';
+import { Plus, Upload } from 'lucide-react';
+import { notFound } from 'next/navigation';
+import { getCourseDetails } from '../../actions';
+import { AddModuleForm, FormDialog } from './course-modal';
+import { ModuleItemSkeleton, ModulesList } from './module-list';
 
-type LessonType = 'video' | 'text' | 'quiz';
-
-interface Lesson {
-  id: string;
-  type: LessonType;
-  title: string;
-  duration: string;
-}
-
-interface Module {
-  id: string;
-  title: string;
-  lessonCount: number;
-  totalDuration: string;
-  lessons: Lesson[];
-}
-
-interface ContentTabProps {
-  initialModules?: Module[];
-  courseId: string;
-}
-
-const placeholderModules: Module[] = [
-  {
-    id: 'module-1',
-    title: 'Introduction to Data Science',
-    lessonCount: 3,
-    totalDuration: '2h 30m',
-    lessons: [
-      {
-        id: 'lesson-1-1',
-        type: 'video',
-        title: 'What is Data Science?',
-        duration: '15 min',
-      },
-      {
-        id: 'lesson-1-2',
-        type: 'text',
-        title: 'Data Science Applications',
-        duration: '10 min',
-      },
-      {
-        id: 'lesson-1-3',
-        type: 'quiz',
-        title: 'Knowledge Check',
-        duration: '5 min',
-      },
-    ],
-  },
-  {
-    id: 'module-2',
-    title: 'Data Collection and Cleaning',
-    lessonCount: 3,
-    totalDuration: '1h 45m',
-    lessons: [
-      {
-        id: 'lesson-2-1',
-        type: 'video',
-        title: 'Data Sources',
-        duration: '20 min',
-      },
-      {
-        id: 'lesson-2-2',
-        type: 'text',
-        title: 'Data Cleaning Techniques',
-        duration: '25 min',
-      },
-      {
-        id: 'lesson-2-3',
-        type: 'quiz',
-        title: 'Data Validation Quiz',
-        duration: '10 min',
-      },
-    ],
-  },
-];
-
-const lessonIcons: Record<LessonType, LucideIcon> = {
-  video: Video,
-  text: FileText,
-  quiz: CheckCircle,
-};
-
-export function ContentTab({
-  initialModules = placeholderModules,
-  courseId,
-}: ContentTabProps) {
-  const { items: modules, onDragEnd: onModulesDragEnd } =
-    useDndState(initialModules);
+export async function ContentTab({ courseId }: { courseId: string }) {
+  const course = await getCourseDetails(courseId);
+  if (!course) {
+    notFound();
+  }
 
   return (
     <div className="space-y-2">
       <ContentTabHeader />
       <Card>
         <CardHeader>
-          <CardTitle>Introduction to Data Science - Course Structure</CardTitle>
+          <CardTitle>{course.title} - Course Structure</CardTitle>
           <CardDescription>
             Organize your course content into modules and lessons
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <DragDropContext onDragEnd={onModulesDragEnd}>
-            <Droppable droppableId="modules">
-              {(provided) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className="space-y-2"
-                >
-                  {modules.map((module, index) => (
-                    <ModuleItem
-                      key={module.id}
-                      module={module}
-                      index={index}
-                      courseId={courseId}
-                    />
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
+          <ModulesList initialModules={course.modules} courseId={course.id} />
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function LessonItem({
-  lesson,
-  index,
-  courseId,
-}: {
-  lesson: Lesson;
-  index: number;
-  courseId: string;
-}) {
-  const Icon = lessonIcons[lesson.type];
-  return (
-    <Link href={`/dashboard/courses/${courseId}/lessons/${lesson.id}`}>
-      <Draggable draggableId={lesson.id} index={index}>
-        {(provided) => (
-          <Card
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            className="p-3"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex min-w-0 items-center gap-3">
-                <div {...provided.dragHandleProps}>
-                  <GripVertical className="text-muted-foreground h-4 w-4 flex-shrink-0" />
-                </div>
-                <span className="bg-muted flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-sm font-semibold">
-                  {index + 1}
-                </span>
-                <Icon className="text-muted-foreground h-4 w-4 flex-shrink-0" />
-                <div className="truncate">
-                  <p className="truncate font-medium">{lesson.title}</p>
-                  <p className="text-muted-foreground truncate text-xs">
-                    {lesson.type} • {lesson.duration}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge className="hidden sm:inline-flex">Published</Badge>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          </Card>
-        )}
-      </Draggable>
-    </Link>
-  );
-}
-
-function ModuleItem({
-  module,
-  index,
-  courseId,
-}: {
-  module: Module;
-  index: number;
-  courseId: string;
-}) {
-  const { items: lessons, onDragEnd: onLessonsDragEnd } = useDndState(
-    module.lessons
-  );
-
-  return (
-    <Draggable draggableId={module.id} index={index}>
-      {(provided) => (
-        <Card ref={provided.innerRef} {...provided.draggableProps}>
-          <CardHeader {...provided.dragHandleProps}>
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-3">
-                <GripVertical className="text-muted-foreground h-5 w-5" />
-                <span className="bg-primary/80 text-primary-foreground flex h-6 w-6 items-center justify-center rounded text-base font-bold">
-                  {index + 1}
-                </span>
-                <div>
-                  <CardTitle>{module.title}</CardTitle>
-                  <CardDescription>
-                    {module.lessonCount} lessons • {module.totalDuration}
-                  </CardDescription>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge>Published</Badge>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <FormDialog
-                        trigger={
-                          <Button variant="outline" size="sm">
-                            <Plus className="sm: h-4 w-4" />
-                            <span className="hidden sm:inline">Add Lesson</span>
-                          </Button>
-                        }
-                        title="Add New Lesson"
-                        description="Create a new lesson in Data Science"
-                        form={<AddLessonForm />}
-                        footer={<Button>Create Lesson</Button>}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>Add Lesson</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>Edit Module</DropdownMenuItem>
-                    <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pl-12">
-            <DragDropContext onDragEnd={onLessonsDragEnd}>
-              <Droppable droppableId={`lessons-${module.id}`}>
-                {(provided) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className="space-y-2"
-                  >
-                    {lessons.map((lesson, lessonIndex) => (
-                      <div key={lesson.id}>
-                        <LessonItem
-                          lesson={lesson}
-                          index={lessonIndex}
-                          courseId={courseId}
-                        />
-                      </div>
-                    ))}
-
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-          </CardContent>
-        </Card>
-      )}
-    </Draggable>
   );
 }
 
@@ -353,56 +66,6 @@ function ContentTabHeader() {
         </div>
       </div>
     </div>
-  );
-}
-
-function LessonItemSkeleton() {
-  return (
-    <Card className="p-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-4 w-4" />
-          <Skeleton className="h-6 w-6 rounded-full" />
-          <Skeleton className="h-4 w-4" />
-          <div className="space-y-1">
-            <Skeleton className="h-4 w-48" />
-            <Skeleton className="h-3 w-24" />
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Skeleton className="hidden h-6 w-20 rounded-full sm:inline-flex" />
-          <Skeleton className="h-8 w-8" />
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-function ModuleItemSkeleton() {
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-5 w-5" />
-            <Skeleton className="h-7 w-7 rounded-full" />
-            <div className="space-y-1">
-              <Skeleton className="h-5 w-40 sm:w-56" />
-              <Skeleton className="h-4 w-24 sm:w-32" />
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-6 w-20 rounded-full" />
-            <Skeleton className="h-9 w-10 sm:w-28" />
-            <Skeleton className="h-8 w-8" />
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-2 pl-12">
-        <LessonItemSkeleton />
-        <LessonItemSkeleton />
-      </CardContent>
-    </Card>
   );
 }
 
