@@ -40,7 +40,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useDndState } from '@/hooks/use-dnd-state';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import {
   CheckCircle,
@@ -58,7 +57,14 @@ import {
 import Link from 'next/link';
 import { useEffect, useState, useTransition } from 'react';
 import { toast } from 'sonner';
-import { deleteModule, reorderModules, updateModule } from '../../actions';
+import {
+  deleteLesson,
+  deleteModule,
+  reorderLessons,
+  reorderModules,
+  updateLesson,
+  updateModule,
+} from '../../actions';
 import { AddLessonForm, AddModuleForm, FormDialog } from './course-modal';
 
 type Lesson = {
@@ -93,14 +99,18 @@ function LessonItem({
   lesson,
   index,
   courseId,
+  onEdit,
+  onDelete,
 }: {
   lesson: Lesson;
   index: number;
   courseId: string;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
   const Icon = lessonIcons[lesson.lessonType];
   return (
-    <Draggable draggableId={String(lesson.id)} index={index}>
+    <Draggable draggableId={lesson.id} index={index}>
       {(provided) => (
         <Card
           ref={provided.innerRef}
@@ -146,8 +156,16 @@ function LessonItem({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Edit</DropdownMenuItem>
-                  <DropdownMenuItem className="text-destructive">
+                  <DropdownMenuItem onClick={onEdit}>
+                    <Pencil className="h-4 w-4" />
+                    Edit
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    className="text-destructive hover:!text-destructive focus:!text-destructive"
+                    onClick={onDelete}
+                  >
+                    <Trash2 className="text-destructive h-4 w-4" />
                     Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -173,104 +191,242 @@ function ModuleItem({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const { items: lessons, onDragEnd: onLessonsDragEnd } = useDndState(
-    module.lessons ?? []
-  );
+  const [lessons, setLessons] = useState(module.lessons ?? []);
+  const [isLessonPending, startLessonTransition] = useTransition();
+  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+  const [newLessonTitle, setNewLessonTitle] = useState('');
+  const [deletingLesson, setDeletingLesson] = useState<Lesson | null>(null);
+
+  const onLessonsDragEnd = (result: any) => {
+    if (!result.destination) return;
+    const items = Array.from(lessons);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setLessons(items);
+    const bulkUpdate = items.map((l, i) => ({ id: l.id, order: i }));
+
+    startLessonTransition(() => {
+      toast.promise(reorderLessons(courseId, module.id, bulkUpdate), {
+        loading: 'Reordering lessons...',
+        success: 'Lessons reordered!',
+        error: (err) => {
+          setLessons(module.lessons);
+          return err.message || 'Failed to reorder lessons.';
+        },
+      });
+    });
+  };
+
+  const handleEditLessonClick = (lesson: Lesson) => {
+    setEditingLesson(lesson);
+    setNewLessonTitle(lesson.title);
+  };
+
+  const handleSaveLessonEdit = () => {
+    if (
+      !editingLesson ||
+      !newLessonTitle.trim() ||
+      newLessonTitle === editingLesson.title
+    ) {
+      setEditingLesson(null);
+      return;
+    }
+    const previousLessons = lessons;
+    setLessons((prev) =>
+      prev.map((l) =>
+        l.id === editingLesson.id ? { ...l, title: newLessonTitle } : l
+      )
+    );
+    setEditingLesson(null);
+
+    startLessonTransition(() => {
+      toast.promise(
+        updateLesson(courseId, editingLesson.id, { title: newLessonTitle }),
+        {
+          loading: 'Updating lesson...',
+          success: 'Lesson updated!',
+          error: (err) => {
+            setLessons(previousLessons);
+            return err.message || 'Failed to update lesson.';
+          },
+        }
+      );
+    });
+  };
+
+  const handleDeleteLessonClick = (lesson: Lesson) => {
+    setDeletingLesson(lesson);
+  };
+
+  const handleConfirmLessonDelete = () => {
+    if (!deletingLesson) return;
+    const previousLessons = lessons;
+    setLessons((prev) => prev.filter((l) => l.id !== deletingLesson.id));
+    setDeletingLesson(null);
+
+    startLessonTransition(() => {
+      toast.promise(deleteLesson(courseId, deletingLesson.id), {
+        loading: 'Deleting lesson...',
+        success: 'Lesson deleted!',
+        error: (err) => {
+          setLessons(previousLessons);
+          return err.message || 'Failed to delete lesson.';
+        },
+      });
+    });
+  };
 
   return (
-    <Draggable draggableId={module.id} index={index}>
-      {(provided) => (
-        <Card ref={provided.innerRef} {...provided.draggableProps}>
-          <CardHeader {...provided.dragHandleProps}>
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-3">
-                <GripVertical className="text-muted-foreground h-5 w-5" />
-                <span className="bg-primary/80 text-primary-foreground flex h-6 w-6 items-center justify-center rounded text-base font-bold">
-                  {index + 1}
-                </span>
-                <div>
-                  <CardTitle>{module.title}</CardTitle>
-                  <CardDescription>
-                    {module.lessonCount} lessons • {module.totalDuration}
-                  </CardDescription>
+    <>
+      <Draggable draggableId={module.id} index={index}>
+        {(provided) => (
+          <Card ref={provided.innerRef} {...provided.draggableProps}>
+            <CardHeader {...provided.dragHandleProps}>
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <GripVertical className="text-muted-foreground h-5 w-5" />
+                  <span className="bg-primary/80 text-primary-foreground flex h-6 w-6 items-center justify-center rounded text-base font-bold">
+                    {index + 1}
+                  </span>
+                  <div>
+                    <CardTitle>{module.title}</CardTitle>
+                    <CardDescription>
+                      {module.lessonCount} lessons • {module.totalDuration}
+                    </CardDescription>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={module.isPublished ? 'default' : 'secondary'}>
+                    {module.isPublished ? 'Published' : 'Draft'}
+                  </Badge>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <FormDialog
+                          trigger={
+                            <Button variant="outline" size="sm">
+                              <Plus className="sm: h-4 w-4" />
+                              <span className="hidden sm:inline">
+                                Add Lesson
+                              </span>
+                            </Button>
+                          }
+                          title="Add New Lesson"
+                          description="Create a new lesson in this module"
+                          form={<AddLessonForm />}
+                          footer={<Button>Create Lesson</Button>}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>Add Lesson</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={onEdit}>
+                        <Pencil className="h-4 w-4" />
+                        Edit Module
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem>
+                        <Copy className="h-4 w-4" />
+                        Duplicate
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem
+                        className="text-destructive hover:!text-destructive focus:!text-destructive"
+                        onClick={onDelete}
+                      >
+                        <Trash2 className="text-destructive h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant={module.isPublished ? 'default' : 'secondary'}>
-                  {module.isPublished ? 'Published' : 'Draft'}
-                </Badge>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <FormDialog
-                        trigger={
-                          <Button variant="outline" size="sm">
-                            <Plus className="sm: h-4 w-4" />
-                            <span className="hidden sm:inline">Add Lesson</span>
-                          </Button>
-                        }
-                        title="Add New Lesson"
-                        description="Create a new lesson in this module"
-                        form={<AddLessonForm />}
-                        footer={<Button>Create Lesson</Button>}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>Add Lesson</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={onEdit}>
-                      <Pencil className="h-4 w-4" /> Edit Module
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Copy className="h-4 w-4" />
-                      Duplicate
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-destructive hover:!text-destructive focus:!text-destructive"
-                      onClick={onDelete}
+            </CardHeader>
+            <CardContent className="pl-12">
+              <DragDropContext onDragEnd={onLessonsDragEnd}>
+                <Droppable droppableId={`lessons-${module.id}`}>
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className="space-y-2"
                     >
-                      <Trash2 className="text-destructive h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pl-12">
-            <DragDropContext onDragEnd={onLessonsDragEnd}>
-              <Droppable droppableId={`lessons-${module.id}`}>
-                {(provided) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className="space-y-2"
-                  >
-                    {lessons.map((lesson, lessonIndex) => (
-                      <LessonItem
-                        key={lesson.id}
-                        lesson={lesson}
-                        index={lessonIndex}
-                        courseId={courseId}
-                      />
-                    ))}
+                      {lessons.map((lesson, lessonIndex) => (
+                        <LessonItem
+                          key={lesson.id}
+                          lesson={lesson}
+                          index={lessonIndex}
+                          courseId={courseId}
+                          onEdit={() => handleEditLessonClick(lesson)}
+                          onDelete={() => handleDeleteLessonClick(lesson)}
+                        />
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            </CardContent>
+          </Card>
+        )}
+      </Draggable>
 
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-          </CardContent>
-        </Card>
-      )}
-    </Draggable>
+      <Dialog
+        open={!!editingLesson}
+        onOpenChange={() => setEditingLesson(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Lesson Title</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={newLessonTitle}
+            onChange={(e) => setNewLessonTitle(e.target.value)}
+            disabled={isLessonPending}
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditingLesson(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveLessonEdit} disabled={isLessonPending}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog
+        open={!!deletingLesson}
+        onOpenChange={() => setDeletingLesson(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the lesson "{deletingLesson?.title}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmLessonDelete}
+              disabled={isLessonPending}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -359,7 +515,6 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
     if (!deletingModule) return;
 
     const previousModules = modules;
-    // Optimistic update
     setModules((prev) => prev.filter((m) => m.id !== deletingModule.id));
     setDeletingModule(null);
 
@@ -368,7 +523,7 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
         loading: 'Deleting module...',
         success: 'Module deleted!',
         error: (err) => {
-          setModules(previousModules); // Revert on error
+          setModules(previousModules);
           return err.message || 'Failed to delete.';
         },
       });
