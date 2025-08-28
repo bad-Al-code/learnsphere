@@ -49,6 +49,19 @@ export class CourseService {
     return Math.round(((current - previous) / previous) * 100);
   }
 
+  private static formatDuration(totalMinutes: number): string {
+    if (totalMinutes === 0) return '0m';
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    let result = '';
+
+    if (hours > 0) result += `${hours}h `;
+    if (minutes > 0) result += `${minutes}m`;
+
+    return result.trim();
+  }
+
   /**
    * Creates a new course.
    * @param data - Contains title, description, and instructorId.
@@ -165,7 +178,25 @@ export class CourseService {
       throw new NotFoundError('Course');
     }
 
-    const [result] = await this._enrichCourseWithInstructors([courseDetails]);
+    const enrichedModules = courseDetails.modules.map((module) => {
+      const totalDuration = module.lessons.reduce(
+        (sum, lesson) => sum + (lesson.duration || 0),
+        0
+      );
+      return {
+        ...module,
+        lessonCount: module.lessons.length,
+        totalDuration: this.formatDuration(totalDuration),
+        lessons: module.lessons.map((lesson) => ({
+          ...lesson,
+          duration: this.formatDuration(lesson.duration || 0),
+        })),
+      };
+    });
+
+    const enrichedCourse = { ...courseDetails, modules: enrichedModules };
+
+    const [result] = await this._enrichCourseWithInstructors([enrichedCourse]);
 
     await CourseCacheService.setCourseDetails(courseId, result);
 

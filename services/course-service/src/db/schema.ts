@@ -76,6 +76,7 @@ export const lessons = pgTable('lessons', {
   lessonType: lessonTypeEnum('lesson_type').notNull(),
   contentId: text('content_id'),
   isPublished: boolean('is_published').default(false).notNull(),
+  duration: integer('duration').default(0).notNull(),
 });
 
 export const textLessonContent = pgTable('text_lesson_content', {

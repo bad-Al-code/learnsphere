@@ -158,6 +158,8 @@ async function seedLessons(createdModules: (typeof modules.$inferSelect)[]) {
           moduleId: module.id,
           order: i,
           lessonType,
+          isPublished: Math.random() > 0.2,
+          duration: faker.number.int({ min: 5, max: 45 }),
           contentId:
             lessonType === 'video'
               ? faker.helpers.arrayElement(realHlsUrls)
