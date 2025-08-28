@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 import { env } from '../config/env';
 import logger from '../config/logger';
 import { CourseRepository, StudentGradeRepository } from '../db/repositories';
@@ -538,5 +539,52 @@ export class AnalyticsService {
       value: `${avgTime}m`,
       change: 0, // Placeholder
     };
+  }
+
+  /**
+   * Logs the start of a lesson viewing session.
+   * @returns The generated sessionId for the client to hold.
+   */
+  public static async logSessionStart(
+    userId: string,
+    courseId: string,
+    moduleId: string,
+    lessonId: string
+  ) {
+    const sessionId = uuidv4();
+    logger.info(`Logging start of session ${sessionId} for lesson ${lessonId}`);
+    await AnalyticsRepository.startLessonSession({
+      sessionId,
+      userId,
+      courseId,
+      moduleId,
+      lessonId,
+      startedAt: new Date(),
+    });
+    return { sessionId };
+  }
+
+  /**
+   * Logs the end of a lesson viewing session and calculates its duration.
+   */
+  public static async logSessionEnd(sessionId: string) {
+    logger.info(`Logging end of session ${sessionId}`);
+
+    const session =
+      await AnalyticsRepository.findLessonSessionBySessionId(sessionId);
+
+    if (!session || session.endedAt) {
+      return;
+    }
+
+    const endedAt = new Date();
+    const durationMs = endedAt.getTime() - session.startedAt.getTime();
+    const durationMinutes = Math.round(durationMs / (1000 * 60));
+
+    await AnalyticsRepository.endLessonSession(
+      sessionId,
+      endedAt,
+      durationMinutes
+    );
   }
 }

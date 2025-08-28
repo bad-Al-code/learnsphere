@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { getEnrollmentsSchema } from '../schema/enrollment.schema';
+import { AnalyticsService } from '../services/analytics.service';
 import { EnrollmentService } from '../services/enrollment.service';
 
 export class EnrollmentController {
@@ -111,5 +112,43 @@ export class EnrollmentController {
     });
 
     res.status(StatusCodes.OK).json(result);
+  }
+
+  public static async startSession(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseId, moduleId, lessonId } = req.body;
+      const userId = req.currentUser!.id;
+
+      const result = await AnalyticsService.logSessionStart(
+        userId,
+        courseId,
+        moduleId,
+        lessonId
+      );
+
+      res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async endSession(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { sessionId } = req.body;
+
+      await AnalyticsService.logSessionEnd(sessionId);
+
+      res.status(StatusCodes.OK).send();
+    } catch (error) {
+      next(error);
+    }
   }
 }

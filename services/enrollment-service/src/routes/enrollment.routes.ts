@@ -15,10 +15,12 @@ import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
 import {
   createEnrollmentSchema,
+  endSessionSchema,
   enrollmentIdParamSchema,
   getEnrollmentsSchema,
   manualEnrollmentSchema,
   markProgressSchema,
+  startSessionSchema,
 } from '../schema/enrollment.schema';
 
 const router = Router();
@@ -93,6 +95,44 @@ router.post(
   requireAuth,
   validateRequest(markProgressSchema),
   EnrollmentController.markProgress
+);
+
+/**
+ * @openapi
+ * /api/enrollments/session/start:
+ *   post:
+ *     summary: Log the start of a lesson viewing session
+ *     tags: [Student Enrollments]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: Session started, returns sessionId.
+ */
+router.post(
+  '/session/start',
+  requireAuth,
+  validateRequest(startSessionSchema),
+  EnrollmentController.startSession
+);
+
+/**
+ * @openapi
+ * /api/enrollments/session/end:
+ *   post:
+ *     summary: Log the end of a lesson viewing session
+ *     tags: [Student Enrollments]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: Session end logged.
+ */
+router.post(
+  '/session/end',
+  requireAuth,
+  validateRequest(endSessionSchema),
+  EnrollmentController.endSession
 );
 
 /**

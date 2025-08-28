@@ -99,3 +99,17 @@ export const getEnrollmentsSchema = z.object({
     limit: z.coerce.number().int().min(1).max(100).default(20),
   }),
 });
+
+export const startSessionSchema = z.object({
+  body: z.object({
+    courseId: z.string().uuid(),
+    moduleId: z.string().uuid(),
+    lessonId: z.string().uuid(),
+  }),
+});
+
+export const endSessionSchema = z.object({
+  body: z.object({
+    sessionId: z.string().uuid(),
+  }),
+});

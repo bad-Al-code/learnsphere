@@ -722,4 +722,10 @@ export class AnalyticsRepository {
       .set({ endedAt, durationMinutes: duration })
       .where(eq(lessonSessions.sessionId, sessionId));
   }
+
+  public static async findLessonSessionBySessionId(sessionId: string) {
+    return await db.query.lessonSessions.findFirst({
+      where: eq(lessonSessions.sessionId, sessionId),
+    });
+  }
 }
