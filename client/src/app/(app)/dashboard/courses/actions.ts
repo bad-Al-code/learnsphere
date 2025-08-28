@@ -7,10 +7,12 @@ import {
   userService,
 } from '@/lib/api';
 import { CourseFormValues, courseSchema } from '@/lib/schemas/course';
+import { moduleSchema, ModuleSchemaValues } from '@/lib/schemas/module';
 import { CourseFilterOptions } from '@/types/course';
 import { BulkUser } from '@/types/user';
 import { faker } from '@faker-js/faker';
 import { revalidatePath } from 'next/cache';
+import z from 'zod';
 
 export async function getMyCoursePageStats() {
   await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -380,6 +382,34 @@ export async function getCourseForEditor(courseId: string) {
     return { success: true, data: course };
   } catch (error: any) {
     console.error(`Error fetching course for editor: ${courseId}`, error);
+    return { error: error.message };
+  }
+}
+
+export async function createModule(
+  courseId: string,
+  values: ModuleSchemaValues
+) {
+  try {
+    const validatedData = moduleSchema.parse(values);
+
+    const response = await courseService.post(
+      `/api/courses/${courseId}/modules`,
+      validatedData
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.errors?.[0]?.message || 'Failed to create module.');
+    }
+
+    revalidatePath(`/dashboard/courses/${courseId}`);
+
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
     return { error: error.message };
   }
 }

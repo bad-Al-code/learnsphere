@@ -11,6 +11,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -26,7 +34,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { ModuleSchemaValues, moduleSchema } from '@/lib/schemas/module';
 import { cn } from '@/lib/utils';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import {
   Calendar as CalendarIcon,
@@ -35,7 +45,10 @@ import {
   Upload,
   Video,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { createModule } from '../../actions';
 
 interface FormDialogProps {
   trigger: React.ReactNode;
@@ -67,21 +80,81 @@ export function FormDialog({
   );
 }
 
-export function AddModuleForm() {
+export function AddModuleForm({ courseId }: { courseId: string }) {
+  const [isPending, startTransition] = useTransition();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const form = useForm<ModuleSchemaValues>({
+    resolver: zodResolver(moduleSchema),
+    defaultValues: { title: '' },
+  });
+
+  const onSubmit = (values: ModuleSchemaValues) => {
+    startTransition(async () => {
+      const result = await createModule(courseId, values);
+      if (result.error) {
+        toast.error('Failed to create module', { description: result.error });
+      } else {
+        toast.success('Module created successfully!');
+        form.reset();
+        setIsOpen(false);
+      }
+    });
+  };
+
   return (
-    <>
-      <div className="grid gap-2">
-        <Label htmlFor="title">Module Title</Label>
-        <Input id="title" placeholder="Enter module title" />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="description">Module Description</Label>
-        <Textarea
-          id="description"
-          placeholder="Describe what students will learn"
-        />
-      </div>
-    </>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <Plus className="h-4 w-4" />
+          Add Module
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Add New Module</DialogTitle>
+          <DialogDescription>
+            Create a new module for your course content.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 py-4"
+          >
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Module Title</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., 'Introduction to...'"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsOpen(false)}
+                disabled={isPending}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? 'Creating...' : 'Create Module'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -279,7 +352,7 @@ export function PageWithModals() {
           }
           title="Add New Module"
           description="Create a new module for your course content."
-          form={<AddModuleForm />}
+          form={<AddModuleForm courseId="" />}
           footer={<Button>Create Module</Button>}
         />
         <FormDialog

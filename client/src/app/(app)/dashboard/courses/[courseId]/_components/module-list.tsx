@@ -267,7 +267,7 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
   );
 }
 
-export function ContentTabHeader() {
+export function ContentTabHeader({ courseId }: { courseId: string }) {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -278,18 +278,8 @@ export function ContentTabHeader() {
           </p>
         </div>
         <div className="flex flex-shrink-0 items-center gap-2">
-          <FormDialog
-            trigger={
-              <Button variant="outline">
-                <Plus className="h-4 w-4" />
-                Add Module
-              </Button>
-            }
-            title="Add New Module"
-            description="Create a new module for your course content."
-            form={<AddModuleForm />}
-            footer={<Button>Create Module</Button>}
-          />
+          <AddModuleForm courseId={courseId} />
+
           <Button>
             <Upload className="h-4 w-4" /> Upload Content
           </Button>

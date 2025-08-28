@@ -24,7 +24,7 @@ export async function ContentTab({ courseId }: { courseId: string }) {
 
   return (
     <div className="space-y-2">
-      <ContentTabHeader />
+      <ContentTabHeader courseId={courseId} />
 
       <Card>
         <CardHeader>
