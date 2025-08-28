@@ -369,3 +369,17 @@ export async function getCourseDetails(courseId: string) {
     return null;
   }
 }
+
+export async function getCourseForEditor(courseId: string) {
+  try {
+    const response = await courseService.get(`/api/courses/${courseId}`);
+    if (!response.ok) {
+      throw new Error('Course not found.');
+    }
+    const course = await response.json();
+    return { success: true, data: course };
+  } catch (error: any) {
+    console.error(`Error fetching course for editor: ${courseId}`, error);
+    return { error: error.message };
+  }
+}

@@ -149,7 +149,7 @@ function ModuleItem({
   );
 
   return (
-    <Draggable draggableId={String(module.id)} index={index}>
+    <Draggable draggableId={module.id} index={index}>
       {(provided) => (
         <Card ref={provided.innerRef} {...provided.draggableProps}>
           <CardHeader {...provided.dragHandleProps}>
@@ -217,7 +217,7 @@ function ModuleItem({
                   >
                     {lessons.map((lesson, lessonIndex) => (
                       <LessonItem
-                        key={String(lesson.id) || `lesson-${lessonIndex}`}
+                        key={lesson.id}
                         lesson={lesson}
                         index={lessonIndex}
                         courseId={courseId}
@@ -251,7 +251,7 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
           >
             {modules.map((module, index) => (
               <ModuleItem
-                key={String(module.id) || `module-${index}`}
+                key={module.id}
                 module={module}
                 index={index}
                 courseId={courseId}

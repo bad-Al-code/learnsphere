@@ -27,10 +27,7 @@ const skeletonMap: Record<string, React.ReactNode> = {
   settings: <SettingsTabSkeleton />,
 };
 
-export function CourseEditor({
-  courseId,
-  initialOverviewData,
-}: CourseEditorProps) {
+export function CourseEditor({ courseId }: { courseId: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -67,17 +64,13 @@ export function CourseEditor({
           <TabsContent value={currentTabFromUrl}>
             {currentTabFromUrl === 'overview' && (
               <Suspense fallback={<OverviewTabSkeleton />}>
-                <OverviewTab data={initialOverviewData} />
+                <OverviewTab courseId={courseId} />
               </Suspense>
             )}
 
             {currentTabFromUrl === 'content' && (
               <Suspense fallback={<ContentTabSkeleton />}>
-                <ContentTab
-                  courseId={courseId}
-                  initialModules={initialOverviewData.modulePerformance}
-                  courseTitle={initialOverviewData.details.title}
-                />
+                <ContentTab courseId={courseId} />
               </Suspense>
             )}
 

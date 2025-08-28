@@ -7,32 +7,31 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Module } from '@/types/module';
 import { Plus, Upload } from 'lucide-react';
+import { notFound } from 'next/navigation';
+import { getCourseForEditor } from '../../actions';
 import { AddModuleForm, FormDialog } from './course-modal';
 import { ModuleItemSkeleton, ModulesList } from './module-list';
 
-export function ContentTab({
-  courseId,
-  initialModules,
-  courseTitle,
-}: {
-  courseId: string;
-  initialModules: Module[];
-  courseTitle: string;
-}) {
+export async function ContentTab({ courseId }: { courseId: string }) {
+  const result = await getCourseForEditor(courseId);
+  if (!result.success || !result.data) {
+    notFound();
+  }
+  const course = result.data;
+
   return (
     <div className="space-y-2">
       <ContentTabHeader />
       <Card>
         <CardHeader>
-          <CardTitle>{courseTitle} - Course Structure</CardTitle>
+          <CardTitle>{course.title} - Course Structure</CardTitle>
           <CardDescription>
             Organize your course content into modules and lessons
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ModulesList initialModules={initialModules} courseId={courseId} />
+          <ModulesList initialModules={course.modules} courseId={courseId} />
         </CardContent>
       </Card>
     </div>

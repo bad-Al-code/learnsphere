@@ -1,3 +1,4 @@
+import { getCourseOverviewData } from '../../actions';
 import {
   AssignmentStatus,
   AssignmentStatusSkeleton,
@@ -18,7 +19,9 @@ import {
 } from './student-needing-attention';
 import { TopPerformers, TopPerformersSkeleton } from './top-performance';
 
-export default function OverviewTab({ data }: { data: any }) {
+export default async function OverviewTab({ courseId }: { courseId: string }) {
+  const data = await getCourseOverviewData(courseId);
+
   return (
     <div className="space-y-2">
       <OverviewStatCards data={data.stats} />
