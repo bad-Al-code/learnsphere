@@ -448,7 +448,7 @@ export async function reorderModules(
 export async function updateModule(
   courseId: string,
   moduleId: string,
-  values: { title: string }
+  values: { title?: string; isPublished?: boolean }
 ) {
   try {
     const validatedData = moduleUpdateSchema.parse(values);

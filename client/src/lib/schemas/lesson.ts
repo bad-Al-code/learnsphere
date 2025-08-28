@@ -9,6 +9,7 @@ export type CreateLessonFormValues = z.infer<typeof createLessonSchema>;
 export const updateLessonSchema = z.object({
   title: z.string().min(1).optional(),
   content: z.string().min(1).optional(),
+  isPublished: z.boolean().optional(),
 });
 
 export type UpdateLessonFormValues = z.infer<typeof updateLessonSchema>;

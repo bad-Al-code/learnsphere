@@ -5,7 +5,8 @@ export const moduleSchema = z.object({
 });
 
 export const moduleUpdateSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
+  title: z.string().min(1, 'Title is required').optional(),
+  isPublished: z.boolean().optional(),
 });
 
 export type ModuleUpdateSchemaValues = z.infer<typeof moduleSchema>;

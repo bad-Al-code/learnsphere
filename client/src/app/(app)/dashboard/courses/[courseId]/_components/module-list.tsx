@@ -44,6 +44,8 @@ import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import {
   CheckCircle,
   Copy,
+  Eye,
+  EyeOff,
   FileText,
   GripVertical,
   LucideIcon,
@@ -101,12 +103,14 @@ function LessonItem({
   courseId,
   onEdit,
   onDelete,
+  onTogglePublish,
 }: {
   lesson: Lesson;
   index: number;
   courseId: string;
   onEdit: () => void;
   onDelete: () => void;
+  onTogglePublish: () => void;
 }) {
   const Icon = lessonIcons[lesson.lessonType];
   return (
@@ -161,6 +165,20 @@ function LessonItem({
                     Edit
                   </DropdownMenuItem>
 
+                  <DropdownMenuItem onClick={onTogglePublish}>
+                    {lesson.isPublished ? (
+                      <>
+                        <EyeOff className="h-4 w-4" />
+                        Unpublish
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="h-4 w-4" />
+                        Publish
+                      </>
+                    )}
+                  </DropdownMenuItem>
+
                   <DropdownMenuItem
                     className="text-destructive hover:!text-destructive focus:!text-destructive"
                     onClick={onDelete}
@@ -184,12 +202,14 @@ function ModuleItem({
   courseId,
   onEdit,
   onDelete,
+  onTogglePublish,
 }: {
   module: Module;
   index: number;
   courseId: string;
   onEdit: () => void;
   onDelete: () => void;
+  onTogglePublish: () => void;
 }) {
   const [lessons, setLessons] = useState(module.lessons ?? []);
   const [isLessonPending, startLessonTransition] = useTransition();
@@ -277,6 +297,32 @@ function ModuleItem({
     });
   };
 
+  const handleToggleLessonPublish = (lessonToToggle: Lesson) => {
+    const previousLessons = lessons;
+
+    setLessons((prev) =>
+      prev.map((l) =>
+        l.id === lessonToToggle.id ? { ...l, isPublished: !l.isPublished } : l
+      )
+    );
+
+    startLessonTransition(() => {
+      toast.promise(
+        updateLesson(courseId, lessonToToggle.id, {
+          isPublished: !lessonToToggle.isPublished,
+        }),
+        {
+          loading: 'Updating status...',
+          success: 'Lesson status updated!',
+          error: (err) => {
+            setLessons(previousLessons);
+            return err.message || 'Failed to update status.';
+          },
+        }
+      );
+    });
+  };
+
   return (
     <>
       <Draggable draggableId={module.id} index={index}>
@@ -333,6 +379,20 @@ function ModuleItem({
                         Edit Module
                       </DropdownMenuItem>
 
+                      <DropdownMenuItem onClick={onTogglePublish}>
+                        {module.isPublished ? (
+                          <>
+                            <EyeOff className="h-4 w-4" />
+                            Unpublish
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="h-4 w-4" />
+                            Publish
+                          </>
+                        )}
+                      </DropdownMenuItem>
+
                       <DropdownMenuItem>
                         <Copy className="h-4 w-4" />
                         Duplicate
@@ -367,6 +427,9 @@ function ModuleItem({
                           courseId={courseId}
                           onEdit={() => handleEditLessonClick(lesson)}
                           onDelete={() => handleDeleteLessonClick(lesson)}
+                          onTogglePublish={() =>
+                            handleToggleLessonPublish(lesson)
+                          }
                         />
                       ))}
                       {provided.placeholder}
@@ -530,6 +593,32 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
     });
   };
 
+  const handleToggleModulePublish = (moduleToToggle: Module) => {
+    const previousModules = modules;
+
+    setModules((prev) =>
+      prev.map((m) =>
+        m.id === moduleToToggle.id ? { ...m, isPublished: !m.isPublished } : m
+      )
+    );
+
+    startTransition(() => {
+      toast.promise(
+        updateModule(courseId, moduleToToggle.id, {
+          isPublished: !moduleToToggle.isPublished,
+        }),
+        {
+          loading: 'Updating status...',
+          success: 'Module status updated!',
+          error: (err) => {
+            setModules(previousModules);
+            return err.message || 'Failed to update status.';
+          },
+        }
+      );
+    });
+  };
+
   return (
     <>
       <DragDropContext onDragEnd={onDragEnd}>
@@ -548,6 +637,7 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
                   courseId={courseId}
                   onEdit={() => handleEditClick(module)}
                   onDelete={() => handleDeleteClick(module)}
+                  onTogglePublish={() => handleToggleModulePublish(module)}
                 />
               ))}
 
