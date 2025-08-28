@@ -667,4 +667,23 @@ export class AnalyticsRepository {
       average_grade: string | null;
     }[];
   }
+
+  /**
+   * @description Calculates the average session duration for a course from the database.
+   * The duration is the time difference between the user's last access and enrollment time.
+   * @param {string} courseId - The ID of the course to analyze.
+   * @returns {Promise<number>} The average duration in whole minutes, or 0 if no data is found.
+   */
+  public static async getAverageSessionTime(courseId: string): Promise<number> {
+    const [result] = await db
+      .select({
+        avgDuration: sql<string>`AVG(EXTRACT(EPOCH FROM (last_accessed_at - enrolled_at)))`,
+      })
+      .from(enrollments)
+      .where(eq(enrollments.courseId, courseId));
+
+    return result && result.avgDuration
+      ? Math.round(parseFloat(result.avgDuration) / 60)
+      : 0;
+  }
 }

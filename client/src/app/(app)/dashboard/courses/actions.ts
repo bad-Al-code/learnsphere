@@ -244,6 +244,7 @@ export async function getCourseOverviewData(courseId: string) {
     modulePerformance,
     assignmentStatus,
     revenueTrend,
+    avgSessionTime,
   ] = await Promise.all([
     safeFetch(
       enrollmentService.get(`/api/analytics/course/${courseId}/stats`),
@@ -279,6 +280,10 @@ export async function getCourseOverviewData(courseId: string) {
         `/api/payments/analytics/course/${courseId}/revenue-trend`
       ),
       'revenue-trend'
+    ),
+    safeFetch(
+      enrollmentService.get(`/api/analytics/course/${courseId}/session-time`),
+      'session-time'
     ),
   ]);
 
@@ -418,7 +423,7 @@ export async function getCourseOverviewData(courseId: string) {
         value: paymentStats.totalRevenue || 0,
         change: revenueTrend.change || 0,
       },
-      avgSessionTime: activityStats.avgSessionTime, // Placeholder from service
+      avgSessionTime: avgSessionTime,
       forumActivity: { value: activityStats.totalDiscussions },
       resourceDownloads: {
         value: activityStats.resourceDownloads.value,

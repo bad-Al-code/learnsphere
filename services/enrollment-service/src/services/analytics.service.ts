@@ -524,4 +524,19 @@ export class AnalyticsService {
 
     return performanceData;
   }
+
+  /**
+   * @description Fetches and formats the average session time for a specific course.
+   * @param {string} courseId - The unique identifier of the course.
+   * @returns {Promise<{value: string, change: number}>} An object containing the formatted average time and a change indicator.
+   */
+  public static async getAverageSessionTime(courseId: string) {
+    logger.info(`Fetching average session time for course ${courseId}`);
+    const avgTime = await AnalyticsRepository.getAverageSessionTime(courseId);
+
+    return {
+      value: `${avgTime}m`,
+      change: 0, // Placeholder
+    };
+  }
 }

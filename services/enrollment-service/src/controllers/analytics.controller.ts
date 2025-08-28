@@ -258,4 +258,21 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getAverageSessionTime(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseId } = req.params;
+
+      const sessionTime =
+        await AnalyticsService.getAverageSessionTime(courseId);
+
+      res.status(StatusCodes.OK).json(sessionTime);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

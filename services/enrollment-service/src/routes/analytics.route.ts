@@ -392,6 +392,59 @@ router.get(
 
 /**
  * @openapi
+ * /course/{courseId}/session-time:
+ *   get:
+ *     summary: Get average session time for a course
+ *     description: >
+ *       Retrieves the average time a user spends in a course session, calculated
+ *       from enrollment to their last access time. This endpoint is restricted
+ *       to users with 'instructor' or 'admin' roles.
+ *     tags:
+ *       - Analytics
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "crs_a1b2c3d4e5f6"
+ *         description: The unique identifier of the course.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the average session time.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 value:
+ *                   type: string
+ *                   description: The average session time formatted in minutes (e.g., "45m").
+ *                   example: "45m"
+ *                 change:
+ *                   type: number
+ *                   description: A placeholder indicating the change over a previous period (currently always 0).
+ *                   example: 0
+ *       401:
+ *         description: Unauthorized. User is not authenticated.
+ *       403:
+ *         description: Forbidden. User does not have the required role ('instructor' or 'admin').
+ *       404:
+ *         description: Course not found or no enrollment data available.
+ *       500:
+ *         description: Internal server error.
+ */
+router.get(
+  '/course/:courseId/session-time',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getAverageSessionTime
+);
+
+/**
+ * @openapi
  * /api/analytics/instructor/student-grade/{courseId}/{studentId}:
  *   get:
  *     summary: "[Instructor] Get a student's average grade for a course"
