@@ -1,5 +1,6 @@
+import { getCurrentUser } from '@/app/(auth)/actions';
 import { TabsContent } from '@/components/ui/tabs';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { getCourseForEditor } from '../actions';
 import {
@@ -29,11 +30,24 @@ export default async function CourseEditorPage({
   params,
   searchParams,
 }: CourseEditorPageProps) {
-  const result = await getCourseForEditor(params.courseId);
-  if (!result.success || !result.data) {
+  const [courseResult, user] = await Promise.all([
+    getCourseForEditor(params.courseId),
+    getCurrentUser(),
+  ]);
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  if (!courseResult.success || !courseResult.data) {
     notFound();
   }
-  const course = result.data;
+  const course = courseResult.data;
+
+  if (user.role !== 'admin' && course.instructorId !== user.userId) {
+    notFound();
+  }
+
   const currentTab = searchParams.tab || 'overview';
 
   return (
