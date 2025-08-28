@@ -1,0 +1,1 @@
+ALTER TABLE "student_grades" ADD COLUMN "module_id" uuid NOT NULL;

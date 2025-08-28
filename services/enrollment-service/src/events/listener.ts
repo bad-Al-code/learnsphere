@@ -280,6 +280,7 @@ interface AssignmentSubmissionGradedEvent {
     submissionId: string;
     assignmentId: string;
     courseId: string;
+    moduleId: string;
     studentId: string;
     grade: number;
     gradedAt: Date;
@@ -301,6 +302,7 @@ export class GradeSyncListener extends Listener<AssignmentSubmissionGradedEvent>
         submissionId: data.submissionId,
         assignmentId: data.assignmentId,
         courseId: data.courseId,
+        moduleId: data.moduleId,
         studentId: data.studentId,
         grade: data.grade,
         gradedAt: new Date(data.gradedAt),

@@ -84,6 +84,7 @@ export interface AssignmentSubmissionGradedEvent {
     submissionId: string;
     assignmentId: string;
     courseId: string;
+    moduleId: string;
     studentId: string;
     grade: number;
     gradedAt: Date;

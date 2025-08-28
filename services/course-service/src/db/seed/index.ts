@@ -260,18 +260,26 @@ async function publishEvents(createdCourses: (typeof courses.$inferSelect)[]) {
 async function publishGradingEvents() {
   const publisher = new AssignmentSubmissionGradedPublisher();
   const submissionsToPublish = await db
-    .select()
+    .select({
+      submission: assignmentSubmissions,
+      moduleId: assignments.moduleId,
+    })
     .from(assignmentSubmissions)
+    .innerJoin(
+      assignments,
+      eq(assignmentSubmissions.assignmentId, assignments.id)
+    )
     .where(isNotNull(assignmentSubmissions.grade));
 
   console.log(
     `Publishing ${submissionsToPublish.length} 'assignment.submission.graded' events...`
   );
 
-  for (const submission of submissionsToPublish) {
+  for (const { submission, moduleId } of submissionsToPublish) {
     await publisher.publish({
       submissionId: submission.id,
       assignmentId: submission.assignmentId,
+      moduleId: moduleId,
       courseId: submission.courseId,
       studentId: submission.studentId,
       grade: submission.grade!,

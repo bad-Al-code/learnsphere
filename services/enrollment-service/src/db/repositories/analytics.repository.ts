@@ -615,7 +615,6 @@ export class AnalyticsRepository {
         WHERE
           course_id = ${courseId}
       ),
-
       CompletedLessons AS (
         SELECT
           id AS enrollment_id,
@@ -625,9 +624,9 @@ export class AnalyticsRepository {
         WHERE
           course_id = ${courseId}
       ),
-
       ModuleCompletion AS (
         SELECT
+          ml.enrollment_id, -- Keep enrollment_id for the final join
           ml.module_id,
           COUNT(ml.lesson_id) AS total_lessons,
           COUNT(cl.lesson_id) AS completed_lessons
@@ -637,31 +636,24 @@ export class AnalyticsRepository {
           CompletedLessons cl ON ml.enrollment_id = cl.enrollment_id AND ml.lesson_id = cl.lesson_id
         GROUP BY
           ml.enrollment_id, ml.module_id
-      )
+      ),
 
-    ModuleGrades AS (
-        SELECT
-          a.module_id,
-          s.student_id,
-          AVG(s.grade) as avg_grade
-        FROM
-          student_grades s
-        JOIN
-          assignments a ON s.assignment_id = a.id
-        WHERE
-          s.course_id = ${courseId}
-        GROUP BY
-          a.module_id, s.student_id
-      )
-
-     SELECT
+      SELECT
         mc.module_id,
         (AVG(CASE WHEN mc.total_lessons > 0 THEN (mc.completed_lessons::decimal / mc.total_lessons) ELSE 0 END) * 100)::numeric(5, 2) AS completion_rate,
-        AVG(mg.avg_grade)::numeric(5, 2) AS average_grade -- Aggregate the average grades
+        AVG(mg.avg_grade)::numeric(5, 2) AS average_grade
       FROM
         ModuleCompletion mc
       LEFT JOIN
-        ModuleGrades mg ON mc.module_id = mg.module_id
+        (
+          SELECT
+            module_id,
+            student_id,
+            AVG(grade) as avg_grade
+          FROM student_grades
+          WHERE course_id = ${courseId}
+          GROUP BY module_id, student_id
+        ) AS mg ON mc.module_id = mg.module_id AND mc.enrollment_id = mg.student_id -- Join on student/enrollment ID
       GROUP BY
         mc.module_id
       ORDER BY
