@@ -413,3 +413,25 @@ export async function createModule(
     return { error: error.message };
   }
 }
+
+export async function reorderModules(
+  courseId: string,
+  list: { id: string; order: number }[]
+) {
+  try {
+    const ids = list.map((item) => item.id);
+    const response = await courseService.post('/api/modules/reorder', { ids });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(
+        data.errors?.[0]?.message || 'Failed to reorder modules.'
+      );
+    }
+
+    revalidatePath(`/dashboard/courses/${courseId}/content`);
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}

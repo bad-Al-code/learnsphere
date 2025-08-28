@@ -35,6 +35,9 @@ import {
   Video,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState, useTransition } from 'react';
+import { toast } from 'sonner';
+import { reorderModules } from '../../actions';
 import { AddLessonForm, AddModuleForm, FormDialog } from './course-modal';
 
 type Lesson = {
@@ -238,11 +241,42 @@ function ModuleItem({
 }
 
 export function ModulesList({ initialModules, courseId }: ModulesListProps) {
-  const { items: modules, onDragEnd: onModulesDragEnd } =
-    useDndState(initialModules);
+  const [modules, setModules] = useState(initialModules);
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setModules(initialModules);
+  }, [initialModules]);
+
+  const onDragEnd = (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(modules);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setModules(items);
+
+    const bulkUpdateData = items.map((module, index) => ({
+      id: module.id,
+      order: index,
+    }));
+
+    startTransition(() => {
+      toast.promise(reorderModules(courseId, bulkUpdateData), {
+        loading: 'Saving new order...',
+        success: 'Modules reordered successfully!',
+        error: (err) => {
+          setModules(initialModules);
+
+          return err.message || 'Failed to save new order.';
+        },
+      });
+    });
+  };
 
   return (
-    <DragDropContext onDragEnd={onModulesDragEnd}>
+    <DragDropContext onDragEnd={onDragEnd}>
       <Droppable droppableId="modules">
         {(provided) => (
           <div
