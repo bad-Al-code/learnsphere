@@ -275,4 +275,20 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getTimeSpentAnalytics(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseId } = req.params;
+
+      const analytics = await AnalyticsService.getTimeSpentAnalytics(courseId);
+
+      res.status(StatusCodes.OK).json(analytics);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

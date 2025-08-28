@@ -587,4 +587,36 @@ export class AnalyticsService {
       durationMinutes
     );
   }
+
+  /**
+   * @description Fetches and formats time-spent analytics for a course.
+   * @param {string} courseId - The unique identifier of the course.
+   * @returns An object containing the formatted average session time and module-specific time spent.
+   */
+  public static async getTimeSpentAnalytics(courseId: string) {
+    logger.info(`Fetching time-spent analytics for course ${courseId}`);
+
+    const [avgTime, moduleTimes] = await Promise.all([
+      AnalyticsRepository.getAverageSessionTime(courseId),
+      AnalyticsRepository.getTotalTimeSpentPerModule(courseId),
+    ]);
+
+    const formatMinutes = (minutes: number) => {
+      if (minutes < 60) return `${minutes}m`;
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      return `${hours}h ${remainingMinutes}m`;
+    };
+
+    return {
+      avgSessionTime: {
+        value: formatMinutes(avgTime),
+        change: 0, // Placeholder for trend
+      },
+      modulePerformance: moduleTimes.map((m) => ({
+        moduleId: m.moduleId,
+        timeSpent: formatMinutes(m.timeSpent),
+      })),
+    };
+  }
 }

@@ -671,22 +671,19 @@ export class AnalyticsRepository {
   }
 
   /**
-   * @description Calculates the average session duration for a course from the database.
-   * The duration is the time difference between the user's last access and enrollment time.
-   * @param {string} courseId - The ID of the course to analyze.
-   * @returns {Promise<number>} The average duration in whole minutes, or 0 if no data is found.
+   * Calculates the average session duration in minutes for a specific course.
+   * @param courseId The ID of the course.
+   * @returns The average duration in minutes, or 0 if no sessions are found.
    */
   public static async getAverageSessionTime(courseId: string): Promise<number> {
     const [result] = await db
       .select({
-        avgDuration: sql<string>`AVG(EXTRACT(EPOCH FROM (last_accessed_at - enrolled_at)))`,
+        avgDuration: avg(lessonSessions.durationMinutes),
       })
-      .from(enrollments)
-      .where(eq(enrollments.courseId, courseId));
+      .from(lessonSessions)
+      .where(eq(lessonSessions.courseId, courseId));
 
-    return result && result.avgDuration
-      ? Math.round(parseFloat(result.avgDuration) / 60)
-      : 0;
+    return Math.round(parseFloat(result?.avgDuration || '0'));
   }
 
   /**
@@ -727,5 +724,26 @@ export class AnalyticsRepository {
     return await db.query.lessonSessions.findFirst({
       where: eq(lessonSessions.sessionId, sessionId),
     });
+  }
+
+  /**
+   * Calculates the total time spent in minutes for each module in a course.
+   * @param courseId The ID of the course.
+   * @returns An array of objects, each containing a moduleId and the total time spent.
+   */
+  public static async getTotalTimeSpentPerModule(courseId: string) {
+    const result = await db
+      .select({
+        moduleId: lessonSessions.moduleId,
+        totalMinutes: sum(lessonSessions.durationMinutes),
+      })
+      .from(lessonSessions)
+      .where(eq(lessonSessions.courseId, courseId))
+      .groupBy(lessonSessions.moduleId);
+
+    return result.map((row) => ({
+      moduleId: row.moduleId,
+      timeSpent: parseInt(row.totalMinutes || '0', 10),
+    }));
   }
 }
