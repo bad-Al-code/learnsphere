@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -7,11 +6,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Upload } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { getCourseForEditor } from '../../actions';
-import { AddModuleForm, FormDialog } from './course-modal';
-import { ModuleItemSkeleton, ModulesList } from './module-list';
+import {
+  ContentTabHeader,
+  ContentTabHeaderSkeleton,
+  ModuleItemSkeleton,
+  ModulesList,
+} from './module-list';
 
 export async function ContentTab({ courseId }: { courseId: string }) {
   const result = await getCourseForEditor(courseId);
@@ -23,6 +25,7 @@ export async function ContentTab({ courseId }: { courseId: string }) {
   return (
     <div className="space-y-2">
       <ContentTabHeader />
+
       <Card>
         <CardHeader>
           <CardTitle>{course.title} - Course Structure</CardTitle>
@@ -34,55 +37,6 @@ export async function ContentTab({ courseId }: { courseId: string }) {
           <ModulesList initialModules={course.modules} courseId={courseId} />
         </CardContent>
       </Card>
-    </div>
-  );
-}
-
-function ContentTabHeader() {
-  return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h3 className="text-xl font-bold">Course Content</h3>
-          <p className="text-muted-foreground">
-            Manage modules, lessons, and course materials
-          </p>
-        </div>
-        <div className="flex flex-shrink-0 items-center gap-2">
-          <FormDialog
-            trigger={
-              <Button variant="outline">
-                <Plus className="h-4 w-4" />
-                Add Module
-              </Button>
-            }
-            title="Add New Module"
-            description="Create a new module for your course content."
-            form={<AddModuleForm />}
-            footer={<Button>Create Module</Button>}
-          />
-          <Button>
-            <Upload className="h-4 w-4" /> Upload Content
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ContentTabHeaderSkeleton() {
-  return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <Skeleton className="h-6 w-40" />
-          <Skeleton className="mt-1 h-4 w-64" />
-        </div>
-        <div className="flex flex-shrink-0 items-center gap-2">
-          <Skeleton className="h-10 w-32" />
-          <Skeleton className="h-10 w-36" />
-        </div>
-      </div>
     </div>
   );
 }

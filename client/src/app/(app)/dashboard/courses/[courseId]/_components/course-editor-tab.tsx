@@ -1,22 +1,17 @@
 'use client';
 
 import { AppTabs } from '@/components/ui/app-tabs';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Tabs } from '@/components/ui/tabs';
 import { courseEditorTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import React, { Suspense, useState, useTransition } from 'react';
+import React, { useState, useTransition } from 'react';
 
-import { AnalyticsTab, AnalyticsTabSkeleton } from './analytics-tab';
-import { AssignmentsTab, AssignmentsTabSkeleton } from './assignment-tab';
-import { ContentTab, ContentTabSkeleton } from './content-tab';
-import OverviewTab, { OverviewTabSkeleton } from './overview-tab';
-import { ResourcesTab, ResourcesTabSkeleton } from './resources-tab';
-import { SettingsTab, SettingsTabSkeleton } from './settings-tab';
-
-interface CourseEditorProps {
-  courseId: string;
-  initialOverviewData: any;
-}
+import { AnalyticsTabSkeleton } from './analytics-tab';
+import { AssignmentsTabSkeleton } from './assignment-tab';
+import { ContentTabSkeleton } from './content-tab';
+import { OverviewTabSkeleton } from './overview-tab';
+import { ResourcesTabSkeleton } from './resources-tab';
+import { SettingsTabSkeleton } from './settings-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
   overview: <OverviewTabSkeleton />,
@@ -27,13 +22,20 @@ const skeletonMap: Record<string, React.ReactNode> = {
   settings: <SettingsTabSkeleton />,
 };
 
-export function CourseEditor({ courseId }: { courseId: string }) {
+interface CourseEditorTabsProps {
+  courseId: string;
+  children: React.ReactNode;
+}
+
+export function CourseEditorTabs({
+  courseId,
+  children,
+}: CourseEditorTabsProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const currentTabFromUrl = searchParams.get('tab') || 'overview';
-
   const [activeTab, setActiveTab] = useState(currentTabFromUrl);
   const [isPending, startTransition] = useTransition();
 
@@ -56,49 +58,7 @@ export function CourseEditor({ courseId }: { courseId: string }) {
         basePath={`/dashboard/courses/${courseId}`}
         activeTab="tab"
       />
-
-      <div className="">
-        {isPending ? (
-          pendingSkeleton
-        ) : (
-          <TabsContent value={currentTabFromUrl}>
-            {currentTabFromUrl === 'overview' && (
-              <Suspense fallback={<OverviewTabSkeleton />}>
-                <OverviewTab courseId={courseId} />
-              </Suspense>
-            )}
-
-            {currentTabFromUrl === 'content' && (
-              <Suspense fallback={<ContentTabSkeleton />}>
-                <ContentTab courseId={courseId} />
-              </Suspense>
-            )}
-
-            {currentTabFromUrl === 'assignments' && (
-              <Suspense fallback={<AssignmentsTabSkeleton />}>
-                <AssignmentsTab />
-              </Suspense>
-            )}
-
-            {currentTabFromUrl === 'resources' && (
-              <Suspense fallback={<ResourcesTabSkeleton />}>
-                <ResourcesTab />
-              </Suspense>
-            )}
-
-            {currentTabFromUrl === 'analytics' && (
-              <Suspense fallback={<AnalyticsTabSkeleton />}>
-                <AnalyticsTab />
-              </Suspense>
-            )}
-            {currentTabFromUrl === 'settings' && (
-              <Suspense fallback={<SettingsTabSkeleton />}>
-                <SettingsTab />
-              </Suspense>
-            )}
-          </TabsContent>
-        )}
-      </div>
+      <div className="">{isPending ? pendingSkeleton : children}</div>
     </Tabs>
   );
 }

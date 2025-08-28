@@ -19,7 +19,7 @@ import {
 } from './student-needing-attention';
 import { TopPerformers, TopPerformersSkeleton } from './top-performance';
 
-export default async function OverviewTab({ courseId }: { courseId: string }) {
+export async function OverviewTab({ courseId }: { courseId: string }) {
   const data = await getCourseOverviewData(courseId);
 
   return (

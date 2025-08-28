@@ -31,10 +31,11 @@ import {
   LucideIcon,
   MoreHorizontal,
   Plus,
+  Upload,
   Video,
 } from 'lucide-react';
 import Link from 'next/link';
-import { AddLessonForm, FormDialog } from './course-modal';
+import { AddLessonForm, AddModuleForm, FormDialog } from './course-modal';
 
 type Lesson = {
   id: string;
@@ -263,6 +264,55 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
         )}
       </Droppable>
     </DragDropContext>
+  );
+}
+
+export function ContentTabHeader() {
+  return (
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h3 className="text-xl font-bold">Course Content</h3>
+          <p className="text-muted-foreground">
+            Manage modules, lessons, and course materials
+          </p>
+        </div>
+        <div className="flex flex-shrink-0 items-center gap-2">
+          <FormDialog
+            trigger={
+              <Button variant="outline">
+                <Plus className="h-4 w-4" />
+                Add Module
+              </Button>
+            }
+            title="Add New Module"
+            description="Create a new module for your course content."
+            form={<AddModuleForm />}
+            footer={<Button>Create Module</Button>}
+          />
+          <Button>
+            <Upload className="h-4 w-4" /> Upload Content
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ContentTabHeaderSkeleton() {
+  return (
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="mt-1 h-4 w-64" />
+        </div>
+        <div className="flex flex-shrink-0 items-center gap-2">
+          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-36" />
+        </div>
+      </div>
+    </div>
   );
 }
 
