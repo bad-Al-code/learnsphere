@@ -1,7 +1,4 @@
-'use client';
-
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { getCourseDetails } from '@/app/courses/actions'; // To get module options for the filter
 import {
   Card,
   CardContent,
@@ -9,13 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -25,188 +15,246 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { MoreHorizontal, Plus } from 'lucide-react';
-import { CreateAssignmentForm, FormDialog } from './course-modal';
-
-type AssignmentStatusType = 'Active' | 'Upcoming' | 'Completed';
-
-interface Assignment {
-  title: string;
-  points: number;
-  type: string;
-  dueDate: string;
-  submissions: number;
-  totalStudents: number;
-  avgGrade: string;
-  status: AssignmentStatusType;
-}
+import { Module } from '@/types/module';
+import { Suspense } from 'react';
+import AssignmentsDataComponent from './assignment-data-client';
 
 interface AssignmentsTabProps {
-  data?: Assignment[];
+  courseId: string;
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
-const placeholderData: Assignment[] = [
-  {
-    title: 'Data Analysis Project',
-    points: 100,
-    type: 'Project',
-    dueDate: 'July 15, 2024',
-    submissions: 180,
-    totalStudents: 250,
-    avgGrade: 'B+',
-    status: 'Active',
-  },
-  {
-    title: 'Machine Learning Model',
-    points: 150,
-    type: 'Project',
-    dueDate: 'July 22, 2024',
-    submissions: 120,
-    totalStudents: 250,
-    avgGrade: 'A-',
-    status: 'Active',
-  },
-  {
-    title: 'Final Capstone Project',
-    points: 200,
-    type: 'Capstone',
-    dueDate: 'August 1, 2024',
-    submissions: 45,
-    totalStudents: 250,
-    avgGrade: 'A',
-    status: 'Upcoming',
-  },
-  {
-    title: 'Weekly Quiz - Statistics',
-    points: 50,
-    type: 'Quiz',
-    dueDate: 'July 8, 2024',
-    submissions: 230,
-    totalStudents: 250,
-    avgGrade: 'B',
-    status: 'Completed',
-  },
-];
-
-const getStatusBadgeVariant = (
-  status: AssignmentStatusType
-): 'default' | 'outline' | 'secondary' => {
-  switch (status) {
-    case 'Active':
-      return 'default';
-    case 'Upcoming':
-      return 'secondary';
-    case 'Completed':
-      return 'outline';
-  }
-};
-
-export function AssignmentsTab({
-  data = placeholderData,
+export async function AssignmentsTab({
+  courseId,
+  searchParams,
 }: AssignmentsTabProps) {
-  return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h2 className="text-2xl font-bold">Course Assignments</h2>
-          <p className="text-muted-foreground">
-            Manage assignments and track student submissions
-          </p>
-        </div>
-        <FormDialog
-          trigger={
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Assignment
-            </Button>
-          }
-          title="Create New Assignment"
-          description="Set up a new assignment for your students"
-          form={<CreateAssignmentForm />}
-          footer={<Button>Create Assignmnet</Button>}
-        />
-      </div>
+  const course = await getCourseDetails(courseId);
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Assignment Overview</CardTitle>
-          <CardDescription>
-            Track assignment performance and submissions
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Assignment</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Submissions</TableHead>
-                <TableHead>Avg Grade</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((assignment) => (
-                <TableRow key={assignment.title}>
-                  <TableCell className="font-medium">
-                    <div>{assignment.title}</div>
-                    <div className="text-muted-foreground text-xs">
-                      {assignment.points} points
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{assignment.type}</Badge>
-                  </TableCell>
-                  <TableCell>{assignment.dueDate}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Progress
-                        value={
-                          (assignment.submissions / assignment.totalStudents) *
-                          100
-                        }
-                        className="h-2 w-16"
-                      />
-                      <span className="text-muted-foreground text-sm">
-                        {assignment.submissions}/{assignment.totalStudents}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {assignment.avgGrade}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadgeVariant(assignment.status)}>
-                      {assignment.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Submissions</DropdownMenuItem>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+  const moduleOptions =
+    course?.modules.map((module: Module) => ({
+      label: module.title,
+      value: module.id,
+    })) || [];
+
+  return (
+    <Suspense fallback={<AssignmentsTabSkeleton />}>
+      <AssignmentsDataComponent
+        courseId={courseId}
+        searchParams={searchParams}
+        moduleOptions={moduleOptions}
+      />
+    </Suspense>
   );
 }
+
+// 'use client';
+
+// import { Badge } from '@/components/ui/badge';
+// import { Button } from '@/components/ui/button';
+// import {
+//   Card,
+//   CardContent,
+//   CardDescription,
+//   CardHeader,
+//   CardTitle,
+// } from '@/components/ui/card';
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuItem,
+//   DropdownMenuTrigger,
+// } from '@/components/ui/dropdown-menu';
+// import { Progress } from '@/components/ui/progress';
+// import {
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableHead,
+//   TableHeader,
+//   TableRow,
+// } from '@/components/ui/table';
+// import { MoreHorizontal, Plus } from 'lucide-react';
+// import { CreateAssignmentForm, FormDialog } from './course-modal';
+
+// type AssignmentStatusType = 'Active' | 'Upcoming' | 'Completed';
+
+// interface Assignment {
+//   title: string;
+//   points: number;
+//   type: string;
+//   dueDate: string;
+//   submissions: number;
+//   totalStudents: number;
+//   avgGrade: string;
+//   status: AssignmentStatusType;
+// }
+
+// interface AssignmentsTabProps {
+//   data?: Assignment[];
+// }
+
+// const placeholderData: Assignment[] = [
+//   {
+//     title: 'Data Analysis Project',
+//     points: 100,
+//     type: 'Project',
+//     dueDate: 'July 15, 2024',
+//     submissions: 180,
+//     totalStudents: 250,
+//     avgGrade: 'B+',
+//     status: 'Active',
+//   },
+//   {
+//     title: 'Machine Learning Model',
+//     points: 150,
+//     type: 'Project',
+//     dueDate: 'July 22, 2024',
+//     submissions: 120,
+//     totalStudents: 250,
+//     avgGrade: 'A-',
+//     status: 'Active',
+//   },
+//   {
+//     title: 'Final Capstone Project',
+//     points: 200,
+//     type: 'Capstone',
+//     dueDate: 'August 1, 2024',
+//     submissions: 45,
+//     totalStudents: 250,
+//     avgGrade: 'A',
+//     status: 'Upcoming',
+//   },
+//   {
+//     title: 'Weekly Quiz - Statistics',
+//     points: 50,
+//     type: 'Quiz',
+//     dueDate: 'July 8, 2024',
+//     submissions: 230,
+//     totalStudents: 250,
+//     avgGrade: 'B',
+//     status: 'Completed',
+//   },
+// ];
+
+// const getStatusBadgeVariant = (
+//   status: AssignmentStatusType
+// ): 'default' | 'outline' | 'secondary' => {
+//   switch (status) {
+//     case 'Active':
+//       return 'default';
+//     case 'Upcoming':
+//       return 'secondary';
+//     case 'Completed':
+//       return 'outline';
+//   }
+// };
+
+// export function AssignmentsTab({
+//   data = placeholderData,
+// }: AssignmentsTabProps) {
+//   return (
+//     <div className="space-y-2">
+//       <div className="flex flex-wrap items-center justify-between gap-2">
+//         <div>
+//           <h2 className="text-2xl font-bold">Course Assignments</h2>
+//           <p className="text-muted-foreground">
+//             Manage assignments and track student submissions
+//           </p>
+//         </div>
+//         <FormDialog
+//           trigger={
+//             <Button>
+//               <Plus className="mr-2 h-4 w-4" />
+//               Create Assignment
+//             </Button>
+//           }
+//           title="Create New Assignment"
+//           description="Set up a new assignment for your students"
+//           form={<CreateAssignmentForm />}
+//           footer={<Button>Create Assignmnet</Button>}
+//         />
+//       </div>
+
+//       <Card>
+//         <CardHeader>
+//           <CardTitle>Assignment Overview</CardTitle>
+//           <CardDescription>
+//             Track assignment performance and submissions
+//           </CardDescription>
+//         </CardHeader>
+//         <CardContent>
+//           <Table>
+//             <TableHeader>
+//               <TableRow>
+//                 <TableHead>Assignment</TableHead>
+//                 <TableHead>Type</TableHead>
+//                 <TableHead>Due Date</TableHead>
+//                 <TableHead>Submissions</TableHead>
+//                 <TableHead>Avg Grade</TableHead>
+//                 <TableHead>Status</TableHead>
+//                 <TableHead>Actions</TableHead>
+//               </TableRow>
+//             </TableHeader>
+//             <TableBody>
+//               {data.map((assignment) => (
+//                 <TableRow key={assignment.title}>
+//                   <TableCell className="font-medium">
+//                     <div>{assignment.title}</div>
+//                     <div className="text-muted-foreground text-xs">
+//                       {assignment.points} points
+//                     </div>
+//                   </TableCell>
+//                   <TableCell>
+//                     <Badge variant="outline">{assignment.type}</Badge>
+//                   </TableCell>
+//                   <TableCell>{assignment.dueDate}</TableCell>
+//                   <TableCell>
+//                     <div className="flex items-center gap-2">
+//                       <Progress
+//                         value={
+//                           (assignment.submissions / assignment.totalStudents) *
+//                           100
+//                         }
+//                         className="h-2 w-16"
+//                       />
+//                       <span className="text-muted-foreground text-sm">
+//                         {assignment.submissions}/{assignment.totalStudents}
+//                       </span>
+//                     </div>
+//                   </TableCell>
+//                   <TableCell className="font-medium">
+//                     {assignment.avgGrade}
+//                   </TableCell>
+//                   <TableCell>
+//                     <Badge variant={getStatusBadgeVariant(assignment.status)}>
+//                       {assignment.status}
+//                     </Badge>
+//                   </TableCell>
+//                   <TableCell>
+//                     <DropdownMenu>
+//                       <DropdownMenuTrigger asChild>
+//                         <Button variant="ghost" size="icon" className="h-8 w-8">
+//                           <MoreHorizontal className="h-4 w-4" />
+//                         </Button>
+//                       </DropdownMenuTrigger>
+//                       <DropdownMenuContent align="end">
+//                         <DropdownMenuItem>View Submissions</DropdownMenuItem>
+//                         <DropdownMenuItem>Edit</DropdownMenuItem>
+//                         <DropdownMenuItem className="text-destructive">
+//                           Delete
+//                         </DropdownMenuItem>
+//                       </DropdownMenuContent>
+//                     </DropdownMenu>
+//                   </TableCell>
+//                 </TableRow>
+//               ))}
+//             </TableBody>
+//           </Table>
+//         </CardContent>
+//       </Card>
+//     </div>
+//   );
+// }
 
 export function AssignmentsTabSkeleton() {
   return (

@@ -401,7 +401,7 @@ function ModuleItem({
 
                       <DropdownMenuItem>
                         <Copy className="h-4 w-4" />
-                        Duplicate
+                        Duplicate (WIP)
                       </DropdownMenuItem>
 
                       <DropdownMenuItem

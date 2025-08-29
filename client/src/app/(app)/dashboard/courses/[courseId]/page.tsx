@@ -1,5 +1,6 @@
 import { getCurrentUser } from '@/app/(auth)/actions';
 import { TabsContent } from '@/components/ui/tabs';
+import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { getCourseForEditor } from '../actions';
@@ -20,6 +21,18 @@ import {
   ResourcesTabSkeleton,
 } from './_components/resources-tab';
 import { SettingsTab, SettingsTabSkeleton } from './_components/settings-tab';
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}): Promise<Metadata> {
+  const tab = searchParams.tab || 'overview';
+
+  return {
+    title: `Course - ${tab.charAt(0).toUpperCase() + tab.slice(1)}`,
+  };
+}
 
 interface CourseEditorPageProps {
   params: { courseId: string };
@@ -70,7 +83,10 @@ export default async function CourseEditorPage({
           )}
           {currentTab === 'assignments' && (
             <Suspense fallback={<AssignmentsTabSkeleton />}>
-              <AssignmentsTab />
+              <AssignmentsTab
+                courseId={params.courseId}
+                searchParams={searchParams}
+              />
             </Suspense>
           )}
           {currentTab === 'resources' && (
