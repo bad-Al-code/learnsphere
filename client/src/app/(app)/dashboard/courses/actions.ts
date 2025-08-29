@@ -18,6 +18,7 @@ import {
   moduleUpdateSchema,
   ModuleUpdateSchemaValues,
 } from '@/lib/schemas/module';
+import { formatDuration } from '@/lib/utils';
 import { CourseFilterOptions } from '@/types/course';
 import { BulkUser } from '@/types/user';
 import { faker } from '@faker-js/faker';
@@ -508,9 +509,16 @@ export async function createLesson(
 
     if (!response.ok) throw new Error('Failed to create lesson.');
 
+    const newLesson = await response.json();
+
+    const formattedLesson = {
+      ...newLesson,
+      duration: formatDuration(newLesson.duration),
+    };
+
     revalidatePath(`/dashboard/courses/${courseId}/content`);
 
-    return { success: true, data: await response.json() };
+    return { success: true, data: formattedLesson };
   } catch (error: any) {
     if (error instanceof z.ZodError) return { error: error.issues[0].message };
 

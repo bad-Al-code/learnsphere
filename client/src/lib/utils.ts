@@ -44,3 +44,23 @@ export function formatTime(seconds: number): string {
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
+/**
+ * Formats a duration in minutes into a human-readable string (e.g., 90 -> "1h 30m").
+ * @param totalMinutes The total duration in minutes.
+ * @returns A formatted string.
+ */
+export function formatDuration(
+  totalMinutes: number | null | undefined
+): string {
+  if (totalMinutes === null || totalMinutes === undefined || totalMinutes === 0)
+    return '0m';
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  let result = '';
+  if (hours > 0) result += `${hours}h `;
+  if (minutes > 0) result += `${minutes}m`;
+
+  return result.trim() || '0m';
+}

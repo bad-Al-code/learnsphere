@@ -355,17 +355,6 @@ export function AddLessonForm({
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label>Duration (minutes)</Label>
-            <Input type="number" placeholder="15" />
-          </div>
-          <div className="grid gap-2">
-            <Label>Lesson Order</Label>
-            <Input type="number" placeholder="1" />
-          </div>
-        </div>
-
         <DialogFooter>
           <Button
             type="button"
