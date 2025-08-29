@@ -14,6 +14,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -33,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { LessonFormValues, lessonSchema } from '@/lib/schemas/lesson';
 import { ModuleSchemaValues, moduleSchema } from '@/lib/schemas/module';
@@ -88,7 +90,7 @@ export function AddModuleForm({ courseId }: { courseId: string }) {
 
   const form = useForm<ModuleSchemaValues>({
     resolver: zodResolver(moduleSchema),
-    defaultValues: { title: '' },
+    defaultValues: { title: '', isPublished: false },
   });
 
   const onSubmit = (values: ModuleSchemaValues) => {
@@ -140,6 +142,28 @@ export function AddModuleForm({ courseId }: { courseId: string }) {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="isPublished"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Publish</FormLabel>
+                    <FormDescription>
+                      Make this module visible to students immediately.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
             <DialogFooter>
               <Button
                 type="button"
@@ -181,6 +205,7 @@ export function AddLessonForm({
       title: '',
       lessonType: 'text',
       content: '',
+      isPublished: false,
     },
   });
 
@@ -293,6 +318,27 @@ export function AddLessonForm({
         />
 
         {renderLessonContent()}
+
+        <FormField
+          control={form.control}
+          name="isPublished"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Publish</FormLabel>
+                <FormDescription>
+                  Make this lesson visible to students upon creation.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
 
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">

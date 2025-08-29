@@ -26,6 +26,7 @@ export const lessonSchema = z.object({
     })
     .optional(),
   content: z.string().optional(),
+  isPublished: z.boolean().default(false).optional(),
 });
 
 export type LessonFormValues = z.infer<typeof lessonSchema>;

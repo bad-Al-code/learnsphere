@@ -33,14 +33,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { ModuleUpdateSchemaValues } from '@/lib/schemas/module';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import {
   CheckCircle,
@@ -517,8 +521,9 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
   const [isPending, startTransition] = useTransition();
 
   const [editingModule, setEditingModule] = useState<Module | null>(null);
-  const [newTitle, setNewTitle] = useState('');
+  const [newModuleTitle, setNewModuleTitle] = useState('');
   const [deletingModule, setDeletingModule] = useState<Module | null>(null);
+  const [newModulePublished, setNewModulePublished] = useState(false);
 
   useEffect(() => {
     setModules(initialModules);
@@ -553,15 +558,22 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
 
   const handleEditClick = (module: Module) => {
     setEditingModule(module);
-    setNewTitle(module.title);
+    setNewModuleTitle(module.title);
+    setNewModulePublished(module.isPublished);
   };
 
-  const handleSaveEdit = () => {
-    if (
-      !editingModule ||
-      !newTitle.trim() ||
-      newTitle === editingModule.title
-    ) {
+  const handleSaveModuleEdit = () => {
+    if (!editingModule) return;
+
+    const updatePayload: ModuleUpdateSchemaValues = {};
+    if (newModuleTitle.trim() && newModuleTitle !== editingModule.title) {
+      updatePayload.title = newModuleTitle;
+    }
+    if (newModulePublished !== editingModule.isPublished) {
+      updatePayload.isPublished = newModulePublished;
+    }
+
+    if (Object.keys(updatePayload).length === 0) {
       setEditingModule(null);
       return;
     }
@@ -569,14 +581,14 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
     const previousModules = modules;
     setModules((prev) =>
       prev.map((m) =>
-        m.id === editingModule.id ? { ...m, title: newTitle } : m
+        m.id === editingModule.id ? { ...m, title: newModuleTitle } : m
       )
     );
     setEditingModule(null);
 
     startTransition(() => {
       toast.promise(
-        updateModule(courseId, editingModule.id, { title: newTitle }),
+        updateModule(courseId, editingModule.id, { title: newModuleTitle }),
         {
           loading: 'Updating module...',
           success: 'Module updated!',
@@ -672,18 +684,40 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Module Title</DialogTitle>
+            <DialogTitle>Edit Module</DialogTitle>
           </DialogHeader>
-          <Input
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            disabled={isPending}
-          />
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="edit-module-title">Module Title</Label>
+
+              <Input
+                id="edit-module-title"
+                value={newModuleTitle}
+                onChange={(e) => setNewModuleTitle(e.target.value)}
+                disabled={isPending}
+              />
+            </div>
+
+            <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <Label>Publish</Label>
+
+                <FormDescription>
+                  Make this module visible to students.
+                </FormDescription>
+              </div>
+              <Switch
+                checked={newModulePublished}
+                onCheckedChange={setNewModulePublished}
+              />
+            </div>
+          </div>
+
           <DialogFooter>
             <Button variant="ghost" onClick={() => setEditingModule(null)}>
               Cancel
             </Button>
-            <Button onClick={handleSaveEdit} disabled={isPending}>
+            <Button onClick={handleSaveModuleEdit} disabled={isPending}>
               Save Changes
             </Button>
           </DialogFooter>
