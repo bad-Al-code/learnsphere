@@ -7,7 +7,8 @@ import { LessonRepository } from '../db/repostiories/lesson.repository';
 import { ModuleRepository } from '../db/repostiories/module.repository';
 import { lessons, textLessonContent } from '../db/schema';
 import { BadRequestError, NotFoundError } from '../errors';
-import { CreateLessonDto, Requester, UpdateLessonDto } from '../types';
+import { CreateLessonDto, lessonCreateSchema } from '../schemas';
+import { Requester, UpdateLessonDto } from '../types';
 import { AuthorizationService } from './authorization.service';
 import { CourseCacheService } from './course-cache.service';
 
@@ -20,13 +21,23 @@ export class LessonService {
    */
   public static async addLessonToModule(
     data: CreateLessonDto,
+
     requester: Requester
   ) {
-    logger.info(`Adding lesson "${data.title}" to module ${data.moduleId}`);
+    const validatedData = lessonCreateSchema.parse(data);
 
-    await AuthorizationService.verifyModuleOwnership(data.moduleId, requester);
+    logger.info(
+      `Adding lesson "${validatedData.title}" to module ${validatedData.moduleId}`
+    );
 
-    const parentModule = await ModuleRepository.findById(data.moduleId);
+    await AuthorizationService.verifyModuleOwnership(
+      validatedData.moduleId,
+      requester
+    );
+
+    const parentModule = await ModuleRepository.findById(
+      validatedData.moduleId
+    );
     if (!parentModule) {
       throw new NotFoundError('Module');
     }
@@ -35,28 +46,29 @@ export class LessonService {
       const lessonCountResult = await tx
         .select({ value: count() })
         .from(lessons)
-        .where(eq(lessons.moduleId, data.moduleId));
+        .where(eq(lessons.moduleId, validatedData.moduleId));
 
       const nextOrder = lessonCountResult[0].value;
 
       const [newLesson] = await tx
         .insert(lessons)
         .values({
-          title: data.title,
-          moduleId: data.moduleId,
-          lessonType: data.lessonType,
+          title: validatedData.title,
+          moduleId: validatedData.moduleId,
+          lessonType: validatedData.lessonType,
           order: nextOrder,
+          isPublished: validatedData.isPublished,
         })
         .returning();
 
       if (
-        data.lessonType === 'text' &&
-        data.content &&
-        data.content.length > 0
+        validatedData.lessonType === 'text' &&
+        validatedData.content &&
+        validatedData.content.length > 0
       ) {
         await tx
           .insert(textLessonContent)
-          .values({ lessonId: newLesson.id, content: data.content });
+          .values({ lessonId: newLesson.id, content: validatedData.content });
       }
 
       const fullLesson = await tx.query.lessons.findFirst({

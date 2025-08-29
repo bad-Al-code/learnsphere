@@ -11,14 +11,14 @@ export class ModuleController {
   ): Promise<void> {
     try {
       const { courseId } = req.params;
-      const { title } = req.body;
+      const moduleData = req.body;
       const requester = req.currentUser;
       if (!requester) {
         throw new NotAuthorizedError();
       }
 
       const module = await ModuleService.addModuleToCourse(
-        { title, courseId },
+        { ...moduleData, courseId },
         requester
       );
 

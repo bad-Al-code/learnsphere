@@ -161,6 +161,13 @@ export const createModuleSchema = z.object({
   }),
 });
 
+export const moduleCreateSchema = z.object({
+  title: z.string().min(3),
+  courseId: z.string().uuid(),
+  isPublished: z.boolean().optional().default(false),
+});
+export type CreateModuleDto = z.infer<typeof moduleCreateSchema>;
+
 export const moduleUpdateSchema = z
   .object({
     title: z.string().min(3).optional(),
@@ -175,6 +182,16 @@ export const createLessonSchema = z.object({
     content: z.string().optional(),
   }),
 });
+
+export const lessonCreateSchema = z.object({
+  title: z.string().min(3),
+  moduleId: z.string().uuid(),
+  lessonType: z.enum(lessonTypeEnum.enumValues),
+  isPublished: z.boolean().optional().default(false),
+  content: z.string().optional(),
+});
+
+export type CreateLessonDto = z.infer<typeof lessonCreateSchema>;
 
 export const updateLessonSchema = z.object({
   body: createLessonSchema.shape.body.partial(),

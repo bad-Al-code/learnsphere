@@ -6,8 +6,12 @@ import { CourseRepository } from '../db/repostiories';
 import { ModuleRepository } from '../db/repostiories/module.repository';
 import { modules } from '../db/schema';
 import { BadRequestError, NotFoundError } from '../errors';
-import { moduleUpdateSchema } from '../schemas';
-import { CreateModuleDto, Requester, UpdateModuleDto } from '../types';
+import {
+  CreateModuleDto,
+  moduleCreateSchema,
+  moduleUpdateSchema,
+} from '../schemas';
+import { Requester, UpdateModuleDto } from '../types';
 import { AuthorizationService } from './authorization.service';
 import { CourseCacheService } from './course-cache.service';
 
@@ -16,14 +20,25 @@ export class ModuleService {
     data: CreateModuleDto,
     requester: Requester
   ) {
-    await AuthorizationService.verifyCourseOwnership(data.courseId, requester);
+    const validatedData = moduleCreateSchema.parse(data);
 
-    logger.info(`Adding module "${data.title}" to course ${data.courseId}`);
+    await AuthorizationService.verifyCourseOwnership(
+      validatedData.courseId,
+      requester
+    );
 
-    const nextOrder = await ModuleRepository.countByCourseId(data.courseId);
+    logger.info(
+      `Adding module "${data.title}" to course ${validatedData.courseId}`
+    );
+
+    const nextOrder = await ModuleRepository.countByCourseId(
+      validatedData.courseId
+    );
 
     const newModule = await ModuleRepository.create({
-      ...data,
+      title: validatedData.title,
+      courseId: validatedData.courseId,
+      isPublished: validatedData.isPublished,
       order: nextOrder,
     });
 

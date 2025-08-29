@@ -13,4 +13,5 @@ export interface CreateLessonDto {
   moduleId: string;
   lessonType: (typeof lessonTypeEnum.enumValues)[number];
   content?: string;
+  isPublished?: boolean;
 }
