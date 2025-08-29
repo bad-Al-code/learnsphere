@@ -247,3 +247,75 @@ export const communicationTabs: NavItem[] = [
   },
   { value: 'templates', label: 'Templates', icon: 'FileText', href: '#' },
 ];
+
+export const studentNavItems: NavItem[] = [
+  {
+    href: '/student',
+    label: 'Dashboard',
+    value: 'dashboard',
+    icon: 'LayoutGrid',
+  },
+  {
+    href: '/student/my-courses',
+    label: 'My Courses',
+    value: 'my-courses',
+    icon: 'BookCopy',
+  },
+  {
+    href: '/student/assignments',
+    label: 'Assignments',
+    value: 'assignments',
+    icon: 'FileText',
+  },
+  {
+    href: '/student/grades',
+    label: 'Grades & Progress',
+    value: 'grades',
+    icon: 'GraduationCap',
+  },
+  {
+    href: '/student/analytics',
+    label: 'Analytics',
+    value: 'analytics',
+    icon: 'LineChart',
+  },
+  {
+    href: '/student/certificates',
+    label: 'Certificates',
+    value: 'certificates',
+    icon: 'Award',
+  },
+  {
+    href: '/student/ai-tools',
+    label: 'AI Tools',
+    value: 'ai-tools',
+    icon: 'Brain',
+  },
+  {
+    href: '/student/messages',
+    label: 'Messages',
+    value: 'messages',
+    icon: 'MessageSquare',
+  },
+  {
+    href: '/student/community',
+    label: 'Community',
+    value: 'community',
+    icon: 'Users',
+  },
+];
+
+export const studentCustomizeNavItems: NavItem[] = [
+  {
+    href: '/student/integrations',
+    label: 'Integrations',
+    value: 'integrations',
+    icon: 'Workflow',
+  },
+  {
+    href: '/student/personalization',
+    label: 'Personalization',
+    value: 'personalization',
+    icon: 'Palette',
+  },
+];

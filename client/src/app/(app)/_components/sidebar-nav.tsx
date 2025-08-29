@@ -5,18 +5,29 @@ import { usePathname } from 'next/navigation';
 
 import { iconMap } from '@/components/shared/icons';
 import { Button } from '@/components/ui/button';
-import { instructorNavItems } from '@/config/nav-items';
+import {
+  instructorNavItems,
+  studentCustomizeNavItems,
+  studentNavItems,
+} from '@/config/nav-items';
 
 interface SidebarNavProps {
-  type: 'instructor';
+  type: 'instructor' | 'student' | 'student-customize';
 }
 
 export function SidebarNav({ type }: SidebarNavProps) {
   const pathname = usePathname();
-  const navItems = type === 'instructor' ? instructorNavItems : [];
+  const navItems =
+    type === 'instructor'
+      ? instructorNavItems
+      : type === 'student'
+        ? studentNavItems
+        : type === 'student-customize'
+          ? studentCustomizeNavItems
+          : [];
 
   return (
-    <nav className="fixed grid items-start gap-1 text-sm font-medium">
+    <nav className="grid items-start gap-1 text-sm font-medium">
       {navItems.map((item) => {
         const Icon = iconMap[item.icon];
         const isActive =
