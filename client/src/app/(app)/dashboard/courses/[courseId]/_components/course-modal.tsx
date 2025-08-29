@@ -50,7 +50,7 @@ import {
   Video,
 } from 'lucide-react';
 import React, { useState, useTransition } from 'react';
-import { useForm } from 'react-hook-form';
+import { Resolver, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { createLesson, createModule } from '../../actions';
 
@@ -200,12 +200,13 @@ export function AddLessonForm({
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<LessonFormValues>({
-    resolver: zodResolver(lessonSchema),
+    resolver: zodResolver(lessonSchema) as Resolver<LessonFormValues>,
     defaultValues: {
       title: '',
       lessonType: 'text',
       content: '',
       isPublished: false,
+      duration: 0,
     },
   });
 
@@ -336,6 +337,20 @@ export function AddLessonForm({
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="duration"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Duration (minutes)</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="e.g., 15" {...field} />
+              </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />

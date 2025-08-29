@@ -58,6 +58,7 @@ export class LessonService {
           lessonType: validatedData.lessonType,
           order: nextOrder,
           isPublished: validatedData.isPublished,
+          duration: validatedData.duration,
         })
         .returning();
 

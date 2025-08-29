@@ -189,6 +189,7 @@ export const lessonCreateSchema = z.object({
   lessonType: z.enum(lessonTypeEnum.enumValues),
   isPublished: z.boolean().optional().default(false),
   content: z.string().optional(),
+  duration: z.number().int().min(0).optional().default(0),
 });
 
 export type CreateLessonDto = z.infer<typeof lessonCreateSchema>;

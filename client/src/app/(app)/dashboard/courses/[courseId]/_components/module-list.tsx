@@ -416,6 +416,7 @@ function ModuleItem({
                 </div>
               </div>
             </CardHeader>
+
             <CardContent className="pl-12">
               <DragDropContext onDragEnd={onLessonsDragEnd}>
                 <Droppable droppableId={`lessons-${module.id}`}>

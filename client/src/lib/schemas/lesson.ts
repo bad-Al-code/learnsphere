@@ -27,6 +27,7 @@ export const lessonSchema = z.object({
     .optional(),
   content: z.string().optional(),
   isPublished: z.boolean().default(false).optional(),
+  duration: z.coerce.number().int().min(0).optional().default(0),
 });
 
 export type LessonFormValues = z.infer<typeof lessonSchema>;
