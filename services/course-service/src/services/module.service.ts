@@ -66,11 +66,17 @@ export class ModuleService {
       throw new BadRequestError('No valid fields provided for update.');
     }
 
-    const updatedModule = await ModuleRepository.update(moduleId, data);
-    const parentCourseId = (await ModuleRepository.findById(moduleId))!.course
-      .id;
+    const updatedModule = await ModuleRepository.update(
+      moduleId,
+      validatedData
+    );
 
-    await CourseCacheService.invalidateCacheDetails(parentCourseId);
+    const parentModule = await ModuleRepository.findById(moduleId);
+    if (!parentModule) {
+      throw new NotFoundError('Module');
+    }
+
+    await CourseCacheService.invalidateCacheDetails(parentModule.course.id);
 
     return updatedModule;
   }

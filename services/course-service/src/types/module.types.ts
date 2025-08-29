@@ -9,7 +9,7 @@ export interface CreateModuleDto {
 }
 
 export interface UpdateModuleDto {
-  title: string;
+  title?: string;
   order?: number;
   isPublished?: boolean;
 }

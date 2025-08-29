@@ -10,11 +10,7 @@ import { LessonController, ModuleController } from '../controllers';
 import { requireAuth } from '../middlewares/require-auth';
 import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
-import {
-  createLessonSchema,
-  moduleUpdateSchema,
-  reorderSchema,
-} from '../schemas';
+import { createLessonSchema, reorderSchema } from '../schemas';
 
 const router = Router();
 
@@ -63,7 +59,7 @@ router.put(
   '/:moduleId',
   requireAuth,
   requireRole(['instructor', 'admin']),
-  validateRequest(moduleUpdateSchema),
+  // validateRequest(moduleUpdateSchema),
   ModuleController.update
 );
 
