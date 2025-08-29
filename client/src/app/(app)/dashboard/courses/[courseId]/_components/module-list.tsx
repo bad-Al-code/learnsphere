@@ -51,7 +51,6 @@ import {
   LucideIcon,
   MoreHorizontal,
   Pencil,
-  Plus,
   Trash2,
   Upload,
   Video,
@@ -67,7 +66,7 @@ import {
   updateLesson,
   updateModule,
 } from '../../actions';
-import { AddLessonForm, AddModuleForm, FormDialog } from './course-modal';
+import { AddLessonForm, AddModuleForm } from './course-modal';
 
 type Lesson = {
   id: string;
@@ -349,19 +348,9 @@ function ModuleItem({
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <FormDialog
-                          trigger={
-                            <Button variant="outline" size="sm">
-                              <Plus className="sm: h-4 w-4" />
-                              <span className="hidden sm:inline">
-                                Add Lesson
-                              </span>
-                            </Button>
-                          }
-                          title="Add New Lesson"
-                          description="Create a new lesson in this module"
-                          form={<AddLessonForm />}
-                          footer={<Button>Create Lesson</Button>}
+                        <AddLessonForm
+                          courseId={courseId}
+                          moduleId={module.id}
                         />
                       </TooltipTrigger>
                       <TooltipContent>Add Lesson</TooltipContent>
@@ -699,7 +688,19 @@ export function ModulesList({ initialModules, courseId }: ModulesListProps) {
   );
 }
 
-export function ContentTabHeader({ courseId }: { courseId: string }) {
+export function ContentTabHeader({
+  courseId,
+  initialModules,
+}: {
+  courseId: string;
+  initialModules: Module[];
+}) {
+  const [modules, setModules] = useState<Module[]>(initialModules);
+
+  const handleModuleCreated = (newModule: Module) => {
+    setModules((prevModules) => [...prevModules, newModule]);
+  };
+
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -710,7 +711,10 @@ export function ContentTabHeader({ courseId }: { courseId: string }) {
           </p>
         </div>
         <div className="flex flex-shrink-0 items-center gap-2">
-          <AddModuleForm courseId={courseId} />
+          <AddModuleForm
+            courseId={courseId}
+            onModuleCreated={handleModuleCreated}
+          />
 
           <Button>
             <Upload className="h-4 w-4" /> Upload Content
