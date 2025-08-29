@@ -22,6 +22,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -67,7 +68,7 @@ import {
   updateLesson,
   updateModule,
 } from '../../actions';
-import { AddLessonForm, AddModuleForm, FormDialog } from './course-modal';
+import { AddLessonForm, AddModuleForm } from './course-modal';
 
 type Lesson = {
   id: string;
@@ -216,6 +217,11 @@ function ModuleItem({
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [newLessonTitle, setNewLessonTitle] = useState('');
   const [deletingLesson, setDeletingLesson] = useState<Lesson | null>(null);
+  const [isAddLessonOpen, setIsAddLessonOpen] = useState(false);
+
+  const handleLessonCreated = (newLesson: Lesson) => {
+    setLessons((prevLessons) => [...prevLessons, newLesson]);
+  };
 
   const onLessonsDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -349,24 +355,20 @@ function ModuleItem({
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <FormDialog
-                          trigger={
-                            <Button variant="outline" size="sm">
-                              <Plus className="sm: h-4 w-4" />
-                              <span className="hidden sm:inline">
-                                Add Lesson
-                              </span>
-                            </Button>
-                          }
-                          title="Add New Lesson"
-                          description="Create a new lesson in this module"
-                          form={<AddLessonForm />}
-                          footer={<Button>Create Lesson</Button>}
-                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsAddLessonOpen(true)}
+                        >
+                          <Plus className="sm: h-4 w-4" />
+                          <span className="hidden sm:inline">Add Lesson</span>
+                        </Button>
                       </TooltipTrigger>
+
                       <TooltipContent>Add Lesson</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -441,6 +443,23 @@ function ModuleItem({
           </Card>
         )}
       </Draggable>
+
+      <Dialog open={isAddLessonOpen} onOpenChange={setIsAddLessonOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Lesson</DialogTitle>
+            <DialogDescription>
+              Create a new lesson in "{module.title}"
+            </DialogDescription>
+          </DialogHeader>
+          <AddLessonForm
+            courseId={courseId}
+            moduleId={module.id}
+            onLessonCreated={handleLessonCreated}
+            setDialogOpen={setIsAddLessonOpen}
+          />
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={!!editingLesson}
