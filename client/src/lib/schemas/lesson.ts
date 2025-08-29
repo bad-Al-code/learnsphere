@@ -1,10 +1,7 @@
 import z from 'zod';
 
 export const createLessonSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters.'),
-  lessonType: z.enum(['video', 'text', 'quiz']),
-  content: z.string().optional(),
-  isPublished: z.boolean().default(false).optional(),
+  title: z.string().min(1, 'Title is required.'),
 });
 
 export type CreateLessonFormValues = z.infer<typeof createLessonSchema>;

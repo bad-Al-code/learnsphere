@@ -1,6 +1,5 @@
 'use client';
 
-import { RichTextEditor } from '@/components/text-editor';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -15,7 +14,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -35,23 +33,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  CreateLessonFormValues,
-  createLessonSchema,
-} from '@/lib/schemas/lesson';
 import { ModuleSchemaValues, moduleSchema } from '@/lib/schemas/module';
 import { cn } from '@/lib/utils';
-import { Module } from '@/types/module';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, FileUp, Plus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import {
+  Calendar as CalendarIcon,
+  FileUp,
+  Plus,
+  Upload,
+  Video,
+} from 'lucide-react';
 import React, { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { createLesson, createModule } from '../../actions';
+import { createModule } from '../../actions';
 
 interface FormDialogProps {
   trigger: React.ReactNode;
@@ -83,31 +80,22 @@ export function FormDialog({
   );
 }
 
-export function AddModuleForm({
-  courseId,
-  onModuleCreated,
-}: {
-  courseId: string;
-  onModuleCreated: (newModule: Module) => void;
-}) {
+export function AddModuleForm({ courseId }: { courseId: string }) {
   const [isPending, startTransition] = useTransition();
   const [isOpen, setIsOpen] = useState(false);
 
   const form = useForm<ModuleSchemaValues>({
     resolver: zodResolver(moduleSchema),
-    defaultValues: { title: '', isPublished: false },
+    defaultValues: { title: '' },
   });
 
   const onSubmit = (values: ModuleSchemaValues) => {
     startTransition(async () => {
       const result = await createModule(courseId, values);
-
       if (result.error) {
         toast.error('Failed to create module', { description: result.error });
       } else {
         toast.success('Module created successfully!');
-
-        onModuleCreated(result.data);
         form.reset();
         setIsOpen(false);
       }
@@ -118,7 +106,8 @@ export function AddModuleForm({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">
-          <Plus className="mr-2 h-4 w-4" /> Add Module
+          <Plus className="h-4 w-4" />
+          Add Module
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
@@ -149,28 +138,6 @@ export function AddModuleForm({
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="isPublished"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                  <div className="space-y-0.5">
-                    <FormLabel>Publish</FormLabel>
-                    <FormDescription>
-                      Make this module visible to students immediately.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
             <DialogFooter>
               <Button
                 type="button"
@@ -191,163 +158,90 @@ export function AddModuleForm({
   );
 }
 
-export function AddLessonForm({
-  courseId,
-  moduleId,
-}: {
-  courseId: string;
-  moduleId: string;
-}) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [isOpen, setIsOpen] = useState(false);
+export function AddLessonForm() {
+  const [lessonType, setLessonType] = useState('text');
 
-  const form = useForm<CreateLessonFormValues>({
-    resolver: zodResolver(createLessonSchema),
-    defaultValues: {
-      title: '',
-      lessonType: 'text',
-      isPublished: false,
-      content: '',
-    },
-  });
+  const renderLessonContent = () => {
+    switch (lessonType) {
+      case 'video':
+        return (
+          <div className="grid gap-2">
+            <Label>Video Content</Label>
 
-  const lessonType = form.watch('lessonType');
+            <div className="flex h-32 w-full flex-col items-center justify-center rounded-md border-2 border-dashed p-2">
+              <Upload className="text-muted-foreground mb-2 h-8 w-8" />
+              <Button variant="outline">
+                <Video className="h-4 w-4" /> Upload Video
+              </Button>
+              <Input className="mt-2" placeholder="Or paste video URL..." />
+            </div>
+          </div>
+        );
 
-  const onSubmit = (values: CreateLessonFormValues) => {
-    startTransition(async () => {
-      const result = await createLesson(courseId, moduleId, values);
-      if (result.error) {
-        toast.error('Failed to create lesson', { description: result.error });
-      } else {
-        toast.success('Lesson created successfully!');
-        form.reset();
-        setIsOpen(false);
-        router.refresh();
-      }
-    });
+      case 'quiz':
+        return (
+          <div className="space-y-4">
+            <div className="grid gap-2">
+              <Label>Quiz Content</Label>
+              <Textarea placeholder="Quiz instructions and description..." />
+            </div>
+            <div className="grid gap-2">
+              <Label>Sample Question</Label>
+              <Input placeholder="Enter your question..." />
+            </div>
+            <div className="grid gap-2">
+              <Label>Options</Label>
+              <Input placeholder="Option A" />
+              <Input placeholder="Option B" />
+            </div>
+          </div>
+        );
+
+      case 'text':
+      default:
+        return (
+          <div className="grid gap-2">
+            <Label>Text Content</Label>
+            <Textarea
+              placeholder="Write your lesson content here..."
+              className="min-h-32"
+            />
+          </div>
+        );
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Plus className="mr-2 h-4 w-4" />
-          Add a lesson
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add New Lesson</DialogTitle>
-          <DialogDescription>
-            Create a new lesson in this module.
-          </DialogDescription>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Lesson Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., 'React Hooks'" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="lessonType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Lesson Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="text">Text</SelectItem>
-                      <SelectItem value="video">Video</SelectItem>
-                      <SelectItem value="quiz" disabled>
-                        Quiz (Coming Soon)
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {lessonType === 'video' && (
-              <div className="bg-muted text-muted-foreground rounded-lg border p-4 text-center text-sm">
-                You can add a video to this lesson after it has been created.
-              </div>
-            )}
-
-            {lessonType === 'text' && (
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Content</FormLabel>
-                    <FormControl>
-                      <RichTextEditor onChange={field.onChange} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            <FormField
-              control={form.control}
-              name="isPublished"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                  <div className="space-y-0.5">
-                    <FormLabel>Publish</FormLabel>
-                    <FormDescription>
-                      Make this lesson visible immediately.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setIsOpen(false)}
-                disabled={isPending}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isPending}>
-                {isPending ? 'Creating...' : 'Create Lesson'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+    <>
+      <div className="grid gap-2">
+        <Label>Lesson Title</Label>
+        <Input placeholder="Enter lesson title" />
+      </div>
+      <div className="grid gap-2">
+        <Label>Lesson Type</Label>
+        <Select value={lessonType} onValueChange={setLessonType}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="text">Text/Reading</SelectItem>
+            <SelectItem value="video">Video Lesson</SelectItem>
+            <SelectItem value="quiz">Quiz/Assessment</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      {renderLessonContent()}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-2">
+          <Label>Duration (minutes)</Label>
+          <Input type="number" placeholder="15" />
+        </div>
+        <div className="grid gap-2">
+          <Label>Lesson Order</Label>
+          <Input type="number" placeholder="1" />
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -458,14 +352,7 @@ export function PageWithModals() {
           }
           title="Add New Module"
           description="Create a new module for your course content."
-          form={
-            <AddModuleForm
-              courseId=""
-              onModuleCreated={function (newModule: Module): void {
-                throw new Error('Function not implemented.');
-              }}
-            />
-          }
+          form={<AddModuleForm courseId="" />}
           footer={<Button>Create Module</Button>}
         />
         <FormDialog
@@ -476,7 +363,7 @@ export function PageWithModals() {
           }
           title="Add New Lesson"
           description="Create a new lesson in Introduction to Data Science."
-          form={<AddLessonForm courseId={''} moduleId={''} />}
+          form={<AddLessonForm />}
           footer={<Button>Create Lesson</Button>}
         />
       </div>
