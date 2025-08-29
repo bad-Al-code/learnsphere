@@ -387,12 +387,15 @@ export function CreateAssignmentForm({
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<CreateAssignmentFormValues>({
-    resolver: zodResolver(createAssignmentSchema),
+    resolver: zodResolver(
+      createAssignmentSchema
+    ) as Resolver<CreateAssignmentFormValues>,
     defaultValues: {
       title: '',
       description: '',
       moduleId: undefined,
       dueDate: null,
+      status: 'draft',
     },
   });
 
@@ -506,6 +509,29 @@ export function CreateAssignmentForm({
                 </PopoverContent>
               </Popover>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Publish</FormLabel>
+                <FormDescription>
+                  Make this assignment visible to students immediately.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value === 'published'}
+                  onCheckedChange={(checked) =>
+                    field.onChange(checked ? 'published' : 'draft')
+                  }
+                />
+              </FormControl>
             </FormItem>
           )}
         />

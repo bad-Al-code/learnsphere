@@ -1,11 +1,12 @@
 import logger from '../config/logger';
 import { AssignmentRepository, ModuleRepository } from '../db/repostiories';
-import { NotFoundError } from '../errors';
+import { BadRequestError, NotFoundError } from '../errors';
 import {
   assignmentSchema,
   CreateAssignmentDto,
   FindAssignmentsQuery,
   UpdateAssignmentDto,
+  updateAssignmentSchema,
 } from '../schemas';
 import { Requester } from '../types';
 import { AuthorizationService } from './authorization.service';
@@ -43,6 +44,7 @@ export class AssignmentService {
       moduleId,
       courseId: parentModule.courseId,
       order: nextOrder,
+      status: validatedData.status,
     });
 
     await CourseCacheService.invalidateCacheDetails(parentModule.courseId);
@@ -70,10 +72,17 @@ export class AssignmentService {
       requester
     );
 
+    const validatedData = updateAssignmentSchema.parse(data);
+
+    if (Object.keys(validatedData).length === 0) {
+      throw new BadRequestError('No valid fields provided for update.');
+    }
+
     const updatedAssignment = await AssignmentRepository.update(
       assignmentId,
-      data
+      validatedData
     );
+
     if (!updatedAssignment) throw new NotFoundError('Assignment');
 
     await CourseCacheService.invalidateCacheDetails(assignment.courseId);

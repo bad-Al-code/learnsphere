@@ -93,13 +93,12 @@ export const assignmentSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters.'),
   description: z.string().optional().nullable(),
   dueDate: z.coerce.date().optional().nullable(),
-});
-
-export const updateAssignmentSchema = assignmentSchema.partial().extend({
-  status: z.enum(assignmentStatusEnum.enumValues).optional(),
+  status: z.enum(assignmentStatusEnum.enumValues).optional().default('draft'),
 });
 
 export type CreateAssignmentDto = z.infer<typeof assignmentSchema>;
+
+export const updateAssignmentSchema = assignmentSchema.partial();
 export type UpdateAssignmentDto = z.infer<typeof updateAssignmentSchema>;
 
 export type Assignment = typeof assignments.$inferSelect;

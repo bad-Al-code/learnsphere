@@ -10,6 +10,7 @@ import {
   CreateAssignmentFormValues,
   createAssignmentSchema,
   FindAssignmentsQuery,
+  updateAssignmentSchema,
 } from '@/lib/schemas/assignment';
 import { CourseFormValues, courseSchema } from '@/lib/schemas/course';
 import {
@@ -645,6 +646,32 @@ export async function createAssignment(
       return { error: error.issues[0].message };
     }
 
+    return { error: error.message };
+  }
+}
+
+export async function updateAssignment(
+  courseId: string,
+  assignmentId: string,
+  values: z.infer<typeof updateAssignmentSchema>
+) {
+  try {
+    const validatedData = updateAssignmentSchema.parse(values);
+    const response = await courseService.put(
+      `/api/assignments/${assignmentId}`,
+      validatedData
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to update assignment.');
+    }
+
+    revalidatePath(`/dashboard/instructor/courses/${courseId}/assignments`);
+    return { success: true };
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
     return { error: error.message };
   }
 }

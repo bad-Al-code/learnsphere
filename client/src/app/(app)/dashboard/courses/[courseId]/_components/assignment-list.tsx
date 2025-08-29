@@ -16,7 +16,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { useEffect, useState, useTransition } from 'react';
+import { toast } from 'sonner';
+import { updateAssignment } from '../../actions';
 
 type Assignment = {
   id: string;
@@ -36,6 +39,41 @@ export function AssignmentsList({
   courseId,
   moduleOptions,
 }: AssignmentsListProps) {
+  const [assignments, setAssignments] = useState(initialAssignments);
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setAssignments(initialAssignments);
+  }, [initialAssignments]);
+
+  const handleTogglePublish = (assignmentToToggle: Assignment) => {
+    const previousAssignments = assignments;
+    const newStatus =
+      assignmentToToggle.status === 'published' ? 'draft' : 'published';
+
+    setAssignments((prev) =>
+      prev.map((a) =>
+        a.id === assignmentToToggle.id ? { ...a, status: newStatus } : a
+      )
+    );
+
+    startTransition(() => {
+      toast.promise(
+        updateAssignment(courseId, assignmentToToggle.id, {
+          status: newStatus,
+        }),
+        {
+          loading: 'Updating status...',
+          success: 'Assignment status updated!',
+          error: (err) => {
+            setAssignments(previousAssignments);
+            return err.message || 'Failed to update status.';
+          },
+        }
+      );
+    });
+  };
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -87,6 +125,24 @@ export function AssignmentsList({
                         <Pencil className="h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
+
+                      <DropdownMenuItem
+                        onClick={() => handleTogglePublish(assignment)}
+                        className="flex items-center gap-2"
+                      >
+                        {assignment.status === 'published' ? (
+                          <>
+                            <EyeOff className="h-4 w-4" />
+                            Unpublish
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="h-4 w-4" />
+                            Publish
+                          </>
+                        )}
+                      </DropdownMenuItem>
+
                       <DropdownMenuItem
                         className="text-destructive hover:!text-destructive focus:!text-destructive"
                         // onClick={onDelete}
