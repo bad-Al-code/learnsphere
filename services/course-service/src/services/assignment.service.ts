@@ -2,6 +2,7 @@ import logger from '../config/logger';
 import { AssignmentRepository, ModuleRepository } from '../db/repostiories';
 import { NotFoundError } from '../errors';
 import {
+  assignmentSchema,
   CreateAssignmentDto,
   FindAssignmentsQuery,
   UpdateAssignmentDto,
@@ -23,6 +24,8 @@ export class AssignmentService {
     data: CreateAssignmentDto,
     requester: Requester
   ) {
+    const validatedData = assignmentSchema.parse(data);
+
     const parentModule = await ModuleRepository.findById(moduleId);
     if (!parentModule) throw new NotFoundError('Module');
 
@@ -34,13 +37,16 @@ export class AssignmentService {
     const nextOrder = parentModule.assignments?.length || 0;
 
     const newAssignment = await AssignmentRepository.create({
-      ...data,
+      title: validatedData.title,
+      description: validatedData.description,
+      dueDate: validatedData.dueDate,
       moduleId,
       courseId: parentModule.courseId,
       order: nextOrder,
     });
 
     await CourseCacheService.invalidateCacheDetails(parentModule.courseId);
+
     return newAssignment;
   }
 

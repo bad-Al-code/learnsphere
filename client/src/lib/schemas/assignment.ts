@@ -22,3 +22,12 @@ export const findAssignmentsSchema = z.object({
 });
 
 export type FindAssignmentsQuery = z.infer<typeof findAssignmentsSchema>;
+
+export const createAssignmentSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters.'),
+  description: z.string().optional(),
+  moduleId: z.string().uuid('You must select a module.'),
+  dueDate: z.date().optional().nullable(),
+});
+
+export type CreateAssignmentFormValues = z.infer<typeof createAssignmentSchema>;

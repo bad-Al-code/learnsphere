@@ -26,13 +26,14 @@ export function AssignmentFilters({ moduleOptions }: AssignmentFiltersProps) {
   const handleFilterChange = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', '1');
+
     if (value && value !== 'all') {
       params.set(key, value);
     } else {
       params.delete(key);
     }
+
     const newUrl = `${pathname}?${params.toString()}`;
-    // Using router.push to trigger re-render of the Server Component
     router.push(newUrl);
   };
 
@@ -41,7 +42,7 @@ export function AssignmentFilters({ moduleOptions }: AssignmentFiltersProps) {
   }, 500);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       <div className="flex w-full gap-2 sm:max-w-md">
         <div className="relative flex-grow">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />

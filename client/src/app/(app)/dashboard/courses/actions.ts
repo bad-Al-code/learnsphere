@@ -6,7 +6,11 @@ import {
   paymentService,
   userService,
 } from '@/lib/api';
-import { FindAssignmentsQuery } from '@/lib/schemas/assignment';
+import {
+  CreateAssignmentFormValues,
+  createAssignmentSchema,
+  FindAssignmentsQuery,
+} from '@/lib/schemas/assignment';
 import { CourseFormValues, courseSchema } from '@/lib/schemas/course';
 import {
   LessonFormValues,
@@ -609,5 +613,38 @@ export async function getCourseAssignments(options: FindAssignmentsQuery) {
       results: [],
       pagination: { currentPage: 1, totalPages: 1, totalResults: 0 },
     };
+  }
+}
+
+export async function createAssignment(
+  courseId: string,
+  values: CreateAssignmentFormValues
+) {
+  try {
+    const validatedData = createAssignmentSchema.parse(values);
+
+    const { moduleId, ...payload } = validatedData;
+
+    const response = await courseService.post(
+      `/api/modules/${moduleId}/assignments`,
+      payload
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(
+        data.errors?.[0]?.message || 'Failed to create assignment.'
+      );
+    }
+
+    revalidatePath(`/dashboard/courses/${courseId}/assignments`);
+
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+
+    return { error: error.message };
   }
 }

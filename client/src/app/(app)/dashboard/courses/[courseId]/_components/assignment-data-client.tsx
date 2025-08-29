@@ -1,6 +1,7 @@
 import { PaginationControls } from '@/components/shared/pagination-controls';
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -9,6 +10,7 @@ import {
 import { getCourseAssignments } from '../../actions';
 import { AssignmentFilters } from './assignment-filters';
 import { AssignmentsList } from './assignment-list';
+import { AssignmentToolbar } from './assignment-toolbar';
 interface AssignmentsDataProps {
   courseId: string;
   searchParams: { [key: string]: string | string[] | undefined };
@@ -38,7 +40,7 @@ export default async function AssignmentsDataComponent({
   const { results, pagination } = await getCourseAssignments(options);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <AssignmentFilters moduleOptions={moduleOptions} />
       <Card>
         <CardHeader>
@@ -46,6 +48,12 @@ export default async function AssignmentsDataComponent({
           <CardDescription>
             Manage all assignments for this course.
           </CardDescription>
+          <CardAction>
+            <AssignmentToolbar
+              moduleOptions={moduleOptions}
+              courseId={courseId}
+            />
+          </CardAction>
         </CardHeader>
         <CardContent>
           <AssignmentsList

@@ -36,23 +36,22 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  CreateAssignmentFormValues,
+  createAssignmentSchema,
+} from '@/lib/schemas/assignment';
 import { LessonFormValues, lessonSchema } from '@/lib/schemas/lesson';
 import { ModuleSchemaValues, moduleSchema } from '@/lib/schemas/module';
 import { cn } from '@/lib/utils';
 import { Lesson } from '@/types/lesson';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import {
-  Calendar as CalendarIcon,
-  FileUp,
-  Plus,
-  Upload,
-  Video,
-} from 'lucide-react';
+import { CalendarIcon, FileUp, Plus, Upload, Video } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
 import { Resolver, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { createLesson, createModule } from '../../actions';
+import { createAssignment, createLesson, createModule } from '../../actions';
 
 interface FormDialogProps {
   trigger: React.ReactNode;
@@ -373,64 +372,159 @@ export function AddLessonForm({
   );
 }
 
-export function CreateAssignmentForm() {
-  const [date, setDate] = useState<Date>();
-  return (
-    <>
-      <div className="grid gap-2">
-        <Label>Assignment Title</Label>
-        <Input placeholder="Enter assignment title" />
-      </div>
-      <div className="grid gap-2">
-        <Label>Description</Label>
-        <Textarea placeholder="Describe the assignment requirements" />
-      </div>
-      <div className="grid grid-cols-3 gap-4">
-        <div className="grid gap-2">
-          <Label>Points</Label>
-          <Input type="number" placeholder="100" />
-        </div>
-        <div className="grid gap-2">
-          <Label>Type</Label>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="project">Project</SelectItem>
-              <SelectItem value="quiz">Quiz</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+interface CreateAssignmentFormProps {
+  courseId: string;
+  moduleOptions: { label: string; value: string }[];
+  setDialogOpen: (isOpen: boolean) => void;
+}
 
-        <div className="grid gap-2">
-          <Label>Due Date</Label>
-          <Popover modal={true}>
-            <PopoverTrigger asChild>
-              <Button
-                variant={'outline'}
-                className={cn(
-                  'justify-start text-left font-normal',
-                  !date && 'text-muted-foreground'
-                )}
-              >
-                <CalendarIcon className="h-4 w-4" />
-                {date ? format(date, 'PPP') : <span>dd/mm/yyyy</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                className="rounded-md border shadow-sm"
-                captionLayout="dropdown"
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
-    </>
+export function CreateAssignmentForm({
+  courseId,
+  moduleOptions,
+  setDialogOpen,
+}: CreateAssignmentFormProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  const form = useForm<CreateAssignmentFormValues>({
+    resolver: zodResolver(createAssignmentSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      moduleId: undefined,
+      dueDate: null,
+    },
+  });
+
+  const onSubmit = (values: CreateAssignmentFormValues) => {
+    startTransition(async () => {
+      const result = await createAssignment(courseId, values);
+
+      if (result.error) {
+        toast.error('Failed to create assignment', {
+          description: result.error,
+        });
+      } else {
+        toast.success('Assignment created!');
+        form.reset();
+        setDialogOpen(false);
+
+        router.refresh();
+      }
+    });
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="moduleId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Module</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a module..." />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {moduleOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="dueDate"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Due Date</FormLabel>
+              <Popover modal={true}>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        'pl-3 text-left font-normal',
+                        !field.value && 'text-muted-foreground'
+                      )}
+                    >
+                      {field.value ? (
+                        format(field.value, 'PPP')
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value ?? undefined}
+                    onSelect={field.onChange}
+                    className="rounded-md border shadow-sm"
+                    captionLayout="dropdown"
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setDialogOpen(false)}
+            disabled={isPending}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isPending}>
+            {isPending ? 'Creating...' : 'Create Assignment'}
+          </Button>
+        </DialogFooter>
+      </form>
+    </Form>
   );
 }
 
@@ -467,71 +561,71 @@ export function AddResourceForm() {
   );
 }
 
-export function PageWithModals() {
-  return (
-    <div className="space-y-4 p-8">
-      <h2 className="text-xl font-bold">Content Management</h2>
-      <div className="flex gap-2">
-        <FormDialog
-          trigger={
-            <Button variant="outline">
-              <Plus className="h-4 w-4" /> Add Module
-            </Button>
-          }
-          title="Add New Module"
-          description="Create a new module for your course content."
-          form={<AddModuleForm courseId="" />}
-          footer={<Button>Create Module</Button>}
-        />
-        <FormDialog
-          trigger={
-            <Button variant="outline">
-              <Plus className="h-4 w-4" /> Add Lesson
-            </Button>
-          }
-          title="Add New Lesson"
-          description="Create a new lesson in Introduction to Data Science."
-          form={
-            <AddLessonForm
-              courseId={''}
-              moduleId={''}
-              onLessonCreated={function (newLesson: Lesson): void {
-                throw new Error('Function not implemented.');
-              }}
-              setDialogOpen={function (isOpen: boolean): void {
-                throw new Error('Function not implemented.');
-              }}
-            />
-          }
-          footer={<Button>Create Lesson</Button>}
-        />
-      </div>
+// export function PageWithModals() {
+//   return (
+//     <div className="space-y-4 p-8">
+//       <h2 className="text-xl font-bold">Content Management</h2>
+//       <div className="flex gap-2">
+//         <FormDialog
+//           trigger={
+//             <Button variant="outline">
+//               <Plus className="h-4 w-4" /> Add Module
+//             </Button>
+//           }
+//           title="Add New Module"
+//           description="Create a new module for your course content."
+//           form={<AddModuleForm courseId="" />}
+//           footer={<Button>Create Module</Button>}
+//         />
+//         <FormDialog
+//           trigger={
+//             <Button variant="outline">
+//               <Plus className="h-4 w-4" /> Add Lesson
+//             </Button>
+//           }
+//           title="Add New Lesson"
+//           description="Create a new lesson in Introduction to Data Science."
+//           form={
+//             <AddLessonForm
+//               courseId={''}
+//               moduleId={''}
+//               onLessonCreated={function (newLesson: Lesson): void {
+//                 throw new Error('Function not implemented.');
+//               }}
+//               setDialogOpen={function (isOpen: boolean): void {
+//                 throw new Error('Function not implemented.');
+//               }}
+//             />
+//           }
+//           footer={<Button>Create Lesson</Button>}
+//         />
+//       </div>
 
-      <h2 className="text-xl font-bold">Assignment & Resource Management</h2>
-      <div className="flex gap-2">
-        <FormDialog
-          trigger={
-            <Button>
-              <Plus className="h-4 w-4" /> Create Assignment
-            </Button>
-          }
-          title="Create New Assignment"
-          description="Set up a new assignment for your students."
-          form={<CreateAssignmentForm />}
-          footer={<Button>Create Assignment</Button>}
-        />
-        <FormDialog
-          trigger={
-            <Button>
-              <Plus className="h-4 w-4" /> Add Resource
-            </Button>
-          }
-          title="Add New Resource"
-          description="Upload a file or add a link for students to access."
-          form={<AddResourceForm />}
-          footer={<Button>Add Resource</Button>}
-        />
-      </div>
-    </div>
-  );
-}
+//       <h2 className="text-xl font-bold">Assignment & Resource Management</h2>
+//       <div className="flex gap-2">
+//         <FormDialog
+//           trigger={
+//             <Button>
+//               <Plus className="h-4 w-4" /> Create Assignment
+//             </Button>
+//           }
+//           title="Create New Assignment"
+//           description="Set up a new assignment for your students."
+//           form={<CreateAssignmentForm />}
+//           footer={<Button>Create Assignment</Button>}
+//         />
+//         <FormDialog
+//           trigger={
+//             <Button>
+//               <Plus className="h-4 w-4" /> Add Resource
+//             </Button>
+//           }
+//           title="Add New Resource"
+//           description="Upload a file or add a link for students to access."
+//           form={<AddResourceForm />}
+//           footer={<Button>Add Resource</Button>}
+//         />
+//       </div>
+//     </div>
+//   );
+// }
