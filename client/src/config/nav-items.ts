@@ -370,3 +370,20 @@ export const studentCoursesTabs: NavItem[] = [
     icon: 'Milestone',
   },
 ];
+
+export const studentAssignmentsTabs: NavItem[] = [
+  { href: '#', label: 'Upcoming', value: 'upcoming', icon: 'CalendarClock' },
+  { href: '#', label: 'Submitted', value: 'submitted', icon: 'UploadCloud' },
+  { href: '#', label: 'Drafts', value: 'drafts', icon: 'Save' },
+  { href: '#', label: 'AI Review', value: 'ai-review', icon: 'Bot' },
+  { href: '#', label: 'Peer Review', value: 'peer-review', icon: 'Users' },
+  { href: '#', label: 'Templates', value: 'templates', icon: 'ClipboardList' },
+  {
+    href: '#',
+    label: 'Collaborative',
+    value: 'collaborative',
+    icon: 'Workflow',
+  },
+  { href: '#', label: 'Portfolio', value: 'portfolio', icon: 'Briefcase' },
+  { href: '#', label: 'Analytics', value: 'analytics', icon: 'BarChart2' },
+];
