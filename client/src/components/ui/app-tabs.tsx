@@ -12,7 +12,6 @@ import { DeviceType, useDevice } from '@/hooks/use-mobile';
 import { NavItem } from '@/types';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from './button';
 
 interface AppTabsProps {
   tabs: NavItem[];
@@ -27,9 +26,14 @@ export function AppTabs({ tabs, basePath, activeTab }: AppTabsProps) {
 
   const createTabURL = (tabValue: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', tabValue);
+    params.set(activeTab, tabValue);
     return `${basePath}?${params.toString()}`;
   };
+
+  const showIconOnly =
+    device === 'mobile' ||
+    device === 'tablet' ||
+    (device === 'desktop' && tabs.length > 8);
 
   const getTabClassNames = () => {
     switch (device) {
@@ -44,25 +48,24 @@ export function AppTabs({ tabs, basePath, activeTab }: AppTabsProps) {
   };
 
   return (
-    <TabsList className={getTabClassNames()}>
+    <TabsList className="flex w-full">
       {tabs.map((tab) => {
         const Icon = iconMap[tab.icon];
+        if (!Icon) return null;
         const href = createTabURL(tab.value);
 
-        if (device === 'mobile' || device === 'tablet') {
+        if (showIconOnly) {
           return (
-            <TooltipProvider key={tab.value} delayDuration={100}>
+            <TooltipProvider key={tab.value} delayDuration={150}>
               <Tooltip>
-                <TabsTrigger value={tab.value} asChild>
+                <TabsTrigger value={tab.value} asChild className="flex-1">
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => router.push(href)}
-                      className="mx-auto cursor-pointer rounded-md"
+                    <Link
+                      href={href}
+                      className="flex h-full w-full items-center justify-center"
                     >
                       <Icon className="h-4 w-4" />
-                    </Button>
+                    </Link>
                   </TooltipTrigger>
                 </TabsTrigger>
                 <TooltipContent side="bottom">
@@ -74,10 +77,15 @@ export function AppTabs({ tabs, basePath, activeTab }: AppTabsProps) {
         }
 
         return (
-          <TabsTrigger key={tab.value} value={tab.value} asChild>
+          <TabsTrigger
+            key={tab.value}
+            value={tab.value}
+            asChild
+            className="flex-1"
+          >
             <Link
               href={href}
-              className="flex cursor-pointer items-center gap-2 whitespace-nowrap"
+              className="flex items-center gap-2 px-4 whitespace-nowrap"
             >
               <Icon className="h-4 w-4" />
               <span>{tab.label}</span>

@@ -30,15 +30,21 @@ export function SidebarNav({ type }: SidebarNavProps) {
     <nav className="grid items-start gap-1 text-sm font-medium">
       {navItems.map((item) => {
         const Icon = iconMap[item.icon];
-        const isActive =
-          item.href === '/dashboard'
-            ? pathname === item.href
-            : pathname.startsWith(item.href);
+        if (!Icon) return null;
+
+        const isActive = () => {
+          if (item.href === '/student' || item.href === '/dashboard') {
+            return pathname === item.href;
+          }
+
+          return pathname.startsWith(item.href);
+        };
+
         return (
           <Button
             key={item.href}
             asChild
-            variant={isActive ? 'secondary' : 'ghost'}
+            variant={isActive() ? 'secondary' : 'ghost'}
             className="w-full justify-start gap-2"
           >
             <Link href={item.href} className="flex items-center gap-2">
