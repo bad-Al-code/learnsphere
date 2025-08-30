@@ -5,25 +5,32 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { studentGradesTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
+import { AiInsightsTab, AiInsightsTabSkeleton } from './ai-insights-tab';
+import { ComparisonTab, ComparisonTabSkeleton } from './comparison-tab';
+import { GoalsTab, GoalsTabSkeleton } from './goals-tab';
+import { GradesTab, GradesTabSkeleton } from './grade-tab';
+import { ProgressTab, ProgressTabSkeleton } from './progress-tab';
+import { ReportsTab, ReportsTabSkeleton } from './reports-tab';
+import { StudyHabitsTab, StudyHabitsTabSkeleton } from './student-habit-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
-  grades: <p>Loading Grades...</p>,
-  progress: <p>Loading Progress...</p>,
-  comparison: <p>Loading Comparison...</p>,
-  'study-habits': <p>Loading Study Habits...</p>,
-  'ai-insights': <p>Loading AI Insights...</p>,
-  reports: <p>Loading Reports...</p>,
-  goals: <p>Loading Goals...</p>,
+  grades: <GradesTabSkeleton />,
+  progress: <ProgressTabSkeleton />,
+  comparison: <ComparisonTabSkeleton />,
+  'study-habits': <StudyHabitsTabSkeleton />,
+  'ai-insights': <AiInsightsTabSkeleton />,
+  reports: <ReportsTabSkeleton />,
+  goals: <GoalsTabSkeleton />,
 };
 
 const contentMap: Record<string, React.ReactNode> = {
-  grades: <p>Grades</p>,
-  progress: <p>Progress</p>,
-  comparison: <p>Comparison</p>,
-  'study-habits': <p>Study Habits</p>,
-  'ai-insights': <p>AI Insights</p>,
-  reports: <p>Reports</p>,
-  goals: <p>Goals</p>,
+  grades: <GradesTab />,
+  progress: <ProgressTab />,
+  comparison: <ComparisonTab />,
+  'study-habits': <StudyHabitsTab />,
+  'ai-insights': <AiInsightsTab />,
+  reports: <ReportsTab />,
+  goals: <GoalsTab />,
 };
 
 export function GradesTabs() {
@@ -54,13 +61,11 @@ export function GradesTabs() {
         basePath="/student/grades"
         activeTab="tab"
       />
-      <div className="mt-6 flex h-48 items-center justify-center rounded-lg border">
+      <div className="">
         {isPending ? (
           pendingSkeleton
         ) : (
-          <TabsContent value={currentTabFromUrl} className="text-2xl font-bold">
-            {activeContent}
-          </TabsContent>
+          <TabsContent value={currentTabFromUrl}>{activeContent}</TabsContent>
         )}
       </div>
     </Tabs>
