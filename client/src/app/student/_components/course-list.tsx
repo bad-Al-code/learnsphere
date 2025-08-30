@@ -73,7 +73,7 @@ const placeholderData: MyCoursesData = {
 
 function CourseProgressCard({ course }: { course: CourseProgress }) {
   return (
-    <Card className="bg-background flex h-full flex-col">
+    <Card className="bg-muted/20 flex h-full flex-col">
       <CardHeader>
         <div className="flex items-center gap-4">
           <Image
