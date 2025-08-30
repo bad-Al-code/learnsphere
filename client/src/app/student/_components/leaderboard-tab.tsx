@@ -61,7 +61,7 @@ function LeaderboardItem({ entry }: { entry: LeaderboardEntry }) {
   return (
     <div
       className={cn(
-        'flex items-center gap-2 rounded-lg p-3',
+        'flex items-center gap-2 rounded-lg border p-3',
         entry.isCurrentUser ? 'bg-muted' : 'bg-background'
       )}
     >
@@ -75,7 +75,9 @@ function LeaderboardItem({ entry }: { entry: LeaderboardEntry }) {
         {entry.rank}
       </div>
       <Avatar className="h-9 w-9">
-        <AvatarFallback>{getInitials(entry.name)}</AvatarFallback>
+        <AvatarFallback className="bg-muted/50 border">
+          {getInitials(entry.name)}
+        </AvatarFallback>
       </Avatar>
       <div className="flex-grow">
         <p className="font-semibold">

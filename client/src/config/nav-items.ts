@@ -319,3 +319,36 @@ export const studentCustomizeNavItems: NavItem[] = [
     icon: 'Palette',
   },
 ];
+
+export const studentDashboardTabs: NavItem[] = [
+  {
+    href: '/student?tab=summary',
+    label: 'Summary',
+    value: 'summary',
+    icon: 'LayoutGrid',
+  },
+  {
+    href: '/student?tab=leaderboard',
+    label: 'Leaderboard',
+    value: 'leaderboard',
+    icon: 'Trophy',
+  },
+  {
+    href: '/student?tab=insights',
+    label: 'Insights',
+    value: 'insights',
+    icon: 'Lightbulb',
+  },
+  {
+    href: '/student?tab=notifications',
+    label: 'Notifications',
+    value: 'notifications',
+    icon: 'Bell',
+  },
+  {
+    href: '/student?tab=activity',
+    label: 'Activity',
+    value: 'activity',
+    icon: 'Activity',
+  },
+];

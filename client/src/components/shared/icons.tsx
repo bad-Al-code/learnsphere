@@ -33,6 +33,7 @@ import {
   Presentation,
   Settings,
   Shield,
+  Trophy,
   User,
   Users,
   UserSquare,
@@ -77,6 +78,7 @@ export const iconMap: Record<string, LucideIcon> = {
   Palette,
   Home,
   Workflow,
+  Trophy,
 };
 
 export type IconName = keyof typeof iconMap;

@@ -15,7 +15,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AlarmClock, Award, LucideIcon, Play, Zap } from 'lucide-react';
 import Image from 'next/image';
 
-// --- TYPE DEFINITIONS ---
 interface CourseProgress {
   title: string;
   instructor: string;
@@ -33,7 +32,6 @@ interface MyCoursesData {
   stats: MiniStat[];
 }
 
-// --- BUILT-IN PLACEHOLDER DATA ---
 const placeholderData: MyCoursesData = {
   courses: [
     {
@@ -75,7 +73,7 @@ const placeholderData: MyCoursesData = {
 
 function CourseProgressCard({ course }: { course: CourseProgress }) {
   return (
-    <Card className="flex h-full flex-col">
+    <Card className="bg-background flex h-full flex-col">
       <CardHeader>
         <div className="flex items-center gap-4">
           <Image
@@ -130,21 +128,23 @@ export function MyCoursesTab() {
   const data = placeholderData;
 
   return (
-    <div className="space-y-2">
-      <div>
+    <Card className="">
+      <CardHeader>
         <h2 className="text-2xl font-bold">Course Progress</h2>
-      </div>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {data.courses.map((course) => (
-          <CourseProgressCard key={course.title} course={course} />
-        ))}
-      </div>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-        {data.stats.map((stat) => (
-          <MiniStatCard key={stat.title} stat={stat} />
-        ))}
-      </div>
-    </div>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {data.courses.map((course) => (
+            <CourseProgressCard key={course.title} course={course} />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {data.stats.map((stat) => (
+            <MiniStatCard key={stat.title} stat={stat} />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -173,6 +173,7 @@ function CourseProgressCardSkeleton() {
     </Card>
   );
 }
+
 function MiniStatCardSkeleton() {
   return (
     <Card>

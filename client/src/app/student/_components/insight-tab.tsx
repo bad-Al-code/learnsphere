@@ -2,9 +2,22 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FC } from 'react';
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 type TInsightCardProps = {
   title: string;
@@ -18,10 +31,6 @@ type TAIStudyAssistantProps = {
   onAsk: (query: string) => void;
 };
 
-type TStudyTimeTrendProps = {
-  data: { day: string; hours: number }[];
-};
-
 export const InsightCard: FC<TInsightCardProps> = ({
   title,
   level,
@@ -32,7 +41,7 @@ export const InsightCard: FC<TInsightCardProps> = ({
   <Card>
     <CardHeader>
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {icon}
           <CardTitle>{title}</CardTitle>
           <span
@@ -69,7 +78,7 @@ export const AIStudyAssistant: FC<TAIStudyAssistantProps> = ({ onAsk }) => (
       >
         Ask AI
       </Button>
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         <Button variant="outline" size="sm">
           Summarize Progress
         </Button>
@@ -84,6 +93,32 @@ export const AIStudyAssistant: FC<TAIStudyAssistantProps> = ({ onAsk }) => (
   </Card>
 );
 
+type TStudyData = {
+  day: string;
+  hours: number;
+};
+
+type TStudyTimeTrendProps = {
+  data: TStudyData[];
+};
+
+const chartData: TStudyData[] = [
+  { day: 'Mon', hours: 3 },
+  { day: 'Tue', hours: 3.5 },
+  { day: 'Wed', hours: 2 },
+  { day: 'Thu', hours: 4 },
+  { day: 'Fri', hours: 3 },
+  { day: 'Sat', hours: 3.5 },
+  { day: 'Sun', hours: 2.5 },
+];
+
+const chartConfig = {
+  hours: {
+    label: 'Hours',
+    color: 'var(--primary)',
+  },
+} satisfies ChartConfig;
+
 export const StudyTimeTrend: FC<TStudyTimeTrendProps> = ({ data }) => (
   <Card>
     <CardHeader>
@@ -93,19 +128,52 @@ export const StudyTimeTrend: FC<TStudyTimeTrendProps> = ({ data }) => (
       </p>
     </CardHeader>
     <CardContent>
-      <div className="flex h-40 items-end justify-between rounded-md border px-4 pb-4">
-        {data.map(({ day, hours }) => (
-          <div key={day} className="flex flex-col items-center">
-            <div className="flex h-full items-end">
-              <div
-                className="bg-primary w-2 rounded-t-full"
-                style={{ height: `${(hours / 8) * 100}%` }}
-              />
-            </div>
-            <span className="mt-2 text-xs">{day}</span>
-          </div>
-        ))}
-      </div>
+      <ChartContainer config={chartConfig} className="h-40 w-full">
+        <LineChart
+          accessibilityLayer
+          data={data}
+          margin={{
+            top: 5,
+            right: 10,
+            left: 10,
+            bottom: 5,
+          }}
+        >
+          <CartesianGrid vertical={false} strokeDasharray="3 3" />
+          <XAxis
+            dataKey="day"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            tickFormatter={(value) => value.slice(0, 3)}
+          />
+          <YAxis
+            domain={[0, 8]}
+            ticks={[0, 4, 8]}
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+          />
+          <Tooltip
+            cursor={false}
+            content={<ChartTooltipContent indicator="dot" />}
+          />
+          <Line
+            dataKey="hours"
+            type="monotone"
+            stroke="var(--primary)"
+            strokeWidth={2}
+            strokeDasharray="2 8"
+            dot={{
+              fill: 'bg-muted',
+              r: 4,
+            }}
+            activeDot={{
+              r: 4,
+            }}
+          />
+        </LineChart>
+      </ChartContainer>
     </CardContent>
   </Card>
 );
@@ -158,7 +226,7 @@ export const StudyTimeTrendSkeleton: FC = () => (
   </Card>
 );
 
-const InsightTab: FC = () => {
+export function InsightTab() {
   const studyTimeData = [
     { day: 'Mon', hours: 4 },
     { day: 'Tue', hours: 3 },
@@ -170,7 +238,7 @@ const InsightTab: FC = () => {
   ];
 
   return (
-    <div className="space-y-2">
+    <div className="">
       <Card>
         <CardContent className="space-y-2">
           <h1 className="text-2xl font-bold">AI Insights Feed</h1>
@@ -202,23 +270,26 @@ const InsightTab: FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          <div className="zl:grid-cols-2 grid grid-cols-1 gap-2">
             <AIStudyAssistant onAsk={(query) => console.log(query)} />
             <StudyTimeTrend data={studyTimeData} />
-          </div>
-
-          <div className="mt-12 space-y-8">
-            <h2 className="text-xl font-bold">Skeleton Loading States</h2>
-            <InsightCardSkeleton />
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-              <AIStudyAssistantSkeleton />
-              <StudyTimeTrendSkeleton />
-            </div>
           </div>
         </CardContent>
       </Card>
     </div>
   );
-};
+}
 
-export default InsightTab;
+export function InsightsTabSkeleton() {
+  return (
+    <Card className="space-y-2">
+      <CardContent className="space-y-2">
+        <InsightCardSkeleton />
+        <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+          <AIStudyAssistantSkeleton />
+          <StudyTimeTrendSkeleton />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
