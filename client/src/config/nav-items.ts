@@ -387,3 +387,99 @@ export const studentAssignmentsTabs: NavItem[] = [
   { href: '#', label: 'Portfolio', value: 'portfolio', icon: 'Briefcase' },
   { href: '#', label: 'Analytics', value: 'analytics', icon: 'BarChart2' },
 ];
+
+export const studentGradesTabs: NavItem[] = [
+  { href: '#', label: 'Grades', value: 'grades', icon: 'Award' },
+  { href: '#', label: 'Progress', value: 'progress', icon: 'TrendingUp' },
+  { href: '#', label: 'Comparison', value: 'comparison', icon: 'Users' },
+  { href: '#', label: 'Study Habits', value: 'study-habits', icon: 'BookOpen' },
+  { href: '#', label: 'AI Insights', value: 'ai-insights', icon: 'Lightbulb' },
+  { href: '#', label: 'Reports', value: 'reports', icon: 'FileBarChart' },
+  { href: '#', label: 'Goals', value: 'goals', icon: 'Target' },
+];
+
+export const studentAnalyticsTabs: NavItem[] = [
+  { href: '#', label: 'Performance', value: 'performance', icon: 'TrendingUp' },
+  {
+    href: '#',
+    label: 'Engagement',
+    value: 'engagement',
+    icon: 'HeartHandshake',
+  },
+  { href: '#', label: 'AI Insights', value: 'ai-insights', icon: 'Lightbulb' },
+];
+
+export const studentCertificatesTabs: NavItem[] = [
+  { href: '#', label: 'Certificates', value: 'certificates', icon: 'Award' },
+  { href: '#', label: 'In Progress', value: 'in-progress', icon: 'Loader' },
+  { href: '#', label: 'Achievements', value: 'achievements', icon: 'Trophy' },
+  {
+    href: '#',
+    label: 'Digital Badges',
+    value: 'digital-badges',
+    icon: 'Badge',
+  },
+  { href: '#', label: 'Portfolio', value: 'portfolio', icon: 'Briefcase' },
+  { href: '#', label: 'Settings', value: 'settings', icon: 'Settings' },
+  { href: '#', label: 'Account', value: 'account', icon: 'User' },
+];
+
+export const studentAiToolsTabs: NavItem[] = [
+  { href: '#', label: 'AI Tutor', value: 'ai-tutor', icon: 'Bot' },
+  { href: '#', label: 'Smart Notes', value: 'smart-notes', icon: 'FileText' },
+  {
+    href: '#',
+    label: 'Writing Assistant',
+    value: 'writing-assistant',
+    icon: 'Pencil',
+  },
+  {
+    href: '#',
+    label: 'Flashcards',
+    value: 'flashcards',
+    icon: 'ClipboardList',
+  },
+  { href: '#', label: 'Voice Tutor', value: 'voice-tutor', icon: 'Mic' },
+  { href: '#', label: 'Research', value: 'research', icon: 'Search' },
+  { href: '#', label: 'Analytics', value: 'analytics', icon: 'BarChart2' },
+  { href: '#', label: 'Quiz', value: 'quiz', icon: 'HelpCircle' },
+];
+
+export const studentCommunityTabs: NavItem[] = [
+  { href: '#', label: 'Chat', value: 'chat', icon: 'MessageSquare' },
+  { href: '#', label: 'Study Rooms', value: 'study-rooms', icon: 'School' },
+  { href: '#', label: 'Projects', value: 'projects', icon: 'Briefcase' },
+  { href: '#', label: 'Tutoring', value: 'tutoring', icon: 'GraduationCap' },
+  { href: '#', label: 'Events', value: 'events', icon: 'Calendar' },
+  {
+    href: '#',
+    label: 'Mentorship',
+    value: 'mentorship',
+    icon: 'HeartHandshake',
+  },
+  { href: '#', label: 'Leaderboard', value: 'leaderboard', icon: 'Trophy' },
+  { href: '#', label: 'Discussions', value: 'discussions', icon: 'Users' },
+];
+
+export const studentIntegrationsTabs: NavItem[] = [
+  { href: '#', label: 'All Integrations', value: 'all', icon: 'Combine' },
+  { href: '#', label: 'Connected', value: 'connected', icon: 'Link' },
+  { href: '#', label: 'Available', value: 'available', icon: 'PlusCircle' },
+];
+
+export const studentPersonalizationTabs: NavItem[] = [
+  { href: '#', label: 'Themes', value: 'themes', icon: 'Palette' },
+  { href: '#', label: 'Layout', value: 'layout', icon: 'LayoutTemplate' },
+  {
+    href: '#',
+    label: 'Preferences',
+    value: 'preferences',
+    icon: 'SlidersHorizontal',
+  },
+  {
+    href: '#',
+    label: 'Accessibility',
+    value: 'accessibility',
+    icon: 'Accessibility',
+  },
+];
