@@ -5,18 +5,28 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { studentCoursesTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
+import { AnalyticsTab, AnalyticsTabSkeleton } from './analytics-tab';
+import { AssignmentsTab, AssignmentsTabSkeleton } from './assignments-tab';
+import { ComparisonTab, ComparisonTabSkeleton } from './comparison-tab';
+import { CompletedTab, CompletedTabSkeleton } from './completed-tab';
+import { EnrolledTab, EnrolledTabSkeleton } from './enrolled-tab';
+import { LearningPathTab, LearningPathTabSkeleton } from './learning-path-tab';
+import { MaterialsTab, MaterialsTabSkeleton } from './materials-tab';
+import { ModulesTab, ModulesTabSkeleton } from './modules-tab';
+import { RecommendedTab, RecommendedTabSkeleton } from './recommended-tab';
+import { StudyGroupTab, StudyGroupTabSkeleton } from './study-groups-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
-  enrolled: <p>Loading Enrolled </p>,
-  completed: <p>Loading Completed </p>,
-  recommended: <p>Loading recommended </p>,
-  modules: <p>Modules Content...</p>,
-  assignments: <p>Assignments Content...</p>,
-  analytics: <p>Analytics Content...</p>,
-  comparison: <p>Comparison Content...</p>,
-  materials: <p>Materials Content...</p>,
-  'study-groups': <p>Study Groups Content...</p>,
-  'learning-path': <p>Learning Path Content...</p>,
+  enrolled: <EnrolledTabSkeleton />,
+  completed: <CompletedTabSkeleton />,
+  recommended: <RecommendedTabSkeleton />,
+  modules: <ModulesTabSkeleton />,
+  assignments: <AssignmentsTabSkeleton />,
+  analytics: <AnalyticsTabSkeleton />,
+  comparison: <ComparisonTabSkeleton />,
+  materials: <MaterialsTabSkeleton />,
+  'study-groups': <StudyGroupTabSkeleton />,
+  'learning-path': <LearningPathTabSkeleton />,
 };
 
 export function CoursesTabs() {
@@ -43,30 +53,24 @@ export function CoursesTabs() {
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <AppTabs
         tabs={studentCoursesTabs}
-        basePath="/student/my-courses"
+        basePath="/student/courses"
         activeTab="tab"
       />
-      <div className="mt-6">
+      <div className="">
         {isPending ? (
           pendingSkeleton
         ) : (
           <TabsContent value={currentTabFromUrl}>
-            {currentTabFromUrl === 'enrolled' && <p>Enrolled</p>}
-            {currentTabFromUrl === 'completed' && <p>Courses</p>}
-            {currentTabFromUrl === 'recommended' && <p>Recommended</p>}
-            {currentTabFromUrl === 'modules' && <p>Modules Content...</p>}
-            {currentTabFromUrl === 'assignments' && (
-              <p>Assignments Content...</p>
-            )}
-            {currentTabFromUrl === 'analytics' && <p>Analytics Content...</p>}
-            {currentTabFromUrl === 'comparison' && <p>Comparison Content...</p>}
-            {currentTabFromUrl === 'materials' && <p>Materials Content...</p>}
-            {currentTabFromUrl === 'study-groups' && (
-              <p>Study Groups Content...</p>
-            )}
-            {currentTabFromUrl === 'learning-path' && (
-              <p>Learning Path Content...</p>
-            )}
+            {currentTabFromUrl === 'enrolled' && <EnrolledTab />}
+            {currentTabFromUrl === 'completed' && <CompletedTab />}
+            {currentTabFromUrl === 'recommended' && <RecommendedTab />}
+            {currentTabFromUrl === 'modules' && <ModulesTab />}
+            {currentTabFromUrl === 'assignments' && <AssignmentsTab />}
+            {currentTabFromUrl === 'analytics' && <AnalyticsTab />}
+            {currentTabFromUrl === 'comparison' && <ComparisonTab />}
+            {currentTabFromUrl === 'materials' && <MaterialsTab />}
+            {currentTabFromUrl === 'study-groups' && <StudyGroupTab />}
+            {currentTabFromUrl === 'learning-path' && <LearningPathTab />}
           </TabsContent>
         )}
       </div>
