@@ -6,6 +6,7 @@ import { studentDashboardTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
 
+import { ActivityTab, ActivityTabSkeleton } from './activity-tab';
 import { InsightsTabSkeleton, InsightTab } from './insight-tab';
 import { ClassLeaderboard, ClassLeaderboardSkeleton } from './leaderboard-tab';
 import { NotificationTab, NotificationTabSkeleton } from './notification-tab';
@@ -16,7 +17,7 @@ const skeletonMap: Record<string, React.ReactNode> = {
   leaderboard: <ClassLeaderboardSkeleton />,
   insights: <InsightsTabSkeleton />,
   notifications: <NotificationTabSkeleton />,
-  activity: <div className="rounded-lg border p-4">Activity Skeleton</div>,
+  activity: <ActivityTabSkeleton />,
 };
 
 export function StudentDashboardTabs() {
@@ -55,7 +56,7 @@ export function StudentDashboardTabs() {
             {currentTabFromUrl === 'leaderboard' && <ClassLeaderboard />}
             {currentTabFromUrl === 'insights' && <InsightTab />}
             {currentTabFromUrl === 'notifications' && <NotificationTab />}
-            {currentTabFromUrl === 'activity' && <p>Activity Content...</p>}
+            {currentTabFromUrl === 'activity' && <ActivityTab />}
           </TabsContent>
         )}
       </div>

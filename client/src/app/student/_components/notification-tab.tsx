@@ -186,7 +186,7 @@ export function NotificationTab() {
   return (
     <Card className="">
       <CardHeader className="flex-row items-center justify-between">
-        <CardTitle>Notifications</CardTitle>
+        <CardTitle className="text-2xl font-bold">Notifications</CardTitle>
         <CardAction>
           <Button variant="outline" size="sm" onClick={handleMarkAllRead}>
             <CheckCircle className="h-4 w-4" />
