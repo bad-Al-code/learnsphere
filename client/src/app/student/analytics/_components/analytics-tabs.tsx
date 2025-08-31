@@ -5,19 +5,20 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { studentAnalyticsTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
+import { AiInsightsTab, AiInsightsTabSkeleton } from './ai-insights-tab';
+import { EngagementTab, EngagementTabSkeleton } from './engagement-tab';
+import { PerformanceTab, PerformanceTabSkeleton } from './performance-tab';
 
-// A map of tab values to their loading messages
 const skeletonMap: Record<string, React.ReactNode> = {
-  performance: <p>Loading Performance...</p>,
-  engagement: <p>Loading Engagement...</p>,
-  'ai-insights': <p>Loading AI Insights...</p>,
+  performance: <PerformanceTabSkeleton />,
+  engagement: <EngagementTabSkeleton />,
+  'ai-insights': <AiInsightsTabSkeleton />,
 };
 
-// A map of tab values to their final content
 const contentMap: Record<string, React.ReactNode> = {
-  performance: <p>Performance</p>,
-  engagement: <p>Engagement</p>,
-  'ai-insights': <p>AI Insights</p>,
+  performance: <PerformanceTab />,
+  engagement: <EngagementTab />,
+  'ai-insights': <AiInsightsTab />,
 };
 
 export function AnalyticsTabs() {
