@@ -59,8 +59,8 @@ const trendsData = [
 ];
 
 const trendsConfig = {
-  submissions: { label: 'Submissions', color: 'var(--chart0)' },
-  grade: { label: 'Avg. Grade', color: 'var(--chart-1)' },
+  submissions: { label: 'Submissions', color: 'var(--chart-1)' },
+  grade: { label: 'Avg. Grade', color: 'var(--chart-2)' },
 } satisfies ChartConfig;
 
 const gradesData = [

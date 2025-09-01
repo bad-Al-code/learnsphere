@@ -3,10 +3,11 @@ import { studentPersonalizationTabs } from '@/config/nav-items';
 import { Suspense } from 'react';
 import { PageHeader, PageHeaderSkeleton } from '../_components/page-header';
 import { PersonalizationTabs } from './_components/customize-tabs';
+import { ThemesTabSkeleton } from './_components/themes-tab';
 
 function PersonalizationPageSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="mb-4 space-y-2">
       <PageHeaderSkeleton />
       <div className="space-y-4">
         <div className="flex border-b">
@@ -16,9 +17,7 @@ function PersonalizationPageSkeleton() {
             )
           )}
         </div>
-        <div className="flex h-48 w-full items-center justify-center rounded-lg border">
-          <p className="text-muted-foreground">Loading Themes...</p>
-        </div>
+        <ThemesTabSkeleton />
       </div>
     </div>
   );
@@ -26,7 +25,7 @@ function PersonalizationPageSkeleton() {
 
 export default function PersonalizationPage() {
   return (
-    <div className="space-y-6">
+    <div className="mb-4 space-y-2">
       <PageHeader
         title="Personalization"
         description="Customize your learning environment, themes, and preferences."

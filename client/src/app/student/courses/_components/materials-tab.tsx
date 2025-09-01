@@ -508,8 +508,6 @@ export function MaterialsTab() {
         ))}
       </div>
       <MyNotesSection />
-
-      <MaterialsTabSkeleton />
     </div>
   );
 }

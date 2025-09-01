@@ -5,7 +5,7 @@ import { EnrolledTabSkeleton } from './_components/enrolled-tab';
 
 export default function MyCoursesPage() {
   return (
-    <div className="space-y-2">
+    <div className="mb-4 space-y-2">
       <PageHeader
         title="My Courses"
         description="Manage your learning journey and track your progress"
@@ -20,7 +20,7 @@ export default function MyCoursesPage() {
 
 function MyCoursesPageSkeleton() {
   return (
-    <div className="space-y-2">
+    <div className="mb-4 space-y-2">
       <PageHeaderSkeleton />
       <EnrolledTabSkeleton />
     </div>

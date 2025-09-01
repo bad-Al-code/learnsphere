@@ -7,7 +7,7 @@ import { GradesTabs } from './_components/grades-tabs';
 
 function GradesPageSkeleton() {
   return (
-    <div className="space-y-2">
+    <div className="mb-4 space-y-2">
       <PageHeaderSkeleton />
       <div className="space-y-2">
         <div className="flex border-b">
@@ -23,7 +23,7 @@ function GradesPageSkeleton() {
 
 export default function GradesPage() {
   return (
-    <div className="space-y-2">
+    <div className="mb-4 space-y-2">
       <PageHeader
         title="Grades & Progress"
         description="Advanced insights into your learning journey and performance"

@@ -383,7 +383,6 @@ export function ProgressTab() {
         <AIProgressInsights />
       </div>
       <LearningMilestones />
-      <ProgressTabSkeleton />
     </div>
   );
 }

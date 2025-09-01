@@ -7,7 +7,7 @@ import { PerformanceTabSkeleton } from './_components/performance-tab';
 
 function AnalyticsPageSkeleton() {
   return (
-    <div className="space-y-2">
+    <div className="mb-4 space-y-2">
       <PageHeaderSkeleton />
       <div className="space-y-2">
         <div className="flex border-b">
@@ -25,7 +25,7 @@ function AnalyticsPageSkeleton() {
 
 export default function AnalyticsPage() {
   return (
-    <div className="space-y-2">
+    <div className="mb-4 space-y-2">
       <PageHeader
         title="My Analytics"
         description="Track your performance and engagement metrics"

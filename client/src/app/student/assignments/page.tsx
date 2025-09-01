@@ -7,7 +7,7 @@ import { UpcomingTabSkeleton } from './_components/upcoming-tab';
 
 function AssignmentsPageSkeleton() {
   return (
-    <div className="space-y-2">
+    <div className="mb-4 space-y-2">
       <PageHeaderSkeleton />
       <div className="space-y-4">
         <div className="flex border-b">
@@ -25,7 +25,7 @@ function AssignmentsPageSkeleton() {
 
 export default function AssignmentsPage() {
   return (
-    <div className="space-y-2">
+    <div className="mb-4 space-y-2">
       <PageHeader
         title="Assignments"
         description="Manage your assignments and track submission status"

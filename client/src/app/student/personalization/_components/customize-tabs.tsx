@@ -5,19 +5,26 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { studentPersonalizationTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
+import {
+  AccessibilityTab,
+  AccessibilityTabSkeleton,
+} from './accessibility-tab';
+import { LayoutTab, LayoutTabSkeleton } from './layout-tab';
+import { PreferencesTab, PreferencesTabSkeleton } from './preferences-tab';
+import { ThemesTab, ThemesTabSkeleton } from './themes-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
-  themes: <p>Loading Themes...</p>,
-  layout: <p>Loading Layout...</p>,
-  preferences: <p>Loading Preferences...</p>,
-  accessibility: <p>Loading Accessibility...</p>,
+  themes: <ThemesTabSkeleton />,
+  layout: <LayoutTabSkeleton />,
+  preferences: <PreferencesTabSkeleton />,
+  accessibility: <AccessibilityTabSkeleton />,
 };
 
 const contentMap: Record<string, React.ReactNode> = {
-  themes: <p>Themes</p>,
-  layout: <p>Layout</p>,
-  preferences: <p>Preferences</p>,
-  accessibility: <p>Accessibility</p>,
+  themes: <ThemesTab />,
+  layout: <LayoutTab />,
+  preferences: <PreferencesTab />,
+  accessibility: <AccessibilityTab />,
 };
 
 export function PersonalizationTabs() {

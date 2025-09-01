@@ -388,8 +388,8 @@ function ChatView({
                 className={cn(
                   'max-w-xs rounded-lg p-2 text-sm',
                   msg.isCurrentUser
-                    ? 'from-muted/40 to-muted/10 text-primary bg-gradient-to-r'
-                    : 'from-muted/10 to-muted/40 bg-gradient-to-r'
+                    ? 'from-muted/50 to-muted text-primary bg-gradient-to-r'
+                    : 'from-muted/50 to-muted bg-gradient-to-r'
                 )}
               >
                 <p>{msg.text}</p>

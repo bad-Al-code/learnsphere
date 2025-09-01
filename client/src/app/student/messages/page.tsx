@@ -2,7 +2,7 @@ import { Messages } from './_components/message';
 
 export default function MessagesPage() {
   return (
-    <div className="space-y-2">
+    <div className="mb-0">
       <Messages />
       {/* <MessagesSkeleton /> */}
     </div>

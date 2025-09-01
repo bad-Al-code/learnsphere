@@ -31,7 +31,7 @@ function VoiceAiTutor() {
   return (
     <Card className="">
       <CardHeader className="flex items-center justify-start gap-2">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+        <div className="from-muted to-primary/30 text-foreground flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br">
           <Mic className="h-6 w-6" />
         </div>
 
