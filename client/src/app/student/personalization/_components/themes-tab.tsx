@@ -164,7 +164,7 @@ function CustomThemeBuilder() {
                 />
                 <Input
                   defaultValue={color.value}
-                  className="flex-1 border-0 p-0 focus-visible:ring-0"
+                  className="flex-1 border-0 pl-2 focus-visible:ring-0"
                 />
               </div>
             </div>

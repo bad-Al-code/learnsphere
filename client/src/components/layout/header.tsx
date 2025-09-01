@@ -69,24 +69,26 @@ export function Header({ user: initialUser }: { user: User | null }) {
     <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full backdrop-blur">
       <div className="container mx-auto flex h-16 items-center justify-between px-0">
         {/* Logo */}
-        <div className="flex items-center">
-          <Link href="/" className="flex items-center space-x-2">
-            <Logo className="w-32" />
-          </Link>
-        </div>
-
-        {/* Center Nav (Desktop only) */}
-        <nav className="hidden flex-1 items-center justify-center space-x-6 text-sm font-medium sm:flex">
-          {publicNavItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="hover:text-foreground/80 transition-colors"
-            >
-              {item.label}
+        <div className="flex gap-12 md:gap-16">
+          <div className="flex items-center">
+            <Link href="/" className="flex items-center space-x-2">
+              <Logo className="w-32" />
             </Link>
-          ))}
-        </nav>
+          </div>
+
+          {/* Center Nav (Desktop only) */}
+          <nav className="hidden flex-1 items-center justify-center space-x-6 text-sm font-medium sm:flex">
+            {publicNavItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="hover:text-foreground/80 transition-colors"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
 
         {/* Right Section */}
         <div className="flex items-center space-x-2">

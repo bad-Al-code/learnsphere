@@ -175,7 +175,7 @@ function GradesHeader() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline">
-                  <FileSpreadsheet className="h-4 w-4 lg:mr-2" />
+                  <FileSpreadsheet className="h-4 w-4" />
                   <span className="hidden lg:inline">Export CSV</span>
                 </Button>
               </TooltipTrigger>
@@ -187,7 +187,7 @@ function GradesHeader() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline">
-                  <FileText className="h-4 w-4 lg:mr-2" />
+                  <FileText className="h-4 w-4" />
                   <span className="hidden lg:inline">Export PDF</span>
                 </Button>
               </TooltipTrigger>
