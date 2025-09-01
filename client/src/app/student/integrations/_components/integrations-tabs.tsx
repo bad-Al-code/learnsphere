@@ -5,17 +5,20 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { studentIntegrationsTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
+import { AllTab, AllTabSkeleton } from './all-tab';
+import { AvailableTab, AvailableTabSkeleton } from './available-tab';
+import { ConnectedTab, ConnectedTabSkeleton } from './connected-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
-  all: <p>Loading All Integrations...</p>,
-  connected: <p>Loading Connected Integrations...</p>,
-  available: <p>Loading Available Integrations...</p>,
+  all: <AllTabSkeleton />,
+  connected: <ConnectedTabSkeleton />,
+  available: <AvailableTabSkeleton />,
 };
 
 const contentMap: Record<string, React.ReactNode> = {
-  all: <p>All Integrations</p>,
-  connected: <p>Connected</p>,
-  available: <p>Available</p>,
+  all: <AllTab />,
+  connected: <ConnectedTab />,
+  available: <AvailableTab />,
 };
 
 export function IntegrationsTabs() {
