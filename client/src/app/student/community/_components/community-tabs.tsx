@@ -5,27 +5,35 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { studentCommunityTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
+import { ChatTab, ChatTabSkeleton } from './chat-tab';
+import { DiscussionsTab, DiscussionsTabSkeleton } from './discussions-tab';
+import { EventsTab, EventsTabSkeleton } from './events-tab';
+import { LeaderboardTab, LeaderboardTabSkeleton } from './leaderboard-tab';
+import { MentorshipTab, MentorshipTabSkeleton } from './mentorship-tab';
+import { ProjectsTab, ProjectsTabSkeleton } from './projects-tab';
+import { StudyRoomsTab, StudyRoomsTabSkeleton } from './study-rooms-tab';
+import { TutoringTab, TutoringTabSkeleton } from './tutoring-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
-  chat: <p>Loading Chat...</p>,
-  'study-rooms': <p>Loading Study Rooms...</p>,
-  projects: <p>Loading Projects...</p>,
-  tutoring: <p>Loading Tutoring...</p>,
-  events: <p>Loading Events...</p>,
-  mentorship: <p>Loading Mentorship...</p>,
-  leaderboard: <p>Loading Leaderboard...</p>,
-  discussions: <p>Loading Discussions...</p>,
+  chat: <ChatTabSkeleton />,
+  'study-rooms': <StudyRoomsTabSkeleton />,
+  projects: <ProjectsTabSkeleton />,
+  tutoring: <TutoringTabSkeleton />,
+  events: <EventsTabSkeleton />,
+  mentorship: <MentorshipTabSkeleton />,
+  leaderboard: <LeaderboardTabSkeleton />,
+  discussions: <DiscussionsTabSkeleton />,
 };
 
 const contentMap: Record<string, React.ReactNode> = {
-  chat: <p>Chat</p>,
-  'study-rooms': <p>Study Rooms</p>,
-  projects: <p>Projects</p>,
-  tutoring: <p>Tutoring</p>,
-  events: <p>Events</p>,
-  mentorship: <p>Mentorship</p>,
-  leaderboard: <p>Leaderboard</p>,
-  discussions: <p>Discussions</p>,
+  chat: <ChatTab />,
+  'study-rooms': <StudyRoomsTab />,
+  projects: <ProjectsTab />,
+  tutoring: <TutoringTab />,
+  events: <EventsTab />,
+  mentorship: <MentorshipTab />,
+  leaderboard: <LeaderboardTab />,
+  discussions: <DiscussionsTab />,
 };
 
 export function CommunityTabs() {

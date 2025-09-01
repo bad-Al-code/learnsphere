@@ -2,6 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { studentCommunityTabs } from '@/config/nav-items';
 import { Suspense } from 'react';
 import { PageHeader, PageHeaderSkeleton } from '../_components/page-header';
+import { ChatTabSkeleton } from './_components/chat-tab';
 import { CommunityTabs } from './_components/community-tabs';
 
 function CommunityPageSkeleton() {
@@ -16,9 +17,7 @@ function CommunityPageSkeleton() {
             )
           )}
         </div>
-        <div className="flex h-48 w-full items-center justify-center rounded-lg border">
-          <p className="text-muted-foreground">Loading Chat...</p>
-        </div>
+        <ChatTabSkeleton />
       </div>
     </div>
   );
