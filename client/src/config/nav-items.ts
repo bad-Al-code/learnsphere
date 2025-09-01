@@ -420,8 +420,6 @@ export const studentCertificatesTabs: NavItem[] = [
     icon: 'Badge',
   },
   { href: '#', label: 'Portfolio', value: 'portfolio', icon: 'Briefcase' },
-  { href: '#', label: 'Settings', value: 'settings', icon: 'Settings' },
-  { href: '#', label: 'Account', value: 'account', icon: 'User' },
 ];
 
 export const studentAiToolsTabs: NavItem[] = [

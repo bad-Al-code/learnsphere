@@ -5,25 +5,29 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { studentCertificatesTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
+import { AchievementsTab, AchievementsTabSkeleton } from './achievements-tab';
+import { CertificatesTab, CertificatesTabSkeleton } from './certificates-tab';
+import {
+  DigitalBadgesTab,
+  DigitalBadgesTabSkeleton,
+} from './digital-badges-tab';
+import { InProgressTab, InProgressTabSkeleton } from './in-progress-tab';
+import { PortfolioTab, PortfolioTabSkeleton } from './portfolio-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
-  certificates: <p>Loading Certificates...</p>,
-  'in-progress': <p>Loading In Progress...</p>,
-  achievements: <p>Loading Achievements...</p>,
-  'digital-badges': <p>Loading Digital Badges...</p>,
-  portfolio: <p>Loading Portfolio...</p>,
-  settings: <p>Loading Settings...</p>,
-  account: <p>Loading Account...</p>,
+  certificates: <CertificatesTabSkeleton />,
+  'in-progress': <InProgressTabSkeleton />,
+  achievements: <AchievementsTabSkeleton />,
+  'digital-badges': <DigitalBadgesTabSkeleton />,
+  portfolio: <PortfolioTabSkeleton />,
 };
 
 const contentMap: Record<string, React.ReactNode> = {
-  certificates: <p>Certificates</p>,
-  'in-progress': <p>In Progress</p>,
-  achievements: <p>Achievements</p>,
-  'digital-badges': <p>Digital Badges</p>,
-  portfolio: <p>Portfolio</p>,
-  settings: <p>Settings</p>,
-  account: <p>Account</p>,
+  certificates: <CertificatesTab />,
+  'in-progress': <InProgressTab />,
+  achievements: <AchievementsTab />,
+  'digital-badges': <DigitalBadgesTab />,
+  portfolio: <PortfolioTab />,
 };
 
 export function CertificatesTabs() {

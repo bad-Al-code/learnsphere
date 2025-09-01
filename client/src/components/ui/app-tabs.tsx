@@ -33,7 +33,7 @@ export function AppTabs({ tabs, basePath, activeTab }: AppTabsProps) {
   const showIconOnly =
     device === 'mobile' ||
     device === 'tablet' ||
-    (device === 'desktop' && tabs.length > 8);
+    (device === 'desktop' && tabs.length > 7);
 
   const getTabClassNames = () => {
     switch (device) {
