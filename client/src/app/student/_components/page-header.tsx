@@ -6,15 +6,22 @@ import { useRouter } from 'next/navigation';
 interface PageHeaderProps {
   title: string;
   description?: string | null;
+  titleClassName?: string;
 }
 
-export function PageHeader({ title, description }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  description,
+  titleClassName = '',
+}: PageHeaderProps) {
   const router = useRouter();
 
   return (
     <div className="mb-2 flex items-center gap-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        <h1 className={`text-2xl font-bold tracking-tight ${titleClassName}`}>
+          {title}
+        </h1>
         {description && (
           <p className="text-muted-foreground line-clamp-2" title={description}>
             {description}

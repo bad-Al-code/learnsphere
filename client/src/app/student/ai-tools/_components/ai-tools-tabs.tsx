@@ -5,27 +5,38 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { studentAiToolsTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
+import { AiTutorTab, AiTutorTabSkeleton } from './ai-tutor-tab';
+import { AnalyticsTab, AnalyticsTabSkeleton } from './analytics-tab';
+import { FlashcardsTab, FlashcardsTabSkeleton } from './flashcards-tab';
+import { QuizTab, QuizTabSkeleton } from './quiz-tab';
+import { ResearchTab, ResearchTabSkeleton } from './research-tab';
+import { SmartNotesTab, SmartNotesTabSkeleton } from './smart-notes-tab';
+import { VoiceTutorTab, VoiceTutorTabSkeleton } from './voice-tutor-tab';
+import {
+  WritingAssistantTab,
+  WritingAssistantTabSkeleton,
+} from './writing-assignments-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
-  'ai-tutor': <p>Loading AI Tutor...</p>,
-  'smart-notes': <p>Loading Smart Notes...</p>,
-  'writing-assistant': <p>Loading Writing Assistant...</p>,
-  flashcards: <p>Loading Flashcards...</p>,
-  'voice-tutor': <p>Loading Voice Tutor...</p>,
-  research: <p>Loading Research...</p>,
-  analytics: <p>Loading Analytics...</p>,
-  quiz: <p>Loading Quiz...</p>,
+  'ai-tutor': <AiTutorTabSkeleton />,
+  'smart-notes': <SmartNotesTabSkeleton />,
+  'writing-assistant': <WritingAssistantTabSkeleton />,
+  flashcards: <FlashcardsTabSkeleton />,
+  'voice-tutor': <VoiceTutorTabSkeleton />,
+  research: <ResearchTabSkeleton />,
+  analytics: <AnalyticsTabSkeleton />,
+  quiz: <QuizTabSkeleton />,
 };
 
 const contentMap: Record<string, React.ReactNode> = {
-  'ai-tutor': <p>AI Tutor</p>,
-  'smart-notes': <p>Smart Notes</p>,
-  'writing-assistant': <p>Writing Assistant</p>,
-  flashcards: <p>Flashcards</p>,
-  'voice-tutor': <p>Voice Tutor</p>,
-  research: <p>Research</p>,
-  analytics: <p>Analytics</p>,
-  quiz: <p>Quiz</p>,
+  'ai-tutor': <AiTutorTab />,
+  'smart-notes': <SmartNotesTab />,
+  'writing-assistant': <WritingAssistantTab />,
+  flashcards: <FlashcardsTab />,
+  'voice-tutor': <VoiceTutorTab />,
+  research: <ResearchTab />,
+  analytics: <AnalyticsTab />,
+  quiz: <QuizTab />,
 };
 
 export function AiToolsTabs() {
