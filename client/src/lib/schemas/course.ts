@@ -98,3 +98,9 @@ export type CreateResourceValues = z.infer<typeof createResourceSchema>;
 
 export const updateResourceSchema = createResourceSchema.partial();
 export type UpdateResourceValues = z.infer<typeof updateResourceSchema>;
+
+export const addResourceFormSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters.'),
+  status: z.enum(['draft', 'published']),
+});
+export type AddResourceFormValues = z.infer<typeof addResourceFormSchema>;

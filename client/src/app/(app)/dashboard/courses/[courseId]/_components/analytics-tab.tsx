@@ -28,6 +28,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { getInitials } from '@/lib/utils';
 import {
   CheckCircle,
@@ -121,13 +127,13 @@ function StatCard({ title, value, change, icon: Icon }: StatCardData) {
   const isPositive = change >= 0;
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-muted-foreground text-sm font-medium">
           {title}
         </CardTitle>
         <Icon className="text-muted-foreground h-4 w-4" />
       </CardHeader>
-      <CardContent>
+      <CardContent className="my-auto">
         <div className="text-2xl font-bold">{value}</div>
         <div
           className={`flex items-center gap-1 text-xs ${isPositive ? 'text-emerald-500' : 'text-rose-500'}`}
@@ -378,16 +384,24 @@ function StudentPerformanceTable({
 export function AnalyticsTab() {
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2">
         <div>
           <h2 className="text-2xl font-bold">Course Analytics</h2>
           <p className="text-muted-foreground">
             Deep dive into course performance and student engagement.
           </p>
         </div>
-        <Button variant="outline">
-          <LineChart className="h-4 w-4" /> Export Report
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline">
+                <LineChart className="h-4 w-4" />
+                <span className="hidden sm:inline">Export Report</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Export Report</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {placeholderData.stats.map((stat) => (

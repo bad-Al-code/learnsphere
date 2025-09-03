@@ -72,3 +72,4 @@ export const paymentService = createApiService(
 export const enrollmentService = createApiService(
   process.env.ENROLLMENT_SERVICE_URL!
 );
+export const mediaService = createApiService(process.env.MEDIA_SERVICE_URL!);

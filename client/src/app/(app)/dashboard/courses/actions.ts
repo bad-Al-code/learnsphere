@@ -3,6 +3,7 @@
 import {
   courseService,
   enrollmentService,
+  mediaService,
   paymentService,
   userService,
 } from '@/lib/api';
@@ -12,7 +13,12 @@ import {
   FindAssignmentsQuery,
   updateAssignmentSchema,
 } from '@/lib/schemas/assignment';
-import { CourseFormValues, courseSchema } from '@/lib/schemas/course';
+import {
+  CourseFormValues,
+  courseSchema,
+  createResourceSchema,
+  CreateResourceValues,
+} from '@/lib/schemas/course';
 import {
   LessonFormValues,
   lessonSchema,
@@ -723,5 +729,56 @@ export async function getCourseResources(
       results: [],
       pagination: { currentPage: 1, totalPages: 1, totalResults: 0 },
     };
+  }
+}
+
+export async function getResourceUploadUrl(courseId: string, filename: string) {
+  try {
+    const response = await mediaService.post('/api/media/request-upload-url', {
+      filename,
+      uploadType: 'course_resource',
+      metadata: { courseId },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.errors?.[0]?.message || 'Could not get upload URL.'
+      );
+    }
+
+    return { succes: true, data: await response.json() };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function createResource(
+  courseId: string,
+  values: CreateResourceValues
+) {
+  try {
+    const validatedData = createResourceSchema.parse(values);
+    const response = await courseService.post(
+      `/api/courses/${courseId}/resources`,
+      validatedData
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(
+        data.errors?.[0]?.message || 'Failed to create resource.'
+      );
+    }
+
+    revalidatePath(`/dashboard/courses/${courseId}`);
+
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+
+    return { error: error.message };
   }
 }

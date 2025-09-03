@@ -1,5 +1,6 @@
 'use client';
 
+import { FileUploader } from '@/components/shared/file-uploader';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -27,6 +28,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Progress } from '@/components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -40,18 +42,30 @@ import {
   CreateAssignmentFormValues,
   createAssignmentSchema,
 } from '@/lib/schemas/assignment';
+import {
+  addResourceFormSchema,
+  AddResourceFormValues,
+  CreateResourceValues,
+} from '@/lib/schemas/course';
 import { LessonFormValues, lessonSchema } from '@/lib/schemas/lesson';
-import { ModuleSchemaValues, moduleSchema } from '@/lib/schemas/module';
+import { moduleSchema, ModuleSchemaValues } from '@/lib/schemas/module';
 import { cn } from '@/lib/utils';
 import { Lesson } from '@/types/lesson';
 import { zodResolver } from '@hookform/resolvers/zod';
+import axios from 'axios';
 import { format } from 'date-fns';
-import { CalendarIcon, FileUp, Plus, Upload, Video } from 'lucide-react';
+import { CalendarIcon, Plus, Upload, Video } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
 import { Resolver, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { createAssignment, createLesson, createModule } from '../../actions';
+import {
+  createAssignment,
+  createLesson,
+  createModule,
+  createResource,
+  getResourceUploadUrl,
+} from '../../actions';
 
 interface FormDialogProps {
   trigger: React.ReactNode;
@@ -554,104 +568,171 @@ export function CreateAssignmentForm({
   );
 }
 
-export function AddResourceForm() {
-  return (
-    <>
-      <div className="grid gap-2">
-        <Label>Resource Title</Label>
-        <Input placeholder="Enter resource title" />
-      </div>
-      <div className="grid gap-2">
-        <Label>Resource Type</Label>
-        <Select>
-          <SelectTrigger>
-            <SelectValue placeholder="Select type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="pdf">PDF</SelectItem>
-            <SelectItem value="link">Link</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="grid gap-2">
-        <Label>Content</Label>
-        <div className="flex h-32 w-full flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed">
-          <Button variant="outline">
-            <FileUp className="h-4 w-4" /> Choose File
-          </Button>
-          <span className="text-muted-foreground text-xs">or</span>
-          <Input placeholder="Paste URL here..." />
-        </div>
-      </div>
-    </>
-  );
+interface AddResourceModalProps {
+  courseId: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-// export function PageWithModals() {
-//   return (
-//     <div className="space-y-4 p-8">
-//       <h2 className="text-xl font-bold">Content Management</h2>
-//       <div className="flex gap-2">
-//         <FormDialog
-//           trigger={
-//             <Button variant="outline">
-//               <Plus className="h-4 w-4" /> Add Module
-//             </Button>
-//           }
-//           title="Add New Module"
-//           description="Create a new module for your course content."
-//           form={<AddModuleForm courseId="" />}
-//           footer={<Button>Create Module</Button>}
-//         />
-//         <FormDialog
-//           trigger={
-//             <Button variant="outline">
-//               <Plus className="h-4 w-4" /> Add Lesson
-//             </Button>
-//           }
-//           title="Add New Lesson"
-//           description="Create a new lesson in Introduction to Data Science."
-//           form={
-//             <AddLessonForm
-//               courseId={''}
-//               moduleId={''}
-//               onLessonCreated={function (newLesson: Lesson): void {
-//                 throw new Error('Function not implemented.');
-//               }}
-//               setDialogOpen={function (isOpen: boolean): void {
-//                 throw new Error('Function not implemented.');
-//               }}
-//             />
-//           }
-//           footer={<Button>Create Lesson</Button>}
-//         />
-//       </div>
+export function AddResourceModal({
+  courseId,
+  isOpen,
+  onClose,
+}: AddResourceModalProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-//       <h2 className="text-xl font-bold">Assignment & Resource Management</h2>
-//       <div className="flex gap-2">
-//         <FormDialog
-//           trigger={
-//             <Button>
-//               <Plus className="h-4 w-4" /> Create Assignment
-//             </Button>
-//           }
-//           title="Create New Assignment"
-//           description="Set up a new assignment for your students."
-//           form={<CreateAssignmentForm />}
-//           footer={<Button>Create Assignment</Button>}
-//         />
-//         <FormDialog
-//           trigger={
-//             <Button>
-//               <Plus className="h-4 w-4" /> Add Resource
-//             </Button>
-//           }
-//           title="Add New Resource"
-//           description="Upload a file or add a link for students to access."
-//           form={<AddResourceForm />}
-//           footer={<Button>Add Resource</Button>}
-//         />
-//       </div>
-//     </div>
-//   );
-// }
+  const form = useForm<AddResourceFormValues>({
+    resolver: zodResolver(addResourceFormSchema),
+    defaultValues: {
+      title: '',
+      status: 'draft',
+    },
+  });
+
+  const onSubmit = (values: AddResourceFormValues) => {
+    if (!selectedFile) {
+      toast.error('Please select a file to upload.');
+      return;
+    }
+
+    startTransition(async () => {
+      try {
+        const urlResult = await getResourceUploadUrl(
+          courseId,
+          selectedFile.name
+        );
+        if (urlResult.error || !urlResult.data?.signedUrl) {
+          throw new Error(urlResult.error || 'Could not get upload URL.');
+        }
+
+        await axios.put(urlResult.data.signedUrl, selectedFile, {
+          headers: { 'Content-Type': selectedFile.type },
+          onUploadProgress: (progressEvent) => {
+            const percent = Math.round(
+              (progressEvent.loaded * 100) /
+                (progressEvent.total ?? selectedFile.size)
+            );
+            setUploadProgress(percent);
+          },
+        });
+
+        const resourcePayload: CreateResourceValues = {
+          title: values.title,
+          status: values.status,
+          fileUrl: urlResult.data.finalUrl,
+          fileName: selectedFile.name,
+          fileSize: selectedFile.size,
+          fileType: selectedFile.type,
+        };
+
+        const createResult = await createResource(courseId, resourcePayload);
+        if (createResult.error) throw new Error(createResult.error);
+
+        toast.success('Resource created successfully!');
+        onClose();
+        router.refresh();
+      } catch (err: any) {
+        toast.error('Something went wrong', { description: err.message });
+      } finally {
+        form.reset();
+        setSelectedFile(null);
+        setUploadProgress(0);
+      }
+    });
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add New Resource</DialogTitle>
+          <DialogDescription>
+            Upload a file and give it a title for your students.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 py-4"
+          >
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Resource Title</FormLabel>
+                  <FormControl>
+                    <Input {...field} disabled={isPending} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormItem>
+              <FormLabel>File</FormLabel>
+              <FormControl>
+                <FileUploader
+                  selectedFile={selectedFile}
+                  onFileSelect={setSelectedFile}
+                  onFileRemove={() => setSelectedFile(null)}
+                  disabled={isPending}
+                />
+              </FormControl>
+            </FormItem>
+
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Publish</FormLabel>
+                    <FormDescription>
+                      Make this resource visible to students.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value === 'published'}
+                      onCheckedChange={(checked) =>
+                        field.onChange(checked ? 'published' : 'draft')
+                      }
+                      disabled={isPending}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            {isPending && (
+              <div className="flex w-full items-center gap-2">
+                <Progress value={uploadProgress} className="flex-1" />
+                <p className="text-muted-foreground text-sm">
+                  {uploadProgress}%
+                </p>
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onClose}
+                disabled={isPending}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isPending || !selectedFile}>
+                {isPending ? 'Uploading...' : 'Save Resource'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}

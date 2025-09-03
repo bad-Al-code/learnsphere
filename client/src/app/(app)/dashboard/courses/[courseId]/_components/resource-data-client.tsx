@@ -1,4 +1,7 @@
+'use client';
+
 import { PaginationControls } from '@/components/shared/pagination-controls';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -6,23 +9,34 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getCourseResources } from '../../actions';
+import { Resource } from '@/lib/schemas/course';
+import { PlusCircle } from 'lucide-react';
+import { useState } from 'react';
+import { AddResourceModal } from './course-modal';
 import { ResourcesList } from './resource-list';
 
-interface ResourcesTabProps {
+interface ResourceDataClientProps {
   courseId: string;
-  searchParams: { [key: string]: string | string[] | undefined };
+  initialResources: Resource[];
+  pagination: { totalPages: number };
 }
 
-export default async function ResourceDataClient({
+export default function ResourceDataClient({
   courseId,
-  searchParams,
-}: ResourcesTabProps) {
-  const page = Number(searchParams?.resourcePage) || 1;
-  const { results, pagination } = await getCourseResources(courseId, page);
+  initialResources,
+  pagination,
+}: ResourceDataClientProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button onClick={() => setIsModalOpen(true)}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add Resource
+        </Button>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Course Resources</CardTitle>
@@ -31,10 +45,20 @@ export default async function ResourceDataClient({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ResourcesList initialResources={results} courseId={courseId} />
+          <ResourcesList
+            initialResources={initialResources}
+            courseId={courseId}
+          />
         </CardContent>
       </Card>
+
       <PaginationControls totalPages={pagination.totalPages} />
+
+      <AddResourceModal
+        courseId={courseId}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }

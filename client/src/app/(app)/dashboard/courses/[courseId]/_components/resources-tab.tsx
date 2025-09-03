@@ -14,7 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Suspense } from 'react';
 import { getCourseResources } from '../../actions';
 import ResourceDataClient from './resource-data-client';
 
@@ -27,12 +26,15 @@ export async function ResourceTab({
   courseId,
   searchParams,
 }: ResourcesTabProps) {
-  const course = await getCourseResources(courseId);
+  const page = Number(searchParams?.resourcePage) || 1;
+  const { results, pagination } = await getCourseResources(courseId, page);
 
   return (
-    <Suspense fallback={<ResourcesTabSkeleton />}>
-      <ResourceDataClient courseId={courseId} searchParams={searchParams} />
-    </Suspense>
+    <ResourceDataClient
+      courseId={courseId}
+      initialResources={results}
+      pagination={pagination}
+    />
   );
 }
 
