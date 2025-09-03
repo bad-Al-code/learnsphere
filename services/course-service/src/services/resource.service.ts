@@ -1,7 +1,9 @@
 import { AuthorizationService } from '.';
 import { MediaClient } from '../clients/media.client';
+import logger from '../config/logger';
 import { ResourceRepository } from '../db/repostiories';
 import { BadRequestError, NotFoundError } from '../errors';
+import { ResourceDownloadedPublisher } from '../events/publisher';
 import {
   CreateResourceDto,
   Resource,
@@ -105,6 +107,28 @@ export class ResourceService {
     //   resource.courseId,
     //   requester
     // );
+
+    await ResourceRepository.logDownload(
+      resource.id,
+      requester.id,
+      resource.courseId
+    );
+
+    logger.info(
+      `Logged download for resource ${resourceId} by user ${requester.id}`
+    );
+
+    try {
+      const publisher = new ResourceDownloadedPublisher();
+      await publisher.publish({
+        resourceId: resource.id,
+        courseId: resource.courseId,
+        userId: requester.id,
+        downloadedAt: new Date(),
+      });
+    } catch (error) {
+      logger.error(`Failed to publish`, error);
+    }
 
     return resource;
   }

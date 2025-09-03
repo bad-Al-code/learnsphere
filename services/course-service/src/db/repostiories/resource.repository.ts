@@ -1,7 +1,7 @@
 import { count, desc, eq } from 'drizzle-orm';
 import { db } from '..';
 import { NewResource, Resource, UpdateResourceDto } from '../../schemas';
-import { resources } from '../schema';
+import { resourceDownloads, resources } from '../schema';
 
 /**
  * Repository for interacting with the `resources` table.
@@ -89,5 +89,23 @@ export class ResourceRepository {
    */
   public static async delete(id: string): Promise<void> {
     await db.delete(resources).where(eq(resources.id, id));
+  }
+
+  /**
+   * Logs a download event for a specific resource by a user.
+   * @param resourceId The ID of the resource being downloaded.
+   * @param userId The ID of the user downloading the resource.
+   * @param courseId The ID of the course the resource belongs to.
+   */
+  public static async logDownload(
+    resourceId: string,
+    userId: string,
+    courseId: string
+  ): Promise<void> {
+    await db.insert(resourceDownloads).values({
+      resourceId,
+      studentId: userId,
+      courseId,
+    });
   }
 }

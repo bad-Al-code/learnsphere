@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { ResourceDownloadedPublisher } from '../events/publisher';
 import { ResourceService } from '../services';
 
 export class ResourceController {
@@ -106,14 +105,6 @@ export class ResourceController {
         resourceId,
         requester
       );
-
-      const publisher = new ResourceDownloadedPublisher();
-      await publisher.publish({
-        resourceId: resource.id,
-        courseId: resource.courseId,
-        userId: requester.id,
-        downloadedAt: new Date(),
-      });
 
       res
         .status(StatusCodes.OK)
