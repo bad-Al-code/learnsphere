@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,18 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Table,
   TableBody,
   TableCell,
@@ -47,8 +60,17 @@ import {
   UpdateAssignmentFormValues,
   updateAssignmentSchema,
 } from '@/lib/schemas/assignment';
+import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { format } from 'date-fns';
+import {
+  CalendarIcon,
+  Eye,
+  EyeOff,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from 'lucide-react';
 import { useEffect, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -94,7 +116,10 @@ export function AssignmentsList({
     form.reset({
       title: assignment.title,
       description: assignment.description || '',
+      dueDate: assignment.dueDate ? new Date(assignment.dueDate) : null,
+      status: assignment.status,
     });
+
     setEditingAssignment(assignment);
   };
 
@@ -204,7 +229,7 @@ export function AssignmentsList({
 
                   <TableCell>
                     {assignment.dueDate
-                      ? new Date(assignment.dueDate).toLocaleDateString()
+                      ? format(new Date(assignment.dueDate), 'PPP')
                       : 'N/A'}
                   </TableCell>
 
@@ -303,6 +328,70 @@ export function AssignmentsList({
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Due Date</FormLabel>
+                    <Popover modal={true}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              'pl-3 text-left font-normal',
+                              !field.value && 'text-muted-foreground'
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, 'PPP')
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ?? undefined}
+                          onSelect={field.onChange}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="published">Published</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <DialogFooter>
                 <Button
                   type="button"
@@ -320,7 +409,6 @@ export function AssignmentsList({
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog
         open={!!deletingAssignment}
         onOpenChange={() => setDeletingAssignment(null)}
