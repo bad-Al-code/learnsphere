@@ -1,7 +1,3 @@
-'use client';
-
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -9,12 +5,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -24,163 +14,25 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Download,
-  FileText,
-  Link as LinkIcon,
-  MoreHorizontal,
-  Pencil,
-  Plus,
-  Trash2,
-} from 'lucide-react';
-import { AddResourceForm, FormDialog } from './course-modal';
-
-type ResourceType = 'PDF' | 'Link' | 'Video' | 'Document';
-
-interface Resource {
-  name: string;
-  type: ResourceType;
-  downloads: number;
-  added: string;
-}
+import { Suspense } from 'react';
+import { getCourseResources } from '../../actions';
+import ResourceDataClient from './resource-data-client';
 
 interface ResourcesTabProps {
-  data?: Resource[];
+  courseId: string;
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
-const placeholderData: Resource[] = [
-  {
-    name: 'Syllabus_Fall_2024.pdf',
-    type: 'PDF',
-    downloads: 128,
-    added: 'July 1, 2024',
-  },
-  {
-    name: 'Introductory Video',
-    type: 'Video',
-    downloads: 256,
-    added: 'July 2, 2024',
-  },
-  {
-    name: 'External Reading: Chapter 1',
-    type: 'Link',
-    downloads: 98,
-    added: 'July 5, 2024',
-  },
-  {
-    name: 'Lecture_Notes_Week_1.docx',
-    type: 'Document',
-    downloads: 150,
-    added: 'July 8, 2024',
-  },
-];
+export async function ResourceTab({
+  courseId,
+  searchParams,
+}: ResourcesTabProps) {
+  const course = await getCourseResources(courseId);
 
-export function ResourcesTab({ data = placeholderData }: ResourcesTabProps) {
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h2 className="text-2xl font-bold">Course Resources</h2>
-          <p className="text-muted-foreground">
-            Manage downloadable materials and external links for students
-          </p>
-        </div>
-
-        <FormDialog
-          trigger={
-            <Button>
-              <Plus className="h-4 w-4" />
-              Add Resource
-            </Button>
-          }
-          title="Add New Resource"
-          description="Upload a file or add a link for students to access"
-          form={<AddResourceForm />}
-          footer={<Button>Add Resource</Button>}
-        />
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Available Resources</CardTitle>
-          <CardDescription>
-            Files, links, and materials for student reference
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Resource Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Downloads</TableHead>
-                <TableHead>Added</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.length > 0 ? (
-                data.map((resource) => (
-                  <TableRow key={resource.name}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        {resource.type === 'Link' ? (
-                          <LinkIcon className="text-muted-foreground h-4 w-4" />
-                        ) : (
-                          <FileText className="text-muted-foreground h-4 w-4" />
-                        )}
-                        {resource.name}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{resource.type}</Badge>
-                    </TableCell>
-                    <TableCell>{resource.downloads.toLocaleString()}</TableCell>
-                    <TableCell>{resource.added}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Download className="h-4 w-4" />
-                            Download
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Pencil className="h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
-                            <Trash2 className="stroke-destructive h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-48 text-center">
-                    <h3 className="font-semibold">No resources added yet.</h3>
-                    <p className="text-muted-foreground">
-                      Click "Add Resource" to upload your first file or link.
-                    </p>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+    <Suspense fallback={<ResourcesTabSkeleton />}>
+      <ResourceDataClient courseId={courseId} searchParams={searchParams} />
+    </Suspense>
   );
 }
 

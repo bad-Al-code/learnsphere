@@ -70,3 +70,31 @@ export const updateCourseSchema = z.object({
 });
 
 export type UpdateCourseValues = z.infer<typeof updateCourseSchema>;
+
+export const resourceSchema = z.object({
+  id: z.uuid(),
+  title: z.string(),
+  courseId: z.string().uuid(),
+  fileUrl: z.string().url(),
+  fileName: z.string(),
+  fileSize: z.number(),
+  fileType: z.string(),
+  order: z.number(),
+  status: z.enum(['draft', 'published']),
+  createdAt: z.iso.datetime(),
+});
+
+export type Resource = z.infer<typeof resourceSchema>;
+
+export const createResourceSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters.'),
+  fileUrl: z.url(),
+  fileName: z.string(),
+  fileSize: z.number().int().positive(),
+  fileType: z.string(),
+  status: z.enum(['draft', 'published']).default('draft'),
+});
+export type CreateResourceValues = z.infer<typeof createResourceSchema>;
+
+export const updateResourceSchema = createResourceSchema.partial();
+export type UpdateResourceValues = z.infer<typeof updateResourceSchema>;

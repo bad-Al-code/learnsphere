@@ -695,3 +695,33 @@ export async function deleteAssignment(courseId: string, assignmentId: string) {
     return { error: error.message };
   }
 }
+
+export async function getCourseResources(
+  courseId: string,
+  page: number = 1,
+  limit: number = 10
+) {
+  try {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
+
+    const response = await courseService.get(
+      `/api/courses/${courseId}/resources?${params.toString()}`
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch course resources.');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching course resources:', error);
+    return {
+      results: [],
+      pagination: { currentPage: 1, totalPages: 1, totalResults: 0 },
+    };
+  }
+}

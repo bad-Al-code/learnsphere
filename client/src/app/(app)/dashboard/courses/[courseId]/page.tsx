@@ -16,10 +16,7 @@ import { ContentTab, ContentTabSkeleton } from './_components/content-tab';
 import { CourseEditorTabs } from './_components/course-editor-tab';
 import { PageHeader, PageHeaderSkeleton } from './_components/course-header';
 import { OverviewTab, OverviewTabSkeleton } from './_components/overview-tab';
-import {
-  ResourcesTab,
-  ResourcesTabSkeleton,
-} from './_components/resources-tab';
+import { ResourceTab } from './_components/resources-tab';
 import { SettingsTab, SettingsTabSkeleton } from './_components/settings-tab';
 
 export async function generateMetadata({
@@ -90,9 +87,10 @@ export default async function CourseEditorPage({
             </Suspense>
           )}
           {currentTab === 'resources' && (
-            <Suspense fallback={<ResourcesTabSkeleton />}>
-              <ResourcesTab />
-            </Suspense>
+            <ResourceTab
+              courseId={params.courseId}
+              searchParams={searchParams}
+            />
           )}
           {currentTab === 'analytics' && (
             <Suspense fallback={<AnalyticsTabSkeleton />}>
