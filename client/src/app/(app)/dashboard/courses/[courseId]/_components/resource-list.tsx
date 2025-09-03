@@ -1,5 +1,6 @@
 'use client';
 
+import { FileUploader } from '@/components/shared/file-uploader';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,8 +26,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
 import {
   Table,
   TableBody,
@@ -35,12 +46,24 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Resource } from '@/lib/schemas/course';
+import {
+  Resource,
+  updateResourceSchema,
+  UpdateResourceValues,
+} from '@/lib/schemas/course';
 import { formatBytes } from '@/lib/utils';
+import { zodResolver } from '@hookform/resolvers/zod';
+import axios from 'axios';
 import { Eye, EyeOff, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { deleteResource, updateResource } from '../../actions';
+import {
+  deleteResource,
+  getResourceUploadUrl,
+  updateResource,
+} from '../../actions';
 
 interface ResourcesListProps {
   initialResources: Resource[];
@@ -51,55 +74,91 @@ export function ResourcesList({
   initialResources,
   courseId,
 }: ResourcesListProps) {
+  const router = useRouter();
   const [resources, setResources] = useState(initialResources);
   const [isPending, startTransition] = useTransition();
-
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [newTitle, setNewTitle] = useState('');
   const [deletingResource, setDeletingResource] = useState<Resource | null>(
     null
   );
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     setResources(initialResources);
   }, [initialResources]);
 
+  const form = useForm<UpdateResourceValues>({
+    resolver: zodResolver(updateResourceSchema),
+    defaultValues: {
+      title: '',
+      status: 'draft',
+    },
+  });
+
   const handleEditClick = (resource: Resource) => {
     setEditingResource(resource);
-    setNewTitle(resource.title);
+    form.reset({
+      title: resource.title,
+      status: resource.status,
+    });
   };
 
-  const handleSaveEdit = () => {
-    if (
-      !editingResource ||
-      !newTitle.trim() ||
-      newTitle === editingResource.title
-    ) {
-      setEditingResource(null);
-      return;
-    }
+  const handleSaveEdit = (values: UpdateResourceValues) => {
+    if (!editingResource) return;
 
-    const previousResources = resources;
-    setResources((prev) =>
-      prev.map((r) =>
-        r.id === editingResource.id ? { ...r, title: newTitle } : r
-      )
-    );
-    setEditingResource(null);
+    startTransition(async () => {
+      try {
+        let updatePayload = { ...values };
 
-    startTransition(() => {
-      toast.promise(
-        updateResource(courseId, editingResource.id, { title: newTitle }),
-        {
-          loading: 'Updating resource...',
-          success: 'Resource updated!',
+        if (selectedFile) {
+          const urlResult = await getResourceUploadUrl(
+            courseId,
+            selectedFile.name
+          );
+          if (urlResult.error || !urlResult.data?.signedUrl) {
+            throw new Error(urlResult.error || 'Could not get upload URL.');
+          }
 
-          error: (err) => {
-            setResources(previousResources);
-            return err.message || 'Update failed.';
-          },
+          await axios.put(urlResult.data.signedUrl, selectedFile, {
+            headers: { 'Content-Type': selectedFile.type },
+            onUploadProgress: (progressEvent) => {
+              const percent = Math.round(
+                (progressEvent.loaded * 100) /
+                  (progressEvent.total ?? selectedFile.size)
+              );
+              setUploadProgress(percent);
+            },
+          });
+
+          updatePayload = {
+            ...updatePayload,
+            fileUrl: urlResult.data.finalUrl,
+            fileName: selectedFile.name,
+            fileSize: selectedFile.size,
+            fileType: selectedFile.type,
+          };
         }
-      );
+
+        const result = await updateResource(
+          courseId,
+          editingResource.id,
+          updatePayload
+        );
+
+        if (result.error) throw new Error(result.error);
+
+        toast.success('Resource updated successfully!');
+        setEditingResource(null);
+
+        router.refresh();
+      } catch (err: any) {
+        toast.error('Update failed', { description: err.message });
+      } finally {
+        setSelectedFile(null);
+        setUploadProgress(0);
+      }
     });
   };
 
@@ -229,28 +288,84 @@ export function ResourcesList({
         </Table>
       </div>
 
-      <Dialog open={!!editingResource} onOpenChange={() => setEditingResource}>
+      <Dialog
+        open={!!editingResource}
+        onOpenChange={(isOpen) => !isOpen && setEditingResource(null)}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Resource Title</DialogTitle>
+            <DialogTitle>Edit Resource</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <Label htmlFor="resource-title">Title</Label>
-            <Input
-              id="resource-title"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              disabled={isPending}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditingResource(null)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveEdit} disabled={isPending}>
-              Save
-            </Button>
-          </DialogFooter>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(handleSaveEdit)}
+              className="space-y-4 py-4"
+            >
+              <FormField
+                name="title"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormItem>
+                <FormLabel>Replace File (Optional)</FormLabel>
+                <FormControl>
+                  <FileUploader
+                    onFileSelect={setSelectedFile}
+                    selectedFile={selectedFile}
+                    onFileRemove={() => setSelectedFile(null)}
+                  />
+                </FormControl>
+              </FormItem>
+
+              <FormField
+                name="status"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>Publish</FormLabel>
+                      <FormDescription>
+                        Make this resource visible to students.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value === 'published'}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked ? 'published' : 'draft')
+                        }
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {isPending && selectedFile && <Progress value={uploadProgress} />}
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setEditingResource(null)}
+                  disabled={isPending}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 
