@@ -20,7 +20,7 @@ This projects serves as a comprehensive portfolio piece demonstrating expertise 
 
 The platform's UI/UX has been meticulously planned and designed in Figma. You are welcome to view and leave comments on the designs via the following Google Drive link:
 
-[**View Figma Designs on Google Drive**](https://drive.google.com/drive/folders/1Lzzk0w-g3yPZn7Mr4Bn1MsBjseoJDVVX?usp=sharing)
+[**View Figma Designs on Google Drive**](https://drive.google.com/drive/folders/1Lzzk0w-g3yPZn7Mr4Bn1MsBjseoJDVVX?usp=sharing) (WIP)
 
 ## Tech Stack
 
