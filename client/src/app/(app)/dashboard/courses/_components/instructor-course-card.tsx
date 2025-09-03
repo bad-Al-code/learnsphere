@@ -18,14 +18,14 @@ import Link from 'next/link';
 export function InstructorCourseCard({ course }: { course: Course }) {
   return (
     <Link href={`/dashboard/courses/${course.id}`}>
-      <Card className="hover:border-primary/30 flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg">
+      <Card className="hover:border-primary/30 flex h-full flex-col overflow-hidden pt-0 transition-shadow hover:shadow-lg">
         <div className="bg-muted relative aspect-video">
           {course.imageUrl ? (
             <Image
               src={course.imageUrl}
               alt={course.title}
               fill
-              className="object-cover"
+              className="object-cover transition-all hover:scale-105"
             />
           ) : (
             <div className="text-muted-foreground flex h-full w-full items-center justify-center">

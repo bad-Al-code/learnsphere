@@ -98,7 +98,7 @@ function TrySaying() {
 
 function VoiceAiTutorSkeleton() {
   return (
-    <Card className="flex h-[400px] flex-col items-center justify-center">
+    <Card className="flex  flex-col items-start justify-center">
       <CardHeader className="items-center space-y-2">
         <Skeleton className="h-12 w-12 rounded-lg" />
         <Skeleton className="h-7 w-40" />

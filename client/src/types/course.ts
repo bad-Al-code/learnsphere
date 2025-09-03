@@ -8,12 +8,13 @@ export type Course = {
   level: string;
   imageUrl: string | null;
   price: number | null;
-  currency?: string | null;
+  currency?: string;
   instructorId: string;
   averageRating?: number | null;
   enrollmentCount?: number | null;
   updatedAt?: string | null;
   modules: Module[];
+  completionRate: number;
 };
 
 export const COURSE_LEVELS = [

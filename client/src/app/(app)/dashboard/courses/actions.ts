@@ -675,3 +675,23 @@ export async function updateAssignment(
     return { error: error.message };
   }
 }
+
+export async function deleteAssignment(courseId: string, assignmentId: string) {
+  try {
+    const response = await courseService.delete(
+      `/api/assignments/${assignmentId}`
+    );
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(
+        data.errors?.[0]?.message || 'Failed to delete assignment.'
+      );
+    }
+
+    revalidatePath(`/dashboard/courses/${courseId}/assignments`);
+
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
