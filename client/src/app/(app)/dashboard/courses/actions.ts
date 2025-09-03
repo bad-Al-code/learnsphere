@@ -830,3 +830,20 @@ export async function deleteResource(courseId: string, resourceId: string) {
     return { error: error.message };
   }
 }
+
+export async function trackResourceDownload(resourceId: string) {
+  try {
+    const response = await courseService.post(
+      `/api/resources/${resourceId}/download`,
+      {}
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.errors?.[0]?.message || 'Failed to track download.');
+    }
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}

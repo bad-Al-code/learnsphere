@@ -54,7 +54,14 @@ import {
 import { formatBytes } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
-import { Eye, EyeOff, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import {
+  Download,
+  Eye,
+  EyeOff,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
@@ -62,6 +69,7 @@ import { toast } from 'sonner';
 import {
   deleteResource,
   getResourceUploadUrl,
+  trackResourceDownload,
   updateResource,
 } from '../../actions';
 
@@ -204,6 +212,19 @@ export function ResourcesList({
     });
   };
 
+  const handleDownload = (resource: Resource) => {
+    startTransition(async () => {
+      const result = await trackResourceDownload(resource.id);
+
+      if (result.error) {
+        toast.error('Download failed', { description: result.error });
+      } else if (result.success && result.data?.url) {
+        window.open(result.data.url, '_blank');
+        toast.success(`Downloading "${resource.title}"...`);
+      }
+    });
+  };
+
   return (
     <>
       <div className="rounded-md border">
@@ -266,6 +287,13 @@ export function ResourcesList({
                             </>
                           )}
                         </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                          onClick={() => handleDownload(resource)}
+                        >
+                          <Download className="h-4 w-4" /> Download
+                        </DropdownMenuItem>
+
                         <DropdownMenuItem
                           onClick={() => setDeletingResource(resource)}
                           className="text-destructive hover:!text-destructive focus:!text-destructive"
