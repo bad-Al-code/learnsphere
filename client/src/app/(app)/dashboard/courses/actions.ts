@@ -3,7 +3,6 @@
 import {
   courseService,
   enrollmentService,
-  mediaService,
   paymentService,
   userService,
 } from '@/lib/api';
@@ -18,6 +17,8 @@ import {
   courseSchema,
   createResourceSchema,
   CreateResourceValues,
+  updateResourceSchema,
+  UpdateResourceValues,
 } from '@/lib/schemas/course';
 import {
   LessonFormValues,
@@ -734,11 +735,10 @@ export async function getCourseResources(
 
 export async function getResourceUploadUrl(courseId: string, filename: string) {
   try {
-    const response = await mediaService.post('/api/media/request-upload-url', {
-      filename,
-      uploadType: 'course_resource',
-      metadata: { courseId },
-    });
+    const response = await courseService.post(
+      `/api/courses/${courseId}/resources/upload-url`,
+      { filename }
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -771,7 +771,7 @@ export async function createResource(
       );
     }
 
-    revalidatePath(`/dashboard/courses/${courseId}`);
+    revalidatePath(`/dashboard/courses/${courseId}?tab=resources`);
 
     return { success: true, data: await response.json() };
   } catch (error: any) {
@@ -779,6 +779,54 @@ export async function createResource(
       return { error: error.issues[0].message };
     }
 
+    return { error: error.message };
+  }
+}
+
+export async function updateResource(
+  courseId: string,
+  resourceId: string,
+  values: UpdateResourceValues
+) {
+  try {
+    const validatedData = updateResourceSchema.parse(values);
+    const response = await courseService.put(
+      `/api/resources/${resourceId}`,
+      validatedData
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(
+        data.errors?.[0]?.message || 'Failed to update resource.'
+      );
+    }
+
+    revalidatePath(`/dashboard/courses/${courseId}?tab=resources`);
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+
+    return { error: error.message };
+  }
+}
+
+export async function deleteResource(courseId: string, resourceId: string) {
+  try {
+    const response = await courseService.delete(`/api/resources/${resourceId}`);
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(
+        data.errors?.[0]?.message || 'Failed to delete resource.'
+      );
+    }
+
+    revalidatePath(`/dashboard/courses/${courseId}?tab=resources`);
+
+    return { success: true };
+  } catch (error: any) {
     return { error: error.message };
   }
 }

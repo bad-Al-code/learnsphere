@@ -4,6 +4,7 @@ import { PaginationControls } from '@/components/shared/pagination-controls';
 import { Button } from '@/components/ui/button';
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -29,20 +30,19 @@ export default function ResourceDataClient({
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button onClick={() => setIsModalOpen(true)}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add Resource
-        </Button>
-      </div>
-
+    <div className="space-y-2">
       <Card>
         <CardHeader>
           <CardTitle>Course Resources</CardTitle>
           <CardDescription>
             Manage downloadable materials and external links for students.
           </CardDescription>
+          <CardAction>
+            <Button onClick={() => setIsModalOpen(true)}>
+              <PlusCircle className="h-4 w-4" />
+              Add Resource
+            </Button>
+          </CardAction>
         </CardHeader>
         <CardContent>
           <ResourcesList
