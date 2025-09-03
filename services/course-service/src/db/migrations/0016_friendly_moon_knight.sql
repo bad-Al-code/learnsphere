@@ -1,0 +1,1 @@
+ALTER TABLE "resources" ADD COLUMN "status" "course_status" DEFAULT 'draft' NOT NULL;

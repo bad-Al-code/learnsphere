@@ -129,8 +129,9 @@ export const resources = pgTable('resources', {
   fileName: varchar('file_name', { length: 255 }).notNull(),
   fileSize: integer('file_size').notNull(), // in bytes
   fileType: varchar('file_type', { length: 100 }).notNull(),
-
+  status: courseStatusEnum('status').default('draft').notNull(),
   order: integer('order').default(0).notNull(),
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
