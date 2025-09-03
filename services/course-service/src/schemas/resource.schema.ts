@@ -76,11 +76,10 @@ export const createResourceSchema = z.object({
   fileName: z.string().min(1),
   fileSize: z.number().int().positive(),
   fileType: z.string().min(1),
+  status: z.enum(['draft', 'published']).optional().default('draft'),
 });
 
-export const updateResourceSchema = z.object({
-  title: z.string().min(1, 'Title is required.'),
-});
+export const updateResourceSchema = createResourceSchema.partial();
 
 export const uploadUrlSchema = z.object({
   filename: z.string().min(1, 'Filename is required.'),

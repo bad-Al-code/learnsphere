@@ -1,8 +1,13 @@
 import { AuthorizationService } from '.';
 import { MediaClient } from '../clients/media.client';
 import { ResourceRepository } from '../db/repostiories';
-import { NotFoundError } from '../errors';
-import { CreateResourceDto, Resource, UpdateResourceDto } from '../schemas';
+import { BadRequestError, NotFoundError } from '../errors';
+import {
+  CreateResourceDto,
+  Resource,
+  UpdateResourceDto,
+  updateResourceSchema,
+} from '../schemas';
 import { Requester } from '../types';
 
 export class ResourceService {
@@ -31,13 +36,24 @@ export class ResourceService {
     requester: Requester
   ): Promise<Resource> {
     const resource = await ResourceRepository.findById(resourceId);
+
     if (!resource) throw new NotFoundError('Resource');
+
     await AuthorizationService.verifyCourseOwnership(
       resource.courseId,
       requester
     );
 
-    const updatedResource = await ResourceRepository.update(resourceId, data);
+    const validatedData = updateResourceSchema.parse(data);
+
+    if (Object.keys(validatedData).length === 0) {
+      throw new BadRequestError('No valid fields provided for update.');
+    }
+
+    const updatedResource = await ResourceRepository.update(
+      resourceId,
+      validatedData
+    );
     if (!updatedResource) throw new NotFoundError('Resource');
 
     return updatedResource;
