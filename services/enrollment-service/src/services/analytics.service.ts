@@ -619,4 +619,9 @@ export class AnalyticsService {
       })),
     };
   }
+
+  public static async getOverallInstructorStats(instructorId: string) {
+    logger.info(`Fetching overall stats for instructor ${instructorId}`);
+    return AnalyticsRepository.getOverallInstructorStats(instructorId);
+  }
 }

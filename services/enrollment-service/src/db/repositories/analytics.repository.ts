@@ -746,4 +746,42 @@ export class AnalyticsRepository {
       timeSpent: parseInt(row.totalMinutes || '0', 10),
     }));
   }
+
+  /**
+   * Calculates high-level statistics for an instructor across all their courses.
+   * @param instructorId The ID of the instructor.
+   * @returns An object with average completion rate and average grade.
+   */
+  public static async getOverallInstructorStats(instructorId: string) {
+    const instructorCourses = await db
+      .select({ id: courses.id })
+      .from(courses)
+      .where(eq(courses.instructorId, instructorId));
+
+    if (instructorCourses.length === 0) {
+      return { avgCompletion: '0', avgGrade: null };
+    }
+
+    const courseIds = instructorCourses.map((c) => c.id);
+
+    const avgCompletionQuery = db
+      .select({ value: avg(enrollments.progressPercentage) })
+      .from(enrollments)
+      .where(inArray(enrollments.courseId, courseIds));
+
+    const avgGradeQuery = db
+      .select({ value: avg(studentGrades.grade) })
+      .from(studentGrades)
+      .where(inArray(studentGrades.courseId, courseIds));
+
+    const [[completionResult], [gradeResult]] = await Promise.all([
+      avgCompletionQuery,
+      avgGradeQuery,
+    ]);
+
+    return {
+      avgCompletion: parseFloat(completionResult.value || '0').toFixed(1),
+      avgGrade: gradeResult.value ? parseFloat(gradeResult.value) : null,
+    };
+  }
 }

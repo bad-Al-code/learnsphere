@@ -467,6 +467,25 @@ router.get(
 
 /**
  * @openapi
+ * /api/analytics/instructor/overall-stats:
+ *   get:
+ *     summary: "[Instructor] Get high-level stats for the analytics page"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An object containing aggregated stats like avg grade and completion.
+ */
+router.get(
+  '/instructor/overall-stats',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getOverallStats
+);
+
+/**
+ * @openapi
  * /api/analytics/instructor/student-grade/{courseId}/{studentId}:
  *   get:
  *     summary: "[Instructor] Get a student's average grade for a course"
