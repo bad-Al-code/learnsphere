@@ -4,7 +4,9 @@ import { env } from '../config/env';
 import logger from '../config/logger';
 import { CourseRepository, StudentGradeRepository } from '../db/repositories';
 import { AnalyticsRepository } from '../db/repositories/analytics.repository';
-import { UserProfileData } from '../types';
+import { BadRequestError } from '../errors';
+import { ReportGenerationRequestedPublisher } from '../events/publisher';
+import { StudentPerformance, UserProfileData } from '../types';
 
 interface ModuleDetails {
   id: string;
@@ -711,5 +713,56 @@ export class AnalyticsService {
         .replace(/\b\w/g, (l) => l.toUpperCase()),
       students: item.count,
     }));
+  }
+
+  /**
+   * Request report generation
+   * @param requesterId ID of the user requesting the report
+   * @param reportType Type of report to generate
+   * @param format Format of the report ('csv' | 'pdf')
+   * @returns Promise with job information
+   */
+  public static async requestReportGeneration(
+    requesterId: string,
+    reportType: string,
+    format: 'csv' | 'pdf'
+  ): Promise<{ jobId: string; message: string }> {
+    logger.info(
+      `Report request received from ${requesterId} for ${reportType} in ${format} format.`
+    );
+
+    let payload: StudentPerformance[];
+    if (reportType === 'student_performance') {
+      payload =
+        await AnalyticsRepository.getStudentPerformanceOverview(requesterId);
+    } else {
+      throw new BadRequestError('Invalid report type specified.');
+    }
+
+    const job = await AnalyticsRepository.createReportJob({
+      requesterId,
+      reportType,
+      format,
+    });
+
+    try {
+      const publisher = new ReportGenerationRequestedPublisher();
+
+      await publisher.publish({
+        jobId: job.id,
+        requesterId,
+        reportType,
+        format,
+        payload,
+      });
+    } catch (err) {
+      logger.error('Failed to publish report generation event', err);
+    }
+
+    return {
+      jobId: job.id,
+      message:
+        'Report generation has started. You will be notified upon completion.',
+    };
   }
 }

@@ -92,44 +92,6 @@ interface GradeData {
   count: number;
 }
 
-const placeholderData = {
-  stats: [
-    { title: 'Average Grade', value: 'B+', change: 3, icon: CheckCircle },
-    { title: 'Completion Rate', value: '85%', change: 5, icon: Users },
-    { title: 'Engagement Score', value: '92', change: -2, icon: LineChart },
-    { title: 'Total Revenue', value: '$12,500', change: 12, icon: DollarSign },
-  ],
-  trends: [
-    { month: 'Jan', avgScore: 78, activeStudents: 110 },
-    { month: 'Feb', avgScore: 82, activeStudents: 120 },
-    { month: 'Mar', avgScore: 85, activeStudents: 115 },
-    { month: 'Apr', avgScore: 84, activeStudents: 130 },
-    { month: 'May', avgScore: 88, activeStudents: 140 },
-  ],
-  engagement: [
-    { activity: 'Video Views', students: 350 },
-    { activity: 'Assignments', students: 280 },
-    { activity: 'Quizzes', students: 210 },
-    { activity: 'Forums', students: 150 },
-  ],
-  topPerformers: [
-    { name: 'Olivia Martin', progress: 98, grade: 'A+', lastActive: '2h ago' },
-    { name: 'Liam Carter', progress: 95, grade: 'A', lastActive: '1d ago' },
-    { name: 'Sophia Lee', progress: 92, grade: 'A-', lastActive: '3h ago' },
-  ],
-  studentsAtRisk: [
-    { name: 'Noah Adams', progress: 45, grade: 'D', lastActive: '1w ago' },
-    { name: 'Ava Garcia', progress: 52, grade: 'C-', lastActive: '5d ago' },
-  ],
-  gradeDistribution: [
-    { grade: 'A', count: 45 },
-    { grade: 'B', count: 68 },
-    { grade: 'C', count: 52 },
-    { grade: 'D', count: 28 },
-    { grade: 'F', count: 12 },
-  ],
-};
-
 function StatCard({ title, value, change, icon: Icon }: StatCardData) {
   const isPositive = change >= 0;
   return (

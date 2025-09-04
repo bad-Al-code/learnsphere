@@ -562,6 +562,42 @@ router.get(
 
 /**
  * @openapi
+ * /instructor/request-report:
+ *   post:
+ *     summary: "[Instructor] Request a new analytics report"
+ *     tags: [Analytics]
+ *     requestBody:
+ *       description: Report request details
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reportType:
+ *                 type: string
+ *                 example: "student_performance"
+ *               format:
+ *                 type: string
+ *                 enum: [csv, pdf]
+ *                 example: "pdf"
+ *     responses:
+ *       202:
+ *         description: Report generation started
+ *       401:
+ *         description: Unauthorized
+ *       400:
+ *         description: Bad request
+ */
+router.post(
+  '/instructor/request-report',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.requestReport
+);
+
+/**
+ * @openapi
  * /api/analytics/instructor/student-grade/{courseId}/{studentId}:
  *   get:
  *     summary: "[Instructor] Get a student's average grade for a course"

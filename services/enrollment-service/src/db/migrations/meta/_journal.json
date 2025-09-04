@@ -78,6 +78,13 @@
       "when": 1756355987763,
       "tag": "0012_purple_inertia",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1756997512683,
+      "tag": "0013_friendly_sprite",
+      "breakpoints": true
     }
   ]
 }

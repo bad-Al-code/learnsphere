@@ -21,6 +21,8 @@ import {
   lessonSessions,
   NewActivityLog,
   NewLessonSession,
+  NewReportJob,
+  reportJobs,
   studentGrades,
 } from '../schema';
 
@@ -987,5 +989,16 @@ export class AnalyticsRepository {
       .groupBy(courseActivityLogs.activityType);
 
     return result;
+  }
+
+  /**
+   * Create a new report job in the database
+   * @param data - The data for the new report job
+   * @returns The newly created report job record
+   */
+  public static async createReportJob(data: NewReportJob) {
+    const [job] = await db.insert(reportJobs).values(data).returning();
+
+    return job;
   }
 }

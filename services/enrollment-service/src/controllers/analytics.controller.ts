@@ -378,4 +378,26 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async requestReport(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const { reportType, format } = req.body;
+
+      const result = await AnalyticsService.requestReportGeneration(
+        req.currentUser.id,
+        reportType,
+        format
+      );
+
+      res.status(StatusCodes.ACCEPTED).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

@@ -104,3 +104,11 @@ export type GradeRow = {
   grade_bracket: string;
   student_count: string;
 };
+
+export interface StudentPerformance {
+  userId: string;
+  courseId: string;
+  progressPercentage: string;
+  lastActive: Date;
+  averageGrade: number;
+}

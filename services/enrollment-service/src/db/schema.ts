@@ -188,3 +188,26 @@ export const lessonSessions = pgTable('lesson_sessions', {
 });
 
 export type NewLessonSession = typeof lessonSessions.$inferInsert;
+
+export const reportStatusEnum = pgEnum('report_status', [
+  'pending',
+  'processing',
+  'completed',
+  'failed',
+]);
+export const reportFormatEnum = pgEnum('report_format', ['csv', 'pdf']);
+
+export const reportJobs = pgTable('report_jobs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  requesterId: uuid('requester_id').notNull(),
+  reportType: text('report_type').notNull(),
+  format: reportFormatEnum('format').notNull(),
+  status: reportStatusEnum('status').notNull().default('pending'),
+  fileUrl: text('file_url'),
+  errorMessage: text('error_message'),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type NewReportJob = typeof reportJobs.$inferInsert;

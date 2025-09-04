@@ -1,4 +1,5 @@
 import logger from '../config/logger';
+import { StudentPerformance } from '../types';
 import { rabbitMQConnection } from './connection';
 
 export abstract class Publisher<T extends { topic: string; data: object }> {
@@ -139,4 +140,19 @@ export interface LessonSessionEndedEvent {
 
 export class LessonSessionEndedPublisher extends Publisher<LessonSessionEndedEvent> {
   readonly topic = 'lesson.session.ended' as const;
+}
+
+export interface ReportGenerationRequestedEvent {
+  topic: 'report.generation.requested';
+  data: {
+    jobId: string;
+    requesterId: string;
+    reportType: string;
+    format: 'csv' | 'pdf';
+    payload: StudentPerformance[];
+  };
+}
+
+export class ReportGenerationRequestedPublisher extends Publisher<ReportGenerationRequestedEvent> {
+  readonly topic = 'report.generation.requested' as const;
 }
