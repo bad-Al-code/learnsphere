@@ -1001,4 +1001,21 @@ export class AnalyticsRepository {
 
     return job;
   }
+
+  public static async updateReportJobStatus(
+    jobId: string,
+    status: 'completed' | 'failed',
+    fileUrl?: string,
+    errorMessage?: string
+  ): Promise<void> {
+    await db
+      .update(reportJobs)
+      .set({
+        status,
+        fileUrl: fileUrl || null,
+        errorMessage: errorMessage || null,
+        updatedAt: new Date(),
+      })
+      .where(eq(reportJobs.id, jobId));
+  }
 }

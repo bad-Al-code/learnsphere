@@ -12,6 +12,8 @@ import {
   DiscussionPostCreatedListener,
   GradeSyncListener,
   PaymentSuccessListener,
+  ReportGenerationFailedListener,
+  ReportGenerationSuccessListener,
   ResourceDownloadedListener,
   UserSessionCreatedListener,
 } from './events/listener';
@@ -30,6 +32,8 @@ const startServer = async () => {
     new GradeSyncListener().listen();
     new PaymentSuccessListener().listen();
     new ResourceDownloadedListener().listen();
+    new ReportGenerationSuccessListener().listen();
+    new ReportGenerationFailedListener().listen();
 
     const PORT = process.env.PORT || 8000;
     app.listen(PORT, () => {

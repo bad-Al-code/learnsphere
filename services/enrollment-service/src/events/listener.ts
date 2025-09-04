@@ -395,3 +395,70 @@ export class ResourceDownloadedListener extends Listener<ResourceDownloadedEvent
     }
   }
 }
+
+interface ReportGenerationSucceededEvent {
+  topic: 'report.generation.succeeded';
+  data: {
+    jobId: string;
+    fileUrl: string;
+  };
+}
+
+export class ReportGenerationSuccessListener extends Listener<ReportGenerationSucceededEvent> {
+  readonly topic = 'report.generation.succeeded' as const;
+  queueGroupName = 'enrollment-service-report-succeeded';
+
+  async onMessage(
+    data: ReportGenerationSucceededEvent['data'],
+    _msg: ConsumeMessage
+  ) {
+    try {
+      logger.info(`Report job ${data.jobId} completed. Updating status.`);
+
+      await AnalyticsRepository.updateReportJobStatus(
+        data.jobId,
+        'completed',
+        data.fileUrl
+      );
+    } catch (error) {
+      logger.error('Failed to update report job status to completed', {
+        data,
+        error,
+      });
+    }
+  }
+}
+
+interface ReportGenerationFailedEvent {
+  topic: 'report.generation.failed';
+  data: {
+    jobId: string;
+    reason: string;
+  };
+}
+
+export class ReportGenerationFailedListener extends Listener<ReportGenerationFailedEvent> {
+  readonly topic = 'report.generation.failed' as const;
+  queueGroupName = 'enrollment-service-report-failed';
+
+  async onMessage(
+    data: ReportGenerationFailedEvent['data'],
+    _msg: ConsumeMessage
+  ) {
+    try {
+      logger.warn(`Report job ${data.jobId} failed. Updating status.`);
+
+      await AnalyticsRepository.updateReportJobStatus(
+        data.jobId,
+        'failed',
+        undefined,
+        data.reason
+      );
+    } catch (error) {
+      logger.error('Failed to update report job status to failed', {
+        data,
+        error,
+      });
+    }
+  }
+}
