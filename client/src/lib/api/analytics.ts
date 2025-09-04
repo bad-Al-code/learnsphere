@@ -110,5 +110,8 @@ export const getStudentPerformanceOverview =
       throw new Error('Failed to fetch student performance');
     }
 
-    return response.json();
+    const data = await response.json();
+    console.log(data);
+
+    return data;
   };
