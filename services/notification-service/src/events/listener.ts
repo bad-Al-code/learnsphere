@@ -517,3 +517,79 @@ export class InstructorApplicationApprovedListener extends Listener<InstructorAp
     }
   }
 }
+
+interface ReportGenerationSucceededEvent {
+  topic: 'report.generation.succeeded';
+  data: {
+    jobId: string;
+    requesterId: string;
+    fileUrl: string;
+    reportType: string;
+    format: string;
+  };
+}
+
+export class ReportGenerationSuccessListener extends Listener<ReportGenerationSucceededEvent> {
+  readonly topic = 'report.generation.succeeded' as const;
+  queueGroupName = 'notification-service-report-succeeded';
+
+  async onMessage(
+    data: ReportGenerationSucceededEvent['data'],
+    _msg: ConsumeMessage
+  ) {
+    try {
+      logger.info(
+        `Report generation succeeded for job ${data.jobId}. Notifying user ${data.requesterId}.`
+      );
+
+      await NotificationService.createNotification({
+        recipientId: data.requesterId,
+        type: 'REPORT_READY',
+        content: `Your "${data.reportType.replace('_', ' ')}" report is ready for download.`,
+        linkUrl: data.fileUrl,
+      });
+    } catch (error) {
+      logger.error('Failed to process report.generation.succeeded event', {
+        data,
+        error,
+      });
+    }
+  }
+}
+
+interface ReportGenerationFailedEvent {
+  topic: 'report.generation.failed';
+  data: {
+    jobId: string;
+    requesterId: string;
+    reason: string;
+  };
+}
+
+export class ReportGenerationFailedListener extends Listener<ReportGenerationFailedEvent> {
+  readonly topic = 'report.generation.failed' as const;
+  queueGroupName = 'notification-service-report-failed';
+
+  async onMessage(
+    data: ReportGenerationFailedEvent['data'],
+    _msg: ConsumeMessage
+  ) {
+    try {
+      logger.warn(
+        `Report generation failed for job ${data.jobId}. Notifying user ${data.requesterId}.`
+      );
+
+      await NotificationService.createNotification({
+        recipientId: data.requesterId,
+        type: 'REPORT_FAILED',
+        content: `We're sorry, but we were unable to generate your report. Reason: ${data.reason}`,
+        linkUrl: '/dashboard/analytics?tab=reports',
+      });
+    } catch (error) {
+      logger.error('Failed to process report.generation.failed event', {
+        data,
+        error,
+      });
+    }
+  }
+}

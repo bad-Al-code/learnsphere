@@ -10,6 +10,8 @@ import {
   InstructorApplicationApprovedListener,
   InstructorApplicationDeclinedListener,
   InstructorApplicationSubmittedListener,
+  ReportGenerationFailedListener,
+  ReportGenerationSuccessListener,
   UserPasswordChangedListener,
   UserPasswordResetRequiredListener,
   UserSyncRegisteredListener,
@@ -36,6 +38,8 @@ const start = async () => {
     new InstructorApplicationApprovedListener(emailService).listen();
     new UserSyncRegisteredListener().listen();
     new UserSyncRoleUpdatedListener().listen();
+    new ReportGenerationSuccessListener().listen();
+    new ReportGenerationFailedListener().listen();
 
     const server = http.createServer(app);
 
