@@ -486,6 +486,25 @@ router.get(
 
 /**
  * @openapi
+ * /api/analytics/instructor/engagement-score:
+ *   get:
+ *     summary: "[Instructor] Get a calculated engagement score"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An object containing the score and change percentage.
+ */
+router.get(
+  '/instructor/engagement-score',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getEngagementScore
+);
+
+/**
+ * @openapi
  * /api/analytics/instructor/student-grade/{courseId}/{studentId}:
  *   get:
  *     summary: "[Instructor] Get a student's average grade for a course"

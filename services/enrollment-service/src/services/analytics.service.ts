@@ -620,8 +620,41 @@ export class AnalyticsService {
     };
   }
 
+  /**
+   * Fetches overall instructor statistics (delegates to AnalyticsRepository).
+   * @param instructorId - The UUID of the instructor.
+   * @returns A promise resolving to an object with:
+   *  - avgCompletion: string (percentage, 1 decimal place)
+   *  - avgGrade: number | null (average grade if available, otherwise null)
+   */
   public static async getOverallInstructorStats(instructorId: string) {
     logger.info(`Fetching overall stats for instructor ${instructorId}`);
     return AnalyticsRepository.getOverallInstructorStats(instructorId);
+  }
+
+  /**
+   * Fetches the engagement score for an instructor based on recent activity logs.
+   * @param instructorId - The UUID of the instructor.
+   * @returns A promise resolving to an object with:
+   *  - score: number (activities in last 30 days)
+   *  - change: number (percentage change vs. previous period)
+   */
+  public static async getEngagementScore(instructorId: string) {
+    logger.info(`Fetching engagement score for instructor ${instructorId}`);
+
+    const { currentPeriodActivity, previousPeriodActivity } =
+      await AnalyticsRepository.getEngagementTrend(instructorId);
+
+    // NOTE: The "score" is the raw number of activities in the last 30 days.
+    // The "change" is the trend.
+    const change = this.calculatePercentageChange(
+      currentPeriodActivity,
+      previousPeriodActivity
+    );
+
+    return {
+      score: currentPeriodActivity,
+      change,
+    };
   }
 }

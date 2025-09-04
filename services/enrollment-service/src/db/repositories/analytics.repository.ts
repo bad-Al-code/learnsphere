@@ -784,4 +784,56 @@ export class AnalyticsRepository {
       avgGrade: gradeResult.value ? parseFloat(gradeResult.value) : null,
     };
   }
+
+  /**
+   * Calculates total engagement activities for an instructor over two 30-day periods.
+   * @param instructorId The ID of the instructor.
+   * @returns An object with activity counts for the current and previous periods.
+   */
+  public static async getEngagementTrend(instructorId: string) {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    const instructorCourses = await db
+      .select({ id: courses.id })
+      .from(courses)
+      .where(eq(courses.instructorId, instructorId));
+    if (instructorCourses.length === 0) {
+      return { currentPeriodActivity: 0, previousPeriodActivity: 0 };
+    }
+    const courseIds = instructorCourses.map((c) => c.id);
+
+    const currentPeriodQuery = db
+      .select({ value: count() })
+      .from(courseActivityLogs)
+      .where(
+        and(
+          inArray(courseActivityLogs.courseId, courseIds),
+          gte(courseActivityLogs.createdAt, thirtyDaysAgo)
+        )
+      );
+
+    const previousPeriodQuery = db
+      .select({ value: count() })
+      .from(courseActivityLogs)
+      .where(
+        and(
+          inArray(courseActivityLogs.courseId, courseIds),
+          gte(courseActivityLogs.createdAt, sixtyDaysAgo),
+          lt(courseActivityLogs.createdAt, thirtyDaysAgo)
+        )
+      );
+
+    const [[currentPeriod], [previousPeriod]] = await Promise.all([
+      currentPeriodQuery,
+      previousPeriodQuery,
+    ]);
+
+    return {
+      currentPeriodActivity: currentPeriod.value,
+      previousPeriodActivity: previousPeriod.value,
+    };
+  }
 }

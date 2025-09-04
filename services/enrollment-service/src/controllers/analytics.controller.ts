@@ -307,4 +307,22 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getEngagementScore(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const score = await AnalyticsService.getEngagementScore(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(score);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
