@@ -101,3 +101,33 @@ interface CourseResourceFailureEvent {
 export class CourseResourceFailurePublisher extends Publisher<CourseResourceFailureEvent> {
   readonly topic: 'course.resource.failed' = 'course.resource.failed' as const;
 }
+
+export interface ReportGenerationSucceededEvent {
+  topic: 'report.generation.succeeded';
+  data: {
+    jobId: string;
+    requesterId: string;
+    fileUrl: string;
+    reportType: string;
+    format: string;
+  };
+}
+
+export class ReportGenerationSucceededPublisher extends Publisher<ReportGenerationSucceededEvent> {
+  readonly topic: 'report.generation.succeeded' =
+    'report.generation.succeeded' as const;
+}
+
+export interface ReportGenerationFailedEvent {
+  topic: 'report.generation.failed';
+  data: {
+    jobId: string;
+    requesterId: string;
+    reason: string;
+  };
+}
+
+export class ReportGenerationFailedPublisher extends Publisher<ReportGenerationFailedEvent> {
+  readonly topic: 'report.generation.failed' =
+    'report.generation.failed' as const;
+}

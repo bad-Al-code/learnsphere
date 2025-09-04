@@ -1,8 +1,8 @@
 import 'dotenv/config';
 
 import logger from './config/logger';
-import { rabbitMQConnection } from './events/connection';
 import { checkDatabaseConnection } from './db';
+import { rabbitMQConnection } from './events/connection';
 
 const initializedServices = async () => {
   try {

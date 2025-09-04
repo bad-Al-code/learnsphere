@@ -46,3 +46,11 @@ export type NewMediaAsset = typeof mediaAssets.$inferInsert;
 export type UpdateMediaAsset = Partial<
   Omit<MediaAsset, 'id' | 'createdAt' | 'updatedAt'>
 >;
+
+export interface StudentPerformance {
+  userId: string;
+  courseId: string;
+  progressPercentage: string;
+  lastActive: Date;
+  averageGrade: number;
+}

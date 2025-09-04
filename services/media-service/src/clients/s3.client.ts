@@ -190,6 +190,25 @@ export class S3ClientService {
   }
 
   /**
+   * Generates a secure, time-limited presigned URL for downloading a private file from S3.
+   * @param bucket The name of the bucket.
+   * @param key The full object key (path) for the file in S3.
+   * @returns A promise that resolves to the presigned URL string.
+   */
+  public static async getPresignedDownloadUrl(
+    bucket: string,
+    key: string
+  ): Promise<string> {
+    const command = new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    });
+
+    const signedUrlExpiresIn = 3600;
+    return getSignedUrl(s3, command, { expiresIn: signedUrlExpiresIn });
+  }
+
+  /**
    * Determing the MIME type of a file based on its extension
    * @param filename The name of file based on its extension
    * @returns A string representing the content type
