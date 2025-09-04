@@ -1,6 +1,6 @@
 'use server';
 
-import { courseService, userService } from '@/lib/api';
+import { courseService, userService } from '@/lib/api/server';
 import { categorySchema } from '@/lib/schemas/category';
 import { PriceFormValues, priceSchema } from '@/lib/schemas/course';
 import { profileFormSchema } from '@/lib/schemas/user';

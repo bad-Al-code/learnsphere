@@ -1,6 +1,6 @@
 'use server';
 
-import { ApiError, authService, userService } from '@/lib/api';
+import { authService, userService } from '@/lib/api/server';
 import {
   InstructorApplicationFormValues,
   instructorApplicationSchema,
@@ -101,9 +101,6 @@ export async function updateNotificationSettings(values: {
     revalidatePath('/settings/notifications');
     return { success: true };
   } catch (error: any) {
-    if (error instanceof ApiError) {
-      return { error: error.message };
-    }
     return { error: 'An unexpected error occurred.' };
   }
 }

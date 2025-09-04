@@ -1,6 +1,6 @@
 'use server';
 
-import { authService, userService } from '@/lib/api';
+import { authService, userService } from '@/lib/api/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';

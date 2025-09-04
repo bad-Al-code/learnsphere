@@ -1,6 +1,6 @@
 'use server';
 
-import { courseService, enrollmentService } from '@/lib/api';
+import { courseService, enrollmentService } from '@/lib/api/server';
 import { searchQuerySchema } from '@/lib/schemas/course';
 import { redirect } from 'next/navigation';
 import z from 'zod';

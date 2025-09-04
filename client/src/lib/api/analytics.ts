@@ -1,4 +1,4 @@
-import { enrollmentService, paymentService } from '../api';
+import { enrollmentService, paymentService } from './client';
 
 export interface OverallStats {
   avgCompletion: string;

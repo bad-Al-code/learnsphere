@@ -1,4 +1,5 @@
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import express, { json } from 'express';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
@@ -12,6 +13,13 @@ import { enrollmentRouter } from './routes/enrollment.routes';
 import { healthRouter } from './routes/health';
 
 const app = express();
+app.set('trust proxy', 1);
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  })
+);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

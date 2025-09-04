@@ -1,6 +1,7 @@
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import express, { json } from 'express';
 import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
 
 import { env } from './config/env';
 import { currentUser } from './middlewares/current-user';
@@ -10,6 +11,12 @@ import { notificationRouter } from './routes/notification';
 const app = express();
 
 app.set('trust proxy', 1);
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  })
+);
 app.use(json());
 app.use(helmet());
 app.use(cookieParser(env.COOKIE_PARSER_SECRET));

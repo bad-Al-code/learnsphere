@@ -1,6 +1,6 @@
 'use server';
 
-import { courseService, enrollmentService } from '@/lib/api';
+import { courseService, enrollmentService } from '@/lib/api/server';
 import { revalidatePath } from 'next/cache';
 
 export async function checkEnrollmentStatus(courseId: string) {

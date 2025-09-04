@@ -7,7 +7,7 @@ import {
   enrollmentService,
   paymentService,
   userService,
-} from '@/lib/api';
+} from '@/lib/api/server';
 
 export async function getInstructorDashboardStats() {
   try {
