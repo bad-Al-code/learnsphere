@@ -4,8 +4,8 @@ import {
   getGradeDistribution,
   getOverallStats,
   getPerformanceTrends,
+  getRevenueStats,
   getStudentPerformanceOverview,
-  getTotalRevenue,
 } from '@/lib/api/analytics';
 import { courseService, userService } from '@/lib/api/client';
 import { getLetterGrade } from '@/lib/utils';
@@ -26,10 +26,7 @@ export function useInstructorStats() {
         queryKey: ['instructor', 'engagementScore'],
         queryFn: getEngagementScore,
       },
-      {
-        queryKey: ['instructor', 'totalRevenue'],
-        queryFn: getTotalRevenue,
-      },
+      { queryKey: ['instructor', 'revenueStats'], queryFn: getRevenueStats },
     ],
   });
 
@@ -42,7 +39,7 @@ export function useInstructorStats() {
     completionChange: results[0].data?.completionChange,
     engagementScore: results[1].data,
     totalRevenue: results[2].data?.totalRevenue,
-    revenueChange: 12, // Placeholder
+    revenueChange: results[2].data?.change,
   };
 
   return {

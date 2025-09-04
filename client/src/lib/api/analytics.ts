@@ -41,19 +41,21 @@ export const getEngagementScore = async (): Promise<EngagementScore> => {
   return response.json();
 };
 
-export const getTotalRevenue = async (): Promise<{ totalRevenue: number }> => {
+export interface RevenueStats {
+  totalRevenue: number;
+  change: number;
+}
+
+export const getRevenueStats = async (): Promise<RevenueStats> => {
   const response = await paymentService.get(
-    '/api/payments/analytics/instructor/revenue-breakdown'
+    '/api/payments/analytics/instructor/revenue-stats'
   );
 
   if (!response.ok) {
-    throw new Error('Failed to fetch revenue data');
+    throw new Error('Failed to fetch revenue stats');
   }
 
-  const breakdown: RevenueBreakdownItem[] = await response.json();
-  const totalRevenue = breakdown.reduce((sum, item) => sum + item.value, 0);
-
-  return { totalRevenue };
+  return response.json();
 };
 
 export interface PerformanceTrend {

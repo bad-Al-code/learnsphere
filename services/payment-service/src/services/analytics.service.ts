@@ -76,4 +76,23 @@ export class AnalyticsService {
     }
     return Math.round(((current - previous) / previous) * 100);
   }
+
+  public static async getOverallRevenueStats(instructorId: string) {
+    logger.info(
+      `Fetching overall revenue stats for instructor ${instructorId}`
+    );
+
+    const { currentPeriodRevenue, previousPeriodRevenue } =
+      await AnalyticsRepository.getOverallRevenueTrend(instructorId);
+
+    const change = this.calculatePercentageChange(
+      currentPeriodRevenue,
+      previousPeriodRevenue
+    );
+
+    return {
+      totalRevenue: currentPeriodRevenue,
+      change: change,
+    };
+  }
 }

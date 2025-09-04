@@ -113,6 +113,25 @@ router.get(
 
 /**
  * @openapi
+ * /api/payments/analytics/instructor/revenue-stats:
+ *   get:
+ *     summary: "[Instructor] Get total revenue and trend"
+ *     tags: [Payments]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An object containing total revenue and change percentage.
+ */
+router.get(
+  '/analytics/instructor/revenue-stats',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  PaymentController.getOverallRevenueStats
+);
+
+/**
+ * @openapi
  * /api/payments/analytics/course/{courseId}/revenue:
  *   get:
  *     summary: "[Internal] Get total revenue for a single course"

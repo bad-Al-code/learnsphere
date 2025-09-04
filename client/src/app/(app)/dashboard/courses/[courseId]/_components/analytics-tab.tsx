@@ -477,7 +477,7 @@ export function AnalyticsTab() {
         <StatCard
           title="Total Revenue"
           value={formatPrice(data.totalRevenue || 0)}
-          change={data.revenueChange || 0} // Placeholder
+          change={data.revenueChange || 0}
           icon={DollarSign}
         />
       </div>

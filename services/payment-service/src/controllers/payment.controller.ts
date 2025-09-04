@@ -113,4 +113,22 @@ export class PaymentController {
       next(error);
     }
   }
+
+  public static async getOverallRevenueStats(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const stats = await AnalyticsService.getOverallRevenueStats(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(stats);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

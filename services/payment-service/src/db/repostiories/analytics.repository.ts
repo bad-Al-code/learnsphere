@@ -121,4 +121,47 @@ export class AnalyticsRepository {
       previousPeriodRevenue: parseFloat(previousPeriod?.total || '0'),
     };
   }
+
+  /**
+   * Calculates total revenue for an instructor over the last two 30-day periods.
+   * @param instructorId The ID of the instructor.
+   * @returns An object with revenue for the current and previous periods.
+   */
+  public static async getOverallRevenueTrend(instructorId: string) {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    const [currentPeriod] = await db
+      .select({ total: sum(payments.amount) })
+      .from(payments)
+      .innerJoin(courses, eq(payments.courseId, courses.id))
+      .where(
+        and(
+          eq(courses.instructorId, instructorId),
+          eq(payments.status, 'completed'),
+          gte(payments.createdAt, thirtyDaysAgo)
+        )
+      );
+
+    const [previousPeriod] = await db
+      .select({ total: sum(payments.amount) })
+      .from(payments)
+      .innerJoin(courses, eq(payments.courseId, courses.id))
+      .where(
+        and(
+          eq(courses.instructorId, instructorId),
+          eq(payments.status, 'completed'),
+          gte(payments.createdAt, sixtyDaysAgo),
+          lt(payments.createdAt, thirtyDaysAgo)
+        )
+      );
+
+    return {
+      currentPeriodRevenue: parseFloat(currentPeriod?.total || '0'),
+      previousPeriodRevenue: parseFloat(previousPeriod?.total || '0'),
+    };
+  }
 }
