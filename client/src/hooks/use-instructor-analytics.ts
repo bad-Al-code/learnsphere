@@ -7,9 +7,11 @@ import {
   getTotalRevenue,
 } from '@/lib/api/analytics';
 import { courseService, userService } from '@/lib/api/client';
+import { getLetterGrade } from '@/lib/utils';
 import { BulkCourse } from '@/types/course';
 import { BulkUser } from '@/types/user';
 import { useQueries, useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
 import { useMemo } from 'react';
 
 export function useInstructorStats() {
@@ -99,32 +101,43 @@ export function useStudentPerformance() {
     queryKey: ['users', 'bulk', studentIds],
 
     queryFn: async () => {
-      if (studentIds.length === 0) return [];
-
+      if (studentIds.length === 0) {
+        return [];
+      }
       const response = await userService.post('/api/users/bulk', {
-        studentIds,
+        userIds: studentIds,
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch user profiles');
+      }
 
       return (await response.json()) as BulkUser[];
     },
 
-    enabled: !!performanceData && studentIds.length > 0,
+    enabled: studentIds.length > 0,
   });
 
   const { data: courseDetails, isLoading: isLoadingCourses } = useQuery({
     queryKey: ['courses', 'bulk', courseIds],
 
     queryFn: async () => {
-      if (courseIds.length === 0) return [];
+      if (courseIds.length === 0) {
+        return [];
+      }
 
       const response = await courseService.post('/api/courses/bulk', {
         courseIds,
       });
 
+      if (!response.ok) {
+        throw new Error('Failed to fetch course details');
+      }
+
       return (await response.json()) as BulkCourse[];
     },
 
-    enabled: !!performanceData && courseIds.length > 0,
+    enabled: courseIds.length > 0,
   });
 
   const enrichedData = useMemo(() => {
@@ -148,8 +161,10 @@ export function useStudentPerformance() {
           ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
           : 'Unknown Student',
         progress: parseFloat(student.progressPercentage),
-        grade: student.averageGrade ? 'A-' : 'N/A',
-        lastActive: student.lastActive,
+        grade: getLetterGrade(
+          student.averageGrade ? parseFloat(student.averageGrade) : null
+        ),
+        lastActive: format(student.lastActive, 'PPP'),
         course: course?.title || 'Unknown Course',
       };
     };
