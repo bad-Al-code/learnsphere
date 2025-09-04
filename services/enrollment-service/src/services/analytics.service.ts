@@ -630,7 +630,26 @@ export class AnalyticsService {
    */
   public static async getOverallInstructorStats(instructorId: string) {
     logger.info(`Fetching overall stats for instructor ${instructorId}`);
-    return AnalyticsRepository.getOverallInstructorStats(instructorId);
+
+    const { current, previous } =
+      await AnalyticsRepository.getOverallInstructorStats(instructorId);
+
+    const completionChange = this.calculatePercentageChange(
+      parseFloat(current.avgCompletion),
+      parseFloat(previous.avgCompletion)
+    );
+
+    const gradeChange = this.calculatePercentageChange(
+      current.avgGrade || 0,
+      previous.avgGrade || 0
+    );
+
+    return {
+      avgCompletion: current.avgCompletion,
+      avgGrade: current.avgGrade,
+      completionChange,
+      gradeChange,
+    };
   }
 
   /**

@@ -37,9 +37,12 @@ export function useInstructorStats() {
 
   const data = {
     avgGrade: results[0].data?.avgGrade,
+    gradeChange: results[0].data?.gradeChange,
     completionRate: results[0].data?.avgCompletion,
+    completionChange: results[0].data?.completionChange,
     engagementScore: results[1].data,
     totalRevenue: results[2].data?.totalRevenue,
+    revenueChange: 12, // Placeholder
   };
 
   return {

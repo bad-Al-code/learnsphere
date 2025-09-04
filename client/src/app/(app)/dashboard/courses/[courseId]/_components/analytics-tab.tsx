@@ -140,7 +140,7 @@ function StatCard({ title, value, change, icon: Icon }: StatCardData) {
         </CardTitle>
         <Icon className="text-muted-foreground h-4 w-4" />
       </CardHeader>
-      <CardContent className="my-auto">
+      <CardContent className="">
         <div className="text-2xl font-bold">{value}</div>
         <div
           className={`flex items-center gap-1 text-xs ${isPositive ? 'text-emerald-500' : 'text-rose-500'}`}
@@ -459,13 +459,13 @@ export function AnalyticsTab() {
         <StatCard
           title="Average Grade"
           value={getLetterGrade(data.avgGrade)}
-          change={3} // Placeholder
+          change={data.gradeChange || 0}
           icon={CheckCircle}
         />
         <StatCard
           title="Completion Rate"
           value={`${data.completionRate || 0}%`}
-          change={5} // Placeholder
+          change={data.completionChange || 0}
           icon={Users}
         />
         <StatCard
@@ -477,7 +477,7 @@ export function AnalyticsTab() {
         <StatCard
           title="Total Revenue"
           value={formatPrice(data.totalRevenue || 0)}
-          change={12} // Placeholder
+          change={data.revenueChange || 0} // Placeholder
           icon={DollarSign}
         />
       </div>

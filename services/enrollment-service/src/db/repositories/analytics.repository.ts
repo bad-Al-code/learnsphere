@@ -770,30 +770,56 @@ export class AnalyticsRepository {
       .where(eq(courses.instructorId, instructorId));
 
     if (instructorCourses.length === 0) {
-      return { avgCompletion: '0', avgGrade: null };
+      return {
+        current: { avgCompletion: '0', avgGrade: null },
+        previous: { avgCompletion: '0', avgGrade: null },
+      };
     }
 
     const courseIds = instructorCourses.map((c) => c.id);
 
-    const avgCompletionQuery = db
-      .select({ value: avg(enrollments.progressPercentage) })
-      .from(enrollments)
-      .where(inArray(enrollments.courseId, courseIds));
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
-    const avgGradeQuery = db
-      .select({ value: avg(studentGrades.grade) })
-      .from(studentGrades)
-      .where(inArray(studentGrades.courseId, courseIds));
+    const getStatsForPeriod = async (startDate: Date, endDate?: Date) => {
+      const conditions = [
+        inArray(enrollments.courseId, courseIds),
+        gte(enrollments.updatedAt, startDate),
+      ];
 
-    const [[completionResult], [gradeResult]] = await Promise.all([
-      avgCompletionQuery,
-      avgGradeQuery,
+      if (endDate) {
+        conditions.push(lt(enrollments.updatedAt, endDate));
+      }
+
+      const [stats] = await db
+        .select({
+          avgCompletion: avg(enrollments.progressPercentage),
+          avgGrade: avg(studentGrades.grade),
+        })
+        .from(enrollments)
+        .leftJoin(
+          studentGrades,
+          and(
+            eq(enrollments.courseId, studentGrades.courseId),
+            eq(enrollments.userId, studentGrades.studentId)
+          )
+        )
+        .where(and(...conditions));
+
+      return {
+        avgCompletion: parseFloat(stats.avgCompletion || '0').toFixed(1),
+        avgGrade: stats.avgGrade ? parseFloat(stats.avgGrade) : null,
+      };
+    };
+
+    const [currentPeriodStats, previousPeriodStats] = await Promise.all([
+      getStatsForPeriod(thirtyDaysAgo),
+      getStatsForPeriod(sixtyDaysAgo, thirtyDaysAgo),
     ]);
 
-    return {
-      avgCompletion: parseFloat(completionResult.value || '0').toFixed(1),
-      avgGrade: gradeResult.value ? parseFloat(gradeResult.value) : null,
-    };
+    return { current: currentPeriodStats, previous: previousPeriodStats };
   }
 
   /**

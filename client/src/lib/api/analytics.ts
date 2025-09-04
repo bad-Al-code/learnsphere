@@ -3,6 +3,8 @@ import { enrollmentService, paymentService } from './client';
 export interface OverallStats {
   avgCompletion: string;
   avgGrade: number | null;
+  completionChange: number;
+  gradeChange: number;
 }
 
 export interface EngagementScore {
