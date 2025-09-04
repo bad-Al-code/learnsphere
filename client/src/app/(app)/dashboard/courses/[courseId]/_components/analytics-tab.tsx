@@ -35,7 +35,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  useEngagementDistribution,
   useGradeDistribution,
   useInstructorStats,
   usePerformanceTrends,
@@ -81,6 +80,7 @@ interface EngagementData {
   activity: string;
   students: number;
 }
+
 interface StudentPerformanceData {
   name: string;
   progress: number;
@@ -206,22 +206,45 @@ function PerformanceTrendsChart({ data }: { data: TrendData[] }) {
   );
 }
 
-function EngagementDistributionChart({ data }: { data: EngagementData[] }) {
-  const chartConfig = useMemo(
-    () =>
-      data.reduce((acc, item, i) => {
-        acc[item.activity] = {
-          label: item.activity,
-          color: `var(--chart-${i + 1})`,
-        };
-        return acc;
-      }, {} as ChartConfig),
-    [data]
-  );
-  const total = useMemo(
-    () => data.reduce((acc, curr) => acc + curr.students, 0),
-    [data]
-  );
+interface EngagementDistributionChartProps {
+  data: EngagementData[];
+}
+const COLORS = [
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-3)',
+  'var(--chart-4)',
+  'var(--chart-5)',
+];
+
+export function EngagementDistributionChart({
+  data,
+}: EngagementDistributionChartProps) {
+  const chartConfig = useMemo(() => {
+    if (!data) return {};
+    return data.reduce((config, item, index) => {
+      config[item.activity] = {
+        label: item.activity,
+        color: COLORS[index % COLORS.length],
+      };
+      return config;
+    }, {} as ChartConfig);
+  }, [data]);
+
+  const totalStudents = useMemo(() => {
+    return data.reduce((acc, curr) => acc + curr.students, 0);
+  }, [data]);
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex h-[250px] items-center justify-center">
+        <p className="text-muted-foreground text-center text-sm">
+          No engagement data available.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -260,7 +283,7 @@ function EngagementDistributionChart({ data }: { data: EngagementData[] }) {
                           y={viewBox.cy}
                           className="fill-foreground text-3xl font-bold"
                         >
-                          {total.toLocaleString()}
+                          {totalStudents.toLocaleString()}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
@@ -396,15 +419,15 @@ export function AnalyticsTab() {
     useGradeDistribution();
   const { data: performanceData, isLoading: isLoadingPerformance } =
     useStudentPerformance();
-  const { data: engagementData, isLoading: isLoadingEngagement } =
-    useEngagementDistribution();
+  // const { data: engagementData, isLoading: isLoadingEngagement } =
+  //   useEngagementDistribution();
 
   if (
     isLoading ||
     isTrendsLoading ||
     isLoadingGrades ||
-    isLoadingPerformance ||
-    isLoadingEngagement
+    isLoadingPerformance
+    // isLoadingEngagement
   ) {
     return <AnalyticsTabSkeleton />;
   }
@@ -459,9 +482,9 @@ export function AnalyticsTab() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2">
         <PerformanceTrendsChart data={trendsData || []} />
-        <EngagementDistributionChart data={engagementData || []} />
+        {/* <EngagementDistributionChart data={engagementData || []} /> */}
       </div>
 
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
@@ -578,9 +601,9 @@ export function AnalyticsTabSkeleton() {
           <StatCardSkeleton key={i} />
         ))}
       </div>
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2">
         <PerformanceTrendsChartSkeleton />
-        <EngagementDistributionChartSkeleton />
+        {/* <EngagementDistributionChartSkeleton /> */}
       </div>
       <div className="grid grid-cols-1 gap-2">
         <GradeDistributionBarChartSkeleton />
