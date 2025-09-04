@@ -364,12 +364,14 @@ function ModuleItem({
                           size="sm"
                           onClick={() => setIsAddLessonOpen(true)}
                         >
-                          <Plus className="sm: h-4 w-4" />
+                          <Plus className="h-4 w-4" />
                           <span className="hidden sm:inline">Add Lesson</span>
                         </Button>
                       </TooltipTrigger>
 
-                      <TooltipContent>Add Lesson</TooltipContent>
+                      <TooltipContent className="sm:hidden">
+                        Add Lesson
+                      </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
 

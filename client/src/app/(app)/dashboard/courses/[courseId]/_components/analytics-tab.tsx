@@ -450,7 +450,9 @@ export function AnalyticsTab() {
                 <span className="hidden sm:inline">Export Report</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">Export Report</TooltipContent>
+            <TooltipContent side="bottom" className="sm:hidden">
+              Export Report
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
