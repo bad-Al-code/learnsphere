@@ -336,7 +336,26 @@ export class AnalyticsController {
       const distribution = await AnalyticsService.getGradeDistribution(
         req.currentUser.id
       );
+
       res.status(StatusCodes.OK).json(distribution);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getStudentPerformanceOverview(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const performance = await AnalyticsService.getStudentPerformanceOverview(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(performance);
     } catch (error) {
       next(error);
     }

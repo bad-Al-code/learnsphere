@@ -38,8 +38,10 @@ import {
   useGradeDistribution,
   useInstructorStats,
   usePerformanceTrends,
+  useStudentPerformance,
 } from '@/hooks/use-instructor-analytics';
 import { formatPrice, getInitials, getLetterGrade } from '@/lib/utils';
+import { format } from 'date-fns';
 import {
   CheckCircle,
   DollarSign,
@@ -392,10 +394,28 @@ export function AnalyticsTab() {
     usePerformanceTrends();
   const { data: gradeData, isLoading: isLoadingGrades } =
     useGradeDistribution();
+  const { data: performanceData, isLoading: isLoadingPerformance } =
+    useStudentPerformance();
 
-  if (isLoading || isTrendsLoading || isLoadingGrades) {
+  if (isLoading || isTrendsLoading || isLoadingGrades || isLoadingPerformance) {
     return <AnalyticsTabSkeleton />;
   }
+
+  const topPerformers =
+    performanceData?.topPerformers.map((p) => ({
+      name: p.userId.substring(0, 8), // Placeholder
+      progress: parseFloat(p.progressPercentage),
+      grade: 'A', // Placeholder
+      lastActive: format(p.lastActive, 'PPP'),
+    })) || [];
+
+  const studentsAtRisk =
+    performanceData?.studentsAtRisk.map((p) => ({
+      name: p.userId.substring(0, 8), // Placeholder
+      progress: parseFloat(p.progressPercentage),
+      grade: 'D', // Placeholder
+      lastActive: format(p.lastActive, 'PPP'),
+    })) || [];
 
   return (
     <div className="space-y-2">
@@ -457,14 +477,14 @@ export function AnalyticsTab() {
         <StudentPerformanceTable
           title="Top Performers"
           description="Students with the highest grades and progress."
-          data={placeholderData.topPerformers}
+          data={topPerformers}
         />
       </div>
 
       <StudentPerformanceTable
         title="Students at Risk"
         description="Students with low progress or grades."
-        data={placeholderData.studentsAtRisk}
+        data={studentsAtRisk}
       />
     </div>
   );

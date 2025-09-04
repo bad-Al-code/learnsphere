@@ -86,3 +86,29 @@ export const getGradeDistribution = async (): Promise<GradeDistribution[]> => {
   }
   return response.json();
 };
+
+export interface StudentPerformance {
+  userId: string;
+  courseId: string;
+  progressPercentage: string;
+  lastActive: string;
+  averageGrade: string | null;
+}
+
+export interface StudentPerformanceOverview {
+  topPerformers: StudentPerformance[];
+  studentsAtRisk: StudentPerformance[];
+}
+
+export const getStudentPerformanceOverview =
+  async (): Promise<StudentPerformanceOverview> => {
+    const response = await enrollmentService.get(
+      '/api/analytics/instructor/student-performance-overview'
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch student performance');
+    }
+
+    return response.json();
+  };

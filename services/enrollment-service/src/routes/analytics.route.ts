@@ -94,6 +94,25 @@ router.get(
 
 /**
  * @openapi
+ * /api/analytics/instructor/student-performance-overview:
+ *   get:
+ *     summary: "[Instructor] Get top and at-risk students across all courses"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An object containing lists of top performers and students at risk.
+ */
+router.get(
+  '/instructor/student-performance-overview',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getStudentPerformanceOverview
+);
+
+/**
+ * @openapi
  * /api/analytics/instructor/course-performance:
  *   get:
  *     summary: "[Instructor/Admin] Get performance metrics for each of the instructor's courses"

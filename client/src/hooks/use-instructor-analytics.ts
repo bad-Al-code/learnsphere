@@ -3,6 +3,7 @@ import {
   getGradeDistribution,
   getOverallStats,
   getPerformanceTrends,
+  getStudentPerformanceOverview,
   getTotalRevenue,
 } from '@/lib/api/analytics';
 import { useQueries, useQuery } from '@tanstack/react-query';
@@ -51,5 +52,12 @@ export function useGradeDistribution() {
   return useQuery({
     queryKey: ['instructor', 'gradeDistribution'],
     queryFn: getGradeDistribution,
+  });
+}
+
+export function useStudentPerformance() {
+  return useQuery({
+    queryKey: ['instructor', 'studentPerformance'],
+    queryFn: getStudentPerformanceOverview,
   });
 }

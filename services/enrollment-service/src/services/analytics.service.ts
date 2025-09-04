@@ -664,4 +664,17 @@ export class AnalyticsService {
 
     return AnalyticsRepository.getGradeDistribution(instructorId);
   }
+
+  public static async getStudentPerformanceOverview(instructorId: string) {
+    logger.info(
+      `Fetching student performance overview for instructor ${instructorId}`
+    );
+    const allStudents =
+      await AnalyticsRepository.getStudentPerformanceOverview(instructorId);
+
+    return {
+      topPerformers: allStudents.slice(0, 5),
+      studentsAtRisk: allStudents.slice(-5).reverse(),
+    };
+  }
 }

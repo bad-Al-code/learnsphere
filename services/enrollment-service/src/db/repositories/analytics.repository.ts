@@ -890,4 +890,49 @@ export class AnalyticsRepository {
       count: parseInt(row.student_count, 10),
     }));
   }
+
+  /**
+   * Gets a ranked list of all students for a given instructor based on a combined
+   * score of their progress and average grade.
+   * @param instructorId The ID of the instructor.
+   * @returns A promise that resolves to a sorted array of student performance data.
+   */
+  public static async getStudentPerformanceOverview(instructorId: string) {
+    const instructorCourses = await db
+      .select({ id: courses.id })
+      .from(courses)
+      .where(eq(courses.instructorId, instructorId));
+
+    if (instructorCourses.length === 0) return [];
+
+    const courseIds = instructorCourses.map((c) => c.id);
+
+    const result = await db
+      .select({
+        userId: enrollments.userId,
+        courseId: enrollments.courseId,
+        progressPercentage: enrollments.progressPercentage,
+        lastActive: enrollments.lastAccessedAt,
+        averageGrade: sql<number>`AVG(student_grades.grade)::numeric(5, 2)`.as(
+          'average_grade'
+        ),
+      })
+      .from(enrollments)
+      .leftJoin(
+        studentGrades,
+        and(
+          eq(enrollments.userId, studentGrades.studentId),
+          eq(enrollments.courseId, studentGrades.courseId)
+        )
+      )
+      .where(inArray(enrollments.courseId, courseIds))
+      .groupBy(enrollments.id)
+      .orderBy(
+        desc(
+          sql`(${enrollments.progressPercentage} + COALESCE(AVG(${studentGrades.grade}), 0)) / 2`
+        )
+      );
+
+    return result;
+  }
 }
