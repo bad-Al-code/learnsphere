@@ -53,3 +53,21 @@ export const getTotalRevenue = async (): Promise<{ totalRevenue: number }> => {
 
   return { totalRevenue };
 };
+
+export interface PerformanceTrend {
+  month: string;
+  activeStudents: number;
+  avgScore: number;
+}
+
+export const getPerformanceTrends = async (): Promise<PerformanceTrend[]> => {
+  const response = await enrollmentService.get(
+    '/api/analytics/instructor/trends'
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch performance trends');
+  }
+
+  return response.json();
+};

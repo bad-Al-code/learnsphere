@@ -34,7 +34,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useInstructorStats } from '@/hooks/use-instructor-analytics';
+import {
+  useInstructorStats,
+  usePerformanceTrends,
+} from '@/hooks/use-instructor-analytics';
 import { formatPrice, getInitials, getLetterGrade } from '@/lib/utils';
 import {
   CheckCircle,
@@ -384,7 +387,10 @@ function StudentPerformanceTable({
 
 export function AnalyticsTab() {
   const { data, isLoading } = useInstructorStats();
-  if (isLoading) {
+  const { data: trendsData, isLoading: isTrendsLoading } =
+    usePerformanceTrends();
+
+  if (isLoading || isTrendsLoading) {
     return <AnalyticsTabSkeleton />;
   }
 
@@ -439,7 +445,7 @@ export function AnalyticsTab() {
       </div>
 
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-        <PerformanceTrendsChart data={placeholderData.trends} />
+        <PerformanceTrendsChart data={trendsData || []} />
         <EngagementDistributionChart data={placeholderData.engagement} />
       </div>
 

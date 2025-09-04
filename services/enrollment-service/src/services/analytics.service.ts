@@ -174,6 +174,7 @@ export class AnalyticsService {
       month: `${row.month}`,
       revenue: parseFloat(row.revenue || '0'),
       enrollments: row.enrollments,
+      avgScore: row.avgScore ?? 0,
     }));
   }
 

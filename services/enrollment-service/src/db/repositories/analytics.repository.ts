@@ -160,8 +160,18 @@ export class AnalyticsRepository {
         year: sql<string>`EXTRACT(YEAR FROM date_trunc('month', ${enrollments.enrolledAt}))`,
         revenue: sum(enrollments.coursePriceAtEnrollment),
         enrollments: countDistinct(enrollments.id),
+        avgScore: sql<number>`AVG(student_grades.grade)::numeric(5, 2)`.as(
+          'avg_score'
+        ),
       })
       .from(enrollments)
+      .leftJoin(
+        studentGrades,
+        and(
+          eq(enrollments.courseId, studentGrades.courseId),
+          eq(enrollments.userId, studentGrades.studentId)
+        )
+      )
       .where(
         and(
           inArray(enrollments.courseId, courseIds),
