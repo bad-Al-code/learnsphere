@@ -1,10 +1,49 @@
 'use client';
 
+const refreshToken = async () => {
+  try {
+    const response = await fetch('/api/auth/refresh-token', {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error('Refresh failed');
+    }
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
 class ApiClient {
   private readonly baseUrl: string;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+  }
+
+  private async fetchWithAuth(
+    path: string,
+    options?: RequestInit
+  ): Promise<Response> {
+    let response = await fetch(`${this.baseUrl}${path}`, {
+      ...options,
+      credentials: 'include',
+    });
+
+    if (response.status === 401) {
+      const refreshed = await refreshToken();
+
+      if (refreshed) {
+        response = await fetch(`${this.baseUrl}${path}`, {
+          ...options,
+          credentials: 'include',
+        });
+      } else {
+        window.location.href = '/logout';
+      }
+    }
+
+    return response;
   }
 
   private getHeaders(extra?: HeadersInit): Headers {
@@ -16,48 +55,40 @@ class ApiClient {
   }
 
   public async get(path: string, options?: RequestInit) {
-    return fetch(`${this.baseUrl}${path}`, {
-      ...options,
-      method: 'GET',
-      credentials: 'include',
-    });
+    return this.fetchWithAuth(path, { ...options, method: 'GET' });
   }
 
   public async post(path: string, body: unknown, options?: RequestInit) {
-    return fetch(`${this.baseUrl}${path}`, {
+    return this.fetchWithAuth(path, {
       ...options,
       method: 'POST',
       headers: this.getHeaders(options?.headers),
       body: JSON.stringify(body),
-      credentials: 'include',
     });
   }
 
   public async put(path: string, body: unknown, options?: RequestInit) {
-    return fetch(`${this.baseUrl}${path}`, {
+    return this.fetchWithAuth(path, {
       ...options,
       method: 'PUT',
       headers: this.getHeaders(options?.headers),
       body: JSON.stringify(body),
-      credentials: 'include',
     });
   }
 
   public async patch(path: string, body: unknown, options?: RequestInit) {
-    return fetch(`${this.baseUrl}${path}`, {
+    return this.fetchWithAuth(path, {
       ...options,
       method: 'PATCH',
       headers: this.getHeaders(options?.headers),
       body: JSON.stringify(body),
-      credentials: 'include',
     });
   }
 
   public async delete(path: string, options?: RequestInit) {
-    return fetch(`${this.baseUrl}${path}`, {
+    return this.fetchWithAuth(path, {
       ...options,
       method: 'DELETE',
-      credentials: 'include',
     });
   }
 }
