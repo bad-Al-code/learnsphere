@@ -34,7 +34,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { getInitials } from '@/lib/utils';
+import { useInstructorStats } from '@/hooks/use-instructor-analytics';
+import { formatPrice, getInitials } from '@/lib/utils';
 import {
   CheckCircle,
   DollarSign,
@@ -382,6 +383,30 @@ function StudentPerformanceTable({
 }
 
 export function AnalyticsTab() {
+  const { data, isLoading } = useInstructorStats();
+  if (isLoading) {
+    return <AnalyticsTabSkeleton />;
+  }
+
+  const getLetterGrade = (grade: number | null | undefined): string => {
+    if (grade === null || grade === undefined) return 'N/A';
+
+    if (grade >= 97) return 'A+';
+    if (grade >= 93) return 'A';
+    if (grade >= 90) return 'A-';
+    if (grade >= 87) return 'B+';
+    if (grade >= 83) return 'B';
+    if (grade >= 80) return 'B-';
+    if (grade >= 77) return 'C+';
+    if (grade >= 73) return 'C';
+    if (grade >= 70) return 'C-';
+    if (grade >= 67) return 'D+';
+    if (grade >= 63) return 'D';
+    if (grade >= 60) return 'D-';
+
+    return 'F';
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
@@ -391,6 +416,7 @@ export function AnalyticsTab() {
             Deep dive into course performance and student engagement.
           </p>
         </div>
+
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -403,19 +429,44 @@ export function AnalyticsTab() {
           </Tooltip>
         </TooltipProvider>
       </div>
+
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {placeholderData.stats.map((stat) => (
-          <StatCard key={stat.title} {...stat} />
-        ))}
+        <StatCard
+          title="Average Grade"
+          value={getLetterGrade(data.avgGrade)}
+          change={3} // Placeholder
+          icon={CheckCircle}
+        />
+        <StatCard
+          title="Completion Rate"
+          value={`${data.completionRate || 0}%`}
+          change={5} // Placeholder
+          icon={Users}
+        />
+        <StatCard
+          title="Engagement Score"
+          value={data.engagementScore?.score.toString() || '0'}
+          change={data.engagementScore?.change || 0}
+          icon={LineChart}
+        />
+        <StatCard
+          title="Total Revenue"
+          value={formatPrice(data.totalRevenue || 0)}
+          change={12} // Placeholder
+          icon={DollarSign}
+        />
       </div>
+
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         <PerformanceTrendsChart data={placeholderData.trends} />
         <EngagementDistributionChart data={placeholderData.engagement} />
       </div>
+
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-5">
         <div className="lg:col-span-2">
           <GradeDistributionBarChart data={placeholderData.gradeDistribution} />
         </div>
+
         <div className="lg:col-span-3">
           <StudentPerformanceTable
             title="Top Performers"
@@ -424,6 +475,7 @@ export function AnalyticsTab() {
           />
         </div>
       </div>
+
       <StudentPerformanceTable
         title="Students at Risk"
         description="Students with low progress or grades."
