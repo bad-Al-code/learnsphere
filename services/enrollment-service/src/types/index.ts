@@ -99,3 +99,8 @@ export interface CourseStructureSnapshotDetails {
     lessons: { id: string }[];
   }[];
 }
+
+export type GradeRow = {
+  grade_bracket: string;
+  student_count: string;
+};

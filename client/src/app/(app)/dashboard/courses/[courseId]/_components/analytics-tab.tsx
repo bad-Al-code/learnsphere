@@ -35,6 +35,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
+  useGradeDistribution,
   useInstructorStats,
   usePerformanceTrends,
 } from '@/hooks/use-instructor-analytics';
@@ -389,8 +390,10 @@ export function AnalyticsTab() {
   const { data, isLoading } = useInstructorStats();
   const { data: trendsData, isLoading: isTrendsLoading } =
     usePerformanceTrends();
+  const { data: gradeData, isLoading: isLoadingGrades } =
+    useGradeDistribution();
 
-  if (isLoading || isTrendsLoading) {
+  if (isLoading || isTrendsLoading || isLoadingGrades) {
     return <AnalyticsTabSkeleton />;
   }
 
@@ -449,18 +452,13 @@ export function AnalyticsTab() {
         <EngagementDistributionChart data={placeholderData.engagement} />
       </div>
 
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-5">
-        <div className="lg:col-span-2">
-          <GradeDistributionBarChart data={placeholderData.gradeDistribution} />
-        </div>
-
-        <div className="lg:col-span-3">
-          <StudentPerformanceTable
-            title="Top Performers"
-            description="Students with the highest grades and progress."
-            data={placeholderData.topPerformers}
-          />
-        </div>
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+        <GradeDistributionBarChart data={gradeData || []} />
+        <StudentPerformanceTable
+          title="Top Performers"
+          description="Students with the highest grades and progress."
+          data={placeholderData.topPerformers}
+        />
       </div>
 
       <StudentPerformanceTable

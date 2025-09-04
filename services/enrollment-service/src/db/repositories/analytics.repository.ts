@@ -12,6 +12,7 @@ import {
   sum,
 } from 'drizzle-orm';
 import { db } from '..';
+import { GradeRow } from '../../types';
 import {
   courseActivityLogs,
   courses,
@@ -845,5 +846,48 @@ export class AnalyticsRepository {
       currentPeriodActivity: currentPeriod.value,
       previousPeriodActivity: previousPeriod.value,
     };
+  }
+
+  /**
+   * Calculates the distribution of grades for all of an instructor's students.
+   * @param instructorId The ID of the instructor.
+   * @returns An array of objects, each with a grade bracket and the count of students.
+   */
+  public static async getGradeDistribution(instructorId: string) {
+    const instructorCourses = await db
+      .select({ id: courses.id })
+      .from(courses)
+      .where(eq(courses.instructorId, instructorId));
+
+    if (instructorCourses.length === 0) return [];
+
+    const query = sql`
+    SELECT
+      CASE
+        WHEN avg_grade >= 90 THEN 'A'
+        WHEN avg_grade >= 80 THEN 'B'
+        WHEN avg_grade >= 70 THEN 'C'
+        WHEN avg_grade >= 60 THEN 'D'
+        ELSE 'F'
+      END AS grade_bracket,
+      COUNT(student_id) AS student_count
+    FROM (
+      SELECT student_id, AVG(grade) AS avg_grade
+      FROM student_grades
+      WHERE course_id IN (
+        SELECT id FROM courses WHERE instructor_id = ${instructorId}
+      )
+      GROUP BY student_id
+    ) AS student_averages
+    GROUP BY grade_bracket
+    ORDER BY grade_bracket;
+  `;
+
+    const result = await db.execute<GradeRow>(query);
+
+    return result.rows.map((row) => ({
+      grade: row.grade_bracket,
+      count: parseInt(row.student_count, 10),
+    }));
   }
 }

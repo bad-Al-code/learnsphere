@@ -1,5 +1,6 @@
 import {
   getEngagementScore,
+  getGradeDistribution,
   getOverallStats,
   getPerformanceTrends,
   getTotalRevenue,
@@ -43,5 +44,12 @@ export function usePerformanceTrends() {
   return useQuery({
     queryKey: ['instructor', 'performanceTrends'],
     queryFn: getPerformanceTrends,
+  });
+}
+
+export function useGradeDistribution() {
+  return useQuery({
+    queryKey: ['instructor', 'gradeDistribution'],
+    queryFn: getGradeDistribution,
   });
 }

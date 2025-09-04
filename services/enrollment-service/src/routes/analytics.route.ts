@@ -75,6 +75,25 @@ router.get(
 
 /**
  * @openapi
+ * /api/analytics/instructor/grade-distribution:
+ *   get:
+ *     summary: "[Instructor] Get the grade distribution for all students"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An array of grade brackets and student counts.
+ */
+router.get(
+  '/instructor/grade-distribution',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getGradeDistribution
+);
+
+/**
+ * @openapi
  * /api/analytics/instructor/course-performance:
  *   get:
  *     summary: "[Instructor/Admin] Get performance metrics for each of the instructor's courses"

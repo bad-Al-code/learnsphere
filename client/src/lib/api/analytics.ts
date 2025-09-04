@@ -71,3 +71,18 @@ export const getPerformanceTrends = async (): Promise<PerformanceTrend[]> => {
 
   return response.json();
 };
+
+export interface GradeDistribution {
+  grade: string;
+  count: number;
+}
+
+export const getGradeDistribution = async (): Promise<GradeDistribution[]> => {
+  const response = await enrollmentService.get(
+    '/api/analytics/instructor/grade-distribution'
+  );
+  if (!response.ok) {
+    throw new Error('Failed to fetch grade distribution');
+  }
+  return response.json();
+};

@@ -658,4 +658,10 @@ export class AnalyticsService {
       change,
     };
   }
+
+  public static async getGradeDistribution(instructorId: string) {
+    logger.info(`Fetching grade distribution for instructor ${instructorId}`);
+
+    return AnalyticsRepository.getGradeDistribution(instructorId);
+  }
 }
