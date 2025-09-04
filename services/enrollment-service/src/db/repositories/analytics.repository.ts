@@ -935,4 +935,31 @@ export class AnalyticsRepository {
 
     return result;
   }
+
+  /**
+   * Calculates the distribution of different engagement activities for an instructor.
+   * @param instructorId The ID of the instructor.
+   * @returns An array of objects, each with an activity type and its total count.
+   */
+  public static async getEngagementDistribution(instructorId: string) {
+    const instructorCourses = await db
+      .select({ id: courses.id })
+      .from(courses)
+      .where(eq(courses.instructorId, instructorId));
+
+    if (instructorCourses.length === 0) return [];
+
+    const courseIds = instructorCourses.map((c) => c.id);
+
+    const result = await db
+      .select({
+        activity: courseActivityLogs.activityType,
+        count: count(courseActivityLogs.id),
+      })
+      .from(courseActivityLogs)
+      .where(inArray(courseActivityLogs.courseId, courseIds))
+      .groupBy(courseActivityLogs.activityType);
+
+    return result;
+  }
 }

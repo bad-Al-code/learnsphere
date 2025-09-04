@@ -113,6 +113,25 @@ router.get(
 
 /**
  * @openapi
+ * /api/analytics/instructor/engagement-distribution:
+ *   get:
+ *     summary: "[Instructor] Get the distribution of student engagement activities"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An array of engagement activities and their counts.
+ */
+router.get(
+  '/instructor/engagement-distribution',
+  requireAuth,
+  requireRole(['instructor', 'admin']),
+  AnalyticsController.getEngagementDistribution
+);
+
+/**
+ * @openapi
  * /api/analytics/instructor/course-performance:
  *   get:
  *     summary: "[Instructor/Admin] Get performance metrics for each of the instructor's courses"

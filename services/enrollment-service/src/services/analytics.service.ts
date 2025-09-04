@@ -677,4 +677,20 @@ export class AnalyticsService {
       studentsAtRisk: allStudents.slice(-5).reverse(),
     };
   }
+
+  public static async getEngagementDistribution(instructorId: string) {
+    logger.info(
+      `Fetching engagement distribution for instructor ${instructorId}`
+    );
+
+    const distribution =
+      await AnalyticsRepository.getEngagementDistribution(instructorId);
+
+    return distribution.map((item) => ({
+      activity: item.activity
+        .replace('_', ' ')
+        .replace(/\b\w/g, (l) => l.toUpperCase()),
+      students: item.count,
+    }));
+  }
 }

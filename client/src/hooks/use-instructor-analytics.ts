@@ -1,4 +1,5 @@
 import {
+  getEngagementDistribution,
   getEngagementScore,
   getGradeDistribution,
   getOverallStats,
@@ -179,4 +180,11 @@ export function useStudentPerformance() {
     data: enrichedData,
     isLoading: isLoadingPerformance || isLoadingUsers || isLoadingCourses,
   };
+}
+
+export function useEngagementDistribution() {
+  return useQuery({
+    queryKey: ['instructor', 'engagementDistribution'],
+    queryFn: getEngagementDistribution,
+  });
 }

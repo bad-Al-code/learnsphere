@@ -360,4 +360,22 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getEngagementDistribution(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const distribution = await AnalyticsService.getEngagementDistribution(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(distribution);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

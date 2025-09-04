@@ -111,7 +111,27 @@ export const getStudentPerformanceOverview =
     }
 
     const data = await response.json();
-    console.log(data);
-
     return data;
   };
+
+export interface EngagementDistribution {
+  activity: string;
+  students: number;
+}
+
+export const getEngagementDistribution = async (): Promise<
+  EngagementDistribution[]
+> => {
+  const response = await enrollmentService.get(
+    '/api/analytics/instructor/engagement-distribution'
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch engagement distribution');
+  }
+
+  const data = await response.json();
+  console.log(data);
+
+  return data;
+};

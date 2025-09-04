@@ -35,6 +35,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
+  useEngagementDistribution,
   useGradeDistribution,
   useInstructorStats,
   usePerformanceTrends,
@@ -395,26 +396,18 @@ export function AnalyticsTab() {
     useGradeDistribution();
   const { data: performanceData, isLoading: isLoadingPerformance } =
     useStudentPerformance();
+  const { data: engagementData, isLoading: isLoadingEngagement } =
+    useEngagementDistribution();
 
-  if (isLoading || isTrendsLoading || isLoadingGrades || isLoadingPerformance) {
+  if (
+    isLoading ||
+    isTrendsLoading ||
+    isLoadingGrades ||
+    isLoadingPerformance ||
+    isLoadingEngagement
+  ) {
     return <AnalyticsTabSkeleton />;
   }
-
-  // const topPerformers =
-  //   performanceData?.topPerformers.map((p) => ({
-  //     name: p.userId.substring(0, 8), // Placeholder
-  //     progress: parseFloat(p.progressPercentage),
-  //     grade: 'A', // Placeholder
-  //     lastActive: format(p.lastActive, 'PPP'),
-  //   })) || [];
-
-  // const studentsAtRisk =
-  //   performanceData?.studentsAtRisk.map((p) => ({
-  //     name: p.userId.substring(0, 8), // Placeholder
-  //     progress: parseFloat(p.progressPercentage),
-  //     grade: 'D', // Placeholder
-  //     lastActive: format(p.lastActive, 'PPP'),
-  //   })) || [];
 
   return (
     <div className="space-y-2">
@@ -468,7 +461,7 @@ export function AnalyticsTab() {
 
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         <PerformanceTrendsChart data={trendsData || []} />
-        <EngagementDistributionChart data={placeholderData.engagement} />
+        <EngagementDistributionChart data={engagementData || []} />
       </div>
 
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
@@ -589,13 +582,9 @@ export function AnalyticsTabSkeleton() {
         <PerformanceTrendsChartSkeleton />
         <EngagementDistributionChartSkeleton />
       </div>
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-5">
-        <div className="lg:col-span-2">
-          <GradeDistributionBarChartSkeleton />
-        </div>
-        <div className="lg:col-span-3">
-          <StudentPerformanceTableSkeleton />
-        </div>
+      <div className="grid grid-cols-1 gap-2">
+        <GradeDistributionBarChartSkeleton />
+        <StudentPerformanceTableSkeleton />
       </div>
       <StudentPerformanceTableSkeleton />
     </div>
