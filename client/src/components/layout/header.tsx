@@ -103,7 +103,8 @@ export function Header({ user: initialUser }: { user: User | null }) {
             <SearchBar />
           </div>
 
-          <NotificationBell />
+          {user && <NotificationBell />}
+
           {/* Theme Toggle */}
           <ModeToggle />
 

@@ -24,12 +24,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Skeleton } from '../ui/skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '../ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 const notificationConfig: Record<
   string,
@@ -222,7 +217,7 @@ interface NotificationListProps {
 }
 
 export const NotificationList = ({ notifications }: NotificationListProps) => (
-  <div className="max-h-[50vh] overflow-y-auto">
+  <div className="max-h-[40vh] overflow-y-auto">
     {notifications.map((notification) => (
       <NotificationItem key={notification.id} notification={notification} />
     ))}
@@ -259,17 +254,25 @@ export function NotificationBell() {
   };
 
   return (
-    <TooltipProvider>
+    <>
       <DropdownMenu onOpenChange={handleOpenChange}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            {unreadCount > 0 && (
-              <span className="bg-primary text-primary-foreground absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold">
-                {formattedUnreadCount}
-              </span>
-            )}
-          </Button>
+          <div className="">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="bg-primary text-primary-foreground absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold">
+                      {formattedUnreadCount}
+                    </span>
+                  )}
+                </Button>
+              </TooltipTrigger>
+
+              <TooltipContent>Notifications</TooltipContent>
+            </Tooltip>
+          </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-96">
           <NotificationHeader
@@ -288,6 +291,6 @@ export function NotificationBell() {
           <NotificationFooter />
         </DropdownMenuContent>
       </DropdownMenu>
-    </TooltipProvider>
+    </>
   );
 }

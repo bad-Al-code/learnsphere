@@ -14,6 +14,10 @@ export function useWebSocket(enabled: boolean) {
 
   useEffect(() => {
     if (!enabled) {
+      if (ws.current) {
+        ws.current.close();
+        ws.current = null;
+      }
       return;
     }
 
