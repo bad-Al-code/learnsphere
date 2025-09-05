@@ -5,6 +5,8 @@ import { generateApplicationDeclinedEmail } from '../templates/application-decli
 import { generateApplicationSubmittedAdminEmail } from '../templates/application-submitted.template';
 import { generatePasswordChangeNotice } from '../templates/password-change-notice.template';
 import { generatePasswordResetEmail } from '../templates/password-reset.template';
+import { generateReportFailedEmail } from '../templates/report-failed.template';
+import { generateReportReadyEmail } from '../templates/report-ready.template';
 import { generateVerificationEmail } from '../templates/verification.template';
 import { generateWelcomeEmail } from '../templates/welcome.template';
 import {
@@ -165,6 +167,48 @@ export class EmailService {
       subject: "We've Received Your Instructor Application",
       html: htmlBody,
       text: 'Thank you for your application to become an instructor on LearnSphere! We have received it and our team will review it shortly.',
+      type: 'user_notification',
+    });
+  }
+
+  public async sendReportReadyEmail(data: {
+    email: string;
+    userName: string | null;
+    reportType: string;
+    downloadUrl: string;
+  }): Promise<void> {
+    const htmlBody = generateReportReadyEmail(
+      data.userName,
+      data.reportType,
+      data.downloadUrl
+    );
+
+    await this.emailClient.send({
+      to: data.email,
+      subject: `Your LearnSphere Report is Ready!`,
+      html: htmlBody,
+      text: `Your "${data.reportType}" report is ready. Download it here: ${data.downloadUrl}`,
+      type: 'user_notification',
+    });
+  }
+
+  public async sendReportFailedEmail(data: {
+    email: string;
+    userName: string | null;
+    reportType: string;
+    reason: string;
+  }): Promise<void> {
+    const htmlBody = generateReportFailedEmail(
+      data.userName,
+      data.reportType,
+      data.reason
+    );
+
+    await this.emailClient.send({
+      to: data.email,
+      subject: `There was an issue with your LearnSphere Report`,
+      html: htmlBody,
+      text: `We're sorry, there was an issue generating your "${data.reportType}" report. Reason: ${data.reason}`,
       type: 'user_notification',
     });
   }

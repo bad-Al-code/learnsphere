@@ -532,6 +532,12 @@ interface ReportGenerationSucceededEvent {
 export class ReportGenerationSuccessListener extends Listener<ReportGenerationSucceededEvent> {
   readonly topic = 'report.generation.succeeded' as const;
   queueGroupName = 'notification-service-report-succeeded';
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
 
   async onMessage(
     data: ReportGenerationSucceededEvent['data'],
@@ -542,12 +548,29 @@ export class ReportGenerationSuccessListener extends Listener<ReportGenerationSu
         `Report generation succeeded for job ${data.jobId}. Notifying user ${data.requesterId}.`
       );
 
-      await NotificationService.createNotification({
-        recipientId: data.requesterId,
-        type: 'REPORT_READY',
-        content: `Your "${data.reportType.replace('_', ' ')}" report is ready for download.`,
-        linkUrl: data.fileUrl,
-      });
+      const user = await UserRepository.findById(data.requesterId);
+      if (!user) {
+        logger.warn(
+          `User ${data.requesterId} not found. Cannot send report notification.`
+        );
+        return;
+      }
+
+      await Promise.all([
+        NotificationService.createNotification({
+          recipientId: data.requesterId,
+          type: 'REPORT_READY',
+          content: `Your "${data.reportType.replace('_', ' ')}" report is ready for download.`,
+          linkUrl: data.fileUrl,
+        }),
+
+        this.emailService.sendReportReadyEmail({
+          email: user.email,
+          userName: null,
+          reportType: data.reportType,
+          downloadUrl: data.fileUrl,
+        }),
+      ]);
     } catch (error) {
       logger.error('Failed to process report.generation.succeeded event', {
         data,
@@ -569,6 +592,12 @@ interface ReportGenerationFailedEvent {
 export class ReportGenerationFailedListener extends Listener<ReportGenerationFailedEvent> {
   readonly topic = 'report.generation.failed' as const;
   queueGroupName = 'notification-service-report-failed';
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
 
   async onMessage(
     data: ReportGenerationFailedEvent['data'],
@@ -579,12 +608,29 @@ export class ReportGenerationFailedListener extends Listener<ReportGenerationFai
         `Report generation failed for job ${data.jobId}. Notifying user ${data.requesterId}.`
       );
 
-      await NotificationService.createNotification({
-        recipientId: data.requesterId,
-        type: 'REPORT_FAILED',
-        content: `We're sorry, but we were unable to generate your report. Reason: ${data.reason}`,
-        linkUrl: '/dashboard/analytics?tab=reports',
-      });
+      const user = await UserRepository.findById(data.requesterId);
+      if (!user) {
+        logger.warn(
+          `User ${data.requesterId} not found. Cannot send report failure notification.`
+        );
+        return;
+      }
+
+      await Promise.all([
+        NotificationService.createNotification({
+          recipientId: data.requesterId,
+          type: 'REPORT_FAILED',
+          content: `We're sorry, but we were unable to generate your report. Reason: ${data.reason}`,
+          linkUrl: '/dashboard/analytics?tab=reports',
+        }),
+
+        this.emailService.sendReportFailedEmail({
+          email: user.email,
+          userName: null,
+          reportType: 'Student Performance',
+          reason: data.reason,
+        }),
+      ]);
     } catch (error) {
       logger.error('Failed to process report.generation.failed event', {
         data,

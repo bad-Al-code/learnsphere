@@ -38,8 +38,8 @@ const start = async () => {
     new InstructorApplicationApprovedListener(emailService).listen();
     new UserSyncRegisteredListener().listen();
     new UserSyncRoleUpdatedListener().listen();
-    new ReportGenerationSuccessListener().listen();
-    new ReportGenerationFailedListener().listen();
+    new ReportGenerationSuccessListener(emailService).listen();
+    new ReportGenerationFailedListener(emailService).listen();
 
     const server = http.createServer(app);
 
