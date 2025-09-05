@@ -99,7 +99,7 @@ export default async function CourseEditorPage({
           )}
           {currentTab === 'settings' && (
             <Suspense fallback={<SettingsTabSkeleton />}>
-              <SettingsTab />
+              <SettingsTab courseId={params.courseId} />
             </Suspense>
           )}
         </TabsContent>

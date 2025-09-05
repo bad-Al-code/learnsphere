@@ -1,5 +1,3 @@
-'use client';
-
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -32,6 +30,8 @@ import {
   Upload,
 } from 'lucide-react';
 import Image from 'next/image';
+import { notFound } from 'next/navigation';
+import { getCourseForEditor } from '../../actions';
 
 interface CourseSettingsData {
   details: {
@@ -290,9 +290,43 @@ function QuickActions() {
 }
 
 interface SettingsTabProps {
-  data?: CourseSettingsData;
+  courseId: string;
 }
-export function SettingsTab({ data = placeholderData }: SettingsTabProps) {
+export async function SettingsTab({ courseId }: SettingsTabProps) {
+  const result = await getCourseForEditor(courseId);
+
+  if (!result.success || !result.data) {
+    notFound();
+  }
+  const course = result.data;
+
+  const data: CourseSettingsData = {
+    details: {
+      title: course.title,
+      price: course.price || 0,
+      description: course.description || '',
+      category: course.category?.name || 'N/A',
+      difficulty: course.level,
+      status: course.status,
+      thumbnailUrl: course.imageUrl || '',
+    },
+
+    settings: {
+      enableReviews: true,
+      enableDiscussions: true,
+      certificateOnCompletion: true,
+      dripContent: false,
+    },
+
+    stats: {
+      totalStudents: course.enrollmentCount || 0,
+      completionRate: 75, // Placeholder
+      averageRating: course.averageRating || 0,
+      totalRevenue: 12000, // Placeholder
+      lastUpdated: new Date(course.updatedAt).toLocaleDateString(),
+    },
+  };
+
   return (
     <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
       <div className="space-y-2 lg:col-span-2">
