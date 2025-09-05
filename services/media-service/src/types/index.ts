@@ -56,6 +56,7 @@ export interface StudentPerformance {
 }
 
 export interface EnrichedStudentPerformance {
+  lastActive: string | number | Date;
   name: string;
   courseTitle: string;
   progressPercentage: string;

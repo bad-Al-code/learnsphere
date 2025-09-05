@@ -14,6 +14,24 @@ export class PdfGenerationService {
         resolve(Buffer.concat(buffers));
       });
 
+      const addWaterMark = (document: PDFKit.PDFDocument) => {
+        const pageWidth = document.page.width;
+        const pageHeight = document.page.height;
+        document
+          .fontSize(50)
+          .fillColor('grey')
+          .opacity(0.15)
+          .text('LearnSphere', 0, pageHeight / 3 - 50, {
+            align: 'center',
+            lineBreak: false,
+          })
+          .opacity(1)
+          .fillColor('black');
+      };
+
+      addWaterMark(doc);
+      doc.on('pageAdded', () => addWaterMark(doc));
+
       doc
         .fontSize(20)
         .font('Helvetica-Bold')
@@ -27,39 +45,71 @@ export class PdfGenerationService {
       doc.moveDown(2);
 
       const tableTop = doc.y;
-      const itemX = 50;
-      const courseX = 150;
-      const progressX = 250;
-      const gradeX = 350;
-      const lastActiveX = 450;
+      const tableHeaders = [
+        'Student',
+        'Course',
+        'Progress',
+        'Grade',
+        'Last Active',
+      ];
+      const columnWidths = [150, 150, 70, 50, 80];
+      let currentX = 30;
 
       doc.fontSize(10).font('Helvetica-Bold');
-      doc.text('Student', itemX, tableTop);
-      doc.text('Course', courseX, tableTop);
-      doc.text('Progress', progressX, tableTop);
-      doc.text('Grade', gradeX, tableTop);
-      doc.text('Last Active', lastActiveX, tableTop);
-      doc
-        .moveTo(itemX - 10, doc.y)
-        .lineTo(550, doc.y)
-        .stroke();
-      doc.moveDown();
+      tableHeaders.forEach((header, i) => {
+        doc.text(header, currentX, tableTop, { width: columnWidths[i] });
+        currentX += columnWidths[i];
+      });
+      doc.moveTo(30, doc.y).lineTo(565, doc.y).stroke();
+      doc.moveDown(0.5);
 
-      doc.fontSize(10).font('Helvetica');
+      doc.fontSize(9).font('Helvetica');
       data.forEach((student) => {
         const rowY = doc.y;
-        doc.text(student.name, itemX, rowY);
-        doc.text(student.courseTitle, courseX, rowY);
-        doc.text(`${student.progressPercentage}%`, progressX, rowY);
+        const rowHeight = 40;
+
+        if (rowY + rowHeight > doc.page.height - doc.page.margins.bottom) {
+          doc.addPage();
+        }
+
+        currentX = 30;
+
+        doc.text(student.name, currentX, doc.y, { width: columnWidths[0] });
+        doc.text(student.courseTitle, currentX + columnWidths[0], rowY, {
+          width: columnWidths[1],
+        });
         doc.text(
-          student.averageGrade !== undefined && student.averageGrade !== null
-            ? `${Number(student.averageGrade).toFixed(1)}%`
-            : 'N/A',
-          gradeX,
-          rowY
+          `${parseFloat(student.progressPercentage).toFixed(2)}%`,
+          currentX + columnWidths[0] + columnWidths[1],
+          rowY,
+          { width: columnWidths[2] }
+        );
+        doc.text(
+          student.averageGrade ? `${student.averageGrade.toFixed(1)}%` : 'N/A',
+          currentX + columnWidths[0] + columnWidths[1] + columnWidths[2],
+          rowY,
+          { width: columnWidths[3] }
+        );
+        doc.text(
+          new Date(student.lastActive).toLocaleDateString(),
+          currentX +
+            columnWidths[0] +
+            columnWidths[1] +
+            columnWidths[2] +
+            columnWidths[3],
+          rowY,
+          { width: columnWidths[4] }
         );
 
-        doc.moveDown();
+        doc.y = rowY;
+        doc.moveDown(3);
+
+        doc
+          .moveTo(30, doc.y)
+          .lineTo(565, doc.y)
+          .strokeColor('#dddddd')
+          .stroke();
+        doc.moveDown(0.5);
       });
 
       doc.end();
