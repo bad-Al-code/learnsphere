@@ -33,12 +33,11 @@ export class WebSocketService {
       }
 
       const unsignedToken = signedCookie.unsign(
-        rawToken,
+        rawToken.slice(2),
         env.COOKIE_PARSER_SECRET
       );
 
-      if (!unsignedToken) {
-        // If unsign returns false, the cookie was tampered with or the secret is wrong.
+      if (unsignedToken === false) {
         logger.error(
           'WebSocket connection rejected: Invalid cookie signature. Check that COOKIE_PARSER_SECRET matches auth-service.'
         );
