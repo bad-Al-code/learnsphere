@@ -1,6 +1,7 @@
 import { Header } from '@/components/layout/header';
 import { SessionRefresher } from '@/components/layout/session-refresher';
 import { ThemeFavicon } from '@/components/layout/theme-favicon';
+import { NotificationProvider } from '@/components/providers/notification-provider';
 import { QueryProvider } from '@/components/providers/query-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { GeistMono } from 'geist/font/mono';
@@ -48,6 +49,7 @@ export default async function RootLayout({
             </div>
           </ThemeProvider>
           <SessionRefresher />
+          <NotificationProvider />
         </QueryProvider>
       </body>
     </html>

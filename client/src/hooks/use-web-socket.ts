@@ -13,10 +13,14 @@ interface NotificationPayload {
   linkUrl?: string;
 }
 
-export function useWebSocket() {
+export function useWebSocket(enabled: boolean) {
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     if (!NOTIFICATION_SERVICE_WS_URL) {
       console.error(
         'WebSocket URL is not defined. NEXT_PUBLIC_NOTIFICATION_SERVICE_URL must be set.'
@@ -29,6 +33,7 @@ export function useWebSocket() {
     }
 
     const socket = new WebSocket(NOTIFICATION_SERVICE_WS_URL);
+
     socket.onopen = () => {
       console.log('WebSocket connection established.');
     };
@@ -66,7 +71,8 @@ export function useWebSocket() {
     return () => {
       if (ws.current) {
         ws.current.close();
+        ws.current = null;
       }
     };
-  }, []);
+  }, [enabled]);
 }
