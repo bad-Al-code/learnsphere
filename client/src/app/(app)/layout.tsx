@@ -23,7 +23,7 @@ export default async function AppLayout({
         <aside className="md:col-span-1">
           <Sidebar />
         </aside>
-        <main className="md:col-span-3 lg:col-span-4">{children}</main>
+        <main className="mb-4 md:col-span-3 lg:col-span-4">{children}</main>
       </div>
     </div>
   );

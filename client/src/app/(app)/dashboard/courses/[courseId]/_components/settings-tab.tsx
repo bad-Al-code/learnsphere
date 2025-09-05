@@ -7,21 +7,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
-import {
-  BarChart,
-  Copy,
-  Download,
-  Eye,
-  Link as LinkIcon,
-  Star,
-  Trash2,
-} from 'lucide-react';
+import { BarChart, Download, Eye, Link as LinkIcon, Star } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { getCategoryOptions, getCourseForEditor } from '../../actions';
 import { CourseDetailsForm } from './course-details-form';
+import { DangerZone } from './danger-zone';
 import { PriceForm } from './price-form';
 import { ThumbnailUploader } from './thumbnail-uploader';
 
@@ -49,128 +41,6 @@ interface CourseSettingsData {
     lastUpdated: string;
   };
 }
-
-const placeholderData: CourseSettingsData = {
-  details: {
-    title: 'Financial Accounting Basics',
-    price: 129,
-    description: 'Understanding fundamental accounting principles',
-    category: 'Finance',
-    difficulty: 'Beginner',
-    status: 'Published',
-    thumbnailUrl: 'https://picsum.photos/seed/accounting/400/200',
-  },
-  settings: {
-    enableReviews: true,
-    enableDiscussions: true,
-    certificateOnCompletion: true,
-    dripContent: false,
-  },
-  stats: {
-    totalStudents: 120,
-    completionRate: 75,
-    averageRating: 4.3,
-    totalRevenue: 12000,
-    lastUpdated: '1 week ago',
-  },
-};
-
-// function CourseDetailsForm({ data }: { data: CourseSettingsData['details'] }) {
-//   return (
-//     <Card>
-//       <CardHeader>
-//         <CardTitle>Course Details</CardTitle>
-//         <CardDescription>
-//           Update your course information and settings
-//         </CardDescription>
-//       </CardHeader>
-//       <CardContent className="space-y-2">
-//         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-//           <div className="grid w-full items-center gap-1.5 sm:col-span-2">
-//             <Label htmlFor="title">Course Title</Label>
-//             <Input id="title" defaultValue={data.title} />
-//           </div>
-//           <div className="grid w-full items-center gap-1.5">
-//             <Label htmlFor="price">Price ($)</Label>
-//             <Input id="price" type="number" defaultValue={data.price} />
-//           </div>
-//         </div>
-//         <div className="grid w-full items-center gap-1.5">
-//           <Label htmlFor="description">Course Description</Label>
-//           <Textarea
-//             id="description"
-//             defaultValue={data.description}
-//             className="min-h-24"
-//           />
-//         </div>
-//         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-//           <div className="grid w-full items-center gap-1.5">
-//             <Label>Category</Label>
-//             <Select defaultValue={data.category}>
-//               <SelectTrigger>
-//                 <SelectValue />
-//               </SelectTrigger>
-//               <SelectContent>
-//                 <SelectItem value="Finance">Finance</SelectItem>
-//               </SelectContent>
-//             </Select>
-//           </div>
-//           <div className="grid w-full items-center gap-1.5">
-//             <Label>Difficulty Level</Label>
-//             <Select defaultValue={data.difficulty}>
-//               <SelectTrigger>
-//                 <SelectValue />
-//               </SelectTrigger>
-//               <SelectContent>
-//                 <SelectItem value="Beginner">Beginner</SelectItem>
-//               </SelectContent>
-//             </Select>
-//           </div>
-//           <div className="grid w-full items-center gap-1.5">
-//             <Label>Status</Label>
-//             <Select defaultValue={data.status}>
-//               <SelectTrigger>
-//                 <SelectValue />
-//               </SelectTrigger>
-//               <SelectContent>
-//                 <SelectItem value="Published">Published</SelectItem>
-//               </SelectContent>
-//             </Select>
-//           </div>
-//         </div>
-//       </CardContent>
-//     </Card>
-//   );
-// }
-
-// function CourseThumbnail({ url }: { url: string }) {
-//   return (
-//     <Card>
-//       <CardHeader>
-//         <CardTitle>Course Thumbnail</CardTitle>
-//       </CardHeader>
-//       <CardContent>
-//         <div className="relative aspect-video w-full overflow-hidden rounded-md border-2 border-dashed">
-//           <Image
-//             src={url}
-//             alt="Course Thumbnail"
-//             fill
-//             className="object-cover"
-//           />
-//           <div className="absolute inset-0 bg-black/20" />
-//         </div>
-//         <div className="mt-4 flex justify-center gap-2">
-//           <Button variant="outline">
-//             <Upload className="h-4 w-4" /> Change Image
-//           </Button>
-//           <Button variant="ghost">
-//             <Trash2 className="h-4 w-4" /> Remove
-//           </Button>
-//         </div>
-//       </CardContent>
-//     </Card>
-//   );
-// }
 
 function CourseSettings({ data }: { data: CourseSettingsData['settings'] }) {
   return (
@@ -328,29 +198,21 @@ export async function SettingsTab({ courseId }: SettingsTabProps) {
     <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
       <div className="space-y-2 lg:col-span-2">
         <CourseDetailsForm course={course} categories={categories} />
-        <PriceForm courseId={course.id} initialPrice={course.price} />
+        <div className="space-y-2">
+          <PriceForm courseId={course.id} initialPrice={course.price} />
 
-        <ThumbnailUploader
-          courseId={course.id}
-          currentImageUrl={course.imageUrl}
-        />
+          <ThumbnailUploader
+            courseId={course.id}
+            currentImageUrl={course.imageUrl}
+          />
 
-        <CourseSettings data={data.settings} />
-        <Separator />
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost">
-              <Copy className="h-4 w-4" /> Duplicate Course
-            </Button>
-            <Button variant="destructive" className="">
-              <Trash2 className="h-4 w-4" /> Delete Course
-            </Button>
-          </div>
+          <CourseSettings data={data.settings} />
 
-          <div className="flex items-center gap-2">
-            <Button variant="outline">Preview Course</Button>
-            <Button>Save Changes</Button>
-          </div>
+          <DangerZone
+            courseId={course.id}
+            status={course.status}
+            title={course.title}
+          />
         </div>
       </div>
 

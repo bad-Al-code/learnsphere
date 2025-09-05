@@ -39,6 +39,7 @@ import { CourseFilterOptions } from '@/types/course';
 import { BulkUser } from '@/types/user';
 import { faker } from '@faker-js/faker';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import z from 'zod';
 
 export async function getMyCoursePageStats() {
@@ -1018,4 +1019,53 @@ export async function updateCoursePrice(
 
     return { error: error.message };
   }
+}
+
+async function performCourseAction(
+  courseId: string,
+  action: 'publish' | 'unpublish' | 'delete'
+) {
+  try {
+    let response;
+    if (action === 'delete') {
+      response = await courseService.delete(`/api/courses/${courseId}`);
+    } else {
+      response = await courseService.post(
+        `/api/courses/${courseId}/${action}`,
+        {}
+      );
+    }
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(
+        data.errors?.[0]?.message || `Failed to ${action} course.`
+      );
+    }
+
+    revalidatePath(`/dashboard/courses/${courseId}`);
+    revalidatePath('/dashboard/courses');
+
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function publishCourse(courseId: string) {
+  return performCourseAction(courseId, 'publish');
+}
+
+export async function unpublishCourse(courseId: string) {
+  return performCourseAction(courseId, 'unpublish');
+}
+
+export async function deleteCourse(courseId: string) {
+  const result = await performCourseAction(courseId, 'delete');
+
+  if (result.success) {
+    redirect('/dashboard/courses');
+  }
+
+  return result;
 }
