@@ -35,6 +35,7 @@ import { SearchBar } from '../shared/search-bar';
 import { Button } from '../ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
 import { InstructorApplyButton } from './instructor-apply-button';
+import { NotificationBell } from './notification-bell';
 
 export function Header({ user: initialUser }: { user: User | null }) {
   const pathname = usePathname();
@@ -102,6 +103,7 @@ export function Header({ user: initialUser }: { user: User | null }) {
             <SearchBar />
           </div>
 
+          <NotificationBell />
           {/* Theme Toggle */}
           <ModeToggle />
 

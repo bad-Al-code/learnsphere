@@ -111,3 +111,6 @@ export const paymentService = new ApiClient(
 export const mediaService = new ApiClient(
   process.env.NEXT_PUBLIC_MEDIA_SERVICE_URL!
 );
+export const notificationService = new ApiClient(
+  process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE_URL!
+);

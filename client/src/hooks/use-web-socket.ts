@@ -1,5 +1,7 @@
 'use client';
 
+import { Notification } from '@/lib/api/notification';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
@@ -14,6 +16,7 @@ interface NotificationPayload {
 }
 
 export function useWebSocket(enabled: boolean) {
+  const queryClient = useQueryClient();
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -40,17 +43,25 @@ export function useWebSocket(enabled: boolean) {
 
     socket.onmessage = (event) => {
       try {
-        const notification: NotificationPayload = JSON.parse(event.data);
+        const notification: Notification = JSON.parse(event.data);
         console.log('Received notification via WebSocket:', notification);
 
         toast.info(notification.content, {
           action: notification.linkUrl
             ? {
                 label: 'View',
-                onClick: () => window.open(notification.linkUrl, '_blank'),
+                onClick: () =>
+                  window.open(notification.linkUrl as string, '_blank'),
               }
             : undefined,
         });
+
+        queryClient.setQueryData<Notification[]>(
+          ['notifications'],
+          (oldData) => {
+            return oldData ? [notification, ...oldData] : [notification];
+          }
+        );
       } catch (error) {
         console.error('Failed to parse incoming WebSocket message:', error);
       }
@@ -74,5 +85,5 @@ export function useWebSocket(enabled: boolean) {
         ws.current = null;
       }
     };
-  }, [enabled]);
+  }, [enabled, queryClient]);
 }
