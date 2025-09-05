@@ -1,9 +1,11 @@
+import * as cookie from 'cookie';
+import signedCookie from 'cookie-signature';
+import jwt from 'jsonwebtoken';
 import { Server } from 'node:http';
 import { WebSocket, WebSocketServer } from 'ws';
-import jwt from 'jsonwebtoken';
 
-import logger from '../config/logger';
 import { env } from '../config/env';
+import logger from '../config/logger';
 
 const clients = new Map<string, WebSocket>();
 
@@ -21,21 +23,33 @@ export class WebSocketService {
       logger.info(`A new client is attempting to connect via WebSocket...`);
 
       const cookieHeader = req.headers.cookie || '';
-      const cookies = Object.fromEntries(
-        cookieHeader.split(';').map((c) => c.trim().split('='))
-      );
-      const token = cookies.token;
+      const cookies = cookie.parse(cookieHeader);
+      let rawToken = cookies.token;
 
-      if (!token) {
-        logger.warn(`WebSocket connection rejected: No token provided.`);
-
+      if (!rawToken) {
+        logger.warn(`WebSocket connection rejected: No token cookie provided.`);
         ws.close(1008, 'Authentication token not provided.');
+        return;
+      }
 
+      const unsignedToken = signedCookie.unsign(
+        rawToken,
+        env.COOKIE_PARSER_SECRET
+      );
+
+      if (!unsignedToken) {
+        // If unsign returns false, the cookie was tampered with or the secret is wrong.
+        logger.error(
+          'WebSocket connection rejected: Invalid cookie signature. Check that COOKIE_PARSER_SECRET matches auth-service.'
+        );
+        ws.close(1008, 'Invalid cookie signature.');
         return;
       }
 
       try {
-        const payload = jwt.verify(token, env.JWT_SECRET) as { id: string };
+        const payload = jwt.verify(unsignedToken, env.JWT_SECRET) as {
+          id: string;
+        };
         const userId = payload.id;
 
         if (clients.has(userId)) {
@@ -74,8 +88,10 @@ export class WebSocketService {
    */
   public static sendNotification(userId: string, notification: object): void {
     const client = clients.get(userId);
+
     if (client && client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(notification));
+
       logger.info(`Sent real-time notification to user: ${userId}`);
     } else {
       logger.info(
