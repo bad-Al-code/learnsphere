@@ -847,3 +847,32 @@ export async function trackResourceDownload(resourceId: string) {
     return { error: error.message };
   }
 }
+
+const requestReportSchema = z.object({
+  reportType: z.string().min(1, 'Report type is required.'),
+  format: z.enum(['csv', 'pdf']),
+});
+
+export async function requestReportGeneration(
+  values: z.infer<typeof requestReportSchema>
+) {
+  try {
+    const validatedData = requestReportSchema.parse(values);
+    const response = await enrollmentService.post(
+      '/api/analytics/instructor/request-report',
+      validatedData
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.errors?.[0]?.message || 'Failed to request report.');
+    }
+
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+    return { error: error.message };
+  }
+}

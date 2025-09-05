@@ -13,12 +13,27 @@ import {
 import {
   ChartConfig,
   ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -31,7 +46,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
@@ -50,20 +64,18 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useState, useTransition } from 'react';
 import {
   Area,
   AreaChart,
   Bar,
   CartesianGrid,
-  Cell,
-  Label,
-  Pie,
-  PieChart,
   BarChart as RechartsBarChart,
   XAxis,
   YAxis,
 } from 'recharts';
+import { toast } from 'sonner';
+import { requestReportGeneration } from '../../actions';
 
 interface StatCardData {
   title: string;
@@ -168,114 +180,114 @@ function PerformanceTrendsChart({ data }: { data: TrendData[] }) {
   );
 }
 
-interface EngagementDistributionChartProps {
-  data: EngagementData[];
-}
-const COLORS = [
-  'var(--chart-1)',
-  'var(--chart-2)',
-  'var(--chart-3)',
-  'var(--chart-4)',
-  'var(--chart-5)',
-];
+// interface EngagementDistributionChartProps {
+//   data: EngagementData[];
+// }
+// const COLORS = [
+//   'var(--chart-1)',
+//   'var(--chart-2)',
+//   'var(--chart-3)',
+//   'var(--chart-4)',
+//   'var(--chart-5)',
+// ];
 
-export function EngagementDistributionChart({
-  data,
-}: EngagementDistributionChartProps) {
-  const chartConfig = useMemo(() => {
-    if (!data) return {};
-    return data.reduce((config, item, index) => {
-      config[item.activity] = {
-        label: item.activity,
-        color: COLORS[index % COLORS.length],
-      };
-      return config;
-    }, {} as ChartConfig);
-  }, [data]);
+// export function EngagementDistributionChart({
+//   data,
+// }: EngagementDistributionChartProps) {
+//   const chartConfig = useMemo(() => {
+//     if (!data) return {};
+//     return data.reduce((config, item, index) => {
+//       config[item.activity] = {
+//         label: item.activity,
+//         color: COLORS[index % COLORS.length],
+//       };
+//       return config;
+//     }, {} as ChartConfig);
+//   }, [data]);
 
-  const totalStudents = useMemo(() => {
-    return data.reduce((acc, curr) => acc + curr.students, 0);
-  }, [data]);
+//   const totalStudents = useMemo(() => {
+//     return data.reduce((acc, curr) => acc + curr.students, 0);
+//   }, [data]);
 
-  if (!data || data.length === 0) {
-    return (
-      <div className="flex h-[250px] items-center justify-center">
-        <p className="text-muted-foreground text-center text-sm">
-          No engagement data available.
-        </p>
-      </div>
-    );
-  }
+//   if (!data || data.length === 0) {
+//     return (
+//       <div className="flex h-[250px] items-center justify-center">
+//         <p className="text-muted-foreground text-center text-sm">
+//           No engagement data available.
+//         </p>
+//       </div>
+//     );
+//   }
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Engagement Distribution</CardTitle>
-        <CardDescription>Breakdown of student interactions</CardDescription>
-      </CardHeader>
-      <CardContent className="flex items-center justify-center">
-        <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px]"
-        >
-          <PieChart>
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
-            <Pie
-              data={data}
-              dataKey="students"
-              nameKey="activity"
-              innerRadius={60}
-              strokeWidth={5}
-            >
-              <Label
-                content={({ viewBox }) => {
-                  if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
-                    return (
-                      <text
-                        x={viewBox.cx}
-                        y={viewBox.cy}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                      >
-                        <tspan
-                          x={viewBox.cx}
-                          y={viewBox.cy}
-                          className="fill-foreground text-3xl font-bold"
-                        >
-                          {totalStudents.toLocaleString()}
-                        </tspan>
-                        <tspan
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) + 20}
-                          className="fill-muted-foreground"
-                        >
-                          Activities
-                        </tspan>
-                      </text>
-                    );
-                  }
-                }}
-              />
-              {data.map((entry) => (
-                <Cell
-                  key={entry.activity}
-                  fill={chartConfig[entry.activity]?.color}
-                />
-              ))}
-            </Pie>
-            <ChartLegend
-              content={<ChartLegendContent nameKey="activity" />}
-              className="-mt-4 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
-            />
-          </PieChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
-  );
-}
+//   return (
+//     <Card>
+//       <CardHeader>
+//         <CardTitle>Engagement Distribution</CardTitle>
+//         <CardDescription>Breakdown of student interactions</CardDescription>
+//       </CardHeader>
+//       <CardContent className="flex items-center justify-center">
+//         <ChartContainer
+//           config={chartConfig}
+//           className="mx-auto aspect-square max-h-[250px]"
+//         >
+//           <PieChart>
+//             <ChartTooltip
+//               cursor={false}
+//               content={<ChartTooltipContent hideLabel />}
+//             />
+//             <Pie
+//               data={data}
+//               dataKey="students"
+//               nameKey="activity"
+//               innerRadius={60}
+//               strokeWidth={5}
+//             >
+//               <Label
+//                 content={({ viewBox }) => {
+//                   if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+//                     return (
+//                       <text
+//                         x={viewBox.cx}
+//                         y={viewBox.cy}
+//                         textAnchor="middle"
+//                         dominantBaseline="middle"
+//                       >
+//                         <tspan
+//                           x={viewBox.cx}
+//                           y={viewBox.cy}
+//                           className="fill-foreground text-3xl font-bold"
+//                         >
+//                           {totalStudents.toLocaleString()}
+//                         </tspan>
+//                         <tspan
+//                           x={viewBox.cx}
+//                           y={(viewBox.cy || 0) + 20}
+//                           className="fill-muted-foreground"
+//                         >
+//                           Activities
+//                         </tspan>
+//                       </text>
+//                     );
+//                   }
+//                 }}
+//               />
+//               {data.map((entry) => (
+//                 <Cell
+//                   key={entry.activity}
+//                   fill={chartConfig[entry.activity]?.color}
+//                 />
+//               ))}
+//             </Pie>
+//             <ChartLegend
+//               content={<ChartLegendContent nameKey="activity" />}
+//               className="-mt-4 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+//             />
+//           </PieChart>
+//         </ChartContainer>
+//       </CardContent>
+//     </Card>
+//   );
+// }
 
 function GradeDistributionBarChart({ data }: { data: GradeData[] }) {
   const chartConfig = {
@@ -373,6 +385,123 @@ function StudentPerformanceTable({
   );
 }
 
+export function ReportExporter() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [reportType, setReportType] = useState('student_performance');
+  const [format, setFormat] = useState<'csv' | 'pdf'>('csv');
+
+  const handleExport = () => {
+    startTransition(async () => {
+      const result = await requestReportGeneration({ reportType, format });
+
+      if (result.error) {
+        toast.error('Failed to start report generation', {
+          description: result.error,
+        });
+      } else {
+        toast.success('Report generation started!', {
+          description: "We'll notify you here when it's ready for download.",
+        });
+        setIsOpen(false);
+      }
+    });
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <div className="sm:hidden">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <LineChart className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent>Export Report</TooltipContent>
+        </Tooltip>
+      </div>
+
+      <div className="hidden sm:inline">
+        <DialogTrigger asChild>
+          <Button variant="outline" className="flex items-center gap-2">
+            <LineChart className="h-4 w-4" />
+            <span>Export Report</span>
+          </Button>
+        </DialogTrigger>
+      </div>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Export Analytics Report</DialogTitle>
+          <DialogDescription>
+            Select the report you want to generate. It will be processed in the
+            background.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="grid gap-2">
+            <Label htmlFor="report-type">Report Type</Label>
+
+            <Select
+              value={reportType}
+              onValueChange={(value) => setReportType(value)}
+            >
+              <SelectTrigger id="report-type">
+                <SelectValue />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="student_performance">
+                  Student Performance
+                </SelectItem>
+
+                <SelectItem value="financial_summary" disabled>
+                  Financial Summary (Coming Soon)
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="format">Format</Label>
+
+            <Select
+              value={format}
+              onValueChange={(value: 'csv' | 'pdf') => setFormat(value)}
+            >
+              <SelectTrigger id="format">
+                <SelectValue />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="csv">
+                  CSV (Comma-Separated Values)
+                </SelectItem>
+
+                <SelectItem value="pdf" disabled>
+                  PDF (Coming Soon)
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setIsOpen(false)}>
+            Cancel
+          </Button>
+
+          <Button onClick={handleExport} disabled={isPending}>
+            {isPending ? 'Requesting...' : 'Generate Report'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function AnalyticsTab() {
   const { data, isLoading } = useInstructorStats();
   const { data: trendsData, isLoading: isTrendsLoading } =
@@ -404,19 +533,7 @@ export function AnalyticsTab() {
           </p>
         </div>
 
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline">
-                <LineChart className="h-4 w-4" />
-                <span className="hidden sm:inline">Export Report</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="sm:hidden">
-              Export Report
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <ReportExporter />
       </div>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
