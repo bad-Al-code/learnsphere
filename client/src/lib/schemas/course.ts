@@ -66,7 +66,8 @@ export const updateCourseSchema = z.object({
   level: z
     .enum(['beginner', 'intermediate', 'advanced', 'all-levels'])
     .optional(),
-  price: z.union([z.coerce.number().min(0), z.null()]).optional(),
+  status: z.enum(['draft', 'published']).optional(),
+  // price: z.union([z.coerce.number().min(0), z.null()]).optional(),
 });
 
 export type UpdateCourseValues = z.infer<typeof updateCourseSchema>;
@@ -74,8 +75,8 @@ export type UpdateCourseValues = z.infer<typeof updateCourseSchema>;
 export const resourceSchema = z.object({
   id: z.uuid(),
   title: z.string(),
-  courseId: z.string().uuid(),
-  fileUrl: z.string().url(),
+  courseId: z.uuid(),
+  fileUrl: z.url(),
   fileName: z.string(),
   fileSize: z.number(),
   fileType: z.string(),

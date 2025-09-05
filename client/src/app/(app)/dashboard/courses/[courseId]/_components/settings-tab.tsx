@@ -1,24 +1,9 @@
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import {
   BarChart,
   Copy,
@@ -27,11 +12,11 @@ import {
   Link as LinkIcon,
   Star,
   Trash2,
-  Upload,
 } from 'lucide-react';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { getCourseForEditor } from '../../actions';
+import { getCategoryOptions, getCourseForEditor } from '../../actions';
+import { CourseDetailsForm } from './course-details-form';
+import { ThumbnailUploader } from './thumbnail-uploader';
 
 interface CourseSettingsData {
   details: {
@@ -83,102 +68,102 @@ const placeholderData: CourseSettingsData = {
   },
 };
 
-function CourseDetailsForm({ data }: { data: CourseSettingsData['details'] }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Course Details</CardTitle>
-        <CardDescription>
-          Update your course information and settings
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <div className="grid w-full items-center gap-1.5 sm:col-span-2">
-            <Label htmlFor="title">Course Title</Label>
-            <Input id="title" defaultValue={data.title} />
-          </div>
-          <div className="grid w-full items-center gap-1.5">
-            <Label htmlFor="price">Price ($)</Label>
-            <Input id="price" type="number" defaultValue={data.price} />
-          </div>
-        </div>
-        <div className="grid w-full items-center gap-1.5">
-          <Label htmlFor="description">Course Description</Label>
-          <Textarea
-            id="description"
-            defaultValue={data.description}
-            className="min-h-24"
-          />
-        </div>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <div className="grid w-full items-center gap-1.5">
-            <Label>Category</Label>
-            <Select defaultValue={data.category}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Finance">Finance</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid w-full items-center gap-1.5">
-            <Label>Difficulty Level</Label>
-            <Select defaultValue={data.difficulty}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Beginner">Beginner</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid w-full items-center gap-1.5">
-            <Label>Status</Label>
-            <Select defaultValue={data.status}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Published">Published</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+// function CourseDetailsForm({ data }: { data: CourseSettingsData['details'] }) {
+//   return (
+//     <Card>
+//       <CardHeader>
+//         <CardTitle>Course Details</CardTitle>
+//         <CardDescription>
+//           Update your course information and settings
+//         </CardDescription>
+//       </CardHeader>
+//       <CardContent className="space-y-2">
+//         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+//           <div className="grid w-full items-center gap-1.5 sm:col-span-2">
+//             <Label htmlFor="title">Course Title</Label>
+//             <Input id="title" defaultValue={data.title} />
+//           </div>
+//           <div className="grid w-full items-center gap-1.5">
+//             <Label htmlFor="price">Price ($)</Label>
+//             <Input id="price" type="number" defaultValue={data.price} />
+//           </div>
+//         </div>
+//         <div className="grid w-full items-center gap-1.5">
+//           <Label htmlFor="description">Course Description</Label>
+//           <Textarea
+//             id="description"
+//             defaultValue={data.description}
+//             className="min-h-24"
+//           />
+//         </div>
+//         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+//           <div className="grid w-full items-center gap-1.5">
+//             <Label>Category</Label>
+//             <Select defaultValue={data.category}>
+//               <SelectTrigger>
+//                 <SelectValue />
+//               </SelectTrigger>
+//               <SelectContent>
+//                 <SelectItem value="Finance">Finance</SelectItem>
+//               </SelectContent>
+//             </Select>
+//           </div>
+//           <div className="grid w-full items-center gap-1.5">
+//             <Label>Difficulty Level</Label>
+//             <Select defaultValue={data.difficulty}>
+//               <SelectTrigger>
+//                 <SelectValue />
+//               </SelectTrigger>
+//               <SelectContent>
+//                 <SelectItem value="Beginner">Beginner</SelectItem>
+//               </SelectContent>
+//             </Select>
+//           </div>
+//           <div className="grid w-full items-center gap-1.5">
+//             <Label>Status</Label>
+//             <Select defaultValue={data.status}>
+//               <SelectTrigger>
+//                 <SelectValue />
+//               </SelectTrigger>
+//               <SelectContent>
+//                 <SelectItem value="Published">Published</SelectItem>
+//               </SelectContent>
+//             </Select>
+//           </div>
+//         </div>
+//       </CardContent>
+//     </Card>
+//   );
+// }
 
-function CourseThumbnail({ url }: { url: string }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Course Thumbnail</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="relative aspect-video w-full overflow-hidden rounded-md border-2 border-dashed">
-          <Image
-            src={url}
-            alt="Course Thumbnail"
-            fill
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-black/20" />
-        </div>
-        <div className="mt-4 flex justify-center gap-2">
-          <Button variant="outline">
-            <Upload className="h-4 w-4" /> Change Image
-          </Button>
-          <Button variant="ghost">
-            <Trash2 className="h-4 w-4" /> Remove
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+// function CourseThumbnail({ url }: { url: string }) {
+//   return (
+//     <Card>
+//       <CardHeader>
+//         <CardTitle>Course Thumbnail</CardTitle>
+//       </CardHeader>
+//       <CardContent>
+//         <div className="relative aspect-video w-full overflow-hidden rounded-md border-2 border-dashed">
+//           <Image
+//             src={url}
+//             alt="Course Thumbnail"
+//             fill
+//             className="object-cover"
+//           />
+//           <div className="absolute inset-0 bg-black/20" />
+//         </div>
+//         <div className="mt-4 flex justify-center gap-2">
+//           <Button variant="outline">
+//             <Upload className="h-4 w-4" /> Change Image
+//           </Button>
+//           <Button variant="ghost">
+//             <Trash2 className="h-4 w-4" /> Remove
+//           </Button>
+//         </div>
+//       </CardContent>
+//     </Card>
+//   );
+// }
 
 function CourseSettings({ data }: { data: CourseSettingsData['settings'] }) {
   return (
@@ -293,12 +278,17 @@ interface SettingsTabProps {
   courseId: string;
 }
 export async function SettingsTab({ courseId }: SettingsTabProps) {
-  const result = await getCourseForEditor(courseId);
+  const [courseResult, categoryResult] = await Promise.all([
+    getCourseForEditor(courseId),
+    getCategoryOptions(),
+  ]);
 
-  if (!result.success || !result.data) {
+  if (!courseResult.success || !courseResult.data) {
     notFound();
   }
-  const course = result.data;
+
+  const course = courseResult.data;
+  const categories = categoryResult.success ? categoryResult.data : [];
 
   const data: CourseSettingsData = {
     details: {
@@ -330,8 +320,12 @@ export async function SettingsTab({ courseId }: SettingsTabProps) {
   return (
     <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
       <div className="space-y-2 lg:col-span-2">
-        <CourseDetailsForm data={data.details} />
-        <CourseThumbnail url={data.details.thumbnailUrl} />
+        <CourseDetailsForm course={course} categories={categories} />
+        <ThumbnailUploader
+          courseId={course.id}
+          currentImageUrl={course.imageUrl}
+        />
+
         <CourseSettings data={data.settings} />
         <Separator />
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -432,7 +426,7 @@ export function SettingsTabSkeleton() {
           <CardContent>
             <Skeleton className="aspect-video w-full" />
             <div className="mt-4 flex justify-center gap-2">
-              <Skeleton className="h-9 w-32" />
+              <Skeleton className="h-9 flex-1" />
               <Skeleton className="h-9 w-24" />
             </div>
           </CardContent>

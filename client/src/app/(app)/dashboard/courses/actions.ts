@@ -17,6 +17,7 @@ import {
   courseSchema,
   createResourceSchema,
   CreateResourceValues,
+  updateCourseSchema,
   updateResourceSchema,
   UpdateResourceValues,
 } from '@/lib/schemas/course';
@@ -873,6 +874,100 @@ export async function requestReportGeneration(
     if (error instanceof z.ZodError) {
       return { error: error.issues[0].message };
     }
+    return { error: error.message };
+  }
+}
+
+export async function getCategoryOptions() {
+  try {
+    const response = await courseService.get(`/api/categories/list`);
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch categories.');
+    }
+
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function updateCourseDetails(
+  courseId: string,
+  values: z.infer<typeof updateCourseSchema>
+) {
+  try {
+    const validatedData = updateCourseSchema.parse(values);
+
+    const response = await courseService.put(
+      `/api/courses/${courseId}`,
+      validatedData
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+
+      throw new Error(
+        data.errors?.[0]?.message || 'Failed to update course details.'
+      );
+    }
+
+    revalidatePath(`/dashboard/courses/${courseId}`);
+
+    return { success: true, data: await response.json() };
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+
+    return { error: error.message };
+  }
+}
+
+export async function getCourseThumbnailUploadUrl(
+  courseId: string,
+  filename: string
+) {
+  try {
+    const response = await courseService.post(
+      `/api/courses/${courseId}/thumbnail-upload-url`,
+      { filename }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+
+      throw new Error(
+        errorData.errors?.[0]?.message || 'Could not get upload URL.'
+      );
+    }
+
+    const data = await response.json();
+
+    return { success: true, data };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function removeCourseThumbnail(courseId: string) {
+  try {
+    const response = await courseService.put(`/api/courses/${courseId}`, {
+      imageUrl: null,
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+
+      throw new Error(
+        data.errors?.[0]?.message || 'Failed to remove thumbnail.'
+      );
+    }
+
+    revalidatePath(`/dashboard/courses/${courseId}`);
+
+    return { success: true };
+  } catch (error: any) {
     return { error: error.message };
   }
 }
