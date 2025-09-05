@@ -480,9 +480,7 @@ export function ReportExporter() {
                   CSV (Comma-Separated Values)
                 </SelectItem>
 
-                <SelectItem value="pdf" disabled>
-                  PDF (Coming Soon)
-                </SelectItem>
+                <SelectItem value="pdf">PDF</SelectItem>
               </SelectContent>
             </Select>
           </div>
