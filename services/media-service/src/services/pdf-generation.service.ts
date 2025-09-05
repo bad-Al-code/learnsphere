@@ -28,17 +28,17 @@ export class PdfGenerationService {
 
         doc
           .rect(50, y - 5, 500, 20)
-          .fill('#2d3748')
+          .fill('#262626')
           .stroke();
 
-        doc.fontSize(9).font('Helvetica-Bold').fillColor('white');
+        doc.fontSize(9).font('Helvetica-Bold').fillColor('#fafafa');
 
         headers.forEach((header, i) => {
           doc.text(header, x + 2, y, { width: columnWidths[i] - 4 });
           x += columnWidths[i];
         });
 
-        doc.fillColor('black');
+        doc.fillColor('#171717');
 
         return y + 25;
       };
@@ -49,21 +49,21 @@ export class PdfGenerationService {
         const pageWidth = doc.page.width - 100;
         const startX = 50;
 
-        // doc
-        //   .fontSize(16)
-        //   .font('Helvetica-Bold')
-        //   .fillColor('#c53030')
-        //   .text('CLASSIFIED - LEARNSPHERE', startX, doc.y, {
-        //     width: pageWidth,
-        //     align: 'center',
-        //   });
+        doc
+          .fontSize(16)
+          .font('Helvetica-Bold')
+          .fillColor('#0a0a0a')
+          .text('LEARNSPHERE', startX, doc.y, {
+            width: pageWidth,
+            align: 'center',
+          });
 
-        // doc.y += 20;
+        doc.y += 20;
 
         doc
           .fontSize(18)
           .font('Helvetica-Bold')
-          .fillColor('#2d3748')
+          .fillColor('#262626')
           .text('Student Performance Report', startX, doc.y, {
             width: pageWidth,
             align: 'center',
@@ -76,7 +76,7 @@ export class PdfGenerationService {
         doc
           .fontSize(11)
           .font('Helvetica')
-          .fillColor('#4a5568')
+          .fillColor('#525252')
           .text(`Generated on: ${now}`, startX, doc.y, {
             width: pageWidth,
             align: 'center',
@@ -87,7 +87,7 @@ export class PdfGenerationService {
         doc
           .fontSize(9)
           .font('Helvetica-Oblique')
-          .fillColor('#718096')
+          .fillColor('#737373')
           .text(
             'This report contains detailed analytics of student progress and performance.\nFor internal use only.',
             startX,
@@ -127,25 +127,35 @@ export class PdfGenerationService {
         if (index % 2 === 0) {
           doc
             .rect(50, currentY - 2, 500, rowHeight)
-            .fill('#f8f9fa')
+            .fill('#f5f5f5')
             .stroke();
         }
 
-        doc.fillColor('black');
+        doc.fillColor('#171717');
 
         const x = 50;
 
-        doc.text(student.name || 'Unknown User', x + 2, currentY + 3, {
+        const studentName = student.name || 'Unknown User';
+        const truncatedName = truncateText(
+          studentName,
+          columnWidths[0] - 4,
+          doc
+        );
+
+        doc.text(truncatedName, x + 2, currentY + 3, {
           width: columnWidths[0] - 4,
-          ellipsis: true,
           lineBreak: false,
         });
 
         const courseText = student.courseTitle || 'N/A';
-        doc.text(courseText, x + columnWidths[0] + 2, currentY + 3, {
+        const truncatedCourse = truncateText(
+          courseText,
+          columnWidths[1] - 4,
+          doc
+        );
+        doc.text(truncatedCourse, x + columnWidths[0] + 2, currentY + 3, {
           width: columnWidths[1] - 4,
-          height: rowHeight - 6,
-          ellipsis: true,
+          lineBreak: false,
         });
 
         const progress = Number(student.progressPercentage);
@@ -156,7 +166,7 @@ export class PdfGenerationService {
           progressText,
           x + columnWidths[0] + columnWidths[1] + 2,
           currentY + 3,
-          { width: columnWidths[2] - 4, align: 'right' }
+          { width: columnWidths[2] - 4, align: 'left' }
         );
 
         const grade =
@@ -167,12 +177,10 @@ export class PdfGenerationService {
           grade,
           x + columnWidths[0] + columnWidths[1] + columnWidths[2] + 2,
           currentY + 3,
-          { width: columnWidths[3] - 4, align: 'right' }
+          { width: columnWidths[3] - 4, align: 'center' }
         );
 
-        const lastActiveText = student.lastActive
-          ? format(new Date(student.lastActive), 'PP')
-          : 'N/A';
+        const lastActiveText = student.lastActive || 'N/A';
         doc.text(
           lastActiveText,
           x +
@@ -184,11 +192,10 @@ export class PdfGenerationService {
           currentY + 3,
           { width: columnWidths[4] - 4, align: 'right' }
         );
-
         doc
           .moveTo(50, currentY + rowHeight - 1)
           .lineTo(550, currentY + rowHeight - 1)
-          .strokeColor('#e2e8f0')
+          .strokeColor('#e5e5e5')
           .lineWidth(0.3)
           .stroke();
 
@@ -198,4 +205,19 @@ export class PdfGenerationService {
       doc.end();
     });
   }
+}
+
+function truncateText(
+  text: string,
+  maxWidth: number,
+  doc: PDFKit.PDFDocument
+): string {
+  let truncated = text;
+  while (
+    doc.widthOfString(truncated + '…') > maxWidth &&
+    truncated.length > 0
+  ) {
+    truncated = truncated.slice(0, -1);
+  }
+  return truncated.length < text.length ? truncated + '…' : truncated;
 }

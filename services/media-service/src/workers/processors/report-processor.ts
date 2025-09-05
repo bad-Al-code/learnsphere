@@ -56,9 +56,7 @@ export class ReportProcessor {
         courseTitle: course?.title || 'Unknown Course',
         progressPercentage: p.progressPercentage,
         averageGrade: p.averageGrade,
-        lastActive: p.lastActive
-          ? format(new Date(p.lastActive), 'PPP p')
-          : 'N/A',
+        lastActive: p.lastActive ? format(new Date(p.lastActive), 'PP') : 'N/A',
       };
     });
   }
