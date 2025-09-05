@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import { Parser } from 'json2csv';
 import path from 'path';
 
+import { format } from 'date-fns';
 import { ServiceClient } from '../../clients/services.client';
 import { env } from '../../config/env';
 import logger from '../../config/logger';
@@ -55,7 +56,9 @@ export class ReportProcessor {
         courseTitle: course?.title || 'Unknown Course',
         progressPercentage: p.progressPercentage,
         averageGrade: p.averageGrade,
-        lastActive: p.lastActive,
+        lastActive: p.lastActive
+          ? format(new Date(p.lastActive), 'PPP p')
+          : 'N/A',
       };
     });
   }

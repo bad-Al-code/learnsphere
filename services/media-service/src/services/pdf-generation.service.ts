@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import PDFDocument from 'pdfkit';
 import { EnrichedStudentPerformance } from '../types';
 
@@ -14,102 +15,184 @@ export class PdfGenerationService {
         resolve(Buffer.concat(buffers));
       });
 
-      const addWaterMark = (document: PDFKit.PDFDocument) => {
-        const pageWidth = document.page.width;
-        const pageHeight = document.page.height;
-        document
-          .fontSize(50)
-          .fillColor('grey')
-          .opacity(0.15)
-          .text('LearnSphere', 0, pageHeight / 3 - 50, {
-            align: 'center',
-            lineBreak: false,
-          })
-          .opacity(1)
-          .fillColor('black');
+      const drawTableHeader = (y: number) => {
+        const headers = [
+          'Student',
+          'Course',
+          'Progress',
+          'Grade',
+          'Last Active',
+        ];
+        const columnWidths = [120, 180, 60, 50, 90];
+        let x = 50;
+
+        doc
+          .rect(50, y - 5, 500, 20)
+          .fill('#2d3748')
+          .stroke();
+
+        doc.fontSize(9).font('Helvetica-Bold').fillColor('white');
+
+        headers.forEach((header, i) => {
+          doc.text(header, x + 2, y, { width: columnWidths[i] - 4 });
+          x += columnWidths[i];
+        });
+
+        doc.fillColor('black');
+
+        return y + 25;
       };
 
-      addWaterMark(doc);
-      doc.on('pageAdded', () => addWaterMark(doc));
+      const addTitleAndDescription = () => {
+        doc.y = 50;
 
-      doc
-        .fontSize(20)
-        .font('Helvetica-Bold')
-        .text('Student Performance Report', { align: 'center' });
-      doc
-        .fontSize(12)
-        .font('Helvetica')
-        .text(`Generated on: ${new Date().toLocaleDateString()}`, {
-          align: 'center',
-        });
-      doc.moveDown(2);
+        const pageWidth = doc.page.width - 100;
+        const startX = 50;
 
-      const tableTop = doc.y;
-      const tableHeaders = [
-        'Student',
-        'Course',
-        'Progress',
-        'Grade',
-        'Last Active',
-      ];
-      const columnWidths = [150, 150, 70, 50, 80];
-      let currentX = 30;
+        // doc
+        //   .fontSize(16)
+        //   .font('Helvetica-Bold')
+        //   .fillColor('#c53030')
+        //   .text('CLASSIFIED - LEARNSPHERE', startX, doc.y, {
+        //     width: pageWidth,
+        //     align: 'center',
+        //   });
 
-      doc.fontSize(10).font('Helvetica-Bold');
-      tableHeaders.forEach((header, i) => {
-        doc.text(header, currentX, tableTop, { width: columnWidths[i] });
-        currentX += columnWidths[i];
+        // doc.y += 20;
+
+        doc
+          .fontSize(18)
+          .font('Helvetica-Bold')
+          .fillColor('#2d3748')
+          .text('Student Performance Report', startX, doc.y, {
+            width: pageWidth,
+            align: 'center',
+          });
+
+        doc.y += 15;
+
+        const now = format(new Date(), 'PPP p');
+
+        doc
+          .fontSize(11)
+          .font('Helvetica')
+          .fillColor('#4a5568')
+          .text(`Generated on: ${now}`, startX, doc.y, {
+            width: pageWidth,
+            align: 'center',
+          });
+
+        doc.y += 12;
+
+        doc
+          .fontSize(9)
+          .font('Helvetica-Oblique')
+          .fillColor('#718096')
+          .text(
+            'This report contains detailed analytics of student progress and performance.\nFor internal use only.',
+            startX,
+            doc.y,
+            {
+              width: pageWidth,
+              align: 'center',
+            }
+          )
+          .fillColor('black');
+
+        doc.y += 25;
+
+        return doc.y;
+      };
+
+      const tableStartY = addTitleAndDescription();
+
+      const columnWidths = [120, 180, 60, 50, 90];
+      let currentY = drawTableHeader(tableStartY);
+      const rowHeight = 18;
+
+      doc.on('pageAdded', () => {
+        currentY = drawTableHeader(60);
       });
-      doc.moveTo(30, doc.y).lineTo(565, doc.y).stroke();
-      doc.moveDown(0.5);
 
-      doc.fontSize(9).font('Helvetica');
-      data.forEach((student) => {
-        const rowY = doc.y;
-        const rowHeight = 40;
+      doc.fontSize(8).font('Helvetica');
 
-        if (rowY + rowHeight > doc.page.height - doc.page.margins.bottom) {
+      data.forEach((student, index) => {
+        if (
+          currentY + rowHeight + 25 >
+          doc.page.height - doc.page.margins.bottom
+        ) {
           doc.addPage();
         }
 
-        currentX = 30;
+        if (index % 2 === 0) {
+          doc
+            .rect(50, currentY - 2, 500, rowHeight)
+            .fill('#f8f9fa')
+            .stroke();
+        }
 
-        doc.text(student.name, currentX, doc.y, { width: columnWidths[0] });
-        doc.text(student.courseTitle, currentX + columnWidths[0], rowY, {
-          width: columnWidths[1],
+        doc.fillColor('black');
+
+        const x = 50;
+
+        doc.text(student.name || 'Unknown User', x + 2, currentY + 3, {
+          width: columnWidths[0] - 4,
+          ellipsis: true,
+          lineBreak: false,
         });
+
+        const courseText = student.courseTitle || 'N/A';
+        doc.text(courseText, x + columnWidths[0] + 2, currentY + 3, {
+          width: columnWidths[1] - 4,
+          height: rowHeight - 6,
+          ellipsis: true,
+        });
+
+        const progress = Number(student.progressPercentage);
+        const progressText = isNaN(progress)
+          ? 'N/A'
+          : `${progress.toFixed(1)}%`;
         doc.text(
-          `${parseFloat(student.progressPercentage).toFixed(2)}%`,
-          currentX + columnWidths[0] + columnWidths[1],
-          rowY,
-          { width: columnWidths[2] }
+          progressText,
+          x + columnWidths[0] + columnWidths[1] + 2,
+          currentY + 3,
+          { width: columnWidths[2] - 4, align: 'right' }
         );
+
+        const grade =
+          student.averageGrade !== null && !isNaN(Number(student.averageGrade))
+            ? `${Number(student.averageGrade).toFixed(1)}%`
+            : 'N/A';
         doc.text(
-          student.averageGrade ? `${student.averageGrade.toFixed(1)}%` : 'N/A',
-          currentX + columnWidths[0] + columnWidths[1] + columnWidths[2],
-          rowY,
-          { width: columnWidths[3] }
+          grade,
+          x + columnWidths[0] + columnWidths[1] + columnWidths[2] + 2,
+          currentY + 3,
+          { width: columnWidths[3] - 4, align: 'right' }
         );
+
+        const lastActiveText = student.lastActive
+          ? format(new Date(student.lastActive), 'PP')
+          : 'N/A';
         doc.text(
-          new Date(student.lastActive).toLocaleDateString(),
-          currentX +
+          lastActiveText,
+          x +
             columnWidths[0] +
             columnWidths[1] +
             columnWidths[2] +
-            columnWidths[3],
-          rowY,
-          { width: columnWidths[4] }
+            columnWidths[3] +
+            2,
+          currentY + 3,
+          { width: columnWidths[4] - 4, align: 'right' }
         );
 
-        doc.y = rowY;
-        doc.moveDown(3);
-
         doc
-          .moveTo(30, doc.y)
-          .lineTo(565, doc.y)
-          .strokeColor('#dddddd')
+          .moveTo(50, currentY + rowHeight - 1)
+          .lineTo(550, currentY + rowHeight - 1)
+          .strokeColor('#e2e8f0')
+          .lineWidth(0.3)
           .stroke();
-        doc.moveDown(0.5);
+
+        currentY += rowHeight;
       });
 
       doc.end();
