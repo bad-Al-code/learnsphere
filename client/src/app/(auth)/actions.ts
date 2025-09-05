@@ -58,7 +58,9 @@ export async function login(values: LoginSchema) {
   if (userRole === 'admin') {
     redirect('/admin');
   } else if (userRole === 'instructor') {
-    redirect('/dashboard/instructor');
+    redirect('/dashboard');
+  } else if (userRole === 'student') {
+    redirect('/student');
   } else {
     redirect('/');
   }
