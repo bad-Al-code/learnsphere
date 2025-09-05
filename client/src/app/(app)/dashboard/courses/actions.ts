@@ -952,20 +952,36 @@ export async function getCourseThumbnailUploadUrl(
 
 export async function removeCourseThumbnail(courseId: string) {
   try {
-    const response = await courseService.put(`/api/courses/${courseId}`, {
+    const courseResult = await getCourseForEditor(courseId);
+
+    if (!courseResult.success || !courseResult.data) {
+      throw new Error('Could not retrieve course data before updating.');
+    }
+
+    const course = courseResult.data;
+
+    const updatePayload = {
+      title: course.title,
+      description: course.description,
+      categoryId: course.category?.id,
+      level: course.level,
+      status: course.status,
       imageUrl: null,
-    });
+    };
+
+    const response = await courseService.put(
+      `/api/courses/${courseId}`,
+      updatePayload
+    );
 
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
-
       throw new Error(
         data.errors?.[0]?.message || 'Failed to remove thumbnail.'
       );
     }
 
     revalidatePath(`/dashboard/courses/${courseId}`);
-
     return { success: true };
   } catch (error: any) {
     return { error: error.message };

@@ -101,6 +101,10 @@ export function ThumbnailUploader({
     };
   }, [previewUrl]);
 
+  useEffect(() => {
+    setPreviewUrl(null);
+  }, [currentImageUrl]);
+
   const displayUrl = previewUrl || currentImageUrl;
 
   return (
