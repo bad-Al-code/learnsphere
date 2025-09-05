@@ -8,13 +8,6 @@ import { toast } from 'sonner';
 const NOTIFICATION_SERVICE_WS_URL =
   process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE_URL?.replace('http', 'ws');
 
-interface NotificationPayload {
-  id: string;
-  type: string;
-  content: string;
-  linkUrl?: string;
-}
-
 export function useWebSocket(enabled: boolean) {
   const queryClient = useQueryClient();
   const ws = useRef<WebSocket | null>(null);
@@ -68,13 +61,13 @@ export function useWebSocket(enabled: boolean) {
     };
 
     socket.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      toast.error('WebSocket connection error. Please try again later.');
+      // console.error('WebSocket error:', error);
+      // toast.error('WebSocket connection error. Please try again later.');
     };
 
     socket.onclose = () => {
-      console.log('WebSocket connection closed.');
-      toast.warning('WebSocket connection closed.');
+      // console.log('WebSocket connection closed.');
+      // toast.warning('WebSocket connection closed.');
     };
 
     ws.current = socket;

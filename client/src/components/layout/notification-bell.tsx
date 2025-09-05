@@ -3,7 +3,14 @@
 import { useMarkAllRead, useNotifications } from '@/hooks/use-notifications';
 import { Notification } from '@/lib/api/notification';
 import { formatDistanceToNow } from 'date-fns';
-import { Bell, BookOpen, Clock, LayoutTemplate, Trophy } from 'lucide-react';
+import {
+  Bell,
+  BookOpen,
+  Clock,
+  FileText,
+  LayoutTemplate,
+  Trophy,
+} from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 import { Badge } from '../ui/badge';
@@ -38,6 +45,11 @@ const notificationConfig: Record<
     icon: LayoutTemplate,
     color: 'text-green-500',
     tag: 'course',
+  },
+  REPORT_READY: {
+    icon: FileText,
+    color: 'text-blue-500',
+    tag: 'report',
   },
   DEFAULT: { icon: Bell, color: 'text-foreground', tag: 'notification' },
 };
@@ -155,13 +167,18 @@ export const NotificationItem = ({ notification }: NotificationItemProps) => {
   const { title, description } = parseNotificationContent(notification.content);
 
   return (
-    <DropdownMenuItem asChild className="focus:bg-accent cursor-pointer p-0">
+    <DropdownMenuItem asChild className="focus:bg-secondary cursor-pointer p-0">
       <Link
         href={notification.linkUrl || '#'}
         className="relative block px-4 py-3"
       >
-        <div className="bg-primary absolute top-3 bottom-3 left-0 w-1 rounded-r-full" />
-        <div className="ml-2 flex items-start gap-3">
+        {!notification.isRead && (
+          <div className="bg-primary absolute top-3 bottom-3 left-0 w-1 rounded-r-full" />
+        )}
+
+        <div
+          className={`flex items-start gap-3 ${!notification.isRead ? 'ml-2' : ''}`}
+        >
           <config.icon
             className={`mt-1 h-5 w-5 flex-shrink-0 ${config.color}`}
           />
@@ -205,7 +222,7 @@ interface NotificationListProps {
 }
 
 export const NotificationList = ({ notifications }: NotificationListProps) => (
-  <div className="max-h-[60vh] overflow-y-auto">
+  <div className="max-h-[50vh] overflow-y-auto">
     {notifications.map((notification) => (
       <NotificationItem key={notification.id} notification={notification} />
     ))}
@@ -227,6 +244,7 @@ export function NotificationBell() {
   const markAllReadMutation = useMarkAllRead();
 
   const unreadCount = notifications?.filter((n) => !n.isRead).length || 0;
+  const formattedUnreadCount = unreadCount > 9 ? '9+' : unreadCount;
 
   const handleMarkAllRead = () => {
     if (unreadCount > 0) {
@@ -234,15 +252,21 @@ export function NotificationBell() {
     }
   };
 
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen && unreadCount > 0) {
+      handleMarkAllRead();
+    }
+  };
+
   return (
     <TooltipProvider>
-      <DropdownMenu>
+      <DropdownMenu onOpenChange={handleOpenChange}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
               <span className="bg-primary text-primary-foreground absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold">
-                {unreadCount}
+                {formattedUnreadCount}
               </span>
             )}
           </Button>
