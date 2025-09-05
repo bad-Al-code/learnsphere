@@ -1,5 +1,11 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,6 +22,7 @@ import {
 import { notFound } from 'next/navigation';
 import { getCategoryOptions, getCourseForEditor } from '../../actions';
 import { CourseDetailsForm } from './course-details-form';
+import { PriceForm } from './price-form';
 import { ThumbnailUploader } from './thumbnail-uploader';
 
 interface CourseSettingsData {
@@ -321,6 +328,8 @@ export async function SettingsTab({ courseId }: SettingsTabProps) {
     <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
       <div className="space-y-2 lg:col-span-2">
         <CourseDetailsForm course={course} categories={categories} />
+        <PriceForm courseId={course.id} initialPrice={course.price} />
+
         <ThumbnailUploader
           courseId={course.id}
           currentImageUrl={course.imageUrl}
@@ -418,6 +427,18 @@ export function SettingsTabSkeleton() {
               <Skeleton className="h-10 w-full" />
             </div>
           </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="mt-1 h-4 w-64" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-10 w-full" />
+          </CardContent>
+          <CardFooter className="flex items-end justify-end">
+            <Skeleton className="h-10 w-24" />
+          </CardFooter>
         </Card>
         <Card>
           <CardHeader>

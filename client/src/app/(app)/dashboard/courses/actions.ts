@@ -17,6 +17,8 @@ import {
   courseSchema,
   createResourceSchema,
   CreateResourceValues,
+  PriceFormValues,
+  priceSchema,
   updateCourseSchema,
   updateResourceSchema,
   UpdateResourceValues,
@@ -984,6 +986,36 @@ export async function removeCourseThumbnail(courseId: string) {
     revalidatePath(`/dashboard/courses/${courseId}`);
     return { success: true };
   } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function updateCoursePrice(
+  courseId: string,
+  values: PriceFormValues
+) {
+  try {
+    const validatedData = priceSchema.parse(values);
+
+    const response = await courseService.patch(
+      `/api/courses/${courseId}/price`,
+      validatedData
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+
+      throw new Error(data.errors?.[0]?.message || 'Failed to update price.');
+    }
+
+    revalidatePath(`/dashboard/courses/${courseId}`);
+
+    return { success: true };
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+
     return { error: error.message };
   }
 }
