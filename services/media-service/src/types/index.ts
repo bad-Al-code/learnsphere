@@ -54,3 +54,10 @@ export interface StudentPerformance {
   lastActive: Date;
   averageGrade: number;
 }
+
+export interface EnrichedStudentPerformance {
+  name: string;
+  courseTitle: string;
+  progressPercentage: string;
+  averageGrade: number | null;
+}

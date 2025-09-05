@@ -8,6 +8,8 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(8002),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   RABBITMQ_URL: z.string().min(1, 'RABBITMQ_URL is required'),
+  USER_SERVICE_URL: z.string().min(1, 'USER_SERVICE_URL is requied'),
+  COURSE_SERVICE_URL: z.string().min(1, 'COURSE_SERVICE_URL is requied'),
 
   AWS_REGION: z.string().min(1, 'AWS_REGION is required'),
   AWS_ACCESS_KEY_ID: z.string().min(1, 'AWS_ACCESS_KEY_ID is required'),

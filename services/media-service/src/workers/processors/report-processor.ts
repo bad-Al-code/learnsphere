@@ -1,12 +1,16 @@
+import fs from 'fs-extra';
 import { Parser } from 'json2csv';
-import { S3ClientService } from '../../clients/s3.client';
+import path from 'path';
+
+import { ServiceClient } from '../../clients/services.client';
 import { env } from '../../config/env';
 import logger from '../../config/logger';
 import {
   ReportGenerationFailedPublisher,
   ReportGenerationSucceededPublisher,
 } from '../../events/publisher';
-import { StudentPerformance } from './ip-processor';
+import { PdfGenerationService } from '../../services/pdf-generation.service';
+import { EnrichedStudentPerformance, StudentPerformance } from '../../types';
 
 interface ReportJobPayload {
   jobId: string;
@@ -25,19 +29,49 @@ export class ReportProcessor {
     this.failurePublisher = new ReportGenerationFailedPublisher();
   }
 
+  private async enrichData(
+    payload: StudentPerformance[]
+  ): Promise<EnrichedStudentPerformance[]> {
+    const userIds = [...new Set(payload.map((p) => p.userId))];
+    const courseIds = [...new Set(payload.map((p) => p.courseId))];
+
+    if (userIds.length === 0 || courseIds.length === 0) {
+      return [];
+    }
+
+    const [userMap, courseMap] = await Promise.all([
+      ServiceClient.fetchUserProfiles(userIds),
+      ServiceClient.fetchCourseDetails(courseIds),
+    ]);
+
+    return payload.map((p) => {
+      const user = userMap.get(p.userId);
+      const course = courseMap.get(p.courseId);
+
+      return {
+        name: user
+          ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+          : 'Unknown User',
+        courseTitle: course?.title || 'Unknown Course',
+        progressPercentage: p.progressPercentage,
+        averageGrade: p.averageGrade,
+        lastActive: p.lastActive,
+      };
+    });
+  }
+
   public async process(data: ReportJobPayload): Promise<void> {
     logger.info(`Processing report generation job: ${data.jobId}`);
 
     try {
-      if (data.reportType !== 'student_performance' || data.format !== 'csv') {
-        throw new Error('Unsupported report type or format.');
+      if (data.reportType !== 'student_performance') {
+        throw new Error('Unsupported report type.');
       }
 
       if (!data.payload || data.payload.length === 0) {
         logger.warn(
           `Job ${data.jobId} has no data to process. Marking as successful with empty report.`
         );
-
         await this.successPublisher.publish({
           jobId: data.jobId,
           requesterId: data.requesterId,
@@ -48,37 +82,76 @@ export class ReportProcessor {
         return;
       }
 
-      const json2csvParser = new Parser();
-      const csv = json2csvParser.parse(data.payload);
-      const fileBuffer = Buffer.from(csv, 'utf-8');
+      const enrichedPayload = await this.enrichData(data.payload);
+
+      let fileBuffer: Buffer;
+      let contentType: string;
+      let fileExtension: string;
+
+      if (data.format === 'csv') {
+        const json2csvParser = new Parser();
+        const csv = json2csvParser.parse(enrichedPayload);
+        fileBuffer = Buffer.from(csv, 'utf-8');
+        contentType = 'text/csv';
+        fileExtension = 'csv';
+      } else if (data.format === 'pdf') {
+        fileBuffer =
+          await PdfGenerationService.generateStudentPerformanceReport(
+            enrichedPayload
+          );
+        contentType = 'application/pdf';
+        fileExtension = 'pdf';
+      } else {
+        throw new Error(`Unsupported format: ${data.format}`);
+      }
+
+      // --- LOCAL TESTING & SIMULATION ---
+      const localTempDir = path.join(process.cwd(), 'learnsphere-reports');
+      await fs.ensureDir(localTempDir);
+
+      const localFilePath = path.join(
+        localTempDir,
+        `${data.jobId}.${fileExtension}`
+      );
+
+      await fs.writeFile(localFilePath, fileBuffer);
+      logger.info(
+        `[SIMULATION] Report saved locally for verification: ${localFilePath}`
+      );
+      // --- END LOCAL TESTING ---
 
       const reportsBucket = env.AWS_PROCESSED_MEDIA_BUCKET;
-      const fileKey = `reports/${data.requesterId}/${data.jobId}.csv`;
+      const fileKey = `reports/${data.requesterId}/${data.jobId}.${fileExtension}`;
 
+      /*
+      // --- REAL AWS S3 UPLOAD ---
+      logger.info(`Uploading ${fileExtension} to s3://${reportsBucket}/${fileKey}`);
       await S3ClientService.uploadBuffer(
         reportsBucket,
         fileKey,
         fileBuffer,
-        'text/csv',
+        contentType,
         'private'
       );
-
       const downloadUrl = await S3ClientService.getPresignedDownloadUrl(
         reportsBucket,
         fileKey
       );
+      // --- END REAL AWS S3 UPLOAD ---
+      */
+
+      // PLACEHOLDER
+      const fakeDownloadUrl = `http://fake-s3.com/${fileKey}`;
 
       await this.successPublisher.publish({
         jobId: data.jobId,
         requesterId: data.requesterId,
-        fileUrl: downloadUrl,
+        fileUrl: fakeDownloadUrl, // In production, this would be `downloadUrl`
         reportType: data.reportType,
         format: data.format,
       });
 
-      logger.info(
-        `Successfully processed and uploaded report for job: ${data.jobId}`
-      );
+      logger.info(`Successfully processed report for job: ${data.jobId}`);
     } catch (err) {
       const error = err as Error;
       logger.error(`Failed to process report job ${data.jobId}`, {

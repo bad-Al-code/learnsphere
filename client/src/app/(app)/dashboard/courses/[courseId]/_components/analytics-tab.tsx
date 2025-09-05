@@ -489,7 +489,7 @@ export function ReportExporter() {
         </div>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => setIsOpen(false)}>
+          <Button variant="outline" onClick={() => setIsOpen(false)}>
             Cancel
           </Button>
 
