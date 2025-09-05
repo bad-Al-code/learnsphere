@@ -62,4 +62,38 @@ export class NotificationRepository {
 
     return updatedNotification || null;
   }
+
+  /**
+   * Finds all notifications for a specific user, ordered by creation date.
+   * @param recipientId The ID of the user.
+   * @returns An array of all notification objects for that user.
+   */
+  public static async findAllByRecipientId(
+    recipientId: string
+  ): Promise<Notification[]> {
+    return db.query.notifications.findMany({
+      where: eq(notifications.recipientId, recipientId),
+      orderBy: [desc(notifications.createdAt)],
+      limit: 30,
+    });
+  }
+
+  /**
+   * Marks all unread notifications for a user as read.
+   * @param recipientId The ID of the user.
+   * @returns The number of notifications that were updated.
+   */
+  public static async markAllAsRead(recipientId: string) {
+    const result = await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(
+        and(
+          eq(notifications.recipientId, recipientId),
+          eq(notifications.isRead, false)
+        )
+      );
+
+    return result.rowCount;
+  }
 }

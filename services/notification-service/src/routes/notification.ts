@@ -13,6 +13,12 @@ router.use(requireAuth);
 router.get('/', NotificationController.getMyNotifications);
 
 /**
+ * @route POST /api/notifications/mark-all-read
+ * @description Marks all of the user's notifications as read.
+ */
+router.post('/mark-all-read', NotificationController.markAllAsRead);
+
+/**
  * @route POST /api/notifications/:notificationId/read
  * @description Marks a specific notification as read.
  */

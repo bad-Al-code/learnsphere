@@ -1,11 +1,11 @@
 import axios from 'axios';
 
 import { PushClient } from '../clients/push.client';
+import { env } from '../config/env';
 import logger from '../config/logger';
 import { NotificationRepository } from '../db/notification.repository';
 import { NewNotification, Notification } from '../types';
 import { WebSocketService } from './websocket.service';
-import { env } from '../config/env';
 
 export class NotificationService {
   private static pushClient = new PushClient();
@@ -104,5 +104,19 @@ export class NotificationService {
     }
 
     return notification;
+  }
+
+  public static async getNotificationsForUser(
+    recipientId: string
+  ): Promise<Notification[]> {
+    logger.info(`Fetching notifications for user ${recipientId}`);
+
+    return await NotificationRepository.findAllByRecipientId(recipientId);
+  }
+
+  public static async markAllNotificationsAsRead(recipientId: string) {
+    logger.info(`Marking all notifications as read for user ${recipientId}`);
+
+    return await NotificationRepository.markAllAsRead(recipientId);
   }
 }
