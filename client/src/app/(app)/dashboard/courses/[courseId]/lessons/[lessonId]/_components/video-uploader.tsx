@@ -1,99 +1,79 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn, formatBytes } from '@/lib/utils';
-import { Eye, FileVideo, Trash2, Upload } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { formatBytes } from '@/lib/utils';
+import { FileVideo, Upload, X } from 'lucide-react';
+import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-
-interface VideoFile {
-  name: string;
-  size: number;
-}
+import { toast } from 'sonner';
 
 interface VideoUploaderProps {
-  initialFile?: VideoFile | null;
+  onFileSelect: (file: File | null) => void;
+  selectedFile: File | null;
+  disabled?: boolean;
 }
-
 export function VideoUploader({
-  initialFile = { name: 'lesson_intro.mp4', size: 243423432 },
+  onFileSelect,
+  selectedFile,
+  disabled,
 }: VideoUploaderProps) {
-  const [currentFile, setCurrentFile] = useState<VideoFile | null>(initialFile);
-
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      setCurrentFile({
-        name: file.name,
-        size: file.size,
-      });
-
-      console.log('File accepted:', file);
-    }
-  }, []);
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      if (file) {
+        onFileSelect(file);
+      } else {
+        toast.error('Invalid file type selected.');
+      }
+    },
+    [onFileSelect]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'video/*': ['.mp4', '.mov', '.avi'] },
+    accept: { 'video/*': ['.mp4', '.mov', '.avi', '.mkv'] },
     multiple: false,
+    disabled,
   });
 
-  const handleRemove = () => {
-    setCurrentFile(null);
-  };
+  if (selectedFile) {
+    return (
+      <Card>
+        <CardContent className="">
+          <FileVideo className="text-primary h-5 w-5 flex-shrink-0" />
+          <p className="flex-grow truncate text-sm font-medium">
+            {selectedFile.name} ({formatBytes(selectedFile.size)})
+          </p>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onFileSelect(null)}
+            disabled={disabled}
+            className="hover:text-destructive"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div
-        {...getRootProps()}
-        className={cn(
-          'relative flex w-full flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed p-8 text-center transition-colors',
-          isDragActive
-            ? 'border-primary bg-primary/10'
-            : 'border-muted-foreground/30'
-        )}
-      >
-        <input {...getInputProps()} />
-        <FileVideo className="text-muted-foreground h-10 w-10" />
-        <p className="font-semibold">Upload video file or paste video URL</p>
-        <Button variant="outline" type="button">
-          <Upload className="h-4 w-4" />
-          Upload Video File
-        </Button>
-        {isDragActive && (
-          <div className="bg-background/80 absolute inset-0 flex items-center justify-center backdrop-blur-sm">
-            <p className="text-primary text-lg font-semibold">Drop it here!</p>
-          </div>
-        )}
+    <div
+      {...getRootProps()}
+      className={`cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+        isDragActive ? 'border-primary bg-primary/5' : 'hover:border-primary/50'
+      } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+    >
+      <input {...getInputProps()} />
+      <div className="text-muted-foreground flex flex-col items-center gap-2">
+        <Upload className="h-8 w-8" />
+        <p className="font-semibold">
+          Drag & drop a new video file here, or click to select
+        </p>
       </div>
-
-      <div className="space-y-2">
-        <Input placeholder="Or paste video URL here..." />
-        <Input placeholder="HLS stream URL (.m3u8)" />
-      </div>
-
-      {currentFile && (
-        <div className="bg-muted/50 flex items-center justify-between rounded-lg border p-3">
-          <div className="flex flex-col">
-            <div className="text-muted-foreground text-sm">Current video: </div>
-            <span className="text-foreground font-medium">
-              {currentFile.name} ({formatBytes(currentFile.size)})
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <Eye className="h-4 w-4" />
-              Preview
-            </Button>
-            <Button variant="destructive" size="sm" onClick={handleRemove}>
-              <Trash2 className="h-4 w-4" />
-              Remove
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

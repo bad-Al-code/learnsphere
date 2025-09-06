@@ -20,12 +20,15 @@ import {
 } from './lesson-type-component';
 
 import { Form } from '@/components/ui/form';
+import { Progress } from '@/components/ui/progress';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import z from 'zod';
-import { updateLesson } from '../../../../actions';
+import { getLessonVideoUploadUrl, updateLesson } from '../../../../actions';
 import { LessonActions, LessonActionsSkeleton } from './lesson-actions';
 import { LessonSettings, LessonSettingsSkeleton } from './lesson-settings-card';
 import {
@@ -41,12 +44,6 @@ const LessonContentRenderer = ({
   form: any;
 }) => {
   switch (lesson.lessonType) {
-    case 'video':
-      return (
-        <VideoLessonContent
-          lesson={{ ...lesson, videoSrc: lesson.contentId }}
-        />
-      );
     case 'text':
       return <TextLessonContent control={form.control} />;
     case 'quiz':
@@ -63,30 +60,69 @@ interface Props {
 
 const textContentSchema = z.object({
   content: z.string().min(15, 'Content must be at least 15 characters.'),
+  description: z.string().optional(),
 });
 
 export function LessonContentTab({ lesson, courseId }: Props) {
   const queryClient = useQueryClient();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const form = useForm({
     resolver: zodResolver(textContentSchema),
     defaultValues: {
       content: lesson.textContent?.content || '',
+      description: (lesson as any).description || '',
     },
   });
 
   const { mutate: updateLessonMutation, isPending } = useMutation({
-    mutationFn: (values: { content: string }) =>
-      updateLesson(courseId, lesson.id, values),
+    mutationFn: async (values: { content?: string; description?: string }) => {
+      let payload = { ...values };
+
+      if (selectedFile) {
+        setUploadProgress(1);
+        const urlResult = await getLessonVideoUploadUrl(
+          lesson.id,
+          selectedFile.name
+        );
+        if (urlResult.error || !urlResult.data?.signedUrl) {
+          throw new Error(urlResult.error || 'Could not get upload URL.');
+        }
+
+        await axios.put(urlResult.data.signedUrl, selectedFile, {
+          headers: { 'Content-Type': selectedFile.type },
+          onUploadProgress: (progressEvent) => {
+            const percent = Math.round(
+              (progressEvent.loaded * 100) /
+                (progressEvent.total ?? selectedFile.size)
+            );
+            setUploadProgress(percent);
+          },
+        });
+      }
+
+      if (lesson.lessonType === 'video') {
+        delete (payload as any).content;
+      } else {
+        delete payload.description;
+      }
+
+      return updateLesson(courseId, lesson.id, payload);
+    },
 
     onSuccess: () => {
       toast.success('Lesson content saved!');
 
       queryClient.invalidateQueries({ queryKey: ['lesson', lesson.id] });
       form.reset(form.getValues());
+      setSelectedFile(null);
+      setUploadProgress(0);
     },
+
     onError: (error) => {
       toast.error('Failed to save', { description: error.message });
+      setUploadProgress(0);
     },
   });
 
@@ -147,7 +183,25 @@ export function LessonContentTab({ lesson, courseId }: Props) {
                     </SelectContent>
                   </Select>
                 </div>
-                <LessonContentRenderer lesson={lesson} form={form} />
+
+                {lesson.lessonType === 'video' ? (
+                  <VideoLessonContent
+                    lesson={lesson}
+                    control={form.control}
+                    selectedFile={selectedFile}
+                    onFileSelect={setSelectedFile}
+                    isPending={isPending}
+                  />
+                ) : (
+                  <LessonContentRenderer lesson={lesson} form={form} />
+                )}
+
+                {isPending && selectedFile && (
+                  <div className="mt-4 space-y-2">
+                    <Label>Uploading...</Label>
+                    <Progress value={uploadProgress} />
+                  </div>
+                )}
               </CardContent>
             </Card>
           </form>

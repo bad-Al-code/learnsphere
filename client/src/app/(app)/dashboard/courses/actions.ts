@@ -1069,3 +1069,27 @@ export async function deleteCourse(courseId: string) {
 
   return result;
 }
+
+export async function getLessonVideoUploadUrl(
+  lessonId: string,
+  filename: string
+) {
+  try {
+    const response = await courseService.post(
+      `/api/lessons/${lessonId}/request-video-upload`,
+      { filename }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.errors?.[0]?.message || 'Could not get video upload URL.'
+      );
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
