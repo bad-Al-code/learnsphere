@@ -86,7 +86,7 @@ export function LessonEditor({
           <>
             <TabsContent value={currentTabFromUrl}>
               {currentTabFromUrl === 'content' && (
-                <LessonContentTab lesson={lesson} />
+                <LessonContentTab courseId={courseId} lesson={lesson} />
               )}
             </TabsContent>
 

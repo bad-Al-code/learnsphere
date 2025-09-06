@@ -1,7 +1,8 @@
 import { RichTextEditor } from '@/components/text-editor';
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { VideoPlayer } from '@/components/video-player';
-import { useState } from 'react';
+import { Control } from 'react-hook-form';
 import { VideoUploader } from './video-uploader';
 
 export type LessonType = 'video' | 'text' | 'quiz';
@@ -9,9 +10,9 @@ export type LessonType = 'video' | 'text' | 'quiz';
 export interface LessonData {
   id: string;
   title: string;
-  type: LessonType;
-  videoSrc?: string;
-  textContent?: string;
+  lessonType: LessonType;
+  contentId?: string;
+  textContent?: { content: string } | null;
   videoSubtitles?: {
     lang: string;
     label: string;
@@ -19,13 +20,13 @@ export interface LessonData {
   }[];
 }
 
-export function VideoLessonContent({ lesson }: { lesson: LessonData }) {
+export function VideoLessonContent({
+  lesson,
+}: {
+  lesson: { videoSrc?: string; title: string; videoSubtitles?: any[] };
+}) {
   if (!lesson.videoSrc) {
-    return (
-      <div className="rounded-md border-2 border-dashed p-4 text-center">
-        Please provide a video source.
-      </div>
-    );
+    return <VideoUploader />;
   }
 
   return (
@@ -48,18 +49,24 @@ export function VideoLessonContent({ lesson }: { lesson: LessonData }) {
   );
 }
 
-export function TextLessonContent({ lesson }: { lesson: LessonData }) {
-  const [content, setContent] = useState(lesson.textContent || '');
+export function TextLessonContent({ control }: { control: Control<any> }) {
   return (
-    <div>
-      <RichTextEditor
-        initialContent={content}
-        onChange={(newContent) => setContent(newContent)}
-      />
-    </div>
+    <FormField
+      control={control}
+      name="content"
+      render={({ field }) => (
+        <FormItem>
+          <FormControl>
+            <RichTextEditor
+              initialContent={field.value}
+              onChange={field.onChange}
+            />
+          </FormControl>
+        </FormItem>
+      )}
+    />
   );
 }
-
 export function QuizLessonContent({ lesson }: { lesson: LessonData }) {
   return (
     <div className="flex h-64 items-center justify-center rounded-lg border-2 border-dashed">

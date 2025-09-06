@@ -31,3 +31,9 @@ export const lessonSchema = z.object({
 });
 
 export type LessonFormValues = z.infer<typeof lessonSchema>;
+
+export const updateTextLessonSchema = z.object({
+  content: z.string().min(1, 'Content cannot be empty.'),
+});
+
+export type UpdateTextLessonValues = z.infer<typeof updateTextLessonSchema>;
