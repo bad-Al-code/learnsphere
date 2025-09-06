@@ -38,6 +38,7 @@ export const updateTextLessonSchema = z.object({
   description: z.string().optional(),
   isPublished: z.boolean().optional(),
   contentId: z.string().url().optional(),
+  duration: z.coerce.number().int().min(0).optional(),
 });
 
 export type UpdateTextLessonValues = z.infer<typeof updateTextLessonSchema>;

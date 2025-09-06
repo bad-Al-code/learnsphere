@@ -21,6 +21,11 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 type TStatus = 'online' | 'offline' | 'away';
@@ -356,15 +361,38 @@ function ChatView({
           <p className="text-muted-foreground text-xs">{user.status}</p>
         </div>
         <div className="ml-auto flex items-center gap-1">
-          <Button variant="ghost" size="icon">
-            <Phone className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <Video className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Phone className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Call</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Video className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Video Call</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>More Options</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
@@ -499,7 +527,7 @@ export function Messages() {
   return (
     <Card className="h-[calc(100vh-4rem)] w-full overflow-hidden pt-2 pb-0 lg:h-[calc(93vh)]">
       <ResizablePanelGroup direction="horizontal" className="h-full">
-        <ResizablePanel defaultSize={30} minSize={25} maxSize={100}>
+        <ResizablePanel defaultSize={30} minSize={0} maxSize={100}>
           <ConversationList
             conversations={conversationData}
             selectedId={selectedConversation.id}
