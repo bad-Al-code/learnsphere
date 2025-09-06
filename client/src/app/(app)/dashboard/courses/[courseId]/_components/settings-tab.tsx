@@ -11,7 +11,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { BarChart, Download, Eye, Link as LinkIcon, Star } from 'lucide-react';
 import { notFound } from 'next/navigation';
-import { getCategoryOptions, getCourseForEditor } from '../../actions';
+import {
+  getCategoryOptions,
+  getCourseForEditor,
+  getCourseOverviewData,
+} from '../../actions';
 import { CourseDetailsForm } from './course-details-form';
 import { DangerZone } from './danger-zone';
 import { PriceForm } from './price-form';
@@ -35,7 +39,7 @@ interface CourseSettingsData {
   };
   stats: {
     totalStudents: number;
-    completionRate: number;
+    completionRate: string | number;
     averageRating: number;
     totalRevenue: number;
     lastUpdated: string;
@@ -155,9 +159,10 @@ interface SettingsTabProps {
   courseId: string;
 }
 export async function SettingsTab({ courseId }: SettingsTabProps) {
-  const [courseResult, categoryResult] = await Promise.all([
+  const [courseResult, categoryResult, courseStatsData] = await Promise.all([
     getCourseForEditor(courseId),
     getCategoryOptions(),
+    getCourseOverviewData(courseId),
   ]);
 
   if (!courseResult.success || !courseResult.data) {
@@ -187,9 +192,9 @@ export async function SettingsTab({ courseId }: SettingsTabProps) {
 
     stats: {
       totalStudents: course.enrollmentCount || 0,
-      completionRate: 75, // Placeholder
+      completionRate: courseStatsData.stats.completionRate.value || 0,
       averageRating: course.averageRating || 0,
-      totalRevenue: 12000, // Placeholder
+      totalRevenue: courseStatsData.stats.revenue.value || 0,
       lastUpdated: new Date(course.updatedAt).toLocaleDateString(),
     },
   };

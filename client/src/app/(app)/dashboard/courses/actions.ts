@@ -344,8 +344,8 @@ export async function getCourseOverviewData(courseId: string) {
 
     stats: {
       studentsEnrolled: {
-        value: enrollmentStats.totalStudents,
-        change: activityStats.enrollmentChange,
+        value: enrollmentStats.totalStudents || 0,
+        change: activityStats.enrollmentChange || 0,
       },
 
       completionRate: {
@@ -354,7 +354,7 @@ export async function getCourseOverviewData(courseId: string) {
       },
 
       averageRating: {
-        value: courseDetails.averageRating || 4.5,
+        value: courseDetails.averageRating || 0,
         reviews: 150,
       }, // Placeholder
       revenue: {

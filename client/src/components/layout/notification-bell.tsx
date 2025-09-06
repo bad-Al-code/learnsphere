@@ -203,7 +203,7 @@ export const NotificationItem = ({ notification }: NotificationItemProps) => {
                   <p>{new Date(notification.createdAt).toLocaleString()}</p>
                 </TooltipContent>
               </Tooltip>
-              <Badge variant="secondary">{config.tag}</Badge>
+              <Badge variant="outline">{config.tag}</Badge>
             </div>
           </div>
         </div>
