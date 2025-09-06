@@ -144,11 +144,10 @@ export class ReportProcessor {
         reportsBucket,
         fileKey
       );
-      // --- END REAL AWS S3 UPLOAD ---
       */
 
       // PLACEHOLDER
-      const fakeDownloadUrl = `http://fake-s3.com/${fileKey}`;
+      const fakeDownloadUrl = `https://fake-s3.com/${fileKey}`;
 
       await this.successPublisher.publish({
         jobId: data.jobId,

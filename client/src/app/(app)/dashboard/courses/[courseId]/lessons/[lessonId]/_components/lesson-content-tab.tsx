@@ -30,7 +30,10 @@ import { toast } from 'sonner';
 import z from 'zod';
 import { getLessonVideoUploadUrl, updateLesson } from '../../../../actions';
 import { LessonActions, LessonActionsSkeleton } from './lesson-actions';
-import { LessonSettings, LessonSettingsSkeleton } from './lesson-settings-card';
+import {
+  LessonSettingsForm,
+  LessonSettingsSkeleton,
+} from './lesson-settings-card';
 import {
   VideoPlayerSettings,
   VideoPlayerSettingsSkeleton,
@@ -150,7 +153,7 @@ export function LessonContentTab({ lesson, courseId }: Props) {
     <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
       <div className="space-y-2 lg:col-span-2">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
             <Card className="pt-3">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Lesson Content</CardTitle>
@@ -169,7 +172,7 @@ export function LessonContentTab({ lesson, courseId }: Props) {
                 </div>
               </CardHeader>
 
-              <CardContent>
+              <CardContent className="space-y-2">
                 <div className="mb-2">
                   <Label htmlFor="lesson-type">Lesson Type</Label>
                   <Select value={lesson.lessonType} disabled>
@@ -202,6 +205,8 @@ export function LessonContentTab({ lesson, courseId }: Props) {
                     <Progress value={uploadProgress} />
                   </div>
                 )}
+
+                <LessonSettingsForm />
               </CardContent>
             </Card>
           </form>
@@ -209,7 +214,6 @@ export function LessonContentTab({ lesson, courseId }: Props) {
       </div>
 
       <div className="space-y-2">
-        <LessonSettings />
         {lesson.lessonType === 'video' && <VideoPlayerSettings />}
         <LessonActions
           onDuplicate={handleDuplicate}

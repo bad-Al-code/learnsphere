@@ -1,17 +1,24 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
+import { useFormContext } from 'react-hook-form';
 
 interface SettingsData {
   title: string;
@@ -21,63 +28,67 @@ interface SettingsData {
   trackCompletion: boolean;
 }
 
-interface LessonSettingsProps {
-  data?: SettingsData;
-}
+export function LessonSettingsForm() {
+  const form = useFormContext();
 
-const placeholderData: SettingsData = {
-  title: 'What is Data Science?',
-  duration: '15 min',
-  status: 'Published',
-  allowComments: true,
-  trackCompletion: true,
-};
-
-export function LessonSettings({
-  data = placeholderData,
-}: LessonSettingsProps) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Lesson Settings</CardTitle>
+        <CardDescription>
+          Manage the core details and visibility of your lesson.
+        </CardDescription>
       </CardHeader>
+
       <CardContent className="space-y-2">
-        <div className="grid w-full items-center gap-1.5">
-          <Label htmlFor="lesson-title">Lesson Title</Label>
-          <Input id="lesson-title" defaultValue={data.title} />
-        </div>
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Lesson Title</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-        <div className="grid w-full items-center gap-1.5">
-          <Label htmlFor="duration">Duration</Label>
-          <Input id="duration" defaultValue={data.duration} />
-        </div>
+        <FormField
+          control={form.control}
+          name="duration"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Duration (minutes)</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-        <div className="grid w-full items-center gap-1.5">
-          <Label htmlFor="status">Status</Label>
-          <Select defaultValue={data.status}>
-            <SelectTrigger id="status">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Published">Published</SelectItem>
-              <SelectItem value="Draft">Draft</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex items-center justify-between rounded-lg border p-3">
-          <Label htmlFor="allow-comments" className="font-medium">
-            Allow Comments
-          </Label>
-          <Switch id="allow-comments" defaultChecked={data.allowComments} />
-        </div>
-
-        <div className="flex items-center justify-between rounded-lg border p-3">
-          <Label htmlFor="track-completion" className="font-medium">
-            Track Completion
-          </Label>
-          <Switch id="track-completion" defaultChecked={data.trackCompletion} />
-        </div>
+        <FormField
+          control={form.control}
+          name="isPublished"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Publish</FormLabel>
+                <FormDescription>
+                  Make this lesson visible to students.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
       </CardContent>
     </Card>
   );

@@ -20,8 +20,6 @@ export default async function LessonEditorPage({
     notFound();
   }
 
-  console.log(lesson);
-
   return (
     <div className="">
       <div>
