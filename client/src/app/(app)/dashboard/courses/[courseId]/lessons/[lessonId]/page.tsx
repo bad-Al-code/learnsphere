@@ -1,3 +1,4 @@
+import { getLessonDetails } from '@/app/(learn)/actions';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -6,21 +7,20 @@ import { LessonEditor } from './_components/lesson-edtior';
 
 interface LessonEditorPageProps {
   params: { courseId: string; lessonId: string };
-  searchParams: { [key: string]: string | string[] | undefined };
 }
 
 export default async function LessonEditorPage({
   params,
 }: LessonEditorPageProps) {
-  const lesson = {
-    title: 'What is Data Science?',
-    type: 'video',
-    duration: '15 min',
-  };
+  const { courseId, lessonId } = params;
+
+  const lesson = await getLessonDetails(lessonId);
 
   if (!lesson) {
     notFound();
   }
+
+  console.log(lesson);
 
   return (
     <div className="">
@@ -37,12 +37,16 @@ export default async function LessonEditorPage({
         <div className="mt-2">
           <h1 className="text-3xl font-bold">{lesson.title}</h1>
           <p className="text-muted-foreground">
-            {lesson.type} • {lesson.duration}
+            {lesson.lessonType} • {lesson.duration} min
           </p>
         </div>
       </div>
 
-      <LessonEditor courseId={params.courseId} lessonId={params.lessonId} />
+      <LessonEditor
+        courseId={courseId}
+        lessonId={lessonId}
+        initialLessonData={lesson}
+      />
     </div>
   );
 }

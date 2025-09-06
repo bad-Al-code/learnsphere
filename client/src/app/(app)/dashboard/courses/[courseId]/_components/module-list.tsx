@@ -140,7 +140,7 @@ function LessonItem({
               <Icon className="text-muted-foreground h-4 w-4 flex-shrink-0" />
               <div className="truncate">
                 <Link
-                  href={`/dashboard/instructor/courses/${courseId}/lessons/${lesson.id}`}
+                  href={`/dashboard/courses/${courseId}/lessons/${lesson.id}`}
                 >
                   <p className="truncate font-medium hover:underline">
                     {lesson.title}

@@ -41,21 +41,12 @@ const LessonContentRenderer = ({ lesson }: { lesson: LessonData }) => {
   }
 };
 
-export function LessonContentTab() {
-  const [currentLesson, setCurrentLesson] = useState<LessonData>({
-    id: 'lesson-1',
-    title: 'What is Data Science?',
-    type: 'text',
-    videoSrc: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-    textContent: '<h2>Start writing your text lesson here!</h2>',
-    videoSubtitles: [
-      {
-        lang: 'en',
-        label: 'English',
-        src: 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt',
-      },
-    ],
-  });
+interface Props {
+  lesson: LessonData;
+}
+
+export function LessonContentTab({ lesson }: Props) {
+  const [currentLesson, setCurrentLesson] = useState<LessonData>(lesson);
 
   const handleLessonTypeChange = (newType: LessonType) => {
     setCurrentLesson((prevLesson) => ({
