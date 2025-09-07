@@ -92,5 +92,8 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 }));
 
 export type NewUser = typeof users.$inferInsert;
+export type User = typeof users.$inferSelect;
 export type NewConversation = typeof conversations.$inferInsert;
+export type Conversation = typeof conversations.$inferSelect;
 export type NewMessage = typeof messages.$inferInsert;
+export type Message = typeof messages.$inferSelect;
