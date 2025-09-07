@@ -10,6 +10,12 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
+    "test:coverage": "vitest run --coverage",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "ts-node ./src/db/migrate.ts",
+    "db": "pnpm db:generate; pnpm db:migrate",
+    "db:seed": "ts-node src/db/seed/index.ts",
+    "db:studio": "pnpm drizzle-kit studio --port 6960 --verbose",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -35,6 +41,7 @@
     "zod": "^4.1.5"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.0.0",
     "@types/amqplib": "^0.10.7",
     "@types/cookie": "^1.0.0",
     "@types/cookie-parser": "^1.4.9",
