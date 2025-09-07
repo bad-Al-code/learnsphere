@@ -90,3 +90,7 @@ export const messagesRelations = relations(messages, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export type NewUser = typeof users.$inferInsert;
+export type NewConversation = typeof conversations.$inferInsert;
+export type NewMessage = typeof messages.$inferInsert;
