@@ -1,26 +1,15 @@
-import http from 'http';
-import { WebSocketServer } from 'ws';
+import { createServer } from 'node:http';
 import { app } from './app';
 import { env } from './config/env';
 import logger from './config/logger';
+import { WebSocketService } from './services/websocket.service';
 
 const startServer = async () => {
   try {
-    const server = http.createServer(app);
-    const wss = new WebSocketServer({ server });
+    const server = createServer(app);
 
-    wss.on('connection', (ws) => {
-      logger.info('New client connected via WebSocket');
-
-      ws.on('message', (message) => {
-        logger.info(`Received message: ${message}`);
-        ws.send(`Echo: ${message}`);
-      });
-
-      ws.on('close', () => {
-        logger.info('Client disconnected');
-      });
-    });
+    const webSocketService = new WebSocketService(server);
+    webSocketService.start();
 
     server.listen(env.PORT, () => {
       logger.info(

@@ -1,13 +1,16 @@
-import jwt from 'jsonwebtoken';
 import { NextFunction, Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 
-import logger from '../config/logger';
 import { env } from '../config/env';
+import logger from '../config/logger';
 
-interface UserPayload {
+export interface UserPayload {
   id: string;
   email: string;
   role: 'student' | 'instructor' | 'admin';
+  jti: string;
+  iat: number;
+  exp: number;
 }
 
 declare global {
