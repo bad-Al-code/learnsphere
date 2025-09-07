@@ -105,6 +105,18 @@ services:
     volumes:
       - payment-db-data:/var/lib/postgresql/data
 
+  postgres-community:
+    image: postgres:17.5
+    container_name: learnsphere-community-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: community_db
+    ports:
+      - "5439:5432"
+    volumes:
+      - community-db-data:/var/lib/postgresql/data
+
 volumes:
   auth-db-data:
   user-db-data:
@@ -113,3 +125,4 @@ volumes:
   media-db-data:
   notification-db-data:
   payment-db-data:
+  community-db-data:

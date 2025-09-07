@@ -1,0 +1,15 @@
+services:
+  postgres-community:
+    image: postgres:17.5
+    container_name: learnsphere-community-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: community_db
+    ports:
+      - '5439:5432'
+    volumes:
+      - community-db-data:/var/lib/postgresql/data
+
+volumes:
+  community-db-data:
