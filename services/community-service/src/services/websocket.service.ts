@@ -8,6 +8,7 @@ import { env } from '../config/env';
 import logger from '../config/logger';
 import { ConversationRepository, MessageRepository } from '../db/repositories';
 import { Message } from '../db/schema';
+import { MessageSentPublisher } from '../events/publisher';
 import { UserPayload } from '../middlewares/current-user';
 import { clientToServerMessageSchema } from '../schemas/chat.schema';
 
@@ -173,6 +174,30 @@ export class WebSocketService {
 
       if (!newMessage || !newMessage.sender) {
         throw new Error('Failed to create or retrieve message with sender.');
+      }
+
+      try {
+        const participantIds =
+          await ConversationRepository.findParticipantIds(conversationId);
+        const recipientIds = participantIds.filter((id) => id !== senderId);
+
+        if (recipientIds.length > 0) {
+          const publisher = new MessageSentPublisher();
+          await publisher.publish({
+            messageId: newMessage.id,
+            conversationId: newMessage.conversationId,
+            senderId: newMessage.senderId,
+            senderName: newMessage.sender.name,
+            recipientIds: recipientIds,
+            content: newMessage.content,
+            createdAt: newMessage.createdAt.toISOString(),
+          });
+        }
+      } catch (error) {
+        logger.error('Failed to publish message.sent event', {
+          messageId: newMessage.id,
+          error,
+        });
       }
 
       await this.broadcastMessage(senderId, conversationId, newMessage);

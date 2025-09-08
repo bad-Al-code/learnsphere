@@ -22,3 +22,20 @@ export abstract class Publisher<T extends { topic: string; data: unknown }> {
     );
   }
 }
+
+interface MessageSentEvent {
+  topic: 'message.sent';
+  data: {
+    messageId: string;
+    conversationId: string;
+    senderId: string;
+    senderName: string | null;
+    recipientIds: string[];
+    content: string;
+    createdAt: string;
+  };
+}
+
+export class MessageSentPublisher extends Publisher<MessageSentEvent> {
+  readonly topic: 'message.sent' = 'message.sent' as const;
+}
