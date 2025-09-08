@@ -120,6 +120,6 @@ export class ConversationRepository {
         )
       );
 
-    return result[0].count > 0;
+    return parseInt(result[0].count.toString(), 10) > 0;
   }
 }

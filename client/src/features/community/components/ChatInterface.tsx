@@ -27,10 +27,12 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn, getInitials } from '@/lib/utils';
+import { useSessionStore } from '@/stores/session-store';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { useState } from 'react';
-import { useConversations } from '../hooks/userConversations';
-import { Conversation } from '../types';
+import { useConversations } from '../hooks/useConversations';
+import { useMessages } from '../hooks/useMessage';
+import { Conversation, Message } from '../types';
 
 type TStatus = 'online' | 'offline' | 'away';
 type TConversation = {
@@ -353,8 +355,9 @@ function ChatView({
   messages,
 }: {
   user: Conversation['otherParticipant'];
-  messages: TMessage[];
+  messages: Message[];
 }) {
+  const currentUser = useSessionStore((state) => state.user);
   if (!user) return <ChatViewSkeleton />;
 
   return (
@@ -414,32 +417,34 @@ function ChatView({
               key={msg.id}
               className={cn(
                 'flex items-end gap-2',
-                msg.isCurrentUser && 'justify-end'
+                msg.senderId === currentUser?.userId && 'justify-end'
               )}
             >
-              {!msg.isCurrentUser && (
+              {msg.senderId !== currentUser?.userId && (
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                  <AvatarFallback>
+                    {getInitials(msg.sender?.name)}
+                  </AvatarFallback>
                 </Avatar>
               )}
               <div
                 className={cn(
                   'max-w-xs rounded-lg p-2 text-sm',
-                  msg.isCurrentUser
+                  msg.senderId === currentUser?.userId
                     ? 'from-secondary/50 to-secondary text-primary bg-gradient-to-r'
                     : 'from-secondary/50 to-secondary bg-gradient-to-r'
                 )}
               >
-                <p>{msg.text}</p>
+                <p>{msg.content}</p>
                 <p
                   className={cn(
-                    'mt-1 text-xs',
-                    msg.isCurrentUser
-                      ? 'text-primary/70'
-                      : 'text-muted-foreground'
+                    'mt-1 text-end text-xs',
+                    msg.senderId ? 'text-primary/70' : 'text-muted-foreground'
                   )}
                 >
-                  {msg.timestamp}
+                  {formatDistanceToNowStrict(new Date(msg.createdAt), {
+                    addSuffix: true,
+                  })}
                 </p>
               </div>
             </div>
@@ -534,21 +539,31 @@ function ChatViewSkeleton() {
 }
 
 export function ChatInterface() {
-  const { data: conversations, isLoading, isError } = useConversations();
+  const {
+    data: conversations,
+    isLoading: isLoadingConversations,
+    isError,
+  } = useConversations();
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
 
-  useState(() => {
-    if (conversations && conversations.length > 0 && !selectedConversation) {
-      setSelectedConversation(conversations[0]);
-    }
-  });
+  // useEffect(() => {
+  //   if (conversations && conversations.length > 0 && !selectedConversation) {
+  //     setSelectedConversation(conversations[0]);
+  //   }
+  // }, [conversations, selectedConversation]);
+
+  const { data: messagesData, isLoading: isLoadingMessages } = useMessages(
+    selectedConversation?.id || null
+  );
+
+  const messages = messagesData?.pages.flat() || [];
 
   return (
     <Card className="h-[calc(100vh-4rem)] w-full overflow-hidden pt-2 pb-0 lg:h-[calc(93vh)]">
       <ResizablePanelGroup direction="horizontal" className="h-full">
         <ResizablePanel defaultSize={30} minSize={0} maxSize={100}>
-          {isLoading ? (
+          {isLoadingConversations ? (
             <ConversationListSkeleton />
           ) : isError ? (
             <p className="text-destructive p-4">
@@ -558,23 +573,23 @@ export function ChatInterface() {
             <ConversationList
               conversations={conversations || []}
               selectedId={selectedConversation?.id || null}
-              onSelect={() => {}}
+              onSelect={setSelectedConversation}
             />
           )}
         </ResizablePanel>
 
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={70}>
-          {selectedConversation ? (
+          {isLoadingMessages ? (
+            <ChatViewSkeleton />
+          ) : selectedConversation ? (
             <ChatView
               user={selectedConversation.otherParticipant}
-              messages={chatHistory}
+              messages={messages}
             />
           ) : (
             <div className="flex h-full items-center justify-center">
-              <p className="text-muted-foreground">
-                Select a conversation to start chatting
-              </p>
+              <p className="text-muted-foreground">Select a conversation</p>
             </div>
           )}
         </ResizablePanel>

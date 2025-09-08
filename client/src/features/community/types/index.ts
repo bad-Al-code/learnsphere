@@ -12,3 +12,16 @@ export type Conversation = {
   lastMessageTimestamp: string | null;
   otherParticipant: ConversationParticipant | null;
 };
+
+export type Message = {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  createdAt: string;
+  sender: {
+    id: string;
+    name: string | null;
+    avatarUrl: string | null;
+  } | null;
+};

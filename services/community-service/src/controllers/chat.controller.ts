@@ -32,10 +32,14 @@ export class ChatController {
     try {
       const { id } = req.params;
       const { page, limit } = req.query;
+      const userId = req.currentUser!.id;
+      if (!userId) {
+        throw new NotAuthorizedError();
+      }
 
       const messages = await ChatService.getMessagesForConversation(
         id,
-        req.currentUser!.id,
+        userId,
         { page: Number(page), limit: Number(limit) }
       );
 
