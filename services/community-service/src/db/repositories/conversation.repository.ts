@@ -1,6 +1,8 @@
 import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { db } from '..';
+import { redisConnection } from '../../config/redis';
+import { ONLINE_USERS_KEY } from '../../services/presence.service';
 import {
   conversationParticipants,
   conversations,
@@ -96,7 +98,7 @@ export class ConversationRepository {
         .from(messages)
     );
 
-    return db
+    const conversationsResult = await db
       .with(lastMessageSubquery)
       .select({
         id: conversations.id,
@@ -130,6 +132,34 @@ export class ConversationRepository {
           sql`COALESCE(${lastMessageSubquery.createdAt}, ${conversations.updatedAt})`
         )
       );
+
+    if (conversationsResult.length === 0) {
+      return [];
+    }
+
+    const redisClient = redisConnection.getClient();
+    const enrichedConversation = await Promise.all(
+      conversationsResult.map(async (convo) => {
+        let status: 'online' | 'offline' = 'offline';
+        if (convo.otherParticipant?.id) {
+          const isOnline = await redisClient.sIsMember(
+            ONLINE_USERS_KEY,
+            convo.otherParticipant.id
+          );
+
+          if (isOnline) status = 'online';
+        }
+
+        return {
+          ...convo,
+          otherParticipant: convo.otherParticipant
+            ? { ...convo.otherParticipant, status }
+            : null,
+        };
+      })
+    );
+
+    return enrichedConversation;
   }
 
   /**

@@ -33,6 +33,7 @@ export function useChatWebSocket() {
         const messageData = JSON.parse(event.data);
         const validatedMessage =
           serverToClientMessageSchema.safeParse(messageData);
+        const validatedPresence = presenceUpdateSchema.safeParse(messageData);
 
         if (validatedMessage.success) {
           const newMessage = validatedMessage.data.payload as Message;
@@ -42,27 +43,20 @@ export function useChatWebSocket() {
             (oldData: { pages: Message[][] } | undefined) => {
               if (!oldData) return { pages: [[newMessage]] };
 
-              const newData = {
-                ...oldData,
-                pages: oldData.pages.map((page) => [...page]),
-              };
-
+              const newData = { ...oldData, pages: [...oldData.pages] };
               newData.pages[0].unshift(newMessage);
+
               return newData;
             }
           );
-        } else {
-          console.warn('Received invalid message from server:', messageData);
-        }
-
-        const validatedPresence = presenceUpdateSchema.safeParse(messageData);
-        if (validatedPresence.success) {
+        } else if (validatedPresence.success) {
           const { userId, status } = validatedPresence.data.payload;
 
           queryClient.setQueryData(
             ['conversations'],
             (oldData: Conversation[] | undefined) => {
               if (!oldData) return oldData;
+
               return oldData.map((convo) => {
                 if (convo.otherParticipant?.id === userId) {
                   return {
@@ -73,9 +67,15 @@ export function useChatWebSocket() {
                     },
                   };
                 }
+
                 return convo;
               });
             }
+          );
+        } else {
+          console.warn(
+            'Received unhandled message type from server:',
+            messageData
           );
         }
       } catch (error) {

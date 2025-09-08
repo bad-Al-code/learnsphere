@@ -45,7 +45,7 @@ export function ConversationItem({
               'border-background absolute right-0 bottom-0 block h-2.5 w-2.5 rounded-full border-2',
               conversation.otherParticipant.status === 'online'
                 ? 'bg-emerald-500'
-                : 'bg-red-400'
+                : 'bg-foreground/30'
             )}
           />
         )}

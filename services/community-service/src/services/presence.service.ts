@@ -5,6 +5,7 @@ import { ConversationRepository } from '../db/repositories';
 import { WebSocketService } from './websocket.service';
 
 const PRESENCE_CHANNEL = 'presence-channel';
+export const ONLINE_USERS_KEY = 'online_users';
 
 type PresenceMessage = {
   type: 'user.online' | 'user.offline';
@@ -14,11 +15,13 @@ type PresenceMessage = {
 };
 
 export class PresenceService {
+  private client: RedisClientType;
   private publisher: RedisClientType;
   private subscriber: RedisClientType;
   private webSocketService: WebSocketService;
 
   constructor(webSocketService: WebSocketService) {
+    this.client = redisConnection.getClient();
     this.publisher = redisConnection.getPublisher();
     this.subscriber = redisConnection.getSubscriber();
     this.webSocketService = webSocketService;
@@ -31,6 +34,8 @@ export class PresenceService {
   }
 
   public async userDidConnect(userId: string): Promise<void> {
+    await this.client.sAdd(ONLINE_USERS_KEY, userId);
+
     const message: PresenceMessage = {
       type: 'user.online',
       payload: { userId },
@@ -40,6 +45,8 @@ export class PresenceService {
   }
 
   public async userDidDisconnect(userId: string): Promise<void> {
+    await this.client.sRem(ONLINE_USERS_KEY, userId);
+
     const message: PresenceMessage = {
       type: 'user.offline',
       payload: { userId },
