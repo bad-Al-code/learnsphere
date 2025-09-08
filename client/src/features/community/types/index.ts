@@ -25,3 +25,24 @@ export type Message = {
     avatarUrl: string | null;
   } | null;
 };
+
+export interface UserSearchResult {
+  userId: string;
+  firstName: string | null;
+  lastName: string | null;
+  avatarUrls?: {
+    small?: string;
+    medium?: string;
+    large?: string;
+  };
+  headline: string | null;
+}
+
+export interface PaginatedResponse<T> {
+  results: T[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalResults: number;
+  };
+}

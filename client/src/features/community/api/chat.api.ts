@@ -38,3 +38,19 @@ export async function getMessages({
   );
   return response.data;
 }
+
+/**
+ * Creates or retrieves a direct conversation with a recipient.
+ * @param recipientId The ID of the user to start a conversation with.
+ * @returns A promise that resolves to the Conversation object.
+ */
+export async function createOrGetConversation(
+  recipientId: string
+): Promise<Conversation> {
+  const response = await communityService.post<Conversation>(
+    '/api/community/conversations',
+    { recipientId }
+  );
+
+  return response.data;
+}
