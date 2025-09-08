@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn, getInitials } from '@/lib/utils';
 import { formatDistanceToNowStrict } from 'date-fns';
@@ -36,6 +36,9 @@ export function ConversationItem({
     >
       <div className="relative">
         <Avatar>
+          <AvatarImage
+            src={conversation.otherParticipant?.avatarUrl || undefined}
+          />
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
 

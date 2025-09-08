@@ -111,3 +111,32 @@ export class UserProfileUpdatedListener extends Listener<UserProfileUpdatedEvent
     }
   }
 }
+
+interface UserProfileSyncEvent {
+  topic: 'user.profile.sync';
+  data: {
+    userId: string;
+    firstName: string | null;
+    lastName: string | null;
+    avatarUrl: string | null;
+  };
+}
+
+export class UserProfileSyncListener extends Listener<UserProfileSyncEvent> {
+  readonly topic = 'user.profile.sync' as const;
+  queueGroupName = 'community-service-user-sync-ondemand';
+
+  async onMessage(data: UserProfileSyncEvent['data'], _msg: ConsumeMessage) {
+    try {
+      logger.info(`Syncing user profile on-demand: ${data.userId}`);
+
+      await UserRepository.upsert({
+        id: data.userId,
+        name: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+        avatarUrl: data.avatarUrl,
+      });
+    } catch (error) {
+      logger.error('Failed to sync user profile on-demand', { data, error });
+    }
+  }
+}

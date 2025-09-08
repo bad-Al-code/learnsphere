@@ -1,5 +1,5 @@
-import { communityService } from '@/lib/api/client';
-import { Conversation, Message } from '../types';
+import { communityService, userService } from '@/lib/api/client';
+import { Conversation, Message, UserSearchResult } from '../types';
 
 const GET_MESSAGE_LIMIT: string = '50';
 
@@ -45,12 +45,21 @@ export async function getMessages({
  * @returns A promise that resolves to the Conversation object.
  */
 export async function createOrGetConversation(
-  recipientId: string
+  recipient: UserSearchResult
 ): Promise<Conversation> {
+  await syncUser(recipient.userId);
+
   const response = await communityService.post<Conversation>(
     '/api/community/conversations',
-    { recipientId }
+    { recipientId: recipient.userId }
   );
-
   return response.data;
+}
+
+async function syncUser(userId: string): Promise<void> {
+  try {
+    await userService.post(`/api/users/${userId}/sync`, {});
+  } catch (error) {
+    console.warn(`Failed to sync user ${userId}`, error);
+  }
 }

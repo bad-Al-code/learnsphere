@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -8,7 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { getInitials } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 import { MoreHorizontal, Phone, Video } from 'lucide-react';
 import { Conversation } from '../../types';
 
@@ -21,10 +21,20 @@ export function ChatHeader({ user }: ChatHeaderProps) {
 
   return (
     <div className="flex items-center gap-3 border-b p-3">
-      <Avatar>
-        <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-      </Avatar>
-
+      <div className="relative">
+        <Avatar>
+          <AvatarImage src={user?.avatarUrl || undefined} />
+          <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+        </Avatar>
+        {user?.status && (
+          <span
+            className={cn(
+              'border-background absolute right-0 bottom-0 block h-2.5 w-2.5 rounded-full border-2',
+              user.status === 'online' ? 'bg-emerald-500' : 'bg-gray-400'
+            )}
+          />
+        )}
+      </div>
       <div>
         <p className="font-semibold">{user.name}</p>
       </div>

@@ -9,7 +9,7 @@ import {
 import { useState } from 'react';
 import { useChatWebSocket } from '../hooks/useChatWebSocket';
 import { useConversations } from '../hooks/useConversations';
-import { useMessages } from '../hooks/useMessage';
+import { useMessages } from '../hooks/useMessages';
 import { Conversation } from '../types';
 import { ChatView, ChatViewSkeleton } from './chat-view/ChatView';
 import {

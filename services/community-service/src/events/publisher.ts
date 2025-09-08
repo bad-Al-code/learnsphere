@@ -23,6 +23,20 @@ export abstract class Publisher<T extends { topic: string; data: unknown }> {
   }
 }
 
+interface UserProfileSyncEvent {
+  topic: 'user.profile.sync';
+  data: {
+    userId: string;
+    firstName: string | null;
+    lastName: string | null;
+    avatarUrl: string | null;
+  };
+}
+
+export class UserProfileSyncPublisher extends Publisher<UserProfileSyncEvent> {
+  readonly topic: 'user.profile.sync' = 'user.profile.sync' as const;
+}
+
 interface MessageSentEvent {
   topic: 'message.sent';
   data: {

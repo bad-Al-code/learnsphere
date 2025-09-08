@@ -43,8 +43,8 @@ export function NewConversationDialog({
     }
   );
 
-  const handleUserSelect = (userId: string) => {
-    createConversationMutation.mutate(userId);
+  const handleUserSelect = (user: UserSearchResult) => {
+    createConversationMutation.mutate(user);
   };
 
   return (
@@ -83,7 +83,7 @@ export function NewConversationDialog({
           {data?.results.map((user: UserSearchResult) => (
             <div
               key={user.userId}
-              onClick={() => handleUserSelect(user.userId)}
+              onClick={() => handleUserSelect(user)}
               className="hover:bg-muted flex cursor-pointer items-center gap-3 rounded-md p-2"
             >
               <Avatar>

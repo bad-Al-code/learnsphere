@@ -5,6 +5,11 @@ import logger from './config/logger';
 import { redisConnection } from './config/redis';
 import { checkDatabaseConnection } from './db';
 import { rabbitMQConnection } from './events/connection';
+import {
+  UserProfileSyncListener,
+  UserProfileUpdatedListener,
+  UserRegisteredListener,
+} from './events/listener';
 import { WebSocketService } from './services/websocket.service';
 
 const startServer = async () => {
@@ -12,6 +17,10 @@ const startServer = async () => {
     await rabbitMQConnection.connect();
     await checkDatabaseConnection();
     await redisConnection.connect();
+
+    new UserRegisteredListener().listen();
+    new UserProfileUpdatedListener().listen();
+    new UserProfileSyncListener().listen();
 
     const server = createServer(app);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn, getInitials } from '@/lib/utils';
 import { useSessionStore } from '@/stores/session-store';
 import { formatDistanceToNowStrict } from 'date-fns';
@@ -21,6 +21,7 @@ export function MessageItem({ message }: MessageItemProps) {
     >
       {!isCurrentUser && (
         <Avatar className="h-8 w-8">
+          <AvatarImage src={message.sender?.avatarUrl || undefined} />
           <AvatarFallback>{getInitials(message.sender?.name)}</AvatarFallback>
         </Avatar>
       )}

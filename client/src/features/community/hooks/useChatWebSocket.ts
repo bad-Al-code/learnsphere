@@ -43,7 +43,10 @@ export function useChatWebSocket() {
             (oldData: { pages: Message[][] } | undefined) => {
               if (!oldData) return { pages: [[newMessage]] };
 
-              const newData = { ...oldData, pages: [...oldData.pages] };
+              const newData = {
+                ...oldData,
+                pages: oldData.pages.map((page) => [...page]),
+              };
               newData.pages[0].unshift(newMessage);
 
               return newData;
