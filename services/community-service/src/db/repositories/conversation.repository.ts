@@ -85,6 +85,22 @@ export class ConversationRepository {
   }
 
   /**
+   * Finds all participant IDs for a given conversation.
+   * @param {string} conversationId - The ID of the conversation.
+   * @returns {Promise<string[]>} An array of user IDs.
+   */
+  public static async findParticipantIds(
+    conversationId: string
+  ): Promise<string[]> {
+    const participants = await db
+      .select({ userId: conversationParticipants.userId })
+      .from(conversationParticipants)
+      .where(eq(conversationParticipants.conversationId, conversationId));
+
+    return participants.map((p) => p.userId);
+  }
+
+  /**
    * Checks if a user is a participant in a specific conversation.
    * @param {string} conversationId - The ID of the conversation.
    * @param {string} userId - The ID of the user.

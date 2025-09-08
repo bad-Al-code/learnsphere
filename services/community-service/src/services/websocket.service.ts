@@ -6,7 +6,10 @@ import { WebSocket, WebSocketServer } from 'ws';
 
 import { env } from '../config/env';
 import logger from '../config/logger';
+import { ConversationRepository, MessageRepository } from '../db/repositories';
+import { Message } from '../db/schema';
 import { UserPayload } from '../middlewares/current-user';
+import { clientToServerMessageSchema } from '../schemas/chat.schema';
 
 export class WebSocketService {
   private wss: WebSocketServer;
@@ -125,17 +128,106 @@ export class WebSocketService {
   }
 
   /**
-   * Handles an incoming message from a client.
-   * Currently just echoes the message back to the same client.
-   * @param userId - The ID of the user who sent the message.
-   * @param message - The message content.
+   * Handles an incoming message from a client, validates it,
+   * persists it, and broadcasts it to other participants.
+   * @param senderId - The ID of the user who sent the message.
+   * @param rawMessage - The raw message content from the WebSocket.
    */
-  private handleMessage(userId: string, message: string): void {
-    logger.info(`Received message from ${userId}: ${message}`);
+  private async handleMessage(
+    senderId: string,
+    rawMessage: string
+  ): Promise<void> {
+    try {
+      const messageData = JSON.parse(rawMessage);
+      const validatedMessage =
+        clientToServerMessageSchema.safeParse(messageData);
 
-    const ws = this.clients.get(userId);
+      if (!validatedMessage.success) {
+        logger.warn('Received invalid message format from client: %o', {
+          senderId,
+          errors: validatedMessage.error.flatten(),
+        });
 
-    ws?.send(`Echo from ${userId}: ${message}`);
+        return;
+      }
+
+      const { conversationId, content } = validatedMessage.data.payload;
+
+      const isParticipant = await ConversationRepository.isUserParticipant(
+        conversationId,
+        senderId
+      );
+      if (!isParticipant) {
+        logger.warn(
+          `User ${senderId} attempted to send message to conversation ${conversationId} they are not a part of.`
+        );
+
+        return;
+      }
+
+      const newMessage = await MessageRepository.create({
+        conversationId,
+        senderId,
+        content,
+      });
+
+      if (!newMessage || !newMessage.sender) {
+        throw new Error('Failed to create or retrieve message with sender.');
+      }
+
+      await this.broadcastMessage(senderId, conversationId, newMessage);
+    } catch (err) {
+      const error = err as Error;
+      logger.error('Error handling WebSocket message: %o', {
+        senderId,
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      });
+    }
+  }
+
+  /**
+   * Broadcasts a message to all online participants of a conversation,
+   * excluding the original sender.
+   * @param senderId - The ID of the message sender.
+   * @param conversationId - The ID of the conversation.
+   * @param message - The message object to broadcast.
+   */
+  private async broadcastMessage(
+    senderId: string,
+    conversationId: string,
+    message: Message & {
+      sender: { id: string; name: string | null; avatarUrl: string | null };
+    }
+  ): Promise<void> {
+    const participantIds =
+      await ConversationRepository.findParticipantIds(conversationId);
+
+    const outgoingMessage = {
+      type: 'NEW_MESSAGE',
+      payload: {
+        id: message.id,
+        conversationId: message.conversationId,
+        senderId: message.senderId,
+        content: message.content,
+        createdAt: message.createdAt.toISOString(),
+        sender: message.sender,
+      },
+    };
+
+    const messageString = JSON.stringify(outgoingMessage);
+
+    for (const participantId of participantIds) {
+      if (participantId !== senderId) {
+        const clientSocket = this.clients.get(participantId);
+        if (clientSocket && clientSocket.readyState === WebSocket.OPEN) {
+          clientSocket.send(messageString);
+
+          logger.info(`Message broadasted to use ${participantId}`);
+        }
+      }
+    }
   }
 
   /**

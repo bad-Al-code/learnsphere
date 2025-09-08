@@ -8,12 +8,21 @@ export class MessageRepository {
    * @param data - The data for the new message.
    * @returns The newly created message.
    */
-  public static async create(
-    data: NewMessage
-  ): Promise<typeof messages.$inferSelect> {
+  public static async create(data: NewMessage) {
     const [newMessage] = await db.insert(messages).values(data).returning();
 
-    return newMessage;
+    return db.query.messages.findFirst({
+      where: eq(messages.id, newMessage.id),
+      with: {
+        sender: {
+          columns: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
   }
 
   /**
