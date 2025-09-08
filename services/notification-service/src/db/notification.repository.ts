@@ -23,11 +23,15 @@ export class NotificationRepository {
    * Creates multiple notification records in a single batch insert.
    * @param data An array of notification objects to be created.
    */
-  public static async createBatch(data: NewNotification[]): Promise<void> {
+  public static async createBatch(
+    data: NewNotification[]
+  ): Promise<Notification[]> {
     if (data.length === 0) {
-      return;
+      return [];
     }
-    await db.insert(notifications).values(data);
+    const inserted = await db.insert(notifications).values(data).returning();
+
+    return inserted;
   }
 
   /**

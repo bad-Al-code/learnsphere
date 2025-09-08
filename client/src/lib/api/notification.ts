@@ -11,26 +11,19 @@ export interface Notification {
 }
 
 export const getNotifications = async (): Promise<Notification[]> => {
-  const response = await notificationService.get('/api/notifications');
+  const response =
+    await notificationService.get<Notification[]>('/api/notifications');
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch notifications');
-  }
-
-  return response.json();
+  return response.data;
 };
 
 export const markAllNotificationsAsRead = async (): Promise<{
   message: string;
 }> => {
-  const response = await notificationService.post(
+  const response = await notificationService.post<{ message: string }>(
     '/api/notifications/mark-all-read',
     {}
   );
 
-  if (!response.ok) {
-    throw new Error('Failed to mark notifications as read');
-  }
-
-  return response.json();
+  return response.data;
 };

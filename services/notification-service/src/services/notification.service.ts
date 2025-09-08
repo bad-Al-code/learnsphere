@@ -33,6 +33,26 @@ export class NotificationService {
   }
 
   /**
+   * Creates and sends multiple notifications in a single batch operation.
+   * @param data - An array of notification objects to be created and dispatched.
+   * @returns A promise that resolves to the created notifications.
+   */
+  public static async createBatchNotifications(
+    data: NewNotification[]
+  ): Promise<Notification[]> {
+    logger.info(`Creating ${data.length} in-app notifications`);
+
+    const notifications = await NotificationRepository.createBatch(data);
+
+    notifications.forEach((notification) => {
+      WebSocketService.sendNotification(notification.recipientId, notification);
+      this.sendPushNotification(notification);
+    });
+
+    return notifications;
+  }
+
+  /**
    * Fetches a user's FCM tokens from the user-service and sends them a push notification.
    * @param notification The notification object saved in the database.
    */

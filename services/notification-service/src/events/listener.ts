@@ -1,7 +1,6 @@
 import { ConsumeMessage } from 'amqplib';
 
 import logger from '../config/logger';
-import { NotificationRepository } from '../db/notification.repository';
 import { UserRepository } from '../db/user.respository';
 import { EmailService } from '../services/email-service';
 import { NotificationService } from '../services/notification.service';
@@ -675,7 +674,7 @@ export class MessageSentListener extends Listener<MessageSentEvent> {
         },
       }));
 
-      await NotificationRepository.createBatch(notificationsToCreate);
+      await NotificationService.createBatchNotifications(notificationsToCreate);
 
       logger.info(
         `Created ${notificationsToCreate.length} notifications for new message.`
