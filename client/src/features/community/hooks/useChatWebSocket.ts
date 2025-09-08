@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 import { useSessionStore } from '@/stores/session-store';
-import { v4 as uuidv4 } from 'uuid';
+
 import { ClientToServerMessage, serverToClientMessageSchema } from '../schema';
 import { Message } from '../types';
 
@@ -17,8 +18,10 @@ export function useChatWebSocket() {
       process.env.NEXT_PUBLIC_COMMUNITY_WS_URL || 'ws://localhost:8007'
     );
 
-    socket.onopen = () => {
-      console.log('WebSocket connected');
+    socket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+
+      toast.error('Connection to chat server lost.');
     };
 
     socket.onmessage = (event) => {
@@ -33,11 +36,14 @@ export function useChatWebSocket() {
           queryClient.setQueryData(
             ['messages', newMessage.conversationId],
             (oldData: { pages: Message[][] } | undefined) => {
-              if (!oldData) return oldData;
+              if (!oldData) return { pages: [[newMessage]] };
 
-              const newData = { ...oldData, pages: [...oldData.pages] };
+              const newData = {
+                ...oldData,
+                pages: oldData.pages.map((page) => [...page]),
+              };
 
-              newData.pages[newData.pages.length - 1].push(newMessage);
+              newData.pages[0].unshift(newMessage);
               return newData;
             }
           );
@@ -47,15 +53,6 @@ export function useChatWebSocket() {
       } catch (error) {
         console.error('Error processing incoming WebSocket message:', error);
       }
-    };
-
-    socket.onclose = () => {
-      console.log('WebSocket disconnected');
-    };
-
-    socket.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      toast.error('Connection to chat server lost.');
     };
 
     ws.current = socket;
@@ -88,18 +85,23 @@ export function useChatWebSocket() {
         sender: {
           id: currentUser.userId,
           name: currentUser.firstName || 'You',
-          avatarUrl: currentUser.avatarUrls!.small || null,
+          avatarUrl: currentUser.avatarUrls?.small || null,
         },
       };
 
       queryClient.setQueryData(
         ['messages', message.conversationId],
-
         (oldData: { pages: Message[][] } | undefined) => {
-          if (!oldData) return { pages: [[optimisticMessage]] };
+          if (!oldData || !oldData.pages || oldData.pages.length === 0) {
+            return { pages: [[optimisticMessage]], pageParams: [1] };
+          }
 
-          const newData = { ...oldData, pages: [...oldData.pages] };
-          newData.pages[newData.pages.length - 1].push(optimisticMessage);
+          const newData = {
+            ...oldData,
+            pages: oldData.pages.map((page) => [...page]),
+          };
+
+          newData.pages[0].unshift(optimisticMessage);
 
           return newData;
         }
