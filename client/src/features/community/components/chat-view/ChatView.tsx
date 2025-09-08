@@ -10,6 +10,7 @@ interface ChatViewProps {
   messages: Message[];
   sendMessage: (content: string) => void;
   isLoading: boolean;
+  isError: boolean;
 }
 
 export function ChatView({
@@ -17,9 +18,18 @@ export function ChatView({
   messages,
   sendMessage,
   isLoading,
+  isError,
 }: ChatViewProps) {
   if (isLoading) {
     return <ChatViewSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-destructive">Error Loading Messages</p>
+      </div>
+    );
   }
 
   if (!user) {

@@ -6,7 +6,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useChatWebSocket } from '../hooks/useChatWebSocket';
 import { useConversations } from '../hooks/useConversations';
 import { useMessages } from '../hooks/useMessages';
@@ -18,21 +18,34 @@ import {
 } from './conversation-list/ConversationList';
 
 export function ChatInterface() {
-  const { data: conversations, isLoading: isLoadingConversations } =
-    useConversations();
-  const [selectedConversation, setSelectedConversation] =
-    useState<Conversation | null>(null);
+  const {
+    data: conversations,
+    isLoading: isLoadingConversations,
+    isError: conversationLoadingError,
+  } = useConversations();
+  const [selectedConversationId, setSelectedConversationId] = useState<
+    string | null
+  >(null);
   const { sendMessage } = useChatWebSocket();
 
-  // useEffect(() => {
-  //   if (conversations && conversations.length > 0 && !selectedConversation) {
-  //     setSelectedConversation(conversations[0]);
-  //   }
-  // }, [conversations, selectedConversation]);
+  const selectedConversation = useMemo(() => {
+    if (!selectedConversationId || !conversations) {
+      // if (conversations && conversations.length > 0) {
+      //   setSelectedConversationId(conversations[0].id);
+      //   return conversations[0];
+      // }
 
-  const { data: messagesData, isLoading: isLoadingMessages } = useMessages(
-    selectedConversation?.id || null
-  );
+      return null;
+    }
+
+    return conversations.find((c) => c.id === selectedConversationId) || null;
+  }, [conversations, selectedConversationId]);
+
+  const {
+    data: messagesData,
+    isLoading: isLoadingMessages,
+    isError: chatViewError,
+  } = useMessages(selectedConversation?.id || null);
 
   const messages = messagesData?.pages.flat().reverse() || [];
 
@@ -46,7 +59,7 @@ export function ChatInterface() {
   };
 
   const handleConversationCreated = (newConversation: Conversation) => {
-    setSelectedConversation(newConversation);
+    setSelectedConversationId(newConversation.id);
   };
 
   return (
@@ -56,9 +69,10 @@ export function ChatInterface() {
           <ConversationList
             conversations={conversations || []}
             selectedId={selectedConversation?.id || null}
-            onSelect={setSelectedConversation}
+            onSelect={(convo) => setSelectedConversationId(convo.id)}
             onConversationCreated={handleConversationCreated}
             isLoading={isLoadingConversations}
+            isError={conversationLoadingError}
           />
         </ResizablePanel>
 
@@ -69,6 +83,7 @@ export function ChatInterface() {
             messages={messages}
             sendMessage={handleSendMessage}
             isLoading={isLoadingMessages && messages.length === 0}
+            isError={chatViewError}
           />
         </ResizablePanel>
       </ResizablePanelGroup>

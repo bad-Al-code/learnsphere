@@ -12,6 +12,7 @@ interface ConversationListProps {
   onSelect: (conversation: Conversation) => void;
   onConversationCreated: (conversation: Conversation) => void;
   isLoading: boolean;
+  isError: boolean;
 }
 
 export function ConversationList({
@@ -20,11 +21,17 @@ export function ConversationList({
   onSelect,
   onConversationCreated,
   isLoading,
+  isError,
 }: ConversationListProps) {
   if (isLoading) {
     return <ConversationListSkeleton />;
   }
 
+  if (isError) {
+    return (
+      <p className="text-destructive p-4">Failed to load conversations.</p>
+    );
+  }
   return (
     <div className="flex h-full flex-col">
       <ConversationListHeader onConversationCreated={onConversationCreated} />
