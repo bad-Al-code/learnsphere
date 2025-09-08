@@ -44,7 +44,7 @@ export function NewConversationDialog({
   );
 
   const handleUserSelect = (user: UserSearchResult) => {
-    createConversationMutation.mutate(user);
+    createConversationMutation.mutate(user.userId);
   };
 
   return (

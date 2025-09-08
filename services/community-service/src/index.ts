@@ -5,8 +5,8 @@ import logger from './config/logger';
 import { redisConnection } from './config/redis';
 import { checkDatabaseConnection } from './db';
 import { rabbitMQConnection } from './events/connection';
+
 import {
-  UserProfileSyncListener,
   UserProfileUpdatedListener,
   UserRegisteredListener,
 } from './events/listener';
@@ -20,7 +20,6 @@ const startServer = async () => {
 
     new UserRegisteredListener().listen();
     new UserProfileUpdatedListener().listen();
-    new UserProfileSyncListener().listen();
 
     const server = createServer(app);
 

@@ -1,5 +1,7 @@
+import logger from '../config/logger';
 import { ConversationRepository, MessageRepository } from '../db/repositories';
-import { ForbiddenError } from '../errors';
+import { BadRequestError, ForbiddenError } from '../errors';
+import { UserService } from './user.service';
 
 export class ChatService {
   /**
@@ -53,13 +55,30 @@ export class ChatService {
     initiatorId: string,
     recipientId: string
   ) {
+    try {
+      await Promise.all([
+        UserService.findOrFetchUser(initiatorId),
+        UserService.findOrFetchUser(recipientId),
+      ]);
+    } catch (error) {
+      logger.error('Failed to find or fetch users for new conversation', {
+        initiatorId,
+        recipientId,
+        error,
+      });
+
+      throw new BadRequestError('One or more users could not be found.');
+    }
+
     const existingConversation =
       await ConversationRepository.findDirectConversation(
         initiatorId,
         recipientId
       );
 
-    if (existingConversation) return existingConversation;
+    if (existingConversation) {
+      return existingConversation;
+    }
 
     const newConversation = await ConversationRepository.create(
       { type: 'direct' },
