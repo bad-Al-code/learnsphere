@@ -42,4 +42,30 @@ export class ChatService {
       offset
     );
   }
+
+  /**
+   * Finds a direct conversation between two users, creating one if it doesn't exist.
+   * @param initiatorId The ID of the user starting the conversation.
+   * @param recipientId The ID of the user being messaged.
+   * @returns The existing or newly created conversation.
+   */
+  public static async createOrGetDirectConversation(
+    initiatorId: string,
+    recipientId: string
+  ) {
+    const existingConversation =
+      await ConversationRepository.findDirectConversation(
+        initiatorId,
+        recipientId
+      );
+
+    if (existingConversation) return existingConversation;
+
+    const newConversation = await ConversationRepository.create(
+      { type: 'direct' },
+      [initiatorId, recipientId]
+    );
+
+    return newConversation;
+  }
 }

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { NotAuthorizedError } from '../errors';
+import { BadRequestError, NotAuthorizedError } from '../errors';
 import { ChatService } from '../services/chat.service';
 
 export class ChatController {
@@ -44,6 +44,32 @@ export class ChatController {
       );
 
       res.status(StatusCodes.OK).json(messages);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async createConversation(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const initiatorId = req.currentUser!.id;
+      const { recipientId } = req.body;
+
+      if (initiatorId === recipientId) {
+        throw new BadRequestError(
+          'You cannot start a conversation with yourself.'
+        );
+      }
+
+      const conversation = await ChatService.createOrGetDirectConversation(
+        initiatorId,
+        recipientId
+      );
+
+      res.status(StatusCodes.CREATED).json(conversation);
     } catch (error) {
       next(error);
     }

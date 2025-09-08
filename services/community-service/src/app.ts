@@ -6,6 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env';
 import { swaggerSpec } from './config/swagger';
 import { currentUser } from './middlewares/current-user';
+import { errorHandler } from './middlewares/error-handler';
 import { httpLogger } from './middlewares/http-logger';
 import { chatRouter } from './routes/chat.route';
 
@@ -32,5 +33,7 @@ app.get('/api/community/health', (req, res) => {
 });
 
 app.use('/api/community', chatRouter);
+
+app.use(errorHandler);
 
 export { app };

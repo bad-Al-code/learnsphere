@@ -11,17 +11,65 @@ import {
 
 export class ConversationRepository {
   /**
-   * Creates a new conversation.
+   * Creates a new conversation and its initial participants within a transaction.
    * @param data The data for the new conversation.
+   * @param participantIds An array of user IDs to add to the conversation.
    * @returns The newly created conversation.
    */
-  public static async create(data: NewConversation) {
-    const [newConversation] = await db
-      .insert(conversations)
-      .values(data)
-      .returning();
+  public static async create(data: NewConversation, participantIds: string[]) {
+    return db.transaction(async (tx) => {
+      const [newConversation] = await tx
+        .insert(conversations)
+        .values(data)
+        .returning();
 
-    return newConversation;
+      const participantData = participantIds.map((userId) => ({
+        conversationId: newConversation.id,
+        userId,
+      }));
+
+      await tx.insert(conversationParticipants).values(participantData);
+
+      return newConversation;
+    });
+  }
+
+  /**
+   * Finds an existing direct conversation between two specific users.
+   * @param userId1 The ID of the first user.
+   * @param userId2 The ID of the second user.
+   * @returns The conversation object if found, otherwise undefined.
+   */
+  public static async findDirectConversation(userId1: string, userId2: string) {
+    const p1 = alias(conversationParticipants, 'p1');
+    const p2 = alias(conversationParticipants, 'p2');
+
+    const result = await db
+      .select({ id: conversations.id })
+      .from(conversations)
+      .innerJoin(p1, eq(conversations.id, p1.conversationId))
+      .innerJoin(p2, eq(conversations.id, p2.conversationId))
+      .where(
+        and(
+          eq(conversations.type, 'direct'),
+          eq(p1.userId, userId1),
+          eq(p2.userId, userId2)
+        )
+      );
+
+    if (result.length > 0) {
+      return db.query.conversations.findFirst({
+        where: eq(conversations.id, result[0].id),
+        with: {
+          participants: {
+            with: {
+              user: true,
+            },
+          },
+        },
+      });
+    }
+    return undefined;
   }
 
   /**

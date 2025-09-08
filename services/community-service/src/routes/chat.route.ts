@@ -2,7 +2,10 @@ import { Router } from 'express';
 import { ChatController } from '../controllers/chat.controller';
 import { requireAuth } from '../middlewares/require-auth';
 import { validateRequest } from '../middlewares/validate-request';
-import { getMessagesSchema } from '../schemas/chat.schema';
+import {
+  createConversationSchema,
+  getMessagesSchema,
+} from '../schemas/chat.schema';
 
 const router = Router();
 
@@ -58,6 +61,35 @@ router.get(
   '/conversations/:id/messages',
   validateRequest(getMessagesSchema),
   ChatController.getMessages
+);
+
+/**
+ * @openapi
+ * /api/community/conversations:
+ *   post:
+ *     summary: Create or retrieve a direct message conversation
+ *     tags: [Chat]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [recipientId]
+ *             properties:
+ *               recipientId:
+ *                 type: string
+ *                 format: uuid
+ *     responses:
+ *       '201':
+ *         description: Successfully created or retrieved the conversation.
+ */
+router.post(
+  '/conversations',
+  validateRequest(createConversationSchema),
+  ChatController.createConversation
 );
 
 export { router as chatRouter };

@@ -40,6 +40,9 @@ import { z } from 'zod';
  *         id:
  *           type: string
  *           format: uuid
+ *         conversationId:
+ *           type: string
+ *           format: uuid
  *         senderId:
  *           type: string
  *           format: uuid
@@ -51,6 +54,8 @@ import { z } from 'zod';
  *           format: date-time
  *         sender:
  *           type: object
+ *           required:
+ *             - id
  *           properties:
  *             id:
  *               type: string
@@ -109,6 +114,16 @@ import { z } from 'zod';
  *           enum: [NEW_MESSAGE]
  *         payload:
  *           $ref: '#/components/schemas/Message'
+ *
+ *     CreateConversation:
+ *       type: object
+ *       required:
+ *         - recipientId
+ *       properties:
+ *         recipientId:
+ *           type: string
+ *           format: uuid
+ *           description: ID of the user to start a conversation with
  */
 export const getMessagesSchema = z.object({
   params: z.object({
@@ -145,3 +160,10 @@ export const serverToClientMessageSchema = z.object({
   }),
 });
 export type ServerToClientMessage = z.infer<typeof serverToClientMessageSchema>;
+
+export const createConversationSchema = z.object({
+  body: z.object({
+    recipientId: z.uuid('Invalid recipient ID format.'),
+  }),
+});
+export type CreateConversation = z.infer<typeof createConversationSchema>;
