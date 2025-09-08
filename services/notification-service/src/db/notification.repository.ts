@@ -20,6 +20,17 @@ export class NotificationRepository {
   }
 
   /**
+   * Creates multiple notification records in a single batch insert.
+   * @param data An array of notification objects to be created.
+   */
+  public static async createBatch(data: NewNotification[]): Promise<void> {
+    if (data.length === 0) {
+      return;
+    }
+    await db.insert(notifications).values(data);
+  }
+
+  /**
    * Finds all notifications for a specific user, with pagination.
    * @param recipientId The ID of the user.
    * @param limit The number of notifications to fetch.

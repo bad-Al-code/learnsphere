@@ -1,0 +1,1 @@
+ALTER TABLE "email_outbox" RENAME COLUMN "satus" TO "status";

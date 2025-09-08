@@ -1,6 +1,7 @@
 import { ConsumeMessage } from 'amqplib';
 
 import logger from '../config/logger';
+import { NotificationRepository } from '../db/notification.repository';
 import { UserRepository } from '../db/user.respository';
 import { EmailService } from '../services/email-service';
 import { NotificationService } from '../services/notification.service';
@@ -636,6 +637,51 @@ export class ReportGenerationFailedListener extends Listener<ReportGenerationFai
         data,
         error,
       });
+    }
+  }
+}
+
+interface MessageSentEvent {
+  topic: 'message.sent';
+  data: {
+    messageId: string;
+    conversationId: string;
+    senderId: string;
+    senderName: string | null;
+    recipientIds: string[];
+    content: string;
+    createdAt: string;
+  };
+}
+
+export class MessageSentListener extends Listener<MessageSentEvent> {
+  readonly topic = 'message.sent' as const;
+  queueGroupName = 'notification-service-message-sent';
+
+  async onMessage(data: MessageSentEvent['data'], _msg: ConsumeMessage) {
+    try {
+      logger.info(
+        `Received message.sent event for conversation ${data.conversationId}`
+      );
+
+      const notificationsToCreate = data.recipientIds.map((recipientId) => ({
+        recipientId,
+        type: 'new_message',
+        content: `You have a new message from ${data.senderName || 'a user'}.`,
+        linkUrl: `/student/messages?conversationId=${data.conversationId}`,
+        metadata: {
+          messageId: data.messageId,
+          senderId: data.senderId,
+        },
+      }));
+
+      await NotificationRepository.createBatch(notificationsToCreate);
+
+      logger.info(
+        `Created ${notificationsToCreate.length} notifications for new message.`
+      );
+    } catch (error) {
+      logger.error('Failed to process message.sent event', { data, error });
     }
   }
 }

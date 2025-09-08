@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { env } from './config/env';
 import { currentUser } from './middlewares/current-user';
 import { errorHandler } from './middlewares/error-handler';
+import { httpLogger } from './middlewares/http-logger';
 import { notificationRouter } from './routes/notification';
 
 const app = express();
@@ -19,6 +20,7 @@ app.use(
 );
 app.use(json());
 app.use(helmet());
+app.use(httpLogger);
 app.use(cookieParser(env.COOKIE_PARSER_SECRET));
 app.use(currentUser);
 

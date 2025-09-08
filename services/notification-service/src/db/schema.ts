@@ -31,7 +31,7 @@ export const emailOutbox = pgTable('email_outbox', {
   recipient: text('recipient').notNull(),
   subject: text('subject').notNull(),
   type: text('type').notNull(),
-  status: emailStatusEnum('satus').notNull(),
+  status: emailStatusEnum('status').notNull(),
   errorMessage: text('error_message'),
   sentAt: timestamp('sent_at').defaultNow().notNull(),
 });
@@ -52,3 +52,4 @@ export const users = pgTable('users', {
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+export type NewNotification = typeof notifications.$inferInsert;
