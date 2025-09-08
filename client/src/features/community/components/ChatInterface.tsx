@@ -26,7 +26,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
+import { formatDistanceToNowStrict } from 'date-fns';
+import { useState } from 'react';
 import { useConversations } from '../hooks/userConversations';
 import { Conversation } from '../types';
 
@@ -299,65 +301,75 @@ function ConversationList({
       </div>
       <div className="flex-1 overflow-y-auto">
         <div className="space-y-1 p-2">
-          {conversations.map((convo) => (
-            <div
-              key={convo.id}
-              className={cn(
-                'hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-lg p-2',
-                convo.id === selectedId && 'bg-muted hover:bg-muted'
-              )}
-            >
-              <div className="relative">
-                <Avatar>
-                  <AvatarFallback>{convo.initials}</AvatarFallback>
-                </Avatar>
-                <span
-                  className={cn(
-                    'border-background absolute right-0 bottom-0 block h-2.5 w-2.5 rounded-full border-2',
-                    convo.status === 'online'
-                      ? 'bg-emerald-500'
-                      : convo.status === 'away'
-                        ? 'bg-yellow-500'
-                        : 'bg-gray-400'
-                  )}
-                />
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <p className="truncate font-semibold">{convo.name}</p>
-                <p className="text-muted-foreground truncate text-xs">
-                  {convo.lastMessage}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-muted-foreground text-xs">
-                  {convo.timestamp}
-                </p>
-                {convo.unreadCount && (
-                  <span className="bg-primary text-primary-foreground flex h-5 w-5 items-center justify-center rounded-full text-xs">
-                    {convo.unreadCount}
-                  </span>
+          {conversations.map((convo) => {
+            const displayName =
+              convo.otherParticipant?.name || convo.name || 'Conversation';
+            const initials = getInitials(displayName);
+            const formattedTimestamp = convo.lastMessageTimestamp
+              ? formatDistanceToNowStrict(
+                  new Date(convo.lastMessageTimestamp),
+                  { addSuffix: true }
+                )
+              : '';
+
+            return (
+              <div
+                key={convo.id}
+                onClick={() => onSelect(convo)}
+                className={cn(
+                  'hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-lg p-2',
+                  convo.id === selectedId && 'bg-muted hover:bg-muted'
                 )}
+              >
+                <div className="relative">
+                  <Avatar>
+                    <AvatarFallback>{initials}</AvatarFallback>
+                  </Avatar>
+                </div>
+
+                <div className="flex-1 overflow-hidden">
+                  <p className="truncate font-semibold">{displayName}</p>
+                  <p className="text-muted-foreground truncate text-xs">
+                    {convo.lastMessage || 'No messages yet'}
+                  </p>
+                </div>
+
+                <div className="text-right">
+                  <p className="text-muted-foreground text-xs whitespace-nowrap">
+                    {formattedTimestamp}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
 
-function ChatView({ user, messages }: { user: any; messages: TMessage[] }) {
+function ChatView({
+  user,
+  messages,
+}: {
+  user: Conversation['otherParticipant'];
+  messages: TMessage[];
+}) {
+  if (!user) return <ChatViewSkeleton />;
+
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className="flex items-center gap-3 border-b p-3">
         <Avatar>
-          <AvatarFallback>{user.initials}</AvatarFallback>
+          <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
         </Avatar>
+
         <div>
-          <p className="font-semibold">{user.name}</p>
-          <p className="text-muted-foreground text-xs">{user.status}</p>
+          {/* <p className="font-semibold">{user.name}</p>
+          <p className="text-muted-foreground text-xs">{user.status}</p> */}
         </div>
+
         <div className="ml-auto flex items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -407,7 +419,7 @@ function ChatView({ user, messages }: { user: any; messages: TMessage[] }) {
             >
               {!msg.isCurrentUser && (
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback>{user.initials}</AvatarFallback>
+                  <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                 </Avatar>
               )}
               <div
@@ -523,7 +535,14 @@ function ChatViewSkeleton() {
 
 export function ChatInterface() {
   const { data: conversations, isLoading, isError } = useConversations();
-  const selectedConversation = conversations?.[0];
+  const [selectedConversation, setSelectedConversation] =
+    useState<Conversation | null>(null);
+
+  useState(() => {
+    if (conversations && conversations.length > 0 && !selectedConversation) {
+      setSelectedConversation(conversations[0]);
+    }
+  });
 
   return (
     <Card className="h-[calc(100vh-4rem)] w-full overflow-hidden pt-2 pb-0 lg:h-[calc(93vh)]">
@@ -531,6 +550,10 @@ export function ChatInterface() {
         <ResizablePanel defaultSize={30} minSize={0} maxSize={100}>
           {isLoading ? (
             <ConversationListSkeleton />
+          ) : isError ? (
+            <p className="text-destructive p-4">
+              Failed to load conversations.
+            </p>
           ) : (
             <ConversationList
               conversations={conversations || []}
@@ -539,6 +562,7 @@ export function ChatInterface() {
             />
           )}
         </ResizablePanel>
+
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={70}>
           {selectedConversation ? (
@@ -547,7 +571,11 @@ export function ChatInterface() {
               messages={chatHistory}
             />
           ) : (
-            <ChatViewSkeleton />
+            <div className="flex h-full items-center justify-center">
+              <p className="text-muted-foreground">
+                Select a conversation to start chatting
+              </p>
+            </div>
           )}
         </ResizablePanel>
       </ResizablePanelGroup>
