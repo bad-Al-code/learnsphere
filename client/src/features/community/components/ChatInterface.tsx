@@ -30,6 +30,7 @@ import { cn, getInitials } from '@/lib/utils';
 import { useSessionStore } from '@/stores/session-store';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { useState } from 'react';
+import { useChatWebSocket } from '../hooks/useChatWebSocket';
 import { useConversations } from '../hooks/useConversations';
 import { useMessages } from '../hooks/useMessage';
 import { Conversation, Message } from '../types';
@@ -353,12 +354,23 @@ function ConversationList({
 function ChatView({
   user,
   messages,
+  sendMessage,
 }: {
   user: Conversation['otherParticipant'];
   messages: Message[];
+  sendMessage: (content: string) => void;
 }) {
   const currentUser = useSessionStore((state) => state.user);
   if (!user) return <ChatViewSkeleton />;
+
+  const [messageContent, setMessageContent] = useState('');
+
+  const handleSend = () => {
+    if (messageContent.trim()) {
+      sendMessage(messageContent);
+      setMessageContent('');
+    }
+  };
 
   return (
     <div className="flex h-full flex-col">
@@ -457,6 +469,9 @@ function ChatView({
           <Input
             placeholder={`Message ${user.name}...`}
             className="h-12 border-0 px-2 focus-visible:ring-0 focus-visible:ring-offset-0"
+            value={messageContent}
+            onChange={(e) => setMessageContent(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           />
 
           <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
@@ -466,7 +481,7 @@ function ChatView({
             <Button variant="ghost" size="icon">
               <Mic className="h-4 w-4" />
             </Button>
-            <Button size="icon" variant="default">
+            <Button size="icon" variant="default" onClick={handleSend}>
               <Send className="-ml-1 h-4 w-4 rotate-45" />
             </Button>
           </div>
@@ -546,6 +561,7 @@ export function ChatInterface() {
   } = useConversations();
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
+  const { sendMessage } = useChatWebSocket();
 
   // useEffect(() => {
   //   if (conversations && conversations.length > 0 && !selectedConversation) {
@@ -558,6 +574,15 @@ export function ChatInterface() {
   );
 
   const messages = messagesData?.pages.flat() || [];
+
+  const handleSendMessage = (content: string) => {
+    if (selectedConversation) {
+      sendMessage({
+        conversationId: selectedConversation.id,
+        content: content,
+      });
+    }
+  };
 
   return (
     <Card className="h-[calc(100vh-4rem)] w-full overflow-hidden pt-2 pb-0 lg:h-[calc(93vh)]">
@@ -586,6 +611,7 @@ export function ChatInterface() {
             <ChatView
               user={selectedConversation.otherParticipant}
               messages={messages}
+              sendMessage={handleSendMessage}
             />
           ) : (
             <div className="flex h-full items-center justify-center">
