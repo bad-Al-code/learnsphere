@@ -25,7 +25,10 @@ import { useChatWebSocket } from '../hooks/useChatWebSocket';
 import { useConversations } from '../hooks/useConversations';
 import { useMessages } from '../hooks/useMessage';
 import { Conversation, Message } from '../types';
-import { ConversationList, ConversationListSkeleton } from './ConversationList';
+import {
+  ConversationList,
+  ConversationListSkeleton,
+} from './conversation-list/ConversationList';
 
 function ChatView({
   user,
@@ -252,20 +255,13 @@ export function ChatInterface() {
     <Card className="h-[calc(100vh-4rem)] w-full overflow-hidden pt-2 pb-0 lg:h-[calc(93vh)]">
       <ResizablePanelGroup direction="horizontal" className="h-full">
         <ResizablePanel defaultSize={30} minSize={0} maxSize={100}>
-          {isLoadingConversations ? (
-            <ConversationListSkeleton />
-          ) : isError ? (
-            <p className="text-destructive p-4">
-              Failed to load conversations.
-            </p>
-          ) : (
-            <ConversationList
-              conversations={conversations || []}
-              selectedId={selectedConversation?.id || null}
-              onSelect={setSelectedConversation}
-              onConversationCreated={handleConversationCreated}
-            />
-          )}
+          <ConversationList
+            conversations={conversations || []}
+            selectedId={selectedConversation?.id || null}
+            onSelect={setSelectedConversation}
+            onConversationCreated={handleConversationCreated}
+            isLoading={isLoadingConversations}
+          />
         </ResizablePanel>
 
         <ResizableHandle withHandle />
