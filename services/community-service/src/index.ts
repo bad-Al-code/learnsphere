@@ -2,10 +2,15 @@ import { createServer } from 'node:http';
 import { app } from './app';
 import { env } from './config/env';
 import logger from './config/logger';
+import { checkDatabaseConnection } from './db';
+import { rabbitMQConnection } from './events/connection';
 import { WebSocketService } from './services/websocket.service';
 
 const startServer = async () => {
   try {
+    await rabbitMQConnection.connect();
+    await checkDatabaseConnection();
+
     const server = createServer(app);
 
     const webSocketService = new WebSocketService(server);
@@ -18,6 +23,7 @@ const startServer = async () => {
     });
 
     const shutdown = async () => {
+      await rabbitMQConnection.close();
       process.exit(0);
     };
 

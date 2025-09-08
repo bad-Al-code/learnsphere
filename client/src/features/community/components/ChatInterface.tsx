@@ -181,14 +181,16 @@ function ConversationList({
   conversations: Conversation[];
   selectedId: string | null;
   onSelect: (conversations: Conversation) => void;
-  onConversationCreated: (newConversation: Conversation) => void;
+  onConversationCreated: (conversation: Conversation) => void;
 }) {
   return (
     <div className="flex h-full flex-col">
       <div className="p-2">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">Direct Messages</h2>
-          <NewConversationDialog onConversationCreated={() => {}} />
+          <NewConversationDialog
+            onConversationCreated={onConversationCreated}
+          />
         </div>
         <div className="relative mt-4">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />

@@ -1,5 +1,6 @@
 import { ConsumeMessage } from 'amqplib';
 import logger from '../config/logger';
+import { UserRepository } from '../db/repositories';
 import { rabbitMQConnection } from './connection';
 
 interface Event {
@@ -50,5 +51,63 @@ export abstract class Listener<T extends Event> {
         error,
       });
     });
+  }
+}
+
+interface UserRegisteredEvent {
+  topic: 'user.registered';
+  data: {
+    id: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    avatarUrl?: string | null;
+  };
+}
+
+export class UserRegisteredListener extends Listener<UserRegisteredEvent> {
+  readonly topic = 'user.registered' as const;
+  queueGroupName = 'community-service-user-registered';
+
+  async onMessage(data: UserRegisteredEvent['data'], _msg: ConsumeMessage) {
+    try {
+      logger.info(`Syncing new user registration: ${data.id}`);
+
+      await UserRepository.upsert({
+        id: data.id,
+        name: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+        avatarUrl: data.avatarUrl,
+      });
+    } catch (error) {
+      logger.error('Failed to sync registered user', { data, error });
+    }
+  }
+}
+
+interface UserProfileUpdatedEvent {
+  topic: 'user.profile.updated';
+  data: {
+    userId: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    avatarUrls?: { small?: string };
+  };
+}
+
+export class UserProfileUpdatedListener extends Listener<UserProfileUpdatedEvent> {
+  readonly topic = 'user.profile.updated' as const;
+  queueGroupName = 'community-service-user-updated';
+
+  async onMessage(data: UserProfileUpdatedEvent['data'], _msg: ConsumeMessage) {
+    try {
+      logger.info(`Syncing profile update for user: ${data.userId}`);
+
+      await UserRepository.upsert({
+        id: data.userId,
+        name: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+        avatarUrl: data.avatarUrls?.small,
+      });
+    } catch (error) {
+      logger.error('Failed to sync user profile update', { data, error });
+    }
   }
 }
