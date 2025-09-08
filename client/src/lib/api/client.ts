@@ -54,42 +54,82 @@ class ApiClient {
     return headers;
   }
 
-  public async get(path: string, options?: RequestInit) {
-    return this.fetchWithAuth(path, { ...options, method: 'GET' });
+  public async get<T>(
+    path: string,
+    options?: RequestInit
+  ): Promise<{ data: T }> {
+    const response = await this.fetchWithAuth(path, {
+      ...options,
+      method: 'GET',
+    });
+    const data = await response.json();
+
+    return { data };
   }
 
-  public async post(path: string, body: unknown, options?: RequestInit) {
-    return this.fetchWithAuth(path, {
+  public async post<T>(
+    path: string,
+    body: unknown,
+    options?: RequestInit
+  ): Promise<{ data: T }> {
+    const response = await this.fetchWithAuth(path, {
       ...options,
       method: 'POST',
       headers: this.getHeaders(options?.headers),
       body: JSON.stringify(body),
     });
+
+    const data = await response.json();
+
+    return { data };
   }
 
-  public async put(path: string, body: unknown, options?: RequestInit) {
-    return this.fetchWithAuth(path, {
+  public async put<T>(
+    path: string,
+    body: unknown,
+    options?: RequestInit
+  ): Promise<{ data: T }> {
+    const response = await this.fetchWithAuth(path, {
       ...options,
       method: 'PUT',
       headers: this.getHeaders(options?.headers),
       body: JSON.stringify(body),
     });
+
+    const data = await response.json();
+
+    return { data };
   }
 
-  public async patch(path: string, body: unknown, options?: RequestInit) {
-    return this.fetchWithAuth(path, {
+  public async patch<T>(
+    path: string,
+    body: unknown,
+    options?: RequestInit
+  ): Promise<{ data: T }> {
+    const response = await this.fetchWithAuth(path, {
       ...options,
       method: 'PATCH',
       headers: this.getHeaders(options?.headers),
       body: JSON.stringify(body),
     });
+
+    const data = await response.json();
+
+    return { data };
   }
 
-  public async delete(path: string, options?: RequestInit) {
-    return this.fetchWithAuth(path, {
+  public async delete<T>(
+    path: string,
+    options?: RequestInit
+  ): Promise<{ data: T }> {
+    const response = await this.fetchWithAuth(path, {
       ...options,
       method: 'DELETE',
     });
+
+    const data = await response.json();
+
+    return { data };
   }
 }
 
@@ -113,4 +153,7 @@ export const mediaService = new ApiClient(
 );
 export const notificationService = new ApiClient(
   process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE_URL!
+);
+export const communityService = new ApiClient(
+  process.env.NEXT_PUBLIC_COMMUNITY_SERVICE_URL!
 );

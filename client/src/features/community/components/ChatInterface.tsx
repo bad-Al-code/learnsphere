@@ -27,6 +27,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { useConversations } from '../hooks/userConversations';
+import { Conversation } from '../types';
 
 type TStatus = 'online' | 'offline' | 'away';
 type TConversation = {
@@ -275,9 +277,11 @@ const selectedConversation = conversationData[0];
 function ConversationList({
   conversations,
   selectedId,
+  onSelect,
 }: {
-  conversations: TConversation[];
-  selectedId: string;
+  conversations: Conversation[];
+  selectedId: string | null;
+  onSelect: (conversations: Conversation) => void;
 }) {
   return (
     <div className="flex h-full flex-col">
@@ -342,13 +346,7 @@ function ConversationList({
   );
 }
 
-function ChatView({
-  user,
-  messages,
-}: {
-  user: TConversation;
-  messages: TMessage[];
-}) {
+function ChatView({ user, messages }: { user: any; messages: TMessage[] }) {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
@@ -524,18 +522,33 @@ function ChatViewSkeleton() {
 }
 
 export function ChatInterface() {
+  const { data: conversations, isLoading, isError } = useConversations();
+  const selectedConversation = conversations?.[0];
+
   return (
     <Card className="h-[calc(100vh-4rem)] w-full overflow-hidden pt-2 pb-0 lg:h-[calc(93vh)]">
       <ResizablePanelGroup direction="horizontal" className="h-full">
         <ResizablePanel defaultSize={30} minSize={0} maxSize={100}>
-          <ConversationList
-            conversations={conversationData}
-            selectedId={selectedConversation.id}
-          />
+          {isLoading ? (
+            <ConversationListSkeleton />
+          ) : (
+            <ConversationList
+              conversations={conversations || []}
+              selectedId={selectedConversation?.id || null}
+              onSelect={() => {}}
+            />
+          )}
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={70}>
-          <ChatView user={selectedConversation} messages={chatHistory} />
+          {selectedConversation ? (
+            <ChatView
+              user={selectedConversation.otherParticipant}
+              messages={chatHistory}
+            />
+          ) : (
+            <ChatViewSkeleton />
+          )}
         </ResizablePanel>
       </ResizablePanelGroup>
     </Card>
