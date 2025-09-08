@@ -29,7 +29,7 @@ import {
 import { cn, getInitials } from '@/lib/utils';
 import { useSessionStore } from '@/stores/session-store';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useChatWebSocket } from '../hooks/useChatWebSocket';
 import { useConversations } from '../hooks/useConversations';
 import { useMessages } from '../hooks/useMessage';
@@ -361,9 +361,9 @@ function ChatView({
   sendMessage: (content: string) => void;
 }) {
   const currentUser = useSessionStore((state) => state.user);
-  if (!user) return <ChatViewSkeleton />;
 
   const [messageContent, setMessageContent] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const handleSend = () => {
     if (messageContent.trim()) {
@@ -371,6 +371,12 @@ function ChatView({
       setMessageContent('');
     }
   };
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  if (!user) return <ChatViewSkeleton />;
 
   return (
     <div className="flex h-full flex-col">
@@ -381,8 +387,8 @@ function ChatView({
         </Avatar>
 
         <div>
-          {/* <p className="font-semibold">{user.name}</p>
-          <p className="text-muted-foreground text-xs">{user.status}</p> */}
+          <p className="font-semibold">{user.name}</p>
+          {/* <p className="text-muted-foreground text-xs">{user.status}</p> */}
         </div>
 
         <div className="ml-auto flex items-center gap-1">
@@ -461,6 +467,8 @@ function ChatView({
               </div>
             </div>
           ))}
+
+          <div ref={messagesEndRef} />
         </div>
       </div>
 
@@ -573,7 +581,7 @@ export function ChatInterface() {
     selectedConversation?.id || null
   );
 
-  const messages = messagesData?.pages.flat() || [];
+  const messages = messagesData?.pages.flat().reverse() || [];
 
   const handleSendMessage = (content: string) => {
     if (selectedConversation) {
@@ -605,7 +613,7 @@ export function ChatInterface() {
 
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={70}>
-          {isLoadingMessages ? (
+          {isLoadingMessages && !messages.length ? (
             <ChatViewSkeleton />
           ) : selectedConversation ? (
             <ChatView
