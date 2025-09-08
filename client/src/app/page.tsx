@@ -1,4 +1,8 @@
 import { HomepageClient } from '@/components/shared/homepage-client';
+import {
+  ChatInterface,
+  ChatInterfaceSkeleton,
+} from '@/features/community/components/ChatInterface';
 import { getCurrentUser } from './(auth)/actions';
 
 export default async function Home() {
@@ -6,7 +10,10 @@ export default async function Home() {
 
   return (
     <>
-      <main className="container mx-auto space-y-4"></main>
+      <main className="container mx-auto space-y-4">
+        <ChatInterface />
+        <ChatInterfaceSkeleton />
+      </main>
 
       <HomepageClient user={user} />
     </>
