@@ -22,7 +22,7 @@ export function ConversationList({
   isLoading,
 }: ConversationListProps) {
   if (isLoading) {
-    <ConversationListSkeleton />;
+    return <ConversationListSkeleton />;
   }
 
   return (

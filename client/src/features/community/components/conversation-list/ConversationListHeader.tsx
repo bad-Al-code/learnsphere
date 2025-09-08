@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search } from 'lucide-react';
 import { Conversation } from '../../types';
-import { NewConversationDialog } from '../NewConversationDialog';
+import { NewConversationDialog } from './NewConversationDialog';
 
 interface ConversationListHeaderProps {
   onConversationCreated: (conversation: Conversation) => void;

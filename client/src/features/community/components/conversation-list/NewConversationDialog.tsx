@@ -19,9 +19,9 @@ import { getInitials } from '@/lib/utils';
 import { Plus, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useDebounce } from 'use-debounce';
-import { useCreateConversation } from '../hooks/useCreateConversation';
-import { useUserSearch } from '../hooks/useUserSearch';
-import { Conversation, UserSearchResult } from '../types';
+import { useCreateConversation } from '../../hooks/useCreateConversation';
+import { useUserSearch } from '../../hooks/useUserSearch';
+import { Conversation, UserSearchResult } from '../../types';
 
 interface NewConversationDialogProps {
   onConversationCreated: (conversation: Conversation) => void;
