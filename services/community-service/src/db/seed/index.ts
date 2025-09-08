@@ -8,102 +8,64 @@ import {
   users,
 } from '../schema';
 
-const profileUsers = [
+const specificUsers = [
   {
     id: '5bdb6c2f-10bc-439d-9740-aadacb7bae46',
     name: 'Francis Goodwin',
+    avatarUrl: faker.image.avatarGitHub(),
   },
   {
     id: 'b06531a1-2563-4702-8706-819ce72649ac',
     name: 'Kelvin Thompson',
-  },
-  {
-    id: 'c5020261-df8e-4043-9569-958ab630f493',
-    name: 'Admin Funk',
-  },
-  {
-    id: '410e8e92-6056-484a-beb6-803218bd3574',
-    name: 'Broderick Goyette',
-  },
-  {
-    id: 'e12aefe0-858c-47b1-8a26-3c5fd95f6bbd',
-    name: 'Francesca Simonis',
-  },
-  {
-    id: 'b6a767f5-d082-4ee3-b019-5d2a79adeb2b',
-    name: 'Maximillia Rutherford',
-  },
-  {
-    id: '83e335fe-86b3-4067-8f35-938cf2d29797',
-    name: 'Lavonne Little',
-  },
-  {
-    id: '7c9b385c-4d43-448d-90e9-dd67ae7a65e3',
-    name: "London D'Amore",
-  },
-  {
-    id: '64d31b63-a2a9-4435-89a0-b2f39770bf40',
-    name: 'Jamir Heathcote',
-  },
-  {
-    id: '4cf07d2a-77d8-4ce1-90c0-47312c3fa98c',
-    name: 'Luella Runolfsdottir',
+    avatarUrl: faker.image.avatarGitHub(),
   },
 ];
 
 async function seed() {
-  await db
-    .insert(users)
-    .values(
-      profileUsers.map((u) => ({
-        id: u.id,
-        name: u.name,
-        avatarUrl: faker.image.avatar(),
-      }))
-    )
-    .onConflictDoNothing();
+  logger.info('Clearing existing data...');
+  await db.delete(messages);
+  await db.delete(conversationParticipants);
+  await db.delete(conversations);
+  await db.delete(users);
 
-  const convs = await db
+  await db.insert(users).values(specificUsers).onConflictDoNothing();
+
+  const [conversation] = await db
     .insert(conversations)
-    .values(
-      Array.from({ length: 20 }).map(() => ({
-        type: faker.helpers.arrayElement(['direct', 'group']),
-        name: faker.lorem.words({ min: 5, max: 10 }),
-      }))
-    )
+    .values({ type: 'direct' })
     .returning();
 
-  for (const conv of convs) {
-    const participantCount =
-      conv.type === 'direct' ? 10 : faker.number.int({ min: 3, max: 6 });
+  await db.insert(conversationParticipants).values([
+    { conversationId: conversation.id, userId: specificUsers[0].id },
+    { conversationId: conversation.id, userId: specificUsers[1].id },
+  ]);
 
-    const pickedUsers = faker.helpers.arrayElements(
-      profileUsers.map((u) => u.id),
-      participantCount
-    );
+  const mockMessages = [];
+  for (let i = 0; i < 20; i++) {
+    const sender = i % 2 === 0 ? specificUsers[0] : specificUsers[1];
 
-    await db.insert(conversationParticipants).values(
-      pickedUsers.map((userId) => ({
-        conversationId: conv.id,
-        userId,
-      }))
-    );
+    const createdAt = faker.date.recent({ days: 2, refDate: new Date() });
 
-    const messageCount = faker.number.int({ min: 20, max: 30 });
-    await db.insert(messages).values(
-      Array.from({ length: messageCount }).map(() => ({
-        conversationId: conv.id,
-        senderId: faker.helpers.arrayElement(pickedUsers),
-        content: faker.lorem.sentence(),
-      }))
-    );
+    createdAt.setSeconds(createdAt.getSeconds() + i * 2);
+
+    mockMessages.push({
+      conversationId: conversation.id,
+      senderId: sender.id,
+      content: faker.lorem.sentence(),
+      createdAt: createdAt,
+    });
   }
 
-  logger.info('Done seeding!');
+  mockMessages.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
+  await db.insert(messages).values(mockMessages);
+
+  logger.info('Seeding complete!');
   await pool.end();
 }
 
 seed().catch((err) => {
-  console.error(err);
+  logger.error('Seeding failed:', err);
   pool.end();
+  process.exit(1);
 });
