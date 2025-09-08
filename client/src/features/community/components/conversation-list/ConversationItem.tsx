@@ -38,6 +38,17 @@ export function ConversationItem({
         <Avatar>
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
+
+        {conversation.otherParticipant?.status && (
+          <span
+            className={cn(
+              'border-background absolute right-0 bottom-0 block h-2.5 w-2.5 rounded-full border-2',
+              conversation.otherParticipant.status === 'online'
+                ? 'bg-emerald-500'
+                : 'bg-red-400'
+            )}
+          />
+        )}
       </div>
 
       <div className="flex-1 overflow-hidden">

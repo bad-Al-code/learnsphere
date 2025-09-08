@@ -5,8 +5,12 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { useSessionStore } from '@/stores/session-store';
 
-import { ClientToServerMessage, serverToClientMessageSchema } from '../schema';
-import { Message } from '../types';
+import {
+  ClientToServerMessage,
+  presenceUpdateSchema,
+  serverToClientMessageSchema,
+} from '../schema';
+import { Conversation, Message } from '../types';
 
 export function useChatWebSocket() {
   const ws = useRef<WebSocket | null>(null);
@@ -49,6 +53,30 @@ export function useChatWebSocket() {
           );
         } else {
           console.warn('Received invalid message from server:', messageData);
+        }
+
+        const validatedPresence = presenceUpdateSchema.safeParse(messageData);
+        if (validatedPresence.success) {
+          const { userId, status } = validatedPresence.data.payload;
+
+          queryClient.setQueryData(
+            ['conversations'],
+            (oldData: Conversation[] | undefined) => {
+              if (!oldData) return oldData;
+              return oldData.map((convo) => {
+                if (convo.otherParticipant?.id === userId) {
+                  return {
+                    ...convo,
+                    otherParticipant: {
+                      ...convo.otherParticipant,
+                      status,
+                    },
+                  };
+                }
+                return convo;
+              });
+            }
+          );
         }
       } catch (error) {
         console.error('Error processing incoming WebSocket message:', error);

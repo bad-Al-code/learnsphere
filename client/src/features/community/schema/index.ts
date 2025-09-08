@@ -35,3 +35,11 @@ export const serverToClientMessageSchema = z.object({
   }),
 });
 export type ServerToClientMessage = z.infer<typeof serverToClientMessageSchema>;
+
+export const presenceUpdateSchema = z.object({
+  type: z.literal('PRESENCE_UPDATE'),
+  payload: z.object({
+    userId: z.uuid(),
+    status: z.enum(['online', 'offline']),
+  }),
+});

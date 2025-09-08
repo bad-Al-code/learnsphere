@@ -1,5 +1,6 @@
 export type ConversationParticipant = {
   id: string;
+  status: 'online' | 'offline';
   name: string | null;
   avatarUrl: string | null;
 };

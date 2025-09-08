@@ -1,4 +1,4 @@
-import { and, desc, eq, ne, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { db } from '..';
 import {
@@ -169,5 +169,27 @@ export class ConversationRepository {
       );
 
     return parseInt(result[0].count.toString(), 10) > 0;
+  }
+
+  public static async findManyByUserIdSimple(userId: string) {
+    return db
+      .select({ id: conversations.id })
+      .from(conversations)
+      .innerJoin(
+        conversationParticipants,
+        eq(conversations.id, conversationParticipants.conversationId)
+      )
+      .where(eq(conversationParticipants.userId, userId));
+  }
+
+  public static async findParticipantsForConversations(
+    conversationIds: string[]
+  ) {
+    if (conversationIds.length === 0) return [];
+
+    return db
+      .select()
+      .from(conversationParticipants)
+      .where(inArray(conversationParticipants.conversationId, conversationIds));
   }
 }

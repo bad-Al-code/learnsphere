@@ -11,10 +11,12 @@ import { Message } from '../db/schema';
 import { MessageSentPublisher } from '../events/publisher';
 import { UserPayload } from '../middlewares/current-user';
 import { clientToServerMessageSchema } from '../schemas/chat.schema';
+import { PresenceService } from './presence.service';
 
 export class WebSocketService {
   private wss: WebSocketServer;
   private clients: Map<string, WebSocket> = new Map();
+  private presenceService: PresenceService;
 
   /**
    * Creates a new WebSocketService instance.
@@ -22,6 +24,7 @@ export class WebSocketService {
    */
   constructor(server: Server) {
     this.wss = new WebSocketServer({ server });
+    this.presenceService = new PresenceService(this);
     logger.info('WebSocketManager initialized.');
   }
 
@@ -110,6 +113,7 @@ export class WebSocketService {
     }
 
     this.clients.set(userId, ws);
+    this.presenceService.userDidConnect(userId);
 
     logger.info(
       `Client connected and authenticated for user: ${userId}. Total clients: ${this.clients.size}`
@@ -122,6 +126,7 @@ export class WebSocketService {
    */
   private removeClient(userId: string): void {
     this.clients.delete(userId);
+    this.presenceService.userDidDisconnect(userId);
 
     logger.info(
       `Client disconnected for user: ${userId}. Total clients: ${this.clients.size}`
@@ -262,5 +267,31 @@ export class WebSocketService {
    */
   public getClient(userId: string): WebSocket | undefined {
     return this.clients.get(userId);
+  }
+
+  /**
+   * Sends a presence update to a specific client.
+   * @param recipientId The user to notify.
+   * @param updatedUserId The user whose status changed.
+   * @param status The new status ('online' or 'offline').
+   */
+  public sendPresenceUpdate(
+    recipientId: string,
+    updatedUserId: string,
+    status: 'online' | 'offline'
+  ): void {
+    const clientSocket = this.clients.get(recipientId);
+
+    if (clientSocket && clientSocket.readyState === WebSocket.OPEN) {
+      const message = {
+        type: 'PRESENCE_UPDATE',
+        payload: {
+          userId: updatedUserId,
+          status,
+        },
+      };
+
+      clientSocket.send(JSON.stringify(message));
+    }
   }
 }
