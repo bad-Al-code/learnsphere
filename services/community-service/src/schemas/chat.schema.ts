@@ -89,19 +89,25 @@ import { z } from 'zod';
  *       properties:
  *         type:
  *           type: string
- *           enum: [DIRECT_MESSAGE]
+ *           enum: [DIRECT_MESSAGE, TYPING_START, TYPING_STOP]
  *         payload:
- *           type: object
- *           required:
- *             - conversationId
- *             - content
- *           properties:
- *             conversationId:
- *               type: string
- *               format: uuid
- *             content:
- *               type: string
- *               maxLength: 2000
+ *           oneOf:
+ *             - type: object
+ *               required: [conversationId, content]
+ *               properties:
+ *                 conversationId:
+ *                   type: string
+ *                   format: uuid
+ *                 content:
+ *                   type: string
+ *                   minLength: 1
+ *                   maxLength: 2000
+ *             - type: object
+ *               required: [conversationId]
+ *               properties:
+ *                 conversationId:
+ *                   type: string
+ *                   format: uuid
  *
  *     ServerToClientMessage:
  *       type: object
@@ -111,9 +117,21 @@ import { z } from 'zod';
  *       properties:
  *         type:
  *           type: string
- *           enum: [NEW_MESSAGE]
+ *           enum: [NEW_MESSAGE, TYPING_UPDATE]
  *         payload:
- *           $ref: '#/components/schemas/Message'
+ *           oneOf:
+ *             - $ref: '#/components/schemas/Message'
+ *             - type: object
+ *               required: [conversationId, userId, isTyping]
+ *               properties:
+ *                 conversationId:
+ *                   type: string
+ *                   format: uuid
+ *                 userId:
+ *                   type: string
+ *                   format: uuid
+ *                 isTyping:
+ *                   type: boolean
  *
  *     CreateConversation:
  *       type: object
@@ -135,30 +153,51 @@ export const getMessagesSchema = z.object({
   }),
 });
 
-export const clientToServerMessageSchema = z.object({
-  type: z.literal('DIRECT_MESSAGE'),
-  payload: z.object({
-    conversationId: z.uuid(),
-    content: z.string().max(2000),
-  }),
-});
-export type ClientToServerMessage = z.infer<typeof clientToServerMessageSchema>;
-
-export const serverToClientMessageSchema = z.object({
-  type: z.literal('NEW_MESSAGE'),
-  payload: z.object({
-    id: z.uuid(),
-    conversationId: z.uuid(),
-    senderId: z.uuid(),
-    content: z.string(),
-    createdAt: z.coerce.date(),
-    sender: z.object({
-      id: z.uuid(),
-      name: z.string().nullable(),
-      avatarUrl: z.string().nullable(),
+export const clientToServerMessageSchema = z.union([
+  z.object({
+    type: z.literal('DIRECT_MESSAGE'),
+    payload: z.object({
+      conversationId: z.uuid(),
+      content: z.string().min(1).max(2000),
     }),
   }),
-});
+  z.object({
+    type: z.literal('TYPING_START'),
+    payload: z.object({ conversationId: z.string().uuid() }),
+  }),
+  z.object({
+    type: z.literal('TYPING_STOP'),
+    payload: z.object({ conversationId: z.string().uuid() }),
+  }),
+]);
+export type ClientToServerMessage = z.infer<typeof clientToServerMessageSchema>;
+
+export const serverToClientMessageSchema = z.union([
+  z.object({
+    type: z.literal('NEW_MESSAGE'),
+    payload: z.object({
+      id: z.uuid(),
+      conversationId: z.uuid(),
+      senderId: z.uuid(),
+      content: z.string(),
+      createdAt: z.coerce.date(),
+      sender: z.object({
+        id: z.uuid(),
+        name: z.string().nullable(),
+        avatarUrl: z.string().nullable(),
+      }),
+    }),
+  }),
+  z.object({
+    type: z.literal('TYPING_UPDATE'),
+    payload: z.object({
+      conversationId: z.uuid(),
+      userId: z.uuid(),
+      isTyping: z.boolean(),
+    }),
+  }),
+]);
+
 export type ServerToClientMessage = z.infer<typeof serverToClientMessageSchema>;
 
 export const createConversationSchema = z.object({

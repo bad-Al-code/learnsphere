@@ -4,22 +4,44 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Mic, Send, Smile } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 interface MessageInputProps {
   recipientName: string;
-  sendMessage: (content: string) => void;
+  onSend: (content: string) => void;
+  onTyping: (isTyping: boolean) => void;
 }
 
 export function MessageInput({
   recipientName,
-  sendMessage,
+  onSend,
+  onTyping,
 }: MessageInputProps) {
   const [messageContent, setMessageContent] = useState('');
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleTyping = (text: string) => {
+    setMessageContent(text);
+    onTyping(true);
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      onTyping(false);
+    }, 2000);
+  };
 
   const handleSend = () => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    onTyping(false);
+
     if (messageContent.trim()) {
-      sendMessage(messageContent);
+      onSend(messageContent);
       setMessageContent('');
     }
   };
@@ -31,7 +53,7 @@ export function MessageInput({
           placeholder={`Message ${recipientName}...`}
           className="h-12 border-0 px-2 focus-visible:ring-0 focus-visible:ring-offset-0"
           value={messageContent}
-          onChange={(e) => setMessageContent(e.target.value)}
+          onChange={(e) => handleTyping(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
         />
 

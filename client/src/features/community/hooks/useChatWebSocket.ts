@@ -1,3 +1,4 @@
+// src/features/community/hooks/useChatWebSocket.ts (Complete and Corrected)
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
@@ -5,11 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { useSessionStore } from '@/stores/session-store';
 
-import {
-  ClientToServerMessage,
-  presenceUpdateSchema,
-  serverToClientMessageSchema,
-} from '../schema';
+import { ClientToServerMessage, serverToClientMessageSchema } from '../schema';
 import { Conversation, Message } from '../types';
 
 export function useChatWebSocket() {
@@ -22,63 +19,79 @@ export function useChatWebSocket() {
       process.env.NEXT_PUBLIC_COMMUNITY_WS_URL || 'ws://localhost:8007'
     );
 
+    socket.onopen = () => console.log('WebSocket connected');
+    socket.onclose = () => console.log('WebSocket disconnected');
     socket.onerror = (error) => {
       console.error('WebSocket error:', error);
-
       toast.error('Connection to chat server lost.');
     };
 
     socket.onmessage = (event) => {
       try {
         const messageData = JSON.parse(event.data);
-        const validatedMessage =
+        const validatedServerMessage =
           serverToClientMessageSchema.safeParse(messageData);
-        const validatedPresence = presenceUpdateSchema.safeParse(messageData);
 
-        if (validatedMessage.success) {
-          const newMessage = validatedMessage.data.payload as Message;
+        if (!validatedServerMessage.success) {
+          console.warn(
+            'Received invalid or unhandled message type from server:',
+            validatedServerMessage.error
+          );
+          return;
+        }
 
+        const { type, payload } = validatedServerMessage.data;
+
+        if (type === 'NEW_MESSAGE') {
           queryClient.setQueryData(
-            ['messages', newMessage.conversationId],
+            ['messages', payload.conversationId],
             (oldData: { pages: Message[][] } | undefined) => {
-              if (!oldData) return { pages: [[newMessage]] };
-
+              if (!oldData || !oldData.pages || oldData.pages.length === 0) {
+                return { pages: [[payload as Message]], pageParams: [1] };
+              }
               const newData = {
                 ...oldData,
                 pages: oldData.pages.map((page) => [...page]),
               };
-              newData.pages[0].unshift(newMessage);
-
+              newData.pages[0].unshift(payload as Message);
               return newData;
             }
           );
-        } else if (validatedPresence.success) {
-          const { userId, status } = validatedPresence.data.payload;
-
+        } else if (type === 'TYPING_UPDATE') {
+          const { conversationId, userName, isTyping } = payload;
           queryClient.setQueryData(
             ['conversations'],
             (oldData: Conversation[] | undefined) => {
               if (!oldData) return oldData;
-
               return oldData.map((convo) => {
-                if (convo.otherParticipant?.id === userId) {
+                if (convo.id === conversationId) {
                   return {
                     ...convo,
-                    otherParticipant: {
-                      ...convo.otherParticipant,
-                      status,
-                    },
+                    typingUser: isTyping ? { name: userName } : undefined,
                   };
                 }
-
                 return convo;
               });
             }
           );
-        } else {
-          console.warn(
-            'Received unhandled message type from server:',
-            messageData
+        } else if (type === 'PRESENCE_UPDATE') {
+          queryClient.setQueryData(
+            ['conversations'],
+            (oldData: Conversation[] | undefined) => {
+              if (!oldData) return oldData;
+              return oldData.map((convo) => {
+                if (convo.otherParticipant?.id === payload.userId) {
+                  return {
+                    ...convo,
+                    otherParticipant: {
+                      ...convo.otherParticipant,
+                      status: payload.status,
+                    },
+                  };
+                }
+                return convo;
+              });
+            }
           );
         }
       } catch (error) {
@@ -93,54 +106,49 @@ export function useChatWebSocket() {
     };
   }, [queryClient]);
 
-  const sendMessage = (message: ClientToServerMessage['payload']) => {
+  const sendEvent = (event: ClientToServerMessage) => {
     if (!currentUser) {
-      toast.error('You must be logged in to send messages.');
+      toast.error('You must be logged in to perform this action.');
       return;
     }
-
     if (ws.current?.readyState === WebSocket.OPEN) {
-      const messageToSend: ClientToServerMessage = {
-        type: 'DIRECT_MESSAGE',
-        payload: message,
-      };
+      ws.current.send(JSON.stringify(event));
 
-      ws.current.send(JSON.stringify(messageToSend));
+      // Handle optimistic update for sending a message
+      if (event.type === 'DIRECT_MESSAGE') {
+        const { conversationId, content } = event.payload;
+        const optimisticMessage: Message = {
+          id: uuidv4(),
+          conversationId: conversationId,
+          senderId: currentUser.userId,
+          content: content,
+          createdAt: new Date().toISOString(),
+          sender: {
+            id: currentUser.userId,
+            name: currentUser.firstName || 'You',
+            avatarUrl: currentUser.avatarUrls?.small || null,
+          },
+        };
 
-      const optimisticMessage: Message = {
-        id: uuidv4(),
-        conversationId: message.conversationId,
-        senderId: currentUser.userId,
-        content: message.content,
-        createdAt: new Date().toISOString(),
-        sender: {
-          id: currentUser.userId,
-          name: currentUser.firstName || 'You',
-          avatarUrl: currentUser.avatarUrls?.small || null,
-        },
-      };
-
-      queryClient.setQueryData(
-        ['messages', message.conversationId],
-        (oldData: { pages: Message[][] } | undefined) => {
-          if (!oldData || !oldData.pages || oldData.pages.length === 0) {
-            return { pages: [[optimisticMessage]], pageParams: [1] };
+        queryClient.setQueryData(
+          ['messages', conversationId],
+          (oldData: { pages: Message[][] } | undefined) => {
+            if (!oldData || !oldData.pages || oldData.pages.length === 0) {
+              return { pages: [[optimisticMessage]], pageParams: [1] };
+            }
+            const newData = {
+              ...oldData,
+              pages: oldData.pages.map((p) => [...p]),
+            };
+            newData.pages[0].unshift(optimisticMessage);
+            return newData;
           }
-
-          const newData = {
-            ...oldData,
-            pages: oldData.pages.map((page) => [...page]),
-          };
-
-          newData.pages[0].unshift(optimisticMessage);
-
-          return newData;
-        }
-      );
+        );
+      }
     } else {
-      toast.error('Cannot send message. Chat is not connected.');
+      toast.error('Cannot perform action. Chat is not connected.');
     }
   };
 
-  return { sendMessage };
+  return { sendEvent };
 }

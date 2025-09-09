@@ -26,7 +26,7 @@ export function ChatInterface() {
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
   >(null);
-  const { sendMessage } = useChatWebSocket();
+  const { sendEvent } = useChatWebSocket();
 
   const selectedConversation = useMemo(() => {
     if (!selectedConversationId || !conversations) {
@@ -51,15 +51,24 @@ export function ChatInterface() {
 
   const handleSendMessage = (content: string) => {
     if (selectedConversation) {
-      sendMessage({
-        conversationId: selectedConversation.id,
-        content: content,
+      sendEvent({
+        type: 'DIRECT_MESSAGE',
+        payload: { conversationId: selectedConversation.id, content },
       });
     }
   };
 
   const handleConversationCreated = (newConversation: Conversation) => {
     setSelectedConversationId(newConversation.id);
+  };
+
+  const handleTyping = (isTyping: boolean) => {
+    if (selectedConversation) {
+      sendEvent({
+        type: isTyping ? 'TYPING_START' : 'TYPING_STOP',
+        payload: { conversationId: selectedConversation.id },
+      });
+    }
   };
 
   return (
@@ -79,9 +88,10 @@ export function ChatInterface() {
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={70}>
           <ChatView
-            user={selectedConversation?.otherParticipant || null}
+            conversation={selectedConversation}
             messages={messages}
-            sendMessage={handleSendMessage}
+            onSend={handleSendMessage}
+            onTyping={handleTyping}
             isLoading={isLoadingMessages && messages.length === 0}
             isError={chatViewError}
           />

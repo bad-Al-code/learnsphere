@@ -6,17 +6,19 @@ import { MessageInput, MessageInputSkeleton } from './MessageInput';
 import { MessageList, MessageListSkeleton } from './MessageList';
 
 interface ChatViewProps {
-  user: Conversation['otherParticipant'];
+  conversation: Conversation | null;
   messages: Message[];
-  sendMessage: (content: string) => void;
+  onSend: (content: string) => void;
+  onTyping: (isTyping: boolean) => void;
   isLoading: boolean;
   isError: boolean;
 }
 
 export function ChatView({
-  user,
   messages,
-  sendMessage,
+  conversation,
+  onSend,
+  onTyping,
   isLoading,
   isError,
 }: ChatViewProps) {
@@ -32,6 +34,9 @@ export function ChatView({
     );
   }
 
+  const user = conversation?.otherParticipant;
+  const typingUser = conversation?.typingUser;
+
   if (!user) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -42,11 +47,12 @@ export function ChatView({
 
   return (
     <div className="flex h-full flex-col">
-      <ChatHeader user={user} />
+      <ChatHeader user={user} typingUser={typingUser} />
       <MessageList messages={messages} />
       <MessageInput
         recipientName={user.name || 'user'}
-        sendMessage={sendMessage}
+        onSend={onSend}
+        onTyping={onTyping}
       />
     </div>
   );

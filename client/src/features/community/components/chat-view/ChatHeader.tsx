@@ -8,35 +8,35 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn, getInitials } from '@/lib/utils';
+import { getInitials } from '@/lib/utils';
 import { MoreHorizontal, Phone, Video } from 'lucide-react';
 import { Conversation } from '../../types';
 
 interface ChatHeaderProps {
+  typingUser?: { name: string | null };
   user: Conversation['otherParticipant'];
 }
 
-export function ChatHeader({ user }: ChatHeaderProps) {
+export function ChatHeader({ user, typingUser }: ChatHeaderProps) {
   if (!user) return <ChatHeaderSkeleton />;
 
   return (
-    <div className="flex items-center gap-3 border-b p-3">
+    <div className="flex items-center gap-3 border-b px-2">
       <div className="relative">
         <Avatar>
           <AvatarImage src={user?.avatarUrl || undefined} />
           <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
         </Avatar>
-        {user?.status && (
-          <span
-            className={cn(
-              'border-background absolute right-0 bottom-0 block h-2.5 w-2.5 rounded-full border-2',
-              user.status === 'online' ? 'bg-emerald-500' : 'bg-gray-400'
-            )}
-          />
-        )}
       </div>
       <div>
         <p className="font-semibold">{user.name}</p>
+        {typingUser ? (
+          <span className="text-muted-foreground italic">Typing...</span>
+        ) : (
+          <span className="text-muted-foreground">
+            {user?.status || 'Offline'}
+          </span>
+        )}
       </div>
 
       <div className="ml-auto flex items-center gap-1">

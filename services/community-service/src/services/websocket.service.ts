@@ -4,10 +4,12 @@ import jwt from 'jsonwebtoken';
 import { IncomingMessage, Server } from 'node:http';
 import { WebSocket, WebSocketServer } from 'ws';
 
+import { eq } from 'drizzle-orm';
 import { env } from '../config/env';
 import logger from '../config/logger';
+import { db } from '../db';
 import { ConversationRepository, MessageRepository } from '../db/repositories';
-import { Message } from '../db/schema';
+import { Message, users } from '../db/schema';
 import { MessageSentPublisher } from '../events/publisher';
 import { UserPayload } from '../middlewares/current-user';
 import { clientToServerMessageSchema } from '../schemas/chat.schema';
@@ -157,55 +159,80 @@ export class WebSocketService {
         return;
       }
 
-      const { conversationId, content } = validatedMessage.data.payload;
+      const { type, payload } = validatedMessage.data;
 
       const isParticipant = await ConversationRepository.isUserParticipant(
-        conversationId,
+        payload.conversationId,
         senderId
       );
       if (!isParticipant) {
         logger.warn(
-          `User ${senderId} attempted to send message to conversation ${conversationId} they are not a part of.`
+          `User ${senderId} attempted to send message to conversation ${payload.conversationId} they are not a part of.`
         );
 
         return;
       }
 
-      const newMessage = await MessageRepository.create({
-        conversationId,
-        senderId,
-        content,
-      });
-
-      if (!newMessage || !newMessage.sender) {
-        throw new Error('Failed to create or retrieve message with sender.');
-      }
-
-      try {
-        const participantIds =
-          await ConversationRepository.findParticipantIds(conversationId);
-        const recipientIds = participantIds.filter((id) => id !== senderId);
-
-        if (recipientIds.length > 0) {
-          const publisher = new MessageSentPublisher();
-          await publisher.publish({
-            messageId: newMessage.id,
-            conversationId: newMessage.conversationId,
-            senderId: newMessage.senderId,
-            senderName: newMessage.sender.name,
-            recipientIds: recipientIds,
-            content: newMessage.content,
-            createdAt: newMessage.createdAt.toISOString(),
+      switch (type) {
+        case 'DIRECT_MESSAGE':
+          const newMessage = await MessageRepository.create({
+            conversationId: payload.conversationId,
+            senderId,
+            content: payload.content,
           });
-        }
-      } catch (error) {
-        logger.error('Failed to publish message.sent event', {
-          messageId: newMessage.id,
-          error,
-        });
-      }
 
-      await this.broadcastMessage(senderId, conversationId, newMessage);
+          if (!newMessage || !newMessage.sender) {
+            throw new Error(
+              'Failed to create or retrieve message with sender.'
+            );
+          }
+
+          try {
+            const participantIds =
+              await ConversationRepository.findParticipantIds(
+                payload.conversationId
+              );
+            const recipientIds = participantIds.filter((id) => id !== senderId);
+
+            await this.broadcastMessage(
+              senderId,
+              payload.conversationId,
+              newMessage
+            );
+
+            if (recipientIds.length > 0) {
+              const publisher = new MessageSentPublisher();
+              await publisher.publish({
+                messageId: newMessage.id,
+                conversationId: newMessage.conversationId,
+                senderId: newMessage.senderId,
+                senderName: newMessage.sender.name,
+                recipientIds: recipientIds,
+                content: newMessage.content,
+                createdAt: newMessage.createdAt.toISOString(),
+              });
+            }
+          } catch (error) {
+            logger.error('Failed to publish message.sent event', {
+              messageId: newMessage.id,
+              error,
+            });
+          }
+          break;
+
+        case 'TYPING_START':
+        case 'TYPING_STOP':
+          const user = await db.query.users.findFirst({
+            where: eq(users.id, senderId),
+          });
+          await this.broadcastTypingStatus(
+            senderId,
+            payload.conversationId,
+            user?.name || 'Someone',
+            type === 'TYPING_START'
+          );
+          break;
+      }
     } catch (err) {
       const error = err as Error;
       logger.error('Error handling WebSocket message: %o', {
@@ -214,6 +241,39 @@ export class WebSocketService {
         message: error.message,
         stack: error.stack,
       });
+    }
+  }
+
+  /**
+   * Broadcasts the typing status of a user to other participants in a conversation.
+   */
+  private async broadcastTypingStatus(
+    senderId: string,
+    conversationId: string,
+    userName: string,
+    isTyping: boolean
+  ): Promise<void> {
+    const participantIds =
+      await ConversationRepository.findParticipantIds(conversationId);
+
+    const outgoingMessage = {
+      type: 'TYPING_UPDATE',
+      payload: {
+        conversationId,
+        userId: senderId,
+        userName,
+        isTyping,
+      },
+    };
+    const messageString = JSON.stringify(outgoingMessage);
+
+    for (const participantId of participantIds) {
+      if (participantId !== senderId) {
+        const clientSocket = this.clients.get(participantId);
+        if (clientSocket && clientSocket.readyState === WebSocket.OPEN) {
+          clientSocket.send(messageString);
+        }
+      }
     }
   }
 

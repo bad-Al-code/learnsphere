@@ -12,6 +12,9 @@ export type Conversation = {
   lastMessage: string | null;
   lastMessageTimestamp: string | null;
   otherParticipant: ConversationParticipant | null;
+  typingUser?: {
+    name: string | null;
+  };
 };
 
 export type Message = {

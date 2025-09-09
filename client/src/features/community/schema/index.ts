@@ -1,45 +1,63 @@
 import { z } from 'zod';
 
-export const getMessagesSchema = z.object({
-  params: z.object({
-    id: z.uuid('Invalid conversation ID format.'),
-  }),
-  query: z.object({
-    page: z.coerce.number().int().min(1).default(1),
-    limit: z.coerce.number().int().min(1).max(100).default(50),
-  }),
-});
-
-export const clientToServerMessageSchema = z.object({
-  type: z.literal('DIRECT_MESSAGE'),
-  payload: z.object({
-    conversationId: z.uuid(),
-    content: z.string().max(2000),
-  }),
-});
-export type ClientToServerMessage = z.infer<typeof clientToServerMessageSchema>;
-
-export const serverToClientMessageSchema = z.object({
-  type: z.literal('NEW_MESSAGE'),
-  payload: z.object({
-    id: z.uuid(),
-    conversationId: z.uuid(),
-    senderId: z.uuid(),
-    content: z.string(),
-    createdAt: z.string(),
-    sender: z.object({
-      id: z.uuid(),
-      name: z.string().nullable(),
-      avatarUrl: z.string().nullable(),
+/**
+ * @description Schema for messages sent FROM the client TO the server.
+ */
+export const clientToServerMessageSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('DIRECT_MESSAGE'),
+    payload: z.object({
+      conversationId: z.string().uuid(),
+      content: z.string().min(1, 'Message cannot be empty.').max(2000),
     }),
   }),
-});
-export type ServerToClientMessage = z.infer<typeof serverToClientMessageSchema>;
-
-export const presenceUpdateSchema = z.object({
-  type: z.literal('PRESENCE_UPDATE'),
-  payload: z.object({
-    userId: z.uuid(),
-    status: z.enum(['online', 'offline']),
+  z.object({
+    type: z.literal('TYPING_START'),
+    payload: z.object({ conversationId: z.string().uuid() }),
   }),
-});
+  z.object({
+    type: z.literal('TYPING_STOP'),
+    payload: z.object({ conversationId: z.string().uuid() }),
+  }),
+]);
+export type ClientToServerMessage = z.infer<typeof clientToServerMessageSchema>;
+
+/**
+ * @description Schema for messages sent FROM the server TO the client.
+ */
+export const serverToClientMessageSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('NEW_MESSAGE'),
+    payload: z.object({
+      id: z.string().uuid(),
+      conversationId: z.string().uuid(),
+      senderId: z.string().uuid(),
+      content: z.string(),
+      createdAt: z.string().datetime(),
+      sender: z
+        .object({
+          id: z.string().uuid(),
+          name: z.string().nullable(),
+          avatarUrl: z.string().nullable(),
+        })
+        .nullable(),
+    }),
+  }),
+  z.object({
+    type: z.literal('PRESENCE_UPDATE'),
+    payload: z.object({
+      userId: z.string().uuid(),
+      status: z.enum(['online', 'offline']),
+    }),
+  }),
+  z.object({
+    type: z.literal('TYPING_UPDATE'),
+    payload: z.object({
+      conversationId: z.string().uuid(),
+      userId: z.string().uuid(),
+      userName: z.string().nullable(),
+      isTyping: z.boolean(),
+    }),
+  }),
+]);
+export type ServerToClientMessage = z.infer<typeof serverToClientMessageSchema>;

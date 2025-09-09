@@ -29,7 +29,9 @@ export function ConversationList({
 
   if (isError) {
     return (
-      <p className="text-destructive p-4">Failed to load conversations.</p>
+      <p className="text-destructive flex h-full p-4">
+        Failed to load conversations.
+      </p>
     );
   }
   return (
