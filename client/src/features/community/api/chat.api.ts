@@ -53,3 +53,20 @@ export async function createOrGetConversation(
   );
   return response.data;
 }
+
+/**
+ * Marks all messages in a conversation as read.
+ * @param conversationId The ID of the conversation.
+ */
+export async function markConversationAsRead(
+  conversationId: string
+): Promise<void> {
+  try {
+    await communityService.post(
+      `/api/community/conversations/${conversationId}/read`,
+      { conversationId }
+    );
+  } catch (error) {
+    console.error('Failed to mark conversation as read:', error);
+  }
+}

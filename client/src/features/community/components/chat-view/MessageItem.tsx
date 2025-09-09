@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn, getInitials } from '@/lib/utils';
 import { useSessionStore } from '@/stores/session-store';
 import { formatDistanceToNowStrict } from 'date-fns';
+import { Check, CheckCheck } from 'lucide-react';
 import { Message } from '../../types';
 
 interface MessageItemProps {
@@ -34,16 +35,22 @@ export function MessageItem({ message }: MessageItemProps) {
         )}
       >
         <p>{message.content}</p>
-        <p
-          className={cn(
-            'mt-1 text-end text-xs',
-            message.senderId ? 'text-primary/70' : 'text-muted-foreground'
+        <div className="text-muted-foreground/80 mt-1 flex items-center justify-end gap-1.5 text-xs">
+          <span>
+            {formatDistanceToNowStrict(new Date(message.createdAt), {
+              addSuffix: true,
+            })}
+          </span>
+          {isCurrentUser && (
+            <>
+              {message.readAt ? (
+                <CheckCheck className="h-4 w-4 text-blue-400" />
+              ) : (
+                <Check className="h-4 w-4" />
+              )}
+            </>
           )}
-        >
-          {formatDistanceToNowStrict(new Date(message.createdAt), {
-            addSuffix: true,
-          })}
-        </p>
+        </div>
       </div>
     </div>
   );

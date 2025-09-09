@@ -7,17 +7,17 @@ export const clientToServerMessageSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('DIRECT_MESSAGE'),
     payload: z.object({
-      conversationId: z.string().uuid(),
+      conversationId: z.uuid(),
       content: z.string().min(1, 'Message cannot be empty.').max(2000),
     }),
   }),
   z.object({
     type: z.literal('TYPING_START'),
-    payload: z.object({ conversationId: z.string().uuid() }),
+    payload: z.object({ conversationId: z.uuid() }),
   }),
   z.object({
     type: z.literal('TYPING_STOP'),
-    payload: z.object({ conversationId: z.string().uuid() }),
+    payload: z.object({ conversationId: z.uuid() }),
   }),
 ]);
 export type ClientToServerMessage = z.infer<typeof clientToServerMessageSchema>;
@@ -29,14 +29,14 @@ export const serverToClientMessageSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('NEW_MESSAGE'),
     payload: z.object({
-      id: z.string().uuid(),
-      conversationId: z.string().uuid(),
-      senderId: z.string().uuid(),
+      id: z.uuid(),
+      conversationId: z.uuid(),
+      senderId: z.uuid(),
       content: z.string(),
-      createdAt: z.string().datetime(),
+      createdAt: z.iso.datetime(),
       sender: z
         .object({
-          id: z.string().uuid(),
+          id: z.uuid(),
           name: z.string().nullable(),
           avatarUrl: z.string().nullable(),
         })
@@ -46,17 +46,25 @@ export const serverToClientMessageSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('PRESENCE_UPDATE'),
     payload: z.object({
-      userId: z.string().uuid(),
+      userId: z.uuid(),
       status: z.enum(['online', 'offline']),
     }),
   }),
   z.object({
     type: z.literal('TYPING_UPDATE'),
     payload: z.object({
-      conversationId: z.string().uuid(),
-      userId: z.string().uuid(),
+      conversationId: z.uuid(),
+      userId: z.uuid(),
       userName: z.string().nullable(),
       isTyping: z.boolean(),
+    }),
+  }),
+  z.object({
+    type: z.literal('MESSAGES_READ'),
+    payload: z.object({
+      conversationId: z.uuid(),
+      readByUserId: z.uuid(),
+      readAt: z.iso.datetime(),
     }),
   }),
 ]);

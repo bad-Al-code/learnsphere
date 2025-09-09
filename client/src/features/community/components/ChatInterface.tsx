@@ -6,7 +6,8 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { markConversationAsRead } from '../api/chat.api';
 import { useChatWebSocket } from '../hooks/useChatWebSocket';
 import { useConversations } from '../hooks/useConversations';
 import { useMessages } from '../hooks/useMessages';
@@ -70,6 +71,12 @@ export function ChatInterface() {
       });
     }
   };
+
+  useEffect(() => {
+    if (selectedConversation?.id) {
+      markConversationAsRead(selectedConversation.id);
+    }
+  }, [selectedConversation?.id]);
 
   return (
     <Card className="h-[calc(100vh-4rem)] w-full overflow-hidden pt-2 pb-0 lg:h-[calc(93vh)]">

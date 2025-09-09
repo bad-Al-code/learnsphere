@@ -1,4 +1,3 @@
-// src/features/community/hooks/useChatWebSocket.ts (Complete and Corrected)
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
@@ -93,6 +92,25 @@ export function useChatWebSocket() {
               });
             }
           );
+        } else if (type === 'MESSAGES_READ') {
+          const { conversationId, readAt } = payload;
+
+          queryClient.setQueryData(
+            ['messages', conversationId],
+
+            (oldData: { pages: Message[][] } | undefined) => {
+              if (!oldData) return oldData;
+
+              const newData = {
+                ...oldData,
+                pages: oldData.pages.map((page) =>
+                  page.map((msg) => ({ ...msg, readAt }))
+                ),
+              };
+
+              return newData;
+            }
+          );
         }
       } catch (error) {
         console.error('Error processing incoming WebSocket message:', error);
@@ -114,7 +132,6 @@ export function useChatWebSocket() {
     if (ws.current?.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify(event));
 
-      // Handle optimistic update for sending a message
       if (event.type === 'DIRECT_MESSAGE') {
         const { conversationId, content } = event.payload;
         const optimisticMessage: Message = {

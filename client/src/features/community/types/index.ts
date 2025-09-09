@@ -23,6 +23,7 @@ export type Message = {
   senderId: string;
   content: string;
   createdAt: string;
+  readAt?: string | null;
   sender: {
     id: string;
     name: string | null;
