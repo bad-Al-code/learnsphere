@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { BadRequestError, NotAuthorizedError } from '../errors';
+import { conversationIdSchema } from '../schemas/chat.schema';
 import { ChatService } from '../services/chat.service';
 
 export class ChatController {
@@ -70,6 +71,23 @@ export class ChatController {
       );
 
       res.status(StatusCodes.CREATED).json(conversation);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async markAsRead(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id: conversationId } = conversationIdSchema.parse(req).params;
+      const userId = req.currentUser!.id;
+
+      await ChatService.markConversationAsRead(conversationId, userId);
+
+      res.status(StatusCodes.OK).json({ message: 'Messages marked as read.' });
     } catch (error) {
       next(error);
     }

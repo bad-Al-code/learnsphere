@@ -92,4 +92,28 @@ router.post(
   ChatController.createConversation
 );
 
+/**
+ * @openapi
+ * /api/community/conversations/{id}/read:
+ *   post:
+ *     summary: Mark all messages in a conversation as read
+ *     tags: [Chat]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the conversation.
+ *     responses:
+ *       '200':
+ *         description: Successfully marked messages as read.
+ *       '403':
+ *         description: User is not a participant of the conversation.
+ */
+router.post('/conversations/:id/read', ChatController.markAsRead);
+
 export { router as chatRouter };

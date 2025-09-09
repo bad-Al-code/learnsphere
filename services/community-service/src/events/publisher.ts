@@ -39,3 +39,16 @@ interface MessageSentEvent {
 export class MessageSentPublisher extends Publisher<MessageSentEvent> {
   readonly topic: 'message.sent' = 'message.sent' as const;
 }
+
+interface MessagesReadEvent {
+  topic: 'messages.read';
+  data: {
+    conversationId: string;
+    readByUserId: string;
+    readAt: string;
+  };
+}
+
+export class MessagesReadPublisher extends Publisher<MessagesReadEvent> {
+  readonly topic: 'messages.read' = 'messages.read' as const;
+}

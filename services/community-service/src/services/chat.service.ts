@@ -1,6 +1,7 @@
 import logger from '../config/logger';
 import { ConversationRepository, MessageRepository } from '../db/repositories';
 import { BadRequestError, ForbiddenError } from '../errors';
+import { MessagesReadPublisher } from '../events/publisher';
 import { UserService } from './user.service';
 
 export class ChatService {
@@ -86,5 +87,46 @@ export class ChatService {
     );
 
     return newConversation;
+  }
+
+  /**
+   * Marks all messages in a conversation as read by a specific user.
+   * @param conversationId The ID of the conversation.
+   * @param userId The ID of the user marking the messages as read.
+   */
+  public static async markConversationAsRead(
+    conversationId: string,
+    userId: string
+  ): Promise<void> {
+    const isParticipant = await ConversationRepository.isUserParticipant(
+      conversationId,
+      userId
+    );
+    if (!isParticipant) {
+      throw new ForbiddenError(
+        'You are not authorized to mark messages in this conversation as read.'
+      );
+    }
+
+    await MessageRepository.markMessagesAsRead(conversationId, userId);
+
+    logger.info(
+      `User ${userId} marked messages in conversation ${conversationId} as read.`
+    );
+
+    try {
+      const publisher = new MessagesReadPublisher();
+      await publisher.publish({
+        conversationId,
+        readByUserId: userId,
+        readAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      logger.error('Failed to publish messages.read event', {
+        conversationId,
+        userId,
+        error,
+      });
+    }
   }
 }

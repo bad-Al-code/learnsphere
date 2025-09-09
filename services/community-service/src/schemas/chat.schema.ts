@@ -153,6 +153,12 @@ export const getMessagesSchema = z.object({
   }),
 });
 
+export const conversationIdSchema = z.object({
+  params: z.object({
+    id: z.uuid('Invalid conversation ID format.'),
+  }),
+});
+
 export const clientToServerMessageSchema = z.union([
   z.object({
     type: z.literal('DIRECT_MESSAGE'),

@@ -45,14 +45,21 @@ async function seed() {
     const sender = i % 2 === 0 ? specificUsers[0] : specificUsers[1];
 
     const createdAt = faker.date.recent({ days: 2, refDate: new Date() });
-
     createdAt.setSeconds(createdAt.getSeconds() + i * 2);
+
+    const readAt =
+      Math.random() > 0.3
+        ? new Date(
+            createdAt.getTime() + faker.number.int({ min: 5, max: 300 }) * 1000
+          )
+        : null;
 
     mockMessages.push({
       conversationId: conversation.id,
       senderId: sender.id,
       content: faker.lorem.sentence(),
-      createdAt: createdAt,
+      createdAt,
+      readAt,
     });
   }
 
