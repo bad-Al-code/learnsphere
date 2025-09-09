@@ -321,6 +321,34 @@ export class WebSocketService {
   }
 
   /**
+   * Broadcasts a 'messages read' event to the relevant user.
+   * @param conversationId The conversation where messages were read.
+   * @param readByUserId The user who read the messages.
+   */
+  public async broadcastMessagesRead(
+    conversationId: string,
+    readByUserId: string
+  ): Promise<void> {
+    const participants =
+      await ConversationRepository.findParticipantIds(conversationId);
+
+    const senderToNotify = participants.find((id) => id !== readByUserId);
+
+    if (senderToNotify) {
+      const message = {
+        type: 'MESSAGES_READ',
+        payload: {
+          conversationId,
+          readByUserId,
+          readAt: new Date().toISOString(),
+        },
+      };
+      this.getClient(senderToNotify)?.send(JSON.stringify(message));
+      logger.info(`Sent MESSAGES_READ update to user ${senderToNotify}`);
+    }
+  }
+
+  /**
    * Retrieves the WebSocket connection for a given user.
    * @param userId - The user ID whose WebSocket to fetch.
    * @returns The WebSocket instance if found, otherwise undefined.

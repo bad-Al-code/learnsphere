@@ -12,6 +12,8 @@ import {
 } from './events/listener';
 import { WebSocketService } from './services/websocket.service';
 
+export let webSocketService: WebSocketService;
+
 const startServer = async () => {
   try {
     await rabbitMQConnection.connect();
@@ -23,7 +25,7 @@ const startServer = async () => {
 
     const server = createServer(app);
 
-    const webSocketService = new WebSocketService(server);
+    webSocketService = new WebSocketService(server);
     webSocketService.start();
 
     server.listen(env.PORT, () => {

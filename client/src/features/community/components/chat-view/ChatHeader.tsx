@@ -28,7 +28,7 @@ export function ChatHeader({ user, typingUser }: ChatHeaderProps) {
           <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
         </Avatar>
       </div>
-      <div>
+      <div className="">
         <p className="font-semibold">{user.name}</p>
         {typingUser ? (
           <span className="text-muted-foreground italic">Typing...</span>

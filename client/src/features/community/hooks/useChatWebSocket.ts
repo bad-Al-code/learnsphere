@@ -93,21 +93,23 @@ export function useChatWebSocket() {
             }
           );
         } else if (type === 'MESSAGES_READ') {
-          const { conversationId, readAt } = payload;
-
+          const { conversationId, readByUserId, readAt } = payload;
           queryClient.setQueryData(
             ['messages', conversationId],
-
             (oldData: { pages: Message[][] } | undefined) => {
               if (!oldData) return oldData;
 
               const newData = {
                 ...oldData,
                 pages: oldData.pages.map((page) =>
-                  page.map((msg) => ({ ...msg, readAt }))
+                  page.map((msg) => {
+                    if (msg.senderId !== readByUserId && !msg.readAt) {
+                      return { ...msg, readAt: readAt };
+                    }
+                    return msg;
+                  })
                 ),
               };
-
               return newData;
             }
           );

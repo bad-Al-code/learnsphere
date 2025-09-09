@@ -1,7 +1,7 @@
+import { webSocketService } from '..';
 import logger from '../config/logger';
 import { ConversationRepository, MessageRepository } from '../db/repositories';
 import { BadRequestError, ForbiddenError } from '../errors';
-import { MessagesReadPublisher } from '../events/publisher';
 import { UserService } from './user.service';
 
 export class ChatService {
@@ -110,23 +110,10 @@ export class ChatService {
 
     await MessageRepository.markMessagesAsRead(conversationId, userId);
 
-    logger.info(
-      `User ${userId} marked messages in conversation ${conversationId} as read.`
-    );
-
-    try {
-      const publisher = new MessagesReadPublisher();
-      await publisher.publish({
-        conversationId,
-        readByUserId: userId,
-        readAt: new Date().toISOString(),
-      });
-    } catch (error) {
-      logger.error('Failed to publish messages.read event', {
-        conversationId,
-        userId,
-        error,
-      });
+    if (webSocketService) {
+      await webSocketService.broadcastMessagesRead(conversationId, userId);
+    } else {
+      logger.warn('WebSocketService not available to broadcast read receipt.');
     }
   }
 }
