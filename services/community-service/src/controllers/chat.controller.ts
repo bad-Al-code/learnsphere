@@ -92,4 +92,25 @@ export class ChatController {
       next(error);
     }
   }
+
+  public static async createGroupConversation(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const creatorId = req.currentUser!.id;
+      const { name, participantIds } = req.body;
+
+      const conversation = await ChatService.createGroupConversation(
+        creatorId,
+        name,
+        participantIds
+      );
+
+      res.status(StatusCodes.CREATED).json(conversation);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

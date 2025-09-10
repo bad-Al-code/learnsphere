@@ -4,6 +4,7 @@ import { requireAuth } from '../middlewares/require-auth';
 import { validateRequest } from '../middlewares/validate-request';
 import {
   createConversationSchema,
+  createGroupConversationSchema,
   getMessagesSchema,
 } from '../schemas/chat.schema';
 
@@ -90,6 +91,42 @@ router.post(
   '/conversations',
   validateRequest(createConversationSchema),
   ChatController.createConversation
+);
+
+/**
+ * @openapi
+ * /api/community/conversations/group:
+ *   post:
+ *     summary: Create a new group conversation
+ *     tags: [Chat]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, participantIds]
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: The name of the group chat.
+ *                 example: "React Study Group"
+ *               participantIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uuid
+ *                 description: An array of user IDs to include in the group.
+ *     responses:
+ *       '201':
+ *         description: Successfully created the group conversation.
+ */
+router.post(
+  '/conversations/group',
+  validateRequest(createGroupConversationSchema),
+  ChatController.createGroupConversation
 );
 
 /**

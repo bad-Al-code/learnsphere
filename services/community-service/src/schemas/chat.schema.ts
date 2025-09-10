@@ -212,3 +212,15 @@ export const createConversationSchema = z.object({
   }),
 });
 export type CreateConversation = z.infer<typeof createConversationSchema>;
+
+export const createGroupConversationSchema = z.object({
+  body: z.object({
+    name: z.string().min(1, 'Group name is required.').max(100),
+    participantIds: z
+      .array(z.uuid())
+      .min(1, 'At least one other participant is required.'),
+  }),
+});
+export type createGroupConversation = z.infer<
+  typeof createGroupConversationSchema
+>;

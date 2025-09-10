@@ -2,6 +2,7 @@ import { webSocketService } from '..';
 import logger from '../config/logger';
 import { redisConnection } from '../config/redis';
 import { ConversationRepository, MessageRepository } from '../db/repositories';
+import { NewConversation } from '../db/schema';
 import { BadRequestError, ForbiddenError } from '../errors';
 import { ONLINE_USERS_KEY } from './presence.service';
 import { UserService } from './user.service';
@@ -156,5 +157,38 @@ export class ChatService {
     } else {
       logger.warn('WebSocketService not available to broadcast read receipt.');
     }
+  }
+
+  /**
+   * Creates a new group conversation.
+   * @param creatorId The ID of the user creating the group.
+   * @param name The name of the group.
+   * @param participantIds An array of user IDs to include in the group.
+   * @returns The newly created group conversation.
+   */
+  public static async createGroupConversation(
+    creatorId: string,
+    name: string,
+    participantIds: string[]
+  ) {
+    const allParticipantIds = [...new Set([creatorId, ...participantIds])];
+    if (allParticipantIds.length < 2) {
+      throw new BadRequestError('Group chats must have at least two members.');
+    }
+
+    logger.info(
+      `Creating group chat "${name}" with ${allParticipantIds.length} members.`
+    );
+
+    const conversationData: NewConversation = {
+      type: 'group',
+      name,
+    };
+    const newConversation = await ConversationRepository.create(
+      conversationData,
+      allParticipantIds
+    );
+
+    return newConversation;
   }
 }
