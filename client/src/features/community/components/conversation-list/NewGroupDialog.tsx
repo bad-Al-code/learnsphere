@@ -24,6 +24,7 @@ import { useDebounce } from 'use-debounce';
 import { useCreateGroupConversation } from '../../hooks/useCreateGroupConversation';
 import { useUserSearch } from '../../hooks/useUserSearch';
 import { Conversation, UserSearchResult } from '../../types';
+import { SearchSkeleton } from '../common/SearchSkeleton';
 
 interface NewGroupDialogProps {
   onConversationCreated: (conversation: Conversation) => void;
@@ -47,7 +48,7 @@ export function NewGroupDialog({ onConversationCreated }: NewGroupDialogProps) {
     if (!selectedUsers.some((su) => su.userId === user.userId)) {
       setSelectedUsers((prev) => [...prev, user]);
     }
-    setSearchTerm('');
+    // setSearchTerm('');
   };
 
   const handleUserRemove = (userId: string) => {
@@ -59,12 +60,18 @@ export function NewGroupDialog({ onConversationCreated }: NewGroupDialogProps) {
       toast.error('Please provide a group name.');
       return;
     }
+
     if (selectedUsers.length === 0) {
       toast.error('Please select at least one other member.');
       return;
     }
+
     const participantIds = selectedUsers.map((u) => u.userId);
     createGroupMutation.mutate({ name: groupName, participantIds });
+
+    setSearchTerm('');
+    setSelectedUsers([]);
+    setGroupName('');
   };
 
   const onOpenChange = (open: boolean) => {
@@ -73,6 +80,7 @@ export function NewGroupDialog({ onConversationCreated }: NewGroupDialogProps) {
       setSelectedUsers([]);
       setGroupName('');
     }
+
     setIsOpen(open);
   };
 
@@ -90,10 +98,12 @@ export function NewGroupDialog({ onConversationCreated }: NewGroupDialogProps) {
           <p>New Group</p>
         </TooltipContent>
       </Tooltip>
+
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create a new group</DialogTitle>
         </DialogHeader>
+
         <div className="space-y-2">
           <label className="text-sm font-medium">Group Name</label>
           <Input
@@ -102,6 +112,7 @@ export function NewGroupDialog({ onConversationCreated }: NewGroupDialogProps) {
             onChange={(e) => setGroupName(e.target.value)}
           />
         </div>
+
         {selectedUsers.length > 0 && (
           <div className="flex flex-wrap gap-2 rounded-md border p-2">
             {selectedUsers.map((user) => (
@@ -120,8 +131,10 @@ export function NewGroupDialog({ onConversationCreated }: NewGroupDialogProps) {
             ))}
           </div>
         )}
+
         <div className="relative">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+
           <Input
             placeholder="Search to add people..."
             className="pl-9"
@@ -129,8 +142,16 @@ export function NewGroupDialog({ onConversationCreated }: NewGroupDialogProps) {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+
         <div className="mt-4 max-h-48 space-y-2 overflow-y-auto">
-          {isLoading && <p>Searching...</p>}
+          {isLoading && (
+            <>
+              <SearchSkeleton />
+              <SearchSkeleton />
+              <SearchSkeleton />
+            </>
+          )}
+
           {data?.results.map((user: UserSearchResult) => (
             <div
               key={user.userId}
@@ -143,6 +164,7 @@ export function NewGroupDialog({ onConversationCreated }: NewGroupDialogProps) {
                   {getInitials(`${user.firstName} ${user.lastName}`)}
                 </AvatarFallback>
               </Avatar>
+
               <div>
                 <p className="font-semibold">
                   {user.firstName} {user.lastName}
@@ -154,6 +176,7 @@ export function NewGroupDialog({ onConversationCreated }: NewGroupDialogProps) {
             </div>
           ))}
         </div>
+
         <Button
           onClick={handleCreateGroup}
           disabled={createGroupMutation.isPending}

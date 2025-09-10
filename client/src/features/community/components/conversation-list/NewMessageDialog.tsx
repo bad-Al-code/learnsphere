@@ -22,6 +22,7 @@ import { useDebounce } from 'use-debounce';
 import { useCreateConversation } from '../../hooks/useCreateConversation';
 import { useUserSearch } from '../../hooks/useUserSearch';
 import { Conversation, UserSearchResult } from '../../types';
+import { SearchSkeleton } from '../common/SearchSkeleton';
 
 interface NewMessageDialogProps {
   onConversationCreated: (conversation: Conversation) => void;
@@ -60,10 +61,12 @@ export function NewMessageDialog({
           <p>New Message</p>
         </TooltipContent>
       </Tooltip>
+
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Start a new conversation</DialogTitle>
         </DialogHeader>
+
         <div className="relative">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
@@ -73,11 +76,20 @@ export function NewMessageDialog({
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+
         <div className="mt-4 max-h-60 space-y-2 overflow-y-auto">
-          {isLoading && <p>Searching...</p>}
+          {isLoading && (
+            <>
+              <SearchSkeleton />
+              <SearchSkeleton />
+              <SearchSkeleton />
+            </>
+          )}
+
           {isError && (
             <p className="text-destructive">Failed to search users.</p>
           )}
+
           {data?.results.map((user: UserSearchResult) => (
             <div
               key={user.userId}
@@ -90,6 +102,7 @@ export function NewMessageDialog({
                   {getInitials(`${user.firstName} ${user.lastName}`)}
                 </AvatarFallback>
               </Avatar>
+
               <div>
                 <p className="font-semibold">
                   {user.firstName} {user.lastName}
