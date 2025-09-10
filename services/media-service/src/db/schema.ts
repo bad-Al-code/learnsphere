@@ -20,6 +20,7 @@ export const uploadTypeEnum = pgEnum('upload_type', [
   'video',
   'course_thumbnail',
   'course_resource',
+  'chat_attachment',
 ]);
 
 export const mediaAssets = pgTable('media_assets', {

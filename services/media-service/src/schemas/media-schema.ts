@@ -17,7 +17,7 @@ import { z } from 'zod';
  *           example: 'my-cool-video.mp4'
  *         uploadType:
  *           type: string
- *           enum: [avatar, video, course_thumbnail, course_resource]
+ *           enum: [avatar, video, course_thumbnail, course_resource, chat_attachment]
  *           description: The type of media being uploaded.
  *         metadata:
  *           type: object
@@ -43,6 +43,7 @@ export const requestUploadUrlSchema = z.object({
       'video',
       'course_thumbnail',
       'course_resource',
+      'chat_attachment',
     ]),
     metadata: z.record(z.string()),
   }),

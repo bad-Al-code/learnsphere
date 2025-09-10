@@ -1,6 +1,8 @@
-import { HeadObjectCommand } from '@aws-sdk/client-s3';
-import { s3, S3ClientService } from '../../clients/s3.client';
-import { env } from '../../config/env';
+import { mkdirSync, writeFileSync } from 'fs';
+import { dirname, join } from 'path';
+// import { HeadObjectCommand } from '@aws-sdk/client-s3';
+// import { s3, S3ClientService } from '../../clients/s3.client';
+// import { env } from '../../config/env';
 import logger from '../../config/logger';
 import { MediaRepository } from '../../db/media.repository';
 import {
@@ -117,8 +119,9 @@ export class FileProcessor implements IProcessor {
   }
 
   /**
-   * Shared logic for downloading, reading metadata, uploading,
-   * and returning final file info.
+   * Shared logic for file handling
+   * In dev: saves file locally under ./processed/
+   * In prod (AWS): uncomment S3 logic
    */
   private async _processFile(
     s3Info: S3EventInfo,
@@ -129,6 +132,26 @@ export class FileProcessor implements IProcessor {
     contentType: string;
     fileName: string;
   }> {
+    // --- DEV LOCAL ONLY ---
+    const fileName = s3Info.key.split('/').pop()!;
+    const processedPath = join(process.cwd(), 'processed', prefix, fileName);
+
+    mkdirSync(dirname(processedPath), { recursive: true });
+
+    // Fake file buffer and metadata (in real AWS we’d fetch from S3)
+    const fileBuffer = Buffer.from(`Dummy content for ${fileName}`);
+    const contentType = 'application/octet-stream';
+    const contentLength = fileBuffer.length;
+
+    writeFileSync(processedPath, fileBuffer);
+
+    const finalUrl = `file://${processedPath}`;
+    logger.info(`Saved locally: ${finalUrl}`);
+
+    return { finalUrl, contentLength, contentType, fileName };
+
+    // --- AWS ONLY ---
+    /*
     const processedBucket = env.AWS_PROCESSED_MEDIA_BUCKET;
     const region = env.AWS_REGION;
 
@@ -159,5 +182,6 @@ export class FileProcessor implements IProcessor {
     const finalUrl = `https://${processedBucket}.s3.${region}.amazonaws.com/${processedKey}`;
 
     return { finalUrl, contentLength, contentType, fileName };
+    */
   }
 }

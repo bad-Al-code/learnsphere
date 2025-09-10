@@ -54,6 +54,13 @@ export class MediaService {
         processedKey = `resources/${metadata.courseId}/${uniqueFilename}`;
         break;
 
+      case 'chat_attachment':
+        if (!metadata.conversationId)
+          throw new Error('conversationId is required for resource uploads');
+        key = `uploads/chatAttachments/${metadata.conversationId}/${Date.now()}-${filename}`;
+        processedKey = `chatAttachments/${metadata.conversationId}/${uniqueFilename}`;
+        break;
+
       default:
         throw new Error('Invalid upload type');
     }
