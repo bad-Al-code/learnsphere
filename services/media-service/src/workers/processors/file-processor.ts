@@ -45,39 +45,15 @@ export class FileProcessor implements IProcessor {
         `Processing chat attachment for conversation: ${conversationId}, sender: ${senderId}`
       );
 
-      const processedBucket = env.AWS_PROCESSED_MEDIA_BUCKET;
-      const region = env.AWS_REGION;
-
       try {
-        const fileBuffer = await S3ClientService.downloadFileAsBuffer(
-          s3Info.bucket,
-          s3Info.key
-        );
-
-        const processedKey = `chat/${conversationId}/${s3Info.key.split('/').pop()}`;
-
-        const s3ObjectMetadata = await s3.send(
-          new HeadObjectCommand({ Bucket: s3Info.bucket, Key: s3Info.key })
-        );
-        const contentType =
-          s3ObjectMetadata.ContentType || 'application/octet-stream';
-        const contentLength = s3ObjectMetadata.ContentLength || 0;
-
-        await S3ClientService.uploadBuffer(
-          processedBucket,
-          processedKey,
-          fileBuffer,
-          contentType,
-          'public-read'
-        );
-
-        const finalUrl = `https://${processedBucket}.s3.${region}.amazonaws.com/${processedKey}`;
+        const { finalUrl, contentLength, contentType, fileName } =
+          await this._processFile(s3Info, `chat/${conversationId}`);
 
         await this.chatSuccessPublisher.publish({
           conversationId,
           senderId,
           fileUrl: finalUrl,
-          fileName: s3Info.key.split('/').pop()!,
+          fileName,
           fileSize: contentLength,
           fileType: contentType,
         });
@@ -88,7 +64,6 @@ export class FileProcessor implements IProcessor {
           `Failed to process chat attachment for conversation ${conversationId}:`,
           error
         );
-
         throw error;
       }
     } else if (uploadType === 'course_resource') {
@@ -96,37 +71,14 @@ export class FileProcessor implements IProcessor {
         throw new Error(`FileProcessor called without a courseId.`);
 
       logger.info(`Processing resource for course: ${courseId}`);
-      const processedBucket = env.AWS_PROCESSED_MEDIA_BUCKET;
-      const region = env.AWS_REGION;
 
       try {
         await MediaRepository.updateByS3Key(s3Info.key, {
           status: 'processing',
         });
 
-        const fileBuffer = await S3ClientService.downloadFileAsBuffer(
-          s3Info.bucket,
-          s3Info.key
-        );
-
-        const processedKey = `resources/${courseId}/${s3Info.key.split('/').pop()}`;
-
-        const s3ObjectMetadata = await s3.send(
-          new HeadObjectCommand({ Bucket: s3Info.bucket, Key: s3Info.key })
-        );
-        const contentType =
-          s3ObjectMetadata.ContentType || 'application/octet-stream';
-        const contentLength = s3ObjectMetadata.ContentLength || 0;
-
-        await S3ClientService.uploadBuffer(
-          processedBucket,
-          processedKey,
-          fileBuffer,
-          contentType,
-          'public-read'
-        );
-
-        const finalUrl = `https://${processedBucket}.s3.${region}.amazonaws.com/${processedKey}`;
+        const { finalUrl, contentLength, contentType, fileName } =
+          await this._processFile(s3Info, `resources/${courseId}`);
 
         await MediaRepository.updateByS3Key(s3Info.key, {
           status: 'completed',
@@ -136,7 +88,7 @@ export class FileProcessor implements IProcessor {
         await this.successPublisher.publish({
           courseId,
           fileUrl: finalUrl,
-          fileName: s3Info.key.split('/').pop()!,
+          fileName,
           fileSize: contentLength,
           fileType: contentType,
         });
@@ -162,5 +114,50 @@ export class FileProcessor implements IProcessor {
         `Unsupported upload type in FileProcessor: ${uploadType}`
       );
     }
+  }
+
+  /**
+   * Shared logic for downloading, reading metadata, uploading,
+   * and returning final file info.
+   */
+  private async _processFile(
+    s3Info: S3EventInfo,
+    prefix: string
+  ): Promise<{
+    finalUrl: string;
+    contentLength: number;
+    contentType: string;
+    fileName: string;
+  }> {
+    const processedBucket = env.AWS_PROCESSED_MEDIA_BUCKET;
+    const region = env.AWS_REGION;
+
+    const fileBuffer = await S3ClientService.downloadFileAsBuffer(
+      s3Info.bucket,
+      s3Info.key
+    );
+
+    const fileName = s3Info.key.split('/').pop()!;
+    const processedKey = `${prefix}/${fileName}`;
+
+    const s3ObjectMetadata = await s3.send(
+      new HeadObjectCommand({ Bucket: s3Info.bucket, Key: s3Info.key })
+    );
+
+    const contentType =
+      s3ObjectMetadata.ContentType || 'application/octet-stream';
+    const contentLength = s3ObjectMetadata.ContentLength || 0;
+
+    await S3ClientService.uploadBuffer(
+      processedBucket,
+      processedKey,
+      fileBuffer,
+      contentType,
+      'public-read'
+    );
+
+    const finalUrl = `https://${processedBucket}.s3.${region}.amazonaws.com/${processedKey}`;
+
+    return { finalUrl, contentLength, contentType, fileName };
   }
 }
