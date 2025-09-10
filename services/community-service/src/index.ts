@@ -7,6 +7,7 @@ import { checkDatabaseConnection } from './db';
 import { rabbitMQConnection } from './events/connection';
 
 import {
+  ChatMediaProcessedListener,
   UserProfileUpdatedListener,
   UserRegisteredListener,
 } from './events/listener';
@@ -22,6 +23,7 @@ const startServer = async () => {
 
     new UserRegisteredListener().listen();
     new UserProfileUpdatedListener().listen();
+    new ChatMediaProcessedListener().listen();
 
     const server = createServer(app);
 

@@ -1,6 +1,7 @@
 import { ConsumeMessage } from 'amqplib';
+import { webSocketService } from '..';
 import logger from '../config/logger';
-import { UserRepository } from '../db/repositories';
+import { MessageRepository, UserRepository } from '../db/repositories';
 import { rabbitMQConnection } from './connection';
 
 interface Event {
@@ -108,6 +109,56 @@ export class UserProfileUpdatedListener extends Listener<UserProfileUpdatedEvent
       });
     } catch (error) {
       logger.error('Failed to sync user profile update', { data, error });
+    }
+  }
+}
+
+interface ChatMediaProcessedEvent {
+  topic: 'chat.media.processed';
+  data: {
+    conversationId: string;
+    senderId: string;
+    fileUrl: string;
+    fileName: string;
+    fileType: string;
+  };
+}
+
+export class ChatMediaProcessedListener extends Listener<ChatMediaProcessedEvent> {
+  readonly topic = 'chat.media.processed' as const;
+  queueGroupName = 'community-service-chat-media';
+
+  async onMessage(data: ChatMediaProcessedEvent['data'], _msg: ConsumeMessage) {
+    try {
+      logger.info(
+        `Received processed chat media for conversation ${data.conversationId}`
+      );
+
+      const content = JSON.stringify({
+        type: 'file',
+        url: data.fileUrl,
+        name: data.fileName,
+        mimeType: data.fileType,
+      });
+
+      const newMessage = await MessageRepository.create({
+        conversationId: data.conversationId,
+        senderId: data.senderId,
+        content: content,
+      });
+
+      if (webSocketService && newMessage) {
+        await webSocketService.broadcastMessage(
+          data.senderId,
+          data.conversationId,
+          newMessage
+        );
+      }
+    } catch (error) {
+      logger.error('Failed to process chat.media.processed event', {
+        data,
+        error,
+      });
     }
   }
 }

@@ -284,7 +284,7 @@ export class WebSocketService {
    * @param conversationId - The ID of the conversation.
    * @param message - The message object to broadcast.
    */
-  private async broadcastMessage(
+  public async broadcastMessage(
     senderId: string,
     conversationId: string,
     message: Message & {

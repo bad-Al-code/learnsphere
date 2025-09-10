@@ -131,3 +131,19 @@ export class ReportGenerationFailedPublisher extends Publisher<ReportGenerationF
   readonly topic: 'report.generation.failed' =
     'report.generation.failed' as const;
 }
+
+interface ChatMediaProcessedEvent {
+  topic: 'chat.media.processed';
+  data: {
+    conversationId: string;
+    senderId: string;
+    fileUrl: string;
+    fileName: string;
+    fileSize: number;
+    fileType: string;
+  };
+}
+
+export class ChatMediaProcessedPublisher extends Publisher<ChatMediaProcessedEvent> {
+  readonly topic = 'chat.media.processed' as const;
+}
