@@ -19,8 +19,8 @@ export function useChatWebSocket(selectedConversationId: string | null) {
       process.env.NEXT_PUBLIC_COMMUNITY_WS_URL || 'ws://localhost:8007'
     );
 
-    socket.onopen = () => console.log('WebSocket connected');
-    socket.onclose = () => console.log('WebSocket disconnected');
+    // socket.onopen = () => console.log('WebSocket connected');
+    // socket.onclose = () => console.log('WebSocket disconnected');
     socket.onerror = (error) => {
       console.error('WebSocket error:', error);
       toast.error('Connection to chat server lost.');
