@@ -16,10 +16,12 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { getInitials } from '@/lib/utils';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { useDebounce } from 'use-debounce';
 import { useCreateConversation } from '../../hooks/useCreateConversation';
+import { useCreateGroupConversation } from '../../hooks/useCreateGroupConversation';
 import { useUserSearch } from '../../hooks/useUserSearch';
 import { Conversation, UserSearchResult } from '../../types';
 
@@ -32,23 +34,63 @@ export function NewConversationDialog({
 }: NewConversationDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [groupName, setGroupName] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState<UserSearchResult[]>([]);
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
 
   const { data, isLoading, isError } = useUserSearch(debouncedSearchTerm);
 
   const createConversationMutation = useCreateConversation(
-    (newConversation) => {
-      onConversationCreated(newConversation);
-      setIsOpen(false);
-    }
+    onConversationCreated
+  );
+  const createGroupConversationMutation = useCreateGroupConversation(
+    onConversationCreated
   );
 
   const handleUserSelect = (user: UserSearchResult) => {
-    createConversationMutation.mutate(user.userId);
+    if (selectedUsers.some((su) => su.userId === user.userId)) return;
+
+    if (selectedUsers.length === 0) {
+      createConversationMutation.mutate(user.userId);
+
+      setIsOpen(false);
+    } else {
+      setSelectedUsers((prev) => [...prev, user]);
+    }
+    setSearchTerm('');
+  };
+
+  const handleUserRemove = (userId: string) => {
+    setSelectedUsers((prev) => prev.filter((u) => u.userId !== userId));
+  };
+
+  const handleCreateGroup = () => {
+    if (groupName.trim() && selectedUsers.length > 0) {
+      const participantIds = selectedUsers.map((u) => u.userId);
+      createGroupConversationMutation.mutate({
+        name: groupName,
+        participantIds,
+      });
+
+      setIsOpen(false);
+    } else {
+      toast.error(
+        'Please provide a group name and select at least one other member.'
+      );
+    }
+  };
+
+  const onOpenChange = (open: boolean) => {
+    if (!open) {
+      setSearchTerm('');
+      setSelectedUsers([]);
+      setGroupName('');
+    }
+    setIsOpen(open);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <Tooltip>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
@@ -64,6 +106,33 @@ export function NewConversationDialog({
         <DialogHeader>
           <DialogTitle>New Conversation</DialogTitle>
         </DialogHeader>
+
+        {selectedUsers.length > 0 && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">To:</label>
+            <div className="flex flex-wrap gap-2 rounded-md border p-2">
+              {selectedUsers.map((user) => (
+                <div
+                  key={user.userId}
+                  className="bg-muted flex items-center gap-1 rounded-full px-2 py-1 text-sm"
+                >
+                  <span>{user.firstName}</span>
+                  <button
+                    onClick={() => handleUserRemove(user.userId)}
+                    className="hover:bg-muted-foreground/20 rounded-full"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <Input
+              placeholder="Enter Group Name..."
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+            />
+          </div>
+        )}
 
         <div className="relative">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
@@ -105,6 +174,17 @@ export function NewConversationDialog({
             </div>
           ))}
         </div>
+
+        {selectedUsers.length > 0 && (
+          <Button
+            onClick={handleCreateGroup}
+            disabled={createGroupConversationMutation.isPending}
+          >
+            {createGroupConversationMutation.isPending
+              ? 'Creating...'
+              : 'Create Group Chat'}
+          </Button>
+        )}
       </DialogContent>
     </Dialog>
   );

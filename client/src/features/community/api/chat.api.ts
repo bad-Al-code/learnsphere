@@ -70,3 +70,21 @@ export async function markConversationAsRead(
     console.error('Failed to mark conversation as read:', error);
   }
 }
+
+/**
+ * Creates a new group conversation.
+ * @param name The name of the group.
+ * @param participantIds An array of user IDs to include.
+ * @returns A promise that resolves to the new Group Conversation object.
+ */
+export async function createGroupConversation(
+  name: string,
+  participantIds: string[]
+): Promise<Conversation> {
+  const response = await communityService.post<Conversation>(
+    '/api/community/conversations/group',
+    { name, participantIds }
+  );
+
+  return response.data;
+}
