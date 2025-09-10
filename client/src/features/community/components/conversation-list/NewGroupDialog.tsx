@@ -61,8 +61,8 @@ export function NewGroupDialog({ onConversationCreated }: NewGroupDialogProps) {
       return;
     }
 
-    if (selectedUsers.length === 0) {
-      toast.error('Please select at least one other member.');
+    if (selectedUsers.length < 2) {
+      toast.error('Please select at least two members for a group chat.');
       return;
     }
 
@@ -179,7 +179,11 @@ export function NewGroupDialog({ onConversationCreated }: NewGroupDialogProps) {
 
         <Button
           onClick={handleCreateGroup}
-          disabled={createGroupMutation.isPending}
+          disabled={
+            createGroupMutation.isPending ||
+            !groupName.trim() ||
+            selectedUsers.length < 1
+          }
         >
           {createGroupMutation.isPending ? 'Creating...' : 'Create Group Chat'}
         </Button>

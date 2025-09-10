@@ -47,8 +47,13 @@ export function NewMessageDialog({
     createConversationMutation.mutate(user.userId);
   };
 
+  const onOpenChange = (open: boolean) => {
+    if (!open) setSearchTerm('');
+    setIsOpen(open);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <Tooltip>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>

@@ -17,7 +17,7 @@ export function ConversationListHeader({
   return (
     <div className="p-2">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Direct Messages</h2>
+        <h2 className="text-xl font-bold">Messages</h2>
         <div className="flex items-center">
           <NewGroupDialog onConversationCreated={onConversationCreated} />
           <NewMessageDialog onConversationCreated={onConversationCreated} />
