@@ -23,6 +23,7 @@ export class MediaService {
     let key: string;
     let processedKey: string;
     let parentEntityId: string;
+    let ownerUserId: string | null = metadata.userId || null;
 
     const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}-${filename}`;
 
@@ -63,7 +64,12 @@ export class MediaService {
         if (!metadata.conversationId) {
           throw new Error('conversationId is required for chat attachments');
         }
+        if (!metadata.senderId) {
+          throw new Error('senderId is required for chat attachments');
+        }
+
         parentEntityId = metadata.conversationId;
+        ownerUserId = metadata.senderId;
         key = `uploads/chatAttachments/${parentEntityId}/${uniqueFilename}`;
         processedKey = `chatAttachments/${parentEntityId}/${uniqueFilename}`;
         break;
@@ -76,7 +82,7 @@ export class MediaService {
     await MediaRepository.create({
       s3Key: key,
       uploadType: uploadType,
-      ownerUserId: metadata.userId || null,
+      ownerUserId: ownerUserId,
       parentEntityId: parentEntityId,
       status: 'uploading',
     });

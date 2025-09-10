@@ -22,5 +22,6 @@ export async function getChatAttachmentUploadUrl(
     }
   );
 
+  console.log(response.data);
   return response.data;
 }

@@ -1,9 +1,8 @@
-import { mkdirSync, writeFileSync } from 'fs';
-import { dirname, join } from 'path';
-// import { HeadObjectCommand } from '@aws-sdk/client-s3';
-// import { s3, S3ClientService } from '../../clients/s3.client';
-// import { env } from '../../config/env';
-import logger from '../../config/logger';
+// import { mkdirSync, writeFileSync } from 'fs';
+// import { dirname, join } from 'path';
+import { HeadObjectCommand } from '@aws-sdk/client-s3';
+import { s3, S3ClientService } from '../../clients/s3.client';
+import { env } from '../../config/env';
 import { MediaRepository } from '../../db/media.repository';
 import {
   ChatMediaProcessedPublisher,
@@ -36,85 +35,58 @@ export class FileProcessor implements IProcessor {
   ): Promise<void> {
     const { uploadType, courseId, conversationId, senderId } = metadata;
 
-    if (uploadType === 'chat_attachment') {
-      if (!conversationId || !senderId) {
+    try {
+      await MediaRepository.updateByS3Key(s3Info.key, { status: 'processing' });
+
+      let prefix: string;
+      if (uploadType === 'course_resource' && courseId) {
+        prefix = `resources/${courseId}`;
+      } else if (uploadType === 'chat_attachment' && conversationId) {
+        prefix = `chat/${conversationId}`;
+      } else {
         throw new Error(
-          'FileProcessor called with chat_attachment but missing conversationId or senderId'
+          `Invalid metadata for FileProcessor: ${JSON.stringify(metadata)}`
         );
       }
 
-      logger.info(
-        `Processing chat attachment for conversation: ${conversationId}, sender: ${senderId}`
-      );
+      const { finalUrl, contentLength, contentType, fileName } =
+        await this._processFile(s3Info, prefix);
 
-      try {
-        const { finalUrl, contentLength, contentType, fileName } =
-          await this._processFile(s3Info, `chat/${conversationId}`);
+      await MediaRepository.updateByS3Key(s3Info.key, {
+        status: 'completed',
+        processedUrls: { final: finalUrl },
+      });
 
+      if (uploadType === 'chat_attachment') {
         await this.chatSuccessPublisher.publish({
-          conversationId,
-          senderId,
+          conversationId: conversationId!,
+          senderId: senderId!,
           fileUrl: finalUrl,
           fileName,
           fileSize: contentLength,
           fileType: contentType,
         });
-
-        logger.info(`Chat attachment processed successfully: ${finalUrl}`);
-      } catch (error) {
-        logger.error(
-          `Failed to process chat attachment for conversation ${conversationId}:`,
-          error
-        );
-        throw error;
-      }
-    } else if (uploadType === 'course_resource') {
-      if (!courseId)
-        throw new Error(`FileProcessor called without a courseId.`);
-
-      logger.info(`Processing resource for course: ${courseId}`);
-
-      try {
-        await MediaRepository.updateByS3Key(s3Info.key, {
-          status: 'processing',
-        });
-
-        const { finalUrl, contentLength, contentType, fileName } =
-          await this._processFile(s3Info, `resources/${courseId}`);
-
-        await MediaRepository.updateByS3Key(s3Info.key, {
-          status: 'completed',
-          processedUrls: { final: finalUrl },
-        });
-
+      } else {
         await this.successPublisher.publish({
-          courseId,
+          courseId: courseId!,
           fileUrl: finalUrl,
           fileName,
           fileSize: contentLength,
           fileType: contentType,
         });
-
-        logger.info(`Course resource processed successfully: ${finalUrl}`);
-      } catch (error) {
-        await MediaRepository.updateByS3Key(s3Info.key, {
-          status: 'failed',
-          errorMessage: (error as Error).message,
-        });
-
-        const err = error as Error;
-
-        await this.failurePublisher.publish({
-          courseId,
-          reason: err.message || 'An unknown processing error occurred.',
-        });
-
-        throw error;
       }
-    } else {
-      throw new Error(
-        `Unsupported upload type in FileProcessor: ${uploadType}`
-      );
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      await MediaRepository.updateByS3Key(s3Info.key, {
+        status: 'failed',
+        errorMessage,
+      });
+
+      if (uploadType === 'course_resource' && courseId) {
+        await this.failurePublisher.publish({ courseId, reason: errorMessage });
+      }
+
+      throw error;
     }
   }
 
@@ -133,25 +105,25 @@ export class FileProcessor implements IProcessor {
     fileName: string;
   }> {
     // --- DEV LOCAL ONLY ---
-    const fileName = s3Info.key.split('/').pop()!;
-    const processedPath = join(process.cwd(), 'processed', prefix, fileName);
+    // const fileName = s3Info.key.split('/').pop()!;
+    // const processedPath = join(process.cwd(), 'processed', prefix, fileName);
 
-    mkdirSync(dirname(processedPath), { recursive: true });
+    // mkdirSync(dirname(processedPath), { recursive: true });
 
-    // Fake file buffer and metadata (in real AWS we’d fetch from S3)
-    const fileBuffer = Buffer.from(`Dummy content for ${fileName}`);
-    const contentType = 'application/octet-stream';
-    const contentLength = fileBuffer.length;
+    // // Fake file buffer and metadata (in real AWS we’d fetch from S3)
+    // const fileBuffer = Buffer.from(`Dummy content for ${fileName}`);
+    // const contentType = 'application/octet-stream';
+    // const contentLength = fileBuffer.length;
 
-    writeFileSync(processedPath, fileBuffer);
+    // writeFileSync(processedPath, fileBuffer);
 
-    const finalUrl = `file://${processedPath}`;
-    logger.info(`Saved locally: ${finalUrl}`);
+    // const finalUrl = `file://${processedPath}`;
+    // logger.info(`Saved locally: ${finalUrl}`);
 
-    return { finalUrl, contentLength, contentType, fileName };
+    // return { finalUrl, contentLength, contentType, fileName };
 
     // --- AWS ONLY ---
-    /*
+
     const processedBucket = env.AWS_PROCESSED_MEDIA_BUCKET;
     const region = env.AWS_REGION;
 
@@ -182,6 +154,5 @@ export class FileProcessor implements IProcessor {
     const finalUrl = `https://${processedBucket}.s3.${region}.amazonaws.com/${processedKey}`;
 
     return { finalUrl, contentLength, contentType, fileName };
-    */
   }
 }
