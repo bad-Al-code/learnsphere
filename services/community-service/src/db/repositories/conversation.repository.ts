@@ -104,9 +104,16 @@ export class ConversationRepository {
         count: sql<number>`count(*)::int`.as('unread_count'),
       })
       .from(messages)
-      .leftJoin(p1, eq(messages.conversationId, p1.conversationId))
+      .innerJoin(p1, eq(messages.conversationId, p1.conversationId))
       .where(
-        and(eq(p1.userId, userId), gt(messages.createdAt, p1.lastReadTimestamp))
+        and(
+          eq(p1.userId, userId),
+          ne(messages.senderId, userId),
+          gt(
+            messages.createdAt,
+            sql`COALESCE(${p1.lastReadTimestamp}, '1970-01-01')`
+          )
+        )
       )
       .groupBy(messages.conversationId)
       .as('unread_count_sq');
@@ -124,6 +131,9 @@ export class ConversationRepository {
           name: otherUser.name,
           avatarUrl: otherUser.avatarUrl,
         },
+        unreadCount: sql<number>`COALESCE(${unreadCountSq.count}, 0)`.mapWith(
+          Number
+        ),
       })
       .from(conversations)
       .innerJoin(p1, eq(conversations.id, p1.conversationId))

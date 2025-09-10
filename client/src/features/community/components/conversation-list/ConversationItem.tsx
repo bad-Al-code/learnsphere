@@ -26,7 +26,7 @@ export function ConversationItem({
       })
     : '';
 
-  console.log(conversation);
+  console.log(conversation.unreadCount);
 
   return (
     <div
