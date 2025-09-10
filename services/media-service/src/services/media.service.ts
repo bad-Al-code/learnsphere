@@ -22,6 +22,7 @@ export class MediaService {
 
     let key: string;
     let processedKey: string;
+    let parentEntityId: string;
 
     const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}-${filename}`;
 
@@ -29,36 +30,42 @@ export class MediaService {
       case 'avatar':
         if (!metadata.userId)
           throw new Error('userId is required for avatar uploads');
-        key = `uploads/avatars/${metadata.userId}/${Date.now()}-${filename}`;
-        processedKey = `avatars/${metadata.userId}/large.jpeg`;
+        parentEntityId = metadata.userId;
+        key = `uploads/avatars/${parentEntityId}/${Date.now()}-${filename}`;
+        processedKey = `avatars/${parentEntityId}/large.jpeg`;
         break;
 
       case 'video':
         if (!metadata.lessonId)
           throw new Error('lessonId is required for video uploads');
-        key = `uploads/videos/${metadata.lessonId}/${Date.now()}-${filename}`;
-        processedKey = `videos/${metadata.courseId}/${uniqueFilename}/playlist.m3u8`;
+        parentEntityId = metadata.lessonId;
+        key = `uploads/videos/${parentEntityId}/${Date.now()}-${filename}`;
+        processedKey = `videos/${parentEntityId}/playlist.m3u8`;
         break;
 
       case 'course_thumbnail':
         if (!metadata.courseId)
           throw new Error('courseId is required for thumbnail uploads');
-        key = `uploads/thumbnails/${metadata.courseId}/${Date.now()}-${filename}`;
-        processedKey = `thumbnails/${metadata.courseId}/thumbnail.jpeg`;
+        parentEntityId = metadata.courseId;
+        key = `uploads/thumbnails/${parentEntityId}/${Date.now()}-${filename}`;
+        processedKey = `thumbnails/${parentEntityId}/thumbnail.jpeg`;
         break;
 
       case 'course_resource':
         if (!metadata.courseId)
           throw new Error('courseId is required for resource uploads');
-        key = `uploads/resources/${metadata.courseId}/${Date.now()}-${filename}`;
-        processedKey = `resources/${metadata.courseId}/${uniqueFilename}`;
+        parentEntityId = metadata.courseId;
+        key = `uploads/resources/${parentEntityId}/${Date.now()}-${filename}`;
+        processedKey = `resources/${parentEntityId}/${uniqueFilename}`;
         break;
 
       case 'chat_attachment':
-        if (!metadata.conversationId)
-          throw new Error('conversationId is required for resource uploads');
-        key = `uploads/chatAttachments/${metadata.conversationId}/${Date.now()}-${filename}`;
-        processedKey = `chatAttachments/${metadata.conversationId}/${uniqueFilename}`;
+        if (!metadata.conversationId) {
+          throw new Error('conversationId is required for chat attachments');
+        }
+        parentEntityId = metadata.conversationId;
+        key = `uploads/chatAttachments/${parentEntityId}/${uniqueFilename}`;
+        processedKey = `chatAttachments/${parentEntityId}/${uniqueFilename}`;
         break;
 
       default:
@@ -70,7 +77,7 @@ export class MediaService {
       s3Key: key,
       uploadType: uploadType,
       ownerUserId: metadata.userId || null,
-      parentEntityId: metadata.lessonId || metadata.userId || metadata.courseId,
+      parentEntityId: parentEntityId,
       status: 'uploading',
     });
 
