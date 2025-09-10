@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSessionStore } from '@/stores/session-store';
 import {
   ArrowRight,
   Award,
@@ -70,6 +71,7 @@ const blogHighlights = [
 ];
 
 export default function NotFound() {
+  const { user, setUser } = useSessionStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoggedIn] = useState(true);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -613,7 +615,7 @@ export default function NotFound() {
           </div>
 
           <div className="space-y-2">
-            {isLoggedIn ? (
+            {user ? (
               <h1 className="text-foreground text-4xl font-bold tracking-tight md:text-5xl">
                 Hey there! 👋 Looks like you took a wrong turn
               </h1>
@@ -623,7 +625,7 @@ export default function NotFound() {
               </h1>
             )}
             <p className="text-muted-foreground mx-auto max-w-md text-lg leading-relaxed md:text-xl">
-              {isLoggedIn
+              {user
                 ? "No worries! Let's get you back on track with your learning journey."
                 : "Join 50,000+ learners and discover amazing courses. Let's get you started!"}
             </p>
@@ -683,7 +685,7 @@ export default function NotFound() {
               </Link>
             </Button>
 
-            {isLoggedIn && (
+            {user && (
               <>
                 <Button
                   asChild
@@ -713,7 +715,7 @@ export default function NotFound() {
           </div>
         </div>
 
-        {isLoggedIn && (
+        {user && (
           <div className="mx-auto max-w-4xl">
             <h2 className="text-foreground mb-6 flex items-center justify-center gap-2 text-center text-2xl font-bold">
               <Award className="h-6 w-6 text-yellow-500" />
@@ -768,7 +770,7 @@ export default function NotFound() {
           </div>
         )}
 
-        {isLoggedIn && aiSuggestions.length > 0 && (
+        {user && aiSuggestions.length > 0 && (
           <div className="mx-auto max-w-4xl">
             <h2 className="text-foreground mb-6 flex items-center justify-center gap-2 text-center text-2xl font-bold">
               <Brain className="h-6 w-6 text-purple-500" />
@@ -810,7 +812,7 @@ export default function NotFound() {
           </div>
         )}
 
-        {isLoggedIn && recentActivity.length > 0 && (
+        {user && recentActivity.length > 0 && (
           <div className="mx-auto max-w-4xl">
             <h2 className="text-foreground mb-6 flex items-center justify-center gap-2 text-center text-2xl font-bold">
               <Clock className="h-6 w-6 text-blue-500" />
@@ -873,7 +875,7 @@ export default function NotFound() {
           </div>
         )}
 
-        {isLoggedIn && communityHighlights.length > 0 && (
+        {user && communityHighlights.length > 0 && (
           <div className="mx-auto max-w-4xl">
             <h2 className="text-foreground mb-6 flex items-center justify-center gap-2 text-center text-2xl font-bold">
               <MessageSquare className="h-6 w-6 text-green-500" />
@@ -974,7 +976,7 @@ export default function NotFound() {
           </Card>
         </div>
 
-        {isLoggedIn && recentlyViewed.length > 0 && (
+        {user && recentlyViewed.length > 0 && (
           <div className="mx-auto max-w-4xl">
             <h2 className="text-foreground mb-6 flex items-center justify-center gap-2 text-center text-2xl font-bold">
               <Eye className="text-primary h-6 w-6" />
@@ -1016,7 +1018,7 @@ export default function NotFound() {
           </div>
         )}
 
-        {isLoggedIn && (
+        {user && (
           <div className="mx-auto max-w-4xl">
             <h2 className="text-foreground mb-6 flex items-center justify-center gap-2 text-center text-2xl font-bold">
               <Trophy className="h-6 w-6 text-yellow-500" />
@@ -1072,7 +1074,7 @@ export default function NotFound() {
           </div>
         )}
 
-        {isLoggedIn && (
+        {user && (
           <div className="mx-auto max-w-4xl">
             <h2 className="text-foreground mb-6 text-center text-2xl font-bold">
               Continue Your Learning Journey
