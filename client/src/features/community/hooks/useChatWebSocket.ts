@@ -5,10 +5,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { useSessionStore } from '@/stores/session-store';
 
+import { markConversationAsRead } from '../api/chat.api';
 import { ClientToServerMessage, serverToClientMessageSchema } from '../schema';
 import { Conversation, Message } from '../types';
 
-export function useChatWebSocket() {
+export function useChatWebSocket(selectedConversationId: string | null) {
   const ws = useRef<WebSocket | null>(null);
   const queryClient = useQueryClient();
   const currentUser = useSessionStore((state) => state.user);
@@ -42,6 +43,12 @@ export function useChatWebSocket() {
         const { type, payload } = validatedServerMessage.data;
 
         if (type === 'NEW_MESSAGE') {
+          if (payload.conversationId === selectedConversationId) {
+            markConversationAsRead(payload.conversationId);
+          } else {
+            queryClient.invalidateQueries({ queryKey: ['conversations'] });
+          }
+
           queryClient.setQueryData(
             ['messages', payload.conversationId],
             (oldData: { pages: Message[][] } | undefined) => {

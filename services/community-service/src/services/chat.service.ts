@@ -1,7 +1,9 @@
 import { webSocketService } from '..';
 import logger from '../config/logger';
+import { redisConnection } from '../config/redis';
 import { ConversationRepository, MessageRepository } from '../db/repositories';
 import { BadRequestError, ForbiddenError } from '../errors';
+import { ONLINE_USERS_KEY } from './presence.service';
 import { UserService } from './user.service';
 
 export class ChatService {
@@ -11,7 +13,41 @@ export class ChatService {
    * @returns A list of enriched conversation objects.
    */
   public static async getConversationsForUser(userId: string) {
-    return ConversationRepository.findManyByUserId(userId);
+    const conversations = await ConversationRepository.findManyByUserId(userId);
+    if (conversations.length === 0) {
+      return [];
+    }
+
+    const conversationIds = conversations.map((c) => c.id);
+    const unreadCounts = await MessageRepository.getUnreadCounts(
+      conversationIds,
+      userId
+    );
+
+    const redisClient = redisConnection.getClient();
+
+    const enrichedConversations = await Promise.all(
+      conversations.map(async (convo) => {
+        let status: 'online' | 'offline' = 'offline';
+
+        if (convo.otherParticipant?.id) {
+          const isOnline = await redisClient.sIsMember(
+            ONLINE_USERS_KEY,
+            convo.otherParticipant.id
+          );
+          status = isOnline ? 'online' : 'offline';
+        }
+        return {
+          ...convo,
+          unreadCount: unreadCounts.get(convo.id) || 0,
+          otherParticipant: convo.otherParticipant
+            ? { ...convo.otherParticipant, status }
+            : null,
+        };
+      })
+    );
+
+    return enrichedConversations;
   }
 
   /**

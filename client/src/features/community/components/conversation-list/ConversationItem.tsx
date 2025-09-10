@@ -69,7 +69,7 @@ export function ConversationItem({
         </p>
 
         {conversation.unreadCount && conversation.unreadCount > 0 && (
-          <span className="bg-primary text-primary-foreground mt-1 ml-auto flex h-5 w-5 items-center justify-center rounded-full border text-xs">
+          <span className="bg-primary text-primary-foreground mt-1 ml-auto flex h-5 w-5 items-center justify-center rounded-full border-1 text-xs">
             {conversation.unreadCount}
           </span>
         )}

@@ -1,6 +1,6 @@
-import { and, desc, eq, isNull, ne } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm';
 import { db } from '..';
-import { messages, NewMessage } from '../schema';
+import { conversationParticipants, messages, NewMessage } from '../schema';
 
 export class MessageRepository {
   /**
@@ -73,5 +73,42 @@ export class MessageRepository {
           isNull(messages.readAt)
         )
       );
+  }
+
+  /**
+   * Gets the unread message count for multiple conversations for a given user.
+   * @param conversationIds - The IDs of the conversations to check.
+   * @param userId - The ID of the user.
+   * @returns A Map where the key is conversationId and the value is the unread count.
+   */
+  public static async getUnreadCounts(
+    conversationIds: string[],
+    userId: string
+  ): Promise<Map<string, number>> {
+    if (conversationIds.length === 0) {
+      return new Map();
+    }
+
+    const result = await db
+      .select({
+        conversationId: messages.conversationId,
+        count: sql<number>`count(*)::int`.as('unread_count'),
+      })
+      .from(messages)
+      .innerJoin(
+        conversationParticipants,
+        eq(messages.conversationId, conversationParticipants.conversationId)
+      )
+      .where(
+        and(
+          inArray(messages.conversationId, conversationIds),
+          eq(conversationParticipants.userId, userId),
+          ne(messages.senderId, userId),
+          isNull(messages.readAt)
+        )
+      )
+      .groupBy(messages.conversationId);
+
+    return new Map(result.map((r) => [r.conversationId, r.count]));
   }
 }

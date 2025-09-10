@@ -27,7 +27,6 @@ export function ChatInterface() {
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
   >(null);
-  const { sendEvent } = useChatWebSocket();
 
   const selectedConversation = useMemo(() => {
     if (!selectedConversationId || !conversations) {
@@ -41,6 +40,8 @@ export function ChatInterface() {
 
     return conversations.find((c) => c.id === selectedConversationId) || null;
   }, [conversations, selectedConversationId]);
+
+  const { sendEvent } = useChatWebSocket(selectedConversation?.id || null);
 
   const {
     data: messagesData,
