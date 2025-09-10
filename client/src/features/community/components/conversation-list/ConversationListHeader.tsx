@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search } from 'lucide-react';
 import { Conversation } from '../../types';
-import { NewConversationDialog } from './NewConversationDialog';
+import { NewGroupDialog } from './NewGroupDialog';
+import { NewMessageDialog } from './NewMessageDialog';
 
 interface ConversationListHeaderProps {
   onConversationCreated: (conversation: Conversation) => void;
@@ -17,7 +18,10 @@ export function ConversationListHeader({
     <div className="p-2">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">Direct Messages</h2>
-        <NewConversationDialog onConversationCreated={onConversationCreated} />
+        <div className="flex items-center">
+          <NewGroupDialog onConversationCreated={onConversationCreated} />
+          <NewMessageDialog onConversationCreated={onConversationCreated} />
+        </div>
       </div>
 
       <div className="relative mt-4">

@@ -15,46 +15,36 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+
 import { getInitials } from '@/lib/utils';
-import { Plus, Search, X } from 'lucide-react';
+import { Search, Users, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useDebounce } from 'use-debounce';
-import { useCreateConversation } from '../../hooks/useCreateConversation';
 import { useCreateGroupConversation } from '../../hooks/useCreateGroupConversation';
 import { useUserSearch } from '../../hooks/useUserSearch';
 import { Conversation, UserSearchResult } from '../../types';
 
-interface NewConversationDialogProps {
+interface NewGroupDialogProps {
   onConversationCreated: (conversation: Conversation) => void;
 }
 
-export function NewConversationDialog({
-  onConversationCreated,
-}: NewConversationDialogProps) {
+export function NewGroupDialog({ onConversationCreated }: NewGroupDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [groupName, setGroupName] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<UserSearchResult[]>([]);
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
 
-  const { data, isLoading, isError } = useUserSearch(debouncedSearchTerm);
+  const { data, isLoading } = useUserSearch(debouncedSearchTerm);
 
-  const createConversationMutation = useCreateConversation(
-    onConversationCreated
-  );
-  const createGroupConversationMutation = useCreateGroupConversation(
-    onConversationCreated
-  );
+  const createGroupMutation = useCreateGroupConversation((newConversation) => {
+    onConversationCreated(newConversation);
+    setIsOpen(false);
+  });
 
   const handleUserSelect = (user: UserSearchResult) => {
-    if (selectedUsers.some((su) => su.userId === user.userId)) return;
-
-    if (selectedUsers.length === 0) {
-      createConversationMutation.mutate(user.userId);
-
-      setIsOpen(false);
-    } else {
+    if (!selectedUsers.some((su) => su.userId === user.userId)) {
       setSelectedUsers((prev) => [...prev, user]);
     }
     setSearchTerm('');
@@ -65,19 +55,16 @@ export function NewConversationDialog({
   };
 
   const handleCreateGroup = () => {
-    if (groupName.trim() && selectedUsers.length > 0) {
-      const participantIds = selectedUsers.map((u) => u.userId);
-      createGroupConversationMutation.mutate({
-        name: groupName,
-        participantIds,
-      });
-
-      setIsOpen(false);
-    } else {
-      toast.error(
-        'Please provide a group name and select at least one other member.'
-      );
+    if (!groupName.trim()) {
+      toast.error('Please provide a group name.');
+      return;
     }
+    if (selectedUsers.length === 0) {
+      toast.error('Please select at least one other member.');
+      return;
+    }
+    const participantIds = selectedUsers.map((u) => u.userId);
+    createGroupMutation.mutate({ name: groupName, participantIds });
   };
 
   const onOpenChange = (open: boolean) => {
@@ -95,60 +82,55 @@ export function NewConversationDialog({
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
             <Button variant="ghost" size="icon">
-              <Plus className="h-5 w-5" />
+              <Users className="h-5 w-5" />
             </Button>
           </DialogTrigger>
         </TooltipTrigger>
-        <TooltipContent>New Message</TooltipContent>
+        <TooltipContent>
+          <p>New Group</p>
+        </TooltipContent>
       </Tooltip>
-
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New Conversation</DialogTitle>
+          <DialogTitle>Create a new group</DialogTitle>
         </DialogHeader>
-
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Group Name</label>
+          <Input
+            placeholder="Enter Group Name..."
+            value={groupName}
+            onChange={(e) => setGroupName(e.target.value)}
+          />
+        </div>
         {selectedUsers.length > 0 && (
-          <div className="space-y-2">
-            <label className="text-sm font-medium">To:</label>
-            <div className="flex flex-wrap gap-2 rounded-md border p-2">
-              {selectedUsers.map((user) => (
-                <div
-                  key={user.userId}
-                  className="bg-muted flex items-center gap-1 rounded-full px-2 py-1 text-sm"
+          <div className="flex flex-wrap gap-2 rounded-md border p-2">
+            {selectedUsers.map((user) => (
+              <div
+                key={user.userId}
+                className="bg-muted flex items-center gap-1 rounded-full px-2 py-1 text-sm"
+              >
+                <span>{user.firstName}</span>
+                <button
+                  onClick={() => handleUserRemove(user.userId)}
+                  className="hover:bg-muted-foreground/20 rounded-full"
                 >
-                  <span>{user.firstName}</span>
-                  <button
-                    onClick={() => handleUserRemove(user.userId)}
-                    className="hover:bg-muted-foreground/20 rounded-full"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-            <Input
-              placeholder="Enter Group Name..."
-              value={groupName}
-              onChange={(e) => setGroupName(e.target.value)}
-            />
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
           </div>
         )}
-
         <div className="relative">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
-            placeholder="Search for a user..."
+            placeholder="Search to add people..."
             className="pl-9"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-
-        <div className="mt-4 max-h-60 space-y-2 overflow-y-auto">
+        <div className="mt-4 max-h-48 space-y-2 overflow-y-auto">
           {isLoading && <p>Searching...</p>}
-
-          {isError && <p className="text-destructive">Failed to search.</p>}
-
           {data?.results.map((user: UserSearchResult) => (
             <div
               key={user.userId}
@@ -161,12 +143,10 @@ export function NewConversationDialog({
                   {getInitials(`${user.firstName} ${user.lastName}`)}
                 </AvatarFallback>
               </Avatar>
-
               <div>
                 <p className="font-semibold">
                   {user.firstName} {user.lastName}
                 </p>
-
                 <p className="text-muted-foreground text-sm">
                   {user.headline || 'No headline'}
                 </p>
@@ -174,17 +154,12 @@ export function NewConversationDialog({
             </div>
           ))}
         </div>
-
-        {selectedUsers.length > 0 && (
-          <Button
-            onClick={handleCreateGroup}
-            disabled={createGroupConversationMutation.isPending}
-          >
-            {createGroupConversationMutation.isPending
-              ? 'Creating...'
-              : 'Create Group Chat'}
-          </Button>
-        )}
+        <Button
+          onClick={handleCreateGroup}
+          disabled={createGroupMutation.isPending}
+        >
+          {createGroupMutation.isPending ? 'Creating...' : 'Create Group Chat'}
+        </Button>
       </DialogContent>
     </Dialog>
   );
