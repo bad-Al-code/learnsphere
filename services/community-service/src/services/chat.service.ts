@@ -103,12 +103,17 @@ export class ChatService {
       userId
     );
     if (!isParticipant) {
-      throw new ForbiddenError(
-        'You are not authorized to mark messages in this conversation as read.'
-      );
+      throw new ForbiddenError('Access Denied.');
     }
 
-    await MessageRepository.markMessagesAsRead(conversationId, userId);
+    await Promise.all([
+      MessageRepository.markMessagesAsRead(conversationId, userId),
+      ConversationRepository.updateLastReadTimestamp(conversationId, userId),
+    ]);
+
+    logger.info(
+      `User ${userId} marked conversation ${conversationId} as read.`
+    );
 
     if (webSocketService) {
       await webSocketService.broadcastMessagesRead(conversationId, userId);

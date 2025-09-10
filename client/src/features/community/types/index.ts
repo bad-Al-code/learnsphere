@@ -15,6 +15,7 @@ export type Conversation = {
   typingUser?: {
     name: string | null;
   };
+  unreadCount: number | null;
 };
 
 export type Message = {

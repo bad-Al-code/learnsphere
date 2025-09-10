@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, inArray, ne, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { db } from '..';
 import { redisConnection } from '../../config/redis';
@@ -98,8 +98,21 @@ export class ConversationRepository {
         .from(messages)
     );
 
+    const unreadCountSq = db
+      .select({
+        conversationId: messages.conversationId,
+        count: sql<number>`count(*)::int`.as('unread_count'),
+      })
+      .from(messages)
+      .leftJoin(p1, eq(messages.conversationId, p1.conversationId))
+      .where(
+        and(eq(p1.userId, userId), gt(messages.createdAt, p1.lastReadTimestamp))
+      )
+      .groupBy(messages.conversationId)
+      .as('unread_count_sq');
+
     const conversationsResult = await db
-      .with(lastMessageSubquery)
+      .with(lastMessageSubquery, unreadCountSq)
       .select({
         id: conversations.id,
         type: conversations.type,
@@ -126,6 +139,10 @@ export class ConversationRepository {
         and(eq(conversations.id, p2.conversationId), ne(p2.userId, userId))
       )
       .leftJoin(otherUser, eq(p2.userId, otherUser.id))
+      .leftJoin(
+        unreadCountSq,
+        eq(conversations.id, unreadCountSq.conversationId)
+      )
       .where(eq(p1.userId, userId))
       .orderBy(
         desc(
@@ -160,6 +177,26 @@ export class ConversationRepository {
     );
 
     return enrichedConversation;
+  }
+
+  /**
+   * Updates the lastReadTimestamp for a user in a specific conversation to the current time.
+   * @param conversationId The ID of the conversation.
+   * @param userId The ID of the user.
+   */
+  public static async updateLastReadTimestamp(
+    conversationId: string,
+    userId: string
+  ): Promise<void> {
+    await db
+      .update(conversationParticipants)
+      .set({ lastReadTimestamp: new Date() })
+      .where(
+        and(
+          eq(conversationParticipants.conversationId, conversationId),
+          eq(conversationParticipants.userId, userId)
+        )
+      );
   }
 
   /**

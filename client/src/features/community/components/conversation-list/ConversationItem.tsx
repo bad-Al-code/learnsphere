@@ -26,6 +26,8 @@ export function ConversationItem({
       })
     : '';
 
+  console.log(conversation);
+
   return (
     <div
       onClick={() => onSelect(conversation)}
@@ -65,6 +67,12 @@ export function ConversationItem({
         <p className="text-muted-foreground text-xs whitespace-nowrap">
           {formattedTimestamp}
         </p>
+
+        {conversation.unreadCount && conversation.unreadCount > 0 && (
+          <span className="bg-primary text-primary-foreground mt-1 ml-auto flex h-5 w-5 items-center justify-center rounded-full border text-xs">
+            {conversation.unreadCount}
+          </span>
+        )}
       </div>
     </div>
   );
