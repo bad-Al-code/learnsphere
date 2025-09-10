@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn, getInitials } from '@/lib/utils';
 import { formatDistanceToNowStrict } from 'date-fns';
+import { Users } from 'lucide-react';
 import { Conversation } from '../../types';
 
 interface ConversationItemProps {
@@ -17,9 +18,15 @@ export function ConversationItem({
   isSelected,
   onSelect,
 }: ConversationItemProps) {
-  const displayName =
-    conversation.otherParticipant?.name || conversation.name || 'Conversation';
-  const initials = getInitials(displayName);
+  const isGroup = conversation.type === 'group';
+  const displayName = isGroup
+    ? conversation.name
+    : conversation.otherParticipant?.name || 'Conversation';
+  const displayInitials = getInitials(displayName);
+  const displayAvatar = isGroup
+    ? null
+    : conversation.otherParticipant?.avatarUrl;
+
   const formattedTimestamp = conversation.lastMessageTimestamp
     ? formatDistanceToNowStrict(new Date(conversation.lastMessageTimestamp), {
         addSuffix: true,
@@ -36,13 +43,13 @@ export function ConversationItem({
     >
       <div className="relative">
         <Avatar>
-          <AvatarImage
-            src={conversation.otherParticipant?.avatarUrl || undefined}
-          />
-          <AvatarFallback>{initials}</AvatarFallback>
+          <AvatarImage src={displayAvatar || undefined} />
+          <AvatarFallback>
+            {isGroup ? <Users className="h-5 w-5" /> : displayInitials}
+          </AvatarFallback>
         </Avatar>
 
-        {conversation.otherParticipant?.status && (
+        {!isGroup && conversation.otherParticipant?.status && (
           <span
             className={cn(
               'border-background absolute right-0 bottom-0 block h-2.5 w-2.5 rounded-full border-2',

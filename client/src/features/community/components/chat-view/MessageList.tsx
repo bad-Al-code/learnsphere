@@ -2,14 +2,15 @@
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useRef } from 'react';
-import { Message } from '../../types';
+import { Conversation, Message } from '../../types';
 import { MessageItem } from './MessageItem';
 
 interface MessageListProps {
   messages: Message[];
+  conversationType: Conversation['type'];
 }
 
-export function MessageList({ messages }: MessageListProps) {
+export function MessageList({ messages, conversationType }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -20,7 +21,11 @@ export function MessageList({ messages }: MessageListProps) {
     <div className="flex-1 overflow-y-auto p-4">
       <div className="space-y-4">
         {messages.map((msg) => (
-          <MessageItem key={msg.id} message={msg} />
+          <MessageItem
+            key={msg.id}
+            message={msg}
+            conversationType={conversationType}
+          />
         ))}
 
         <div ref={messagesEndRef} />

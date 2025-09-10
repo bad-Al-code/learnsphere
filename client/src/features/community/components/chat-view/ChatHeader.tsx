@@ -9,27 +9,37 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { getInitials } from '@/lib/utils';
-import { MoreHorizontal, Phone, Video } from 'lucide-react';
+import { MoreHorizontal, Phone, Users, Video } from 'lucide-react';
 import { Conversation } from '../../types';
 
 interface ChatHeaderProps {
   typingUser?: { name: string | null };
-  user: Conversation['otherParticipant'];
+  conversation: Conversation | null;
 }
 
-export function ChatHeader({ user, typingUser }: ChatHeaderProps) {
-  if (!user) return <ChatHeaderSkeleton />;
+export function ChatHeader({ conversation, typingUser }: ChatHeaderProps) {
+  if (!conversation) return <ChatHeaderSkeleton />;
+
+  const isGroup = conversation.type === 'group';
+  const user = conversation.otherParticipant;
+  const displayName = isGroup ? conversation.name : user?.name;
 
   return (
     <div className="flex items-center gap-3 border-b px-2">
       <div className="relative">
         <Avatar>
-          <AvatarImage src={user?.avatarUrl || undefined} />
-          <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+          <AvatarImage
+            src={!isGroup ? user?.avatarUrl || undefined : undefined}
+          />
+          <AvatarFallback>
+            {isGroup ? <Users className="h-5 w-5" /> : getInitials(user?.name)}
+          </AvatarFallback>
         </Avatar>
       </div>
+
       <div className="">
-        <p className="font-semibold">{user.name}</p>
+        <p className="font-semibold">{displayName}</p>
+
         {typingUser ? (
           <span className="text-muted-foreground italic">Typing...</span>
         ) : (

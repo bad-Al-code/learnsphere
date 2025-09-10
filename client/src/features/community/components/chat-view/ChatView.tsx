@@ -35,7 +35,6 @@ export function ChatView({
   }
 
   const user = conversation?.otherParticipant;
-  const typingUser = conversation?.typingUser;
 
   if (!user) {
     return (
@@ -47,10 +46,15 @@ export function ChatView({
 
   return (
     <div className="flex h-full flex-col">
-      <ChatHeader user={user} typingUser={typingUser} />
-      <MessageList messages={messages} />
+      <ChatHeader
+        conversation={conversation}
+        typingUser={conversation.typingUser}
+      />
+      <MessageList messages={messages} conversationType={conversation.type} />
       <MessageInput
-        recipientName={user.name || 'user'}
+        recipientName={
+          conversation.name || conversation.otherParticipant?.name || 'user'
+        }
         onSend={onSend}
         onTyping={onTyping}
       />
