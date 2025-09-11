@@ -80,7 +80,7 @@ export function ChatInterface() {
   }, [selectedConversation?.id]);
 
   return (
-    <Card className="h-[calc(100vh-4rem)] w-full overflow-hidden pt-2 pb-0 lg:h-[calc(93vh)]">
+    <Card className="h-[calc(100vh-4.5rem)] w-full overflow-hidden pt-2 pb-0 lg:h-[calc(100vh-4.5rem)]">
       <ResizablePanelGroup direction="horizontal" className="h-full">
         <ResizablePanel defaultSize={30} minSize={0} maxSize={100}>
           <ConversationList

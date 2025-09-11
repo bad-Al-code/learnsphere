@@ -110,9 +110,7 @@ export function MessageInput({
                 <Plus className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>Attach File</p>
-            </TooltipContent>
+            <TooltipContent>Attach File</TooltipContent>
           </Tooltip>
           <input
             type="file"

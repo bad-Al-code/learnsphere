@@ -55,6 +55,8 @@ export function ChatView({
         recipientName={
           conversation.name || conversation.otherParticipant?.name || 'user'
         }
+        conversationId={conversation.id}
+        senderId={user.id}
         onSend={onSend}
         onTyping={onTyping}
       />
