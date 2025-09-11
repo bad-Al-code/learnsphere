@@ -17,6 +17,7 @@ export type Conversation = {
   };
   unreadCount: number | null;
   participants?: { userId: string }[];
+  createdById: string | null | undefined;
 };
 
 export type Participant = {

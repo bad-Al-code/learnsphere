@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
+import { useSessionStore } from '@/stores/session-store';
 import { useState } from 'react';
 import { Conversation, Message } from '../../types';
 import { ChatHeader, ChatHeaderSkeleton } from './ChatHeader';
@@ -33,6 +34,7 @@ export function ChatView({
   onReaction,
 }: ChatViewProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const currentUser = useSessionStore((state) => state.user);
 
   if (isLoading) {
     return <ChatViewSkeleton />;
@@ -99,6 +101,8 @@ export function ChatView({
           <ParticipantSidebar
             conversationId={conversation!.id}
             onClose={() => setIsSidebarOpen(false)}
+            createdById={conversation.createdById}
+            currentUserId={currentUser!.userId}
           />
         </div>
       )}

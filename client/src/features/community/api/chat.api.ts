@@ -98,3 +98,22 @@ export async function getConversationParticipants(
 
   return response.data;
 }
+
+export async function addParticipantToGroup(
+  conversationId: string,
+  userId: string
+): Promise<void> {
+  await communityService.post(
+    `/api/community/conversations/${conversationId}/participants`,
+    { userId }
+  );
+}
+
+export async function removeParticipantFromGroup(
+  conversationId: string,
+  userId: string
+): Promise<void> {
+  await communityService.delete(
+    `/api/community/conversations/${conversationId}/participants/${userId}`
+  );
+}
