@@ -4,6 +4,7 @@ import { redisConnection } from '../config/redis';
 import { ConversationRepository, MessageRepository } from '../db/repositories';
 import { NewConversation } from '../db/schema';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
+import { GroupUpdatedPublisher } from '../events/publisher';
 import { ChatCacheService } from './cache.service';
 import { ONLINE_USERS_KEY } from './presence.service';
 import { UserService } from './user.service';
@@ -196,6 +197,7 @@ export class ChatService {
     const conversationData: NewConversation = {
       type: 'group',
       name,
+      createdById: creatorId,
     };
     const newConversation = await ConversationRepository.create(
       conversationData,
@@ -268,5 +270,79 @@ export class ChatService {
     }
 
     return ConversationRepository.findParticipantsWithDetails(conversationId);
+  }
+
+  /**
+   * Add a participant to a group conversation.
+   * @throws ForbiddenError if user is not group creator
+   */
+  public static async addParticipantToGroup(
+    conversationId: string,
+    userIdToAdd: string,
+    requesterId: string
+  ) {
+    const conversation = await ConversationRepository.findById(conversationId);
+
+    if (
+      !conversation ||
+      conversation.type !== 'group' ||
+      conversation.createdById !== requesterId
+    ) {
+      throw new ForbiddenError(
+        'You are not authorized to add members to this group.'
+      );
+    }
+
+    await ConversationRepository.addParticipant(conversationId, userIdToAdd);
+
+    try {
+      const publisher = new GroupUpdatedPublisher();
+
+      await publisher.publish({ conversationId });
+    } catch (err) {
+      logger.error('Failed to publish group update event', err);
+    }
+  }
+
+  /**
+   * Remove a participant from a group conversation.
+   * @throws ForbiddenError if user is not group creator
+   * @throws BadRequestError if user tries to remove themselves
+   */
+  public static async removeParticipantFromGroup(
+    conversationId: string,
+    userIdToRemove: string,
+    requesterId: string
+  ) {
+    const conversation = await ConversationRepository.findById(conversationId);
+
+    if (
+      !conversation ||
+      conversation.type !== 'group' ||
+      conversation.createdById !== requesterId
+    ) {
+      throw new ForbiddenError(
+        'You are not authorized to remove members from this group.'
+      );
+    }
+
+    if (userIdToRemove === requesterId) {
+      throw new BadRequestError(
+        'You cannot remove yourself from a group you created.'
+      );
+    }
+
+    await ConversationRepository.removeParticipant(
+      conversationId,
+      userIdToRemove
+    );
+
+    try {
+      const publisher = new GroupUpdatedPublisher();
+
+      await publisher.publish({ conversationId });
+    } catch (err) {
+      logger.error('Failed to publish group update event', err);
+    }
   }
 }

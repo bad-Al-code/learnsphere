@@ -52,3 +52,14 @@ interface MessagesReadEvent {
 export class MessagesReadPublisher extends Publisher<MessagesReadEvent> {
   readonly topic: 'messages.read' = 'messages.read' as const;
 }
+
+interface GroupUpdatedEvent {
+  topic: 'group.updated';
+  data: {
+    conversationId: string;
+  };
+}
+
+export class GroupUpdatedPublisher extends Publisher<GroupUpdatedEvent> {
+  readonly topic: 'group.updated' = 'group.updated' as const;
+}

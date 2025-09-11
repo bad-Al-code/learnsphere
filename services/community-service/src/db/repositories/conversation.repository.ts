@@ -11,6 +11,21 @@ import {
 
 export class ConversationRepository {
   /**
+   * Find a conversation by ID.
+   * @param conversationId - Conversation UUID
+   * @returns Conversation object or null
+   */
+  public static async findById(conversationId: string) {
+    const result = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.id, conversationId))
+      .limit(1);
+
+    return result.length ? result[0] : null;
+  }
+
+  /**
    * Creates a new conversation and its initial participants within a transaction.
    * @param data The data for the new conversation.
    * @param participantIds An array of user IDs to add to the conversation.
@@ -257,5 +272,39 @@ export class ConversationRepository {
       .select()
       .from(conversationParticipants)
       .where(inArray(conversationParticipants.conversationId, conversationIds));
+  }
+
+  /**
+   * Add a participant to a conversation.
+   * @param conversationId - Conversation UUID
+   * @param userId - User UUID
+   */
+  public static async addParticipant(
+    conversationId: string,
+    userId: string
+  ): Promise<void> {
+    await db
+      .insert(conversationParticipants)
+      .values({ conversationId, userId })
+      .onConflictDoNothing();
+  }
+
+  /**
+   * Remove a participant from a conversation.
+   * @param conversationId - Conversation UUID
+   * @param userId - User UUID
+   */
+  public static async removeParticipant(
+    conversationId: string,
+    userId: string
+  ): Promise<void> {
+    await db
+      .delete(conversationParticipants)
+      .where(
+        and(
+          eq(conversationParticipants.conversationId, conversationId),
+          eq(conversationParticipants.userId, userId)
+        )
+      );
   }
 }

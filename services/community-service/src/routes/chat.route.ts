@@ -174,4 +174,67 @@ router.post('/conversations/:id/read', ChatController.markAsRead);
  */
 router.get('/conversations/:id/participants', ChatController.getParticipants);
 
+/**
+ * @openapi
+ * /conversations/{id}/participants:
+ *   post:
+ *     summary: Add a participant to a group conversation
+ *     tags: [Chat]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: Conversation ID
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: ID of the user to add
+ *     responses:
+ *       200:
+ *         description: User added to group
+ *       403:
+ *         description: Forbidden
+ */
+router.post('/conversations/:id/participants', ChatController.addParticipant);
+
+/**
+ * @openapi
+ * /conversations/{id}/participants/{userId}:
+ *   delete:
+ *     summary: Remove a participant from a group conversation
+ *     tags: [Chat]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: Conversation ID
+ *         schema:
+ *           type: string
+ *       - name: userId
+ *         in: path
+ *         required: true
+ *         description: User ID to remove
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User removed from group
+ *       400:
+ *         description: Cannot remove yourself
+ *       403:
+ *         description: Forbidden
+ */
+router.delete(
+  '/conversations/:id/participants/:userId',
+  ChatController.removeParticipant
+);
+
 export { router as chatRouter };

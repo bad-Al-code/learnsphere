@@ -131,4 +131,47 @@ export class ChatController {
       next(error);
     }
   }
+
+  public static async addParticipant(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id: conversationId } = req.params;
+      const { userId: userIdToAdd } = req.body;
+      const requesterId = req.currentUser!.id;
+
+      await ChatService.addParticipantToGroup(
+        conversationId,
+        userIdToAdd,
+        requesterId
+      );
+
+      res.status(StatusCodes.OK).json({ message: 'User added to group.' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async removeParticipant(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id: conversationId, userId: userIdToRemove } = req.params;
+      const requesterId = req.currentUser!.id;
+
+      await ChatService.removeParticipantFromGroup(
+        conversationId,
+        userIdToRemove,
+        requesterId
+      );
+
+      res.status(StatusCodes.OK).json({ message: 'User removed from group.' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
