@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env';
 import { swaggerSpec } from './config/swagger';
+import { correlationIdMiddleware } from './middlewares/correlation-id.middleware';
 import { currentUser } from './middlewares/current-user';
 import { errorHandler } from './middlewares/error-handler';
 import { httpLogger } from './middlewares/http-logger';
@@ -26,6 +27,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(express.json());
 app.use(helmet());
+app.use(correlationIdMiddleware);
 app.use(httpLogger);
 app.use(metricsMiddleware);
 app.use(cookieParser(env.COOKIE_PARSER_SECRET));

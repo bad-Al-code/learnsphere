@@ -11,15 +11,35 @@ export const errorHandler = (
   _next: NextFunction
 ) => {
   if (err instanceof CustomError) {
+    logger.warn('CustomError handled %o', {
+      correlationId: req.correlationId,
+      error: {
+        name: err.name,
+        message: err.message,
+        statusCode: err.statusCode,
+        fields: err.serializeErrors(),
+      },
+      requests: {
+        method: req.method,
+        url: req.originalUrl,
+      },
+    });
+
     res.status(err.statusCode).json({ errors: err.serializeErrors() });
     return;
   }
 
-  logger.warn('An unexpected error occured: %o', {
-    error: err.message,
-    stack: err.stack,
-    path: req.path,
-    method: req.method,
+  logger.error('An unexpected error occurred %o', {
+    correlationId: req.correlationId,
+    error: {
+      name: err.name,
+      message: err.message,
+      stack: err.stack,
+    },
+    request: {
+      method: req.method,
+      url: req.originalUrl,
+    },
   });
 
   res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
