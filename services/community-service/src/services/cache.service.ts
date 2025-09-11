@@ -7,8 +7,6 @@ const CONVERSATION_LIST_KEY = (userId: string) =>
 const CONVERSATION_LIST_TTL = 300; // 5 min
 
 export class ChatCacheService {
-  private static client = redisConnection.getClient();
-
   /**
    * Retrieves a user's conversation list from the cache.
    * @param userId The ID of the user.
@@ -18,7 +16,9 @@ export class ChatCacheService {
     userId: string
   ): Promise<Conversation[] | null> {
     try {
-      const data = await this.client.get(CONVERSATION_LIST_KEY(userId));
+      const client = redisConnection.getClient();
+
+      const data = await client.get(CONVERSATION_LIST_KEY(userId));
       if (data) {
         logger.debug(`Cache HIT for conversations: ${userId}`);
 
@@ -48,7 +48,9 @@ export class ChatCacheService {
     conversations: any[]
   ): Promise<void> {
     try {
-      await this.client.set(
+      const client = redisConnection.getClient();
+
+      await client.set(
         CONVERSATION_LIST_KEY(userId),
         JSON.stringify(conversations),
         { EX: CONVERSATION_LIST_TTL }
@@ -69,7 +71,9 @@ export class ChatCacheService {
    */
   public static async invalidateConversations(userId: string): Promise<void> {
     try {
-      await this.client.del(CONVERSATION_LIST_KEY(userId));
+      const client = redisConnection.getClient();
+
+      await client.del(CONVERSATION_LIST_KEY(userId));
 
       logger.info(`Cache INVALIDATED for conversations: ${userId}`);
     } catch (error) {
