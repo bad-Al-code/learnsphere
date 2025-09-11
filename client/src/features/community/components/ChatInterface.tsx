@@ -11,7 +11,7 @@ import { markConversationAsRead } from '../api/chat.api';
 import { useChatWebSocket } from '../hooks/useChatWebSocket';
 import { useConversations } from '../hooks/useConversations';
 import { useMessages } from '../hooks/useMessages';
-import { Conversation } from '../types';
+import { Conversation, Message } from '../types';
 import { ChatView, ChatViewSkeleton } from './chat-view/ChatView';
 import {
   ConversationList,
@@ -27,6 +27,7 @@ export function ChatInterface() {
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
   >(null);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
   const selectedConversation = useMemo(() => {
     if (!selectedConversationId || !conversations) {
@@ -51,12 +52,18 @@ export function ChatInterface() {
 
   const messages = messagesData?.pages.flat().reverse() || [];
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = (content: string, replyingToMessageId?: string) => {
     if (selectedConversation) {
       sendEvent({
         type: 'DIRECT_MESSAGE',
-        payload: { conversationId: selectedConversation.id, content },
+        payload: {
+          conversationId: selectedConversation.id,
+          content,
+          replyingToMessageId,
+        },
       });
+
+      setReplyingTo(null);
     }
   };
 
@@ -73,6 +80,11 @@ export function ChatInterface() {
     }
   };
 
+  const handleSelectConversation = (convo: Conversation) => {
+    setReplyingTo(null);
+    setSelectedConversationId(convo.id);
+  };
+
   useEffect(() => {
     if (selectedConversation?.id) {
       markConversationAsRead(selectedConversation.id);
@@ -86,7 +98,7 @@ export function ChatInterface() {
           <ConversationList
             conversations={conversations || []}
             selectedId={selectedConversation?.id || null}
-            onSelect={(convo) => setSelectedConversationId(convo.id)}
+            onSelect={handleSelectConversation}
             onConversationCreated={handleConversationCreated}
             isLoading={isLoadingConversations}
             isError={conversationLoadingError}
@@ -102,6 +114,8 @@ export function ChatInterface() {
             onTyping={handleTyping}
             isLoading={isLoadingMessages && messages.length === 0}
             isError={chatViewError}
+            replyingTo={replyingTo}
+            setReplyingTo={setReplyingTo}
           />
         </ResizablePanel>
       </ResizablePanelGroup>

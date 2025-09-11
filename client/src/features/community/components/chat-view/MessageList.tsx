@@ -8,9 +8,14 @@ import { MessageItem } from './MessageItem';
 interface MessageListProps {
   messages: Message[];
   conversationType: Conversation['type'];
+  onSetReply: (message: Message) => void;
 }
 
-export function MessageList({ messages, conversationType }: MessageListProps) {
+export function MessageList({
+  messages,
+  conversationType,
+  onSetReply,
+}: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -25,6 +30,7 @@ export function MessageList({ messages, conversationType }: MessageListProps) {
             key={msg.id}
             message={msg}
             conversationType={conversationType}
+            onSetReply={onSetReply}
           />
         ))}
 

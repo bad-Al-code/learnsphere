@@ -4,14 +4,17 @@ import { Conversation, Message } from '../../types';
 import { ChatHeader, ChatHeaderSkeleton } from './ChatHeader';
 import { MessageInput, MessageInputSkeleton } from './MessageInput';
 import { MessageList, MessageListSkeleton } from './MessageList';
+import { ReplyPreview } from './ReplyPreview';
 
 interface ChatViewProps {
   conversation: Conversation | null;
   messages: Message[];
-  onSend: (content: string) => void;
+  onSend: (content: string, replyingToMessageId?: string) => void;
   onTyping: (isTyping: boolean) => void;
   isLoading: boolean;
   isError: boolean;
+  replyingTo: Message | null;
+  setReplyingTo: (message: Message | null) => void;
 }
 
 export function ChatView({
@@ -21,6 +24,8 @@ export function ChatView({
   onTyping,
   isLoading,
   isError,
+  replyingTo,
+  setReplyingTo,
 }: ChatViewProps) {
   if (isLoading) {
     return <ChatViewSkeleton />;
@@ -50,7 +55,19 @@ export function ChatView({
         conversation={conversation}
         typingUser={conversation.typingUser}
       />
-      <MessageList messages={messages} conversationType={conversation.type} />
+      <MessageList
+        messages={messages}
+        conversationType={conversation.type}
+        onSetReply={setReplyingTo}
+      />
+
+      {replyingTo && (
+        <ReplyPreview
+          message={replyingTo}
+          onCancel={() => setReplyingTo(null)}
+        />
+      )}
+
       <MessageInput
         recipientName={
           conversation.name || conversation.otherParticipant?.name || 'user'
