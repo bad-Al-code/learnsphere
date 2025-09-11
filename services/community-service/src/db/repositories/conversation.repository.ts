@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, inArray, ne, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { db } from '..';
 import {
@@ -111,32 +111,13 @@ export class ConversationRepository {
         .from(messages)
     );
 
-    const unreadCountSq = db
-      .select({
-        conversationId: messages.conversationId,
-        count: sql<number>`count(*)::int`.as('unread_count'),
-      })
-      .from(messages)
-      .innerJoin(p1, eq(messages.conversationId, p1.conversationId))
-      .where(
-        and(
-          eq(p1.userId, userId),
-          ne(messages.senderId, userId),
-          gt(
-            messages.createdAt,
-            sql`COALESCE(${p1.lastReadTimestamp}, '1970-01-01')`
-          )
-        )
-      )
-      .groupBy(messages.conversationId)
-      .as('unread_count_sq');
-
     const conversationsResult = await db
       .with(lastMessageSubquery)
       .select({
         id: conversations.id,
         type: conversations.type,
         name: conversations.name,
+ createdById: conversations.createdById,
         lastMessage: lastMessageSubquery.content,
         lastMessageTimestamp: lastMessageSubquery.createdAt,
         otherParticipant: {

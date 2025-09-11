@@ -190,26 +190,54 @@ export class ChatService {
       throw new BadRequestError('Group chats must have at least two members.');
     }
 
+    try {
+      await Promise.all(
+        allParticipantIds.map((id) => UserService.findOrFetchUser(id))
+      );
+    } catch (error) {
+      logger.error('Failed to find or fetch one or more users for new group', {
+        participantIds: allParticipantIds,
+        error,
+      });
+
+      throw new BadRequestError(
+        'One or more users could not be found and a group could not be created.'
+      );
+    }
+
     logger.info(
       `Creating group chat "${name}" with ${allParticipantIds.length} members.`
     );
 
-    const conversationData: NewConversation = {
-      type: 'group',
-      name,
-      createdById: creatorId,
-    };
-    const newConversation = await ConversationRepository.create(
-      conversationData,
-      allParticipantIds
+    logger.info(
+      `Creating group chat "${name}" with ${allParticipantIds.length} members.`
     );
 
-    const invalidationPromises = allParticipantIds.map((id) =>
-      ChatCacheService.invalidateConversations(id)
-    );
-    await Promise.all(invalidationPromises);
+    try {
+      const conversationData: NewConversation = {
+        type: 'group',
+        name,
+        createdById: creatorId,
+      };
+      const newConversation = await ConversationRepository.create(
+        conversationData,
+        allParticipantIds
+      );
 
-    return newConversation;
+      const invalidationPromises = allParticipantIds.map((id) =>
+        ChatCacheService.invalidateConversations(id)
+      );
+      await Promise.all(invalidationPromises);
+
+      return newConversation;
+    } catch (error: any) {
+      if (error.code === '23505') {
+        throw new BadRequestError(
+          `A group with the name "${name}" already exists.`
+        );
+      }
+      throw error;
+    }
   }
 
   /**

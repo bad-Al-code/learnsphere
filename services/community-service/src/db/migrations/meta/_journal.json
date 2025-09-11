@@ -43,6 +43,13 @@
       "when": 1757607115843,
       "tag": "0005_outgoing_captain_flint",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1757612644471,
+      "tag": "0006_rare_raza",
+      "breakpoints": true
     }
   ]
 }

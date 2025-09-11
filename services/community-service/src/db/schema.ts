@@ -6,6 +6,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  unique,
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
@@ -23,16 +24,20 @@ export const conversationTypeEnum = pgEnum('conversation_type', [
   'group',
 ]);
 
-export const conversations = pgTable('conversations', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  type: conversationTypeEnum('type').notNull(),
-  name: varchar('name', { length: 255 }),
-  createdById: uuid('created_by_id').references(() => users.id, {
-    onDelete: 'set null',
-  }),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+export const conversations = pgTable(
+  'conversations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    type: conversationTypeEnum('type').notNull(),
+    name: varchar('name', { length: 255 }),
+    createdById: uuid('created_by_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [unique('creator_name_unique').on(table.createdById, table.name)]
+);
 
 export const conversationParticipants = pgTable(
   'conversation_participants',

@@ -1,0 +1,1 @@
+ALTER TABLE "conversations" ADD CONSTRAINT "creator_name_unique" UNIQUE("created_by_id","name");
