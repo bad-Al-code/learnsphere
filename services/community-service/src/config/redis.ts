@@ -1,5 +1,7 @@
 import { createClient, RedisClientType } from 'redis';
+
 import logger from './logger';
+import { healthState } from './health-state';
 
 class RedisConnection {
   private client!: RedisClientType;
@@ -18,7 +20,15 @@ class RedisConnection {
     this.publisher = this.client.duplicate();
     this.subscriber = this.client.duplicate();
 
-    this.client.on('error', (err) => logger.error('Redis Client Error', err));
+    this.client.on('error', (err) => {
+      logger.error('Redis Client Error', err);
+      healthState.set('redis', false, err.message);
+    });
+
+    this.client.on('ready', () => {
+      healthState.set('redis', true);
+      logger.info('Redis connected successfully and ready to use.');
+    });
 
     await Promise.all([
       this.client.connect(),

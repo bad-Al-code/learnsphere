@@ -1,7 +1,7 @@
 import amqp, { Channel, ChannelModel } from 'amqplib';
-import logger from '../config/logger';
-import { healthState } from '../config/health-state';
 import { env } from '../config/env';
+import { healthState } from '../config/health-state';
+import logger from '../config/logger';
 
 const MAX_RETRIES = 10;
 const RETRY_DELAY_MS = 5000;
@@ -13,6 +13,7 @@ class RabbitMQConnection {
   public async connect(): Promise<void> {
     if (this.connection) {
       logger.info('RabbitMQ already connected.');
+
       return;
     }
 
@@ -47,7 +48,7 @@ class RabbitMQConnection {
         return;
       } catch (err) {
         retries++;
-        healthState.set('rabbitmq', false);
+        healthState.set('rabbitmq', false, (err as Error).message);
 
         logger.error(
           `Failed to connect to RabbitMQ. Retrying in ${

@@ -13,12 +13,14 @@ export const pool = new Pool({
 
 pool.on('connect', () => {
   logger.info(`Database connected successfully`);
+
   healthState.set('db', true);
 });
 
 pool.on('error', (err) => {
   logger.error('Database connection error', { error: err.stack });
-  healthState.set('db', false);
+
+  healthState.set('db', false, err.message);
   // process.exit(1);
 });
 
@@ -34,9 +36,10 @@ export const checkDatabaseConnection = async () => {
 
     healthState.set('db', true);
   } catch (error) {
-    logger.info(`Failed to verify Database connection`);
+    logger.info('Failed to verify Database connection %o', { error });
 
-    healthState.set('db', false);
+    const err = error as Error;
+    healthState.set('db', false, err.message);
 
     throw error;
   }
