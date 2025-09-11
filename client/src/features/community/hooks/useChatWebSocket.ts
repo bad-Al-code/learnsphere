@@ -133,16 +133,21 @@ export function useChatWebSocket(selectedConversationId: string | null) {
     };
   }, [queryClient]);
 
-  const sendEvent = (event: ClientToServerMessage) => {
+  const sendEvent = (
+    event: ClientToServerMessage,
+    replyingTo?: Message | null
+  ) => {
     if (!currentUser) {
       toast.error('You must be logged in to perform this action.');
       return;
     }
+
     if (ws.current?.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify(event));
 
       if (event.type === 'DIRECT_MESSAGE') {
         const { conversationId, content, replyingToMessageId } = event.payload;
+
         const optimisticMessage: Message = {
           id: uuidv4(),
           conversationId: conversationId,
@@ -150,7 +155,7 @@ export function useChatWebSocket(selectedConversationId: string | null) {
           content: content,
           createdAt: new Date().toISOString(),
           readAt: null,
-          replyingTo: null,
+          replyingTo: replyingTo || null,
           sender: {
             id: currentUser.userId,
             name: currentUser.firstName || 'You',
@@ -159,7 +164,6 @@ export function useChatWebSocket(selectedConversationId: string | null) {
         };
         // TODO
         if (replyingToMessageId) {
-          // This is an advanced optimization we can add later. For now, null is fine.
         }
 
         queryClient.setQueryData(

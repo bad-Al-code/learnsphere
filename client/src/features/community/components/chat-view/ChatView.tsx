@@ -9,7 +9,7 @@ import { ReplyPreview } from './ReplyPreview';
 interface ChatViewProps {
   conversation: Conversation | null;
   messages: Message[];
-  onSend: (content: string, replyingToMessageId?: string) => void;
+  onSend: (content: string, replyingToMessage?: Message | null) => void;
   onTyping: (isTyping: boolean) => void;
   isLoading: boolean;
   isError: boolean;
@@ -74,7 +74,7 @@ export function ChatView({
         }
         conversationId={conversation.id}
         senderId={user.id}
-        onSend={onSend}
+        onSend={(content) => onSend(content, replyingTo)}
         onTyping={onTyping}
       />
     </div>

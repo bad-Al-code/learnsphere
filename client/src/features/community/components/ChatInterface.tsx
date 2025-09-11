@@ -52,16 +52,22 @@ export function ChatInterface() {
 
   const messages = messagesData?.pages.flat().reverse() || [];
 
-  const handleSendMessage = (content: string, replyingToMessageId?: string) => {
+  const handleSendMessage = (
+    content: string,
+    replyingToMessage?: Message | null
+  ) => {
     if (selectedConversation) {
-      sendEvent({
-        type: 'DIRECT_MESSAGE',
-        payload: {
-          conversationId: selectedConversation.id,
-          content,
-          replyingToMessageId,
+      sendEvent(
+        {
+          type: 'DIRECT_MESSAGE',
+          payload: {
+            conversationId: selectedConversation.id,
+            content,
+            replyingToMessageId: replyingToMessage?.id,
+          },
         },
-      });
+        replyingToMessage
+      );
 
       setReplyingTo(null);
     }

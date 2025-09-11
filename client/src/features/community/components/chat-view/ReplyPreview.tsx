@@ -12,7 +12,7 @@ interface ReplyPreviewProps {
 export function ReplyPreview({ message, onCancel }: ReplyPreviewProps) {
   return (
     <div className="bg-muted border-t p-2">
-      <div className="bg-background/50 border-primary flex items-start justify-between rounded-md border-l-4 p-2">
+      <div className="bg-background border-primary flex items-start justify-between rounded-md border-l-4 p-2">
         <div className="overflow-hidden">
           <p className="text-primary font-semibold">
             {message.sender?.name || 'User'}
