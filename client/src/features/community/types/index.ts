@@ -25,6 +25,12 @@ export type Message = {
   content: string;
   createdAt: string;
   readAt?: string | null;
+  replyingTo: {
+    content: string;
+    sender: {
+      name: string | null;
+    } | null;
+  } | null;
   sender: {
     id: string;
     name: string | null;

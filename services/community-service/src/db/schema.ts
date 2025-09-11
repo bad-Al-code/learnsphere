@@ -1,5 +1,6 @@
 import { relations } from 'drizzle-orm';
 import {
+  jsonb,
   pgEnum,
   pgTable,
   primaryKey,
@@ -54,6 +55,12 @@ export const messages = pgTable('messages', {
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   content: text('content').notNull(),
+  replyingToMessageId: uuid('replying_to_message_id').references(
+    (): any => messages.id,
+    { onDelete: 'set null' }
+  ),
+  reactions: jsonb('reactions').$type<Record<string, string[]>>(),
+
   readAt: timestamp('read_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -90,6 +97,11 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   sender: one(users, {
     fields: [messages.senderId],
     references: [users.id],
+  }),
+  replyingTo: one(messages, {
+    fields: [messages.replyingToMessageId],
+    references: [messages.id],
+    relationName: 'replies',
   }),
 }));
 

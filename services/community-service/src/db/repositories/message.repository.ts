@@ -49,6 +49,15 @@ export class MessageRepository {
             avatarUrl: true,
           },
         },
+        replyingTo: {
+          with: {
+            sender: {
+              columns: {
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
   }

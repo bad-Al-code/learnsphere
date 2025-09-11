@@ -102,6 +102,10 @@ import { z } from 'zod';
  *                   type: string
  *                   minLength: 1
  *                   maxLength: 2000
+ *                 replyingToMessageId:
+ *                   type: string
+ *                   format: uuid
+ *                   nullable: true
  *             - type: object
  *               required: [conversationId]
  *               properties:
@@ -141,8 +145,28 @@ import { z } from 'zod';
  *         recipientId:
  *           type: string
  *           format: uuid
- *           description: ID of the user to start a conversation with
+ *           description: ID of the user to start a direct conversation with
+ *
+ *     CreateGroupConversation:
+ *       type: object
+ *       required:
+ *         - name
+ *         - participantIds
+ *       properties:
+ *         name:
+ *           type: string
+ *           minLength: 1
+ *           maxLength: 100
+ *           description: Group name
+ *         participantIds:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
+ *           minItems: 1
+ *           description: IDs of participants to include in the group
  */
+
 export const getMessagesSchema = z.object({
   params: z.object({
     id: z.uuid('Invalid conversation ID format.'),
@@ -165,6 +189,7 @@ export const clientToServerMessageSchema = z.union([
     payload: z.object({
       conversationId: z.uuid(),
       content: z.string().min(1).max(2000),
+      replyingToMessageId: z.string().uuid().optional(),
     }),
   }),
   z.object({

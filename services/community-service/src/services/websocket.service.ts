@@ -9,7 +9,7 @@ import { env } from '../config/env';
 import logger from '../config/logger';
 import { db } from '../db';
 import { ConversationRepository, MessageRepository } from '../db/repositories';
-import { Message, users } from '../db/schema';
+import { Message, NewMessage, users } from '../db/schema';
 import { MessageSentPublisher } from '../events/publisher';
 import { UserPayload } from '../middlewares/current-user';
 import { clientToServerMessageSchema } from '../schemas/chat.schema';
@@ -179,7 +179,8 @@ export class WebSocketService {
             conversationId: payload.conversationId,
             senderId,
             content: payload.content,
-          });
+            replyingToMessageId: payload.replyingToMessageId,
+          } as NewMessage);
 
           if (!newMessage || !newMessage.sender) {
             throw new Error(
