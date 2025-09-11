@@ -1,7 +1,6 @@
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -10,7 +9,7 @@ import {
 } from '@/components/ui/popover';
 import { cn, getInitials } from '@/lib/utils';
 import { useSessionStore } from '@/stores/session-store';
-import { formatDistanceToNowStrict } from 'date-fns';
+import { format } from 'date-fns';
 import {
   Check,
   CheckCheck,
@@ -87,7 +86,7 @@ export function MessageItem({
 
       <div
         className={cn(
-          'flex items-center gap-2',
+          'flex items-center gap-1',
           isCurrentUser ? 'flex-row-reverse' : 'flex-row'
         )}
       >
@@ -105,7 +104,7 @@ export function MessageItem({
 
           <div
             className={cn(
-              'max-w-md rounded-lg text-sm',
+              'relative max-w-md rounded-lg text-sm',
               !isMedia && 'px-3 py-2',
               isCurrentUser
                 ? 'from-secondary to-muted text-foreground rounded-br-none bg-gradient-to-r'
@@ -141,30 +140,43 @@ export function MessageItem({
               <p className="whitespace-pre-wrap">{contentData as string}</p>
             )}
 
-            <div className="mt-1 flex items-center justify-end gap-1.5 text-xs opacity-80">
-              <span>
-                {formatDistanceToNowStrict(new Date(message.createdAt), {
-                  addSuffix: true,
-                })}
-              </span>
+            <div className="mt-1 flex items-center justify-end gap-1 text-[11px] opacity-70">
+              <span>{format(new Date(message.createdAt), 'h:mm a')}</span>
+
               {isCurrentUser && (
                 <>
                   {message.readAt ? (
-                    <CheckCheck className="h-4 w-4 text-blue-400" />
+                    <CheckCheck className="h-3 w-3 text-blue-400" />
                   ) : (
-                    <Check className="h-4 w-4" />
+                    <Check className="h-3 w-3" />
                   )}
                 </>
               )}
             </div>
           </div>
+
+          {reactions.length > 0 && (
+            <div
+              className={cn(
+                'mt-0.5 flex gap-1',
+                isCurrentUser ? 'justify-end pr-2' : 'justify-start pl-2'
+              )}
+            >
+              {reactions.map(([emoji]) => (
+                <div
+                  key={emoji}
+                  className="bg-muted rounded-full px-2 py-0.5 text-sm shadow-md"
+                >
+                  {emoji}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* --- Reaction + Reply Controls --- */}
         <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
           {isCurrentUser ? (
             <>
-              {/* Smile first */}
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-6 w-6">
@@ -177,6 +189,7 @@ export function MessageItem({
                   />
                 </PopoverContent>
               </Popover>
+
               <Button
                 variant="ghost"
                 size="icon"
@@ -188,7 +201,6 @@ export function MessageItem({
             </>
           ) : (
             <>
-              {/* Reply first */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -197,6 +209,7 @@ export function MessageItem({
               >
                 <Reply className="h-4 w-4" />
               </Button>
+
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-6 w-6">
@@ -212,21 +225,6 @@ export function MessageItem({
             </>
           )}
         </div>
-
-        {reactions.length > 0 && (
-          <div className="mt-1 flex items-center gap-1">
-            {reactions.map(([emoji, userIds]) => (
-              <Badge
-                key={emoji}
-                variant="secondary"
-                className="cursor-pointer gap-1 pr-2"
-              >
-                <span>{emoji}</span>
-                <span>{userIds.length}</span>
-              </Badge>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
