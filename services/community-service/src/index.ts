@@ -1,6 +1,3 @@
-import { initializeTracing } from './config/tracing';
-initializeTracing('community-service');
-
 import { createServer } from 'node:http';
 import { app } from './app';
 import { env } from './config/env';

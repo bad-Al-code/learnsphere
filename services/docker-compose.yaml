@@ -117,14 +117,6 @@ services:
     volumes:
       - community-db-data:/var/lib/postgresql/data
 
-  jaeger:
-    image: jaegertracing/all-in-one:1.73.0
-    container_name: learnsphere-jaeger
-    ports:
-      - "6831:6831/udp" # Agent Port
-      - "16686:16686" # UI Port
-      - "14268:14268" # Collector Port
-
 volumes:
   auth-db-data:
   user-db-data:
