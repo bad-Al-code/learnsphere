@@ -26,6 +26,26 @@ export class MessageRepository {
   }
 
   /**
+   * Finds a message by its ID.
+   * @param id - The ID of the message.
+   * @returns The message with sender info, or null if not found.
+   */
+  public static async findById(id: string) {
+    return db.query.messages.findFirst({
+      where: eq(messages.id, id),
+      // with: {
+      //   sender: {
+      //     columns: {
+      //       id: true,
+      //       name: true,
+      //       avatarUrl: true,
+      //     },
+      //   },
+      // },
+    });
+  }
+
+  /**
    * Finds messages for a conversation with pagination.
    * @param {string} conversationId - The ID of the conversation.
    * @param {number} limit - The number of messages to return.
@@ -119,5 +139,41 @@ export class MessageRepository {
       .groupBy(messages.conversationId);
 
     return new Map(result.map((r) => [r.conversationId, r.count]));
+  }
+
+  /**
+   * Adds or removes a user's reaction to a specific message.
+   * Uses raw SQL for advanced JSONB manipulation.
+   * @param messageId The ID of the message to react to.
+   * @param userId The ID of the user adding/removing the reaction.
+   * @param emoji The emoji being used for the reaction.
+   * @returns The updated reactions object for the message.
+   */
+  public static async toggleReaction(
+    messageId: string,
+    userId: string,
+    emoji: string
+  ): Promise<Record<string, string[]> | null> {
+    const query = sql`
+      UPDATE messages
+      SET reactions = (
+        CASE
+          WHEN reactions -> ${emoji} IS NULL THEN
+            jsonb_set(COALESCE(reactions, '{}'::jsonb), ${`{${emoji}}`}, jsonb_build_array(${userId}))
+
+          WHEN reactions -> ${emoji} ? ${userId} THEN
+            jsonb_set(reactions, ${`{${emoji}}`}, (reactions -> ${emoji}) - ${userId})
+
+          ELSE
+            jsonb_set(reactions, ${`{${emoji}}`}, (reactions -> ${emoji}) || jsonb_build_array(${userId}))
+        END
+      )
+      WHERE id = ${messageId}
+      RETURNING reactions;
+    `;
+
+    const result = await db.execute(query);
+
+    return result.rows[0]?.reactions as Record<string, string[]> | null;
   }
 }

@@ -89,7 +89,7 @@ import { z } from 'zod';
  *       properties:
  *         type:
  *           type: string
- *           enum: [DIRECT_MESSAGE, TYPING_START, TYPING_STOP]
+ *           enum: [DIRECT_MESSAGE, TYPING_START, TYPING_STOP, REACT_TO_MESSAGE]
  *         payload:
  *           oneOf:
  *             - type: object
@@ -112,6 +112,15 @@ import { z } from 'zod';
  *                 conversationId:
  *                   type: string
  *                   format: uuid
+ *             - type: object
+ *               required: [messageId, emoji]
+ *               properties:
+ *                 messageId:
+ *                   type: string
+ *                   format: uuid
+ *                 emoji:
+ *                   type: string
+ *                   description: Emoji reaction (e.g. 👍, ❤️)
  *
  *     ServerToClientMessage:
  *       type: object
@@ -121,7 +130,7 @@ import { z } from 'zod';
  *       properties:
  *         type:
  *           type: string
- *           enum: [NEW_MESSAGE, TYPING_UPDATE]
+ *           enum: [NEW_MESSAGE, TYPING_UPDATE, REACTION_UPDATE]
  *         payload:
  *           oneOf:
  *             - $ref: '#/components/schemas/Message'
@@ -136,6 +145,25 @@ import { z } from 'zod';
  *                   format: uuid
  *                 isTyping:
  *                   type: boolean
+ *             - type: object
+ *               required: [conversationId, messageId, reactions]
+ *               properties:
+ *                 conversationId:
+ *                   type: string
+ *                   format: uuid
+ *                 messageId:
+ *                   type: string
+ *                   format: uuid
+ *                 reactions:
+ *                   type: object
+ *                   additionalProperties:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                       format: uuid
+ *                   description: |
+ *                     Map of emoji → list of user IDs who reacted.
+ *                     Example: { "👍": ["user-id-1", "user-id-2"], "❤️": ["user-id-3"] }
  *
  *     CreateConversation:
  *       type: object
@@ -166,7 +194,6 @@ import { z } from 'zod';
  *           minItems: 1
  *           description: IDs of participants to include in the group
  */
-
 export const getMessagesSchema = z.object({
   params: z.object({
     id: z.uuid('Invalid conversation ID format.'),
@@ -189,16 +216,23 @@ export const clientToServerMessageSchema = z.union([
     payload: z.object({
       conversationId: z.uuid(),
       content: z.string().min(1).max(2000),
-      replyingToMessageId: z.string().uuid().optional(),
+      replyingToMessageId: z.uuid().optional(),
     }),
   }),
   z.object({
     type: z.literal('TYPING_START'),
-    payload: z.object({ conversationId: z.string().uuid() }),
+    payload: z.object({ conversationId: z.uuid() }),
   }),
   z.object({
     type: z.literal('TYPING_STOP'),
-    payload: z.object({ conversationId: z.string().uuid() }),
+    payload: z.object({ conversationId: z.uuid() }),
+  }),
+  z.object({
+    type: z.literal('REACT_TO_MESSAGE'),
+    payload: z.object({
+      messageId: z.uuid(),
+      emoji: z.string().min(1),
+    }),
   }),
 ]);
 export type ClientToServerMessage = z.infer<typeof clientToServerMessageSchema>;
@@ -225,6 +259,14 @@ export const serverToClientMessageSchema = z.union([
       conversationId: z.uuid(),
       userId: z.uuid(),
       isTyping: z.boolean(),
+    }),
+  }),
+  z.object({
+    type: z.literal('REACTION_UPDATE'),
+    payload: z.object({
+      conversationId: z.uuid(),
+      messageId: z.uuid(),
+      reactions: z.record(z.string(), z.array(z.uuid())),
     }),
   }),
 ]);

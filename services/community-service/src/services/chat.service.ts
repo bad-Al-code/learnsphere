@@ -3,7 +3,7 @@ import logger from '../config/logger';
 import { redisConnection } from '../config/redis';
 import { ConversationRepository, MessageRepository } from '../db/repositories';
 import { NewConversation } from '../db/schema';
-import { BadRequestError, ForbiddenError } from '../errors';
+import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
 import { ONLINE_USERS_KEY } from './presence.service';
 import { UserService } from './user.service';
 
@@ -190,5 +190,45 @@ export class ChatService {
     );
 
     return newConversation;
+  }
+
+  /**
+   * Toggles an emoji reaction for a user on a specific message.
+   * @param messageId The ID of the message.
+   * @param userId The ID of the user reacting.
+   * @param emoji The emoji used for the reaction.
+   */
+  public static async toggleMessageReaction(
+    messageId: string,
+    userId: string,
+    emoji: string
+  ) {
+    const message = await MessageRepository.findById(messageId);
+    if (!message) {
+      throw new NotFoundError('Message');
+    }
+
+    const isParticipant = await ConversationRepository.isUserParticipant(
+      message.conversationId,
+      userId
+    );
+    if (!isParticipant)
+      throw new ForbiddenError(
+        'You cannot react to message in this conversation.'
+      );
+
+    const updatedReactions = await MessageRepository.toggleReaction(
+      messageId,
+      userId,
+      emoji
+    );
+
+    if (webSocketService) {
+      await webSocketService.broadcastReactionUpdate(
+        message.conversationId,
+        messageId,
+        updatedReactions || {}
+      );
+    }
   }
 }

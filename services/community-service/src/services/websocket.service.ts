@@ -13,6 +13,7 @@ import { Message, NewMessage, users } from '../db/schema';
 import { MessageSentPublisher } from '../events/publisher';
 import { UserPayload } from '../middlewares/current-user';
 import { clientToServerMessageSchema } from '../schemas/chat.schema';
+import { ChatService } from './chat.service';
 import { PresenceService } from './presence.service';
 
 export class WebSocketService {
@@ -161,20 +162,20 @@ export class WebSocketService {
 
       const { type, payload } = validatedMessage.data;
 
-      const isParticipant = await ConversationRepository.isUserParticipant(
-        payload.conversationId,
-        senderId
-      );
-      if (!isParticipant) {
-        logger.warn(
-          `User ${senderId} attempted to send message to conversation ${payload.conversationId} they are not a part of.`
-        );
-
-        return;
-      }
-
       switch (type) {
-        case 'DIRECT_MESSAGE':
+        case 'DIRECT_MESSAGE': {
+          const isParticipant = await ConversationRepository.isUserParticipant(
+            payload.conversationId,
+            senderId
+          );
+          if (!isParticipant) {
+            logger.warn(
+              `User ${senderId} attempted to send message to conversation ${payload.conversationId} they are not a part of.`
+            );
+
+            return;
+          }
+
           const newMessage = await MessageRepository.create({
             conversationId: payload.conversationId,
             senderId,
@@ -220,9 +221,16 @@ export class WebSocketService {
             });
           }
           break;
+        }
 
         case 'TYPING_START':
-        case 'TYPING_STOP':
+        case 'TYPING_STOP': {
+          const isParticipant = await ConversationRepository.isUserParticipant(
+            payload.conversationId,
+            senderId
+          );
+          if (!isParticipant) return;
+
           const user = await db.query.users.findFirst({
             where: eq(users.id, senderId),
           });
@@ -233,6 +241,13 @@ export class WebSocketService {
             type === 'TYPING_START'
           );
           break;
+        }
+        case 'REACT_TO_MESSAGE':
+          await ChatService.toggleMessageReaction(
+            payload.messageId,
+            senderId,
+            payload.emoji
+          );
       }
     } catch (err) {
       const error = err as Error;
@@ -247,6 +262,10 @@ export class WebSocketService {
 
   /**
    * Broadcasts the typing status of a user to other participants in a conversation.
+   * @param senderId - The ID of the user typing.
+   * @param conversationId - The conversation where typing occurs.
+   * @param userName - The name of the user typing.
+   * @param isTyping - Whether the user started or stopped typing.
    */
   private async broadcastTypingStatus(
     senderId: string,
@@ -347,6 +366,34 @@ export class WebSocketService {
       this.getClient(senderToNotify)?.send(JSON.stringify(message));
       logger.info(`Sent MESSAGES_READ update to user ${senderToNotify}`);
     }
+  }
+
+  /**
+   * Broadcasts an emoji reaction update to all participants of a conversation.
+   * @param conversationId - The conversation containing the message.
+   * @param messageId - The message being reacted to.
+   * @param reactions - The updated reactions map.
+   */
+  public async broadcastReactionUpdate(
+    conversationId: string,
+    messageId: string,
+    reactions: Record<string, string[]>
+  ): Promise<void> {
+    const participantIds =
+      await ConversationRepository.findParticipantIds(conversationId);
+    const outgoingMessage = {
+      type: 'REACTION_UPDATE',
+      payload: { conversationId, messageId, reactions },
+    };
+    const messageString = JSON.stringify(outgoingMessage);
+
+    for (const participantId of participantIds) {
+      this.getClient(participantId)?.send(messageString);
+    }
+
+    logger.info(
+      `Broadcasted REACTION_UPDATE for message ${messageId} to ${participantIds.length} participants.`
+    );
   }
 
   /**
