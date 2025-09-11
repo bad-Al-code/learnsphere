@@ -15,6 +15,7 @@ interface ChatViewProps {
   isError: boolean;
   replyingTo: Message | null;
   setReplyingTo: (message: Message | null) => void;
+  onReaction: (messageId: string, emoji: string) => void;
 }
 
 export function ChatView({
@@ -26,6 +27,7 @@ export function ChatView({
   isError,
   replyingTo,
   setReplyingTo,
+  onReaction,
 }: ChatViewProps) {
   if (isLoading) {
     return <ChatViewSkeleton />;
@@ -59,6 +61,7 @@ export function ChatView({
         messages={messages}
         conversationType={conversation.type}
         onSetReply={setReplyingTo}
+        onReaction={onReaction}
       />
 
       {replyingTo && (

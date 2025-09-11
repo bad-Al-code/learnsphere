@@ -120,6 +120,24 @@ export function useChatWebSocket(selectedConversationId: string | null) {
               return newData;
             }
           );
+        } else if (type === 'REACTION_UPDATE') {
+          const { conversationId, messageId, reactions } = payload;
+
+          queryClient.setQueryData(
+            ['messages', conversationId],
+
+            (oldData: { pages: Message[][] } | undefined) => {
+              if (!oldData) return oldData;
+              return {
+                ...oldData,
+                pages: oldData.pages.map((page) =>
+                  page.map((msg) =>
+                    msg.id === messageId ? { ...msg, reactions } : msg
+                  )
+                ),
+              };
+            }
+          );
         }
       } catch (error) {
         console.error('Error processing incoming WebSocket message:', error);

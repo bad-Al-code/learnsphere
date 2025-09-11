@@ -25,6 +25,7 @@ export type Message = {
   content: string;
   createdAt: string;
   readAt?: string | null;
+  reactions?: Record<string, string[]> | null;
   replyingTo: {
     content: string;
     sender: {

@@ -9,12 +9,14 @@ interface MessageListProps {
   messages: Message[];
   conversationType: Conversation['type'];
   onSetReply: (message: Message) => void;
+  onReaction: (messageId: string, emoji: string) => void;
 }
 
 export function MessageList({
   messages,
   conversationType,
   onSetReply,
+  onReaction,
 }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -31,6 +33,7 @@ export function MessageList({
             message={msg}
             conversationType={conversationType}
             onSetReply={onSetReply}
+            onReaction={onReaction}
           />
         ))}
 

@@ -91,6 +91,13 @@ export function ChatInterface() {
     setSelectedConversationId(convo.id);
   };
 
+  const handleReaction = (messageId: string, emoji: string) => {
+    sendEvent({
+      type: 'REACT_TO_MESSAGE',
+      payload: { messageId, emoji },
+    });
+  };
+
   useEffect(() => {
     if (selectedConversation?.id) {
       markConversationAsRead(selectedConversation.id);
@@ -122,6 +129,7 @@ export function ChatInterface() {
             isError={chatViewError}
             replyingTo={replyingTo}
             setReplyingTo={setReplyingTo}
+            onReaction={handleReaction}
           />
         </ResizablePanel>
       </ResizablePanelGroup>

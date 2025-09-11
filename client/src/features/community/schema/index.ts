@@ -20,6 +20,13 @@ export const clientToServerMessageSchema = z.discriminatedUnion('type', [
     type: z.literal('TYPING_STOP'),
     payload: z.object({ conversationId: z.uuid() }),
   }),
+  z.object({
+    type: z.literal('REACT_TO_MESSAGE'),
+    payload: z.object({
+      messageId: z.uuid(),
+      emoji: z.string().min(1),
+    }),
+  }),
 ]);
 export type ClientToServerMessage = z.infer<typeof clientToServerMessageSchema>;
 

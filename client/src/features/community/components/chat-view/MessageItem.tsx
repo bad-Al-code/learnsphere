@@ -1,21 +1,29 @@
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { cn, getInitials } from '@/lib/utils';
 import { useSessionStore } from '@/stores/session-store';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { Check, CheckCheck, Download, File, Reply } from 'lucide-react';
+import {
+  Check,
+  CheckCheck,
+  Download,
+  File,
+  Reply,
+  SmilePlus,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { parseMessageContent } from '../../lib/utils';
 import { Conversation, MediaAttachment, Message } from '../../types';
-
-interface MessageItemProps {
-  message: Message;
-  conversationType: Conversation['type'];
-  onSetReply: (message: Message) => void;
-}
+import { ReactionPicker } from './ReactionPicker';
 
 const FileAttachment = ({ attachment }: { attachment: MediaAttachment }) => (
   <Link
@@ -37,16 +45,29 @@ const FileAttachment = ({ attachment }: { attachment: MediaAttachment }) => (
   </Link>
 );
 
+interface MessageItemProps {
+  message: Message;
+  conversationType: Conversation['type'];
+  onSetReply: (message: Message) => void;
+  onReaction: (messageId: string, emoji: string) => void;
+}
+
 export function MessageItem({
   message,
   conversationType,
   onSetReply,
+  onReaction,
 }: MessageItemProps) {
   const currentUser = useSessionStore((state) => state.user);
   const isCurrentUser = message.senderId === currentUser?.userId;
   const showSenderInfo = conversationType === 'group' && !isCurrentUser;
 
   const { isMedia, data: contentData } = parseMessageContent(message.content);
+  const reactions = message.reactions
+    ? Object.entries(message.reactions).filter(
+        ([, userIds]) => userIds.length > 0
+      )
+    : [];
 
   return (
     <div
@@ -139,15 +160,73 @@ export function MessageItem({
           </div>
         </div>
 
-        {/* Reply Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
-          onClick={() => onSetReply(message)}
-        >
-          <Reply className="h-4 w-4" />
-        </Button>
+        {/* --- Reaction + Reply Controls --- */}
+        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          {isCurrentUser ? (
+            <>
+              {/* Smile first */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <SmilePlus className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto border-none bg-transparent p-0 shadow-none">
+                  <ReactionPicker
+                    onSelect={(emoji) => onReaction(message.id, emoji)}
+                  />
+                </PopoverContent>
+              </Popover>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => onSetReply(message)}
+              >
+                <Reply className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            <>
+              {/* Reply first */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => onSetReply(message)}
+              >
+                <Reply className="h-4 w-4" />
+              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <SmilePlus className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto border-none bg-transparent p-0 shadow-none">
+                  <ReactionPicker
+                    onSelect={(emoji) => onReaction(message.id, emoji)}
+                  />
+                </PopoverContent>
+              </Popover>
+            </>
+          )}
+        </div>
+
+        {reactions.length > 0 && (
+          <div className="mt-1 flex items-center gap-1">
+            {reactions.map(([emoji, userIds]) => (
+              <Badge
+                key={emoji}
+                variant="secondary"
+                className="cursor-pointer gap-1 pr-2"
+              >
+                <span>{emoji}</span>
+                <span>{userIds.length}</span>
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
