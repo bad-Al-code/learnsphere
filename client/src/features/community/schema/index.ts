@@ -9,6 +9,7 @@ export const clientToServerMessageSchema = z.discriminatedUnion('type', [
     payload: z.object({
       conversationId: z.uuid(),
       content: z.string().min(1, 'Message cannot be empty.').max(2000),
+      replyingToMessageId: z.string().uuid().optional().nullable(),
     }),
   }),
   z.object({

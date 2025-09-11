@@ -142,19 +142,25 @@ export function useChatWebSocket(selectedConversationId: string | null) {
       ws.current.send(JSON.stringify(event));
 
       if (event.type === 'DIRECT_MESSAGE') {
-        const { conversationId, content } = event.payload;
+        const { conversationId, content, replyingToMessageId } = event.payload;
         const optimisticMessage: Message = {
           id: uuidv4(),
           conversationId: conversationId,
           senderId: currentUser.userId,
           content: content,
           createdAt: new Date().toISOString(),
+          readAt: null,
+          replyingTo: null,
           sender: {
             id: currentUser.userId,
             name: currentUser.firstName || 'You',
             avatarUrl: currentUser.avatarUrls?.small || null,
           },
         };
+        // TODO
+        if (replyingToMessageId) {
+          // This is an advanced optimization we can add later. For now, null is fine.
+        }
 
         queryClient.setQueryData(
           ['messages', conversationId],

@@ -44,7 +44,7 @@ export function MessageItem({
           variant="ghost"
           size="icon"
           className={cn(
-            'absolute top-0 h-6 w-6',
+            'absolute top-0 right-10 h-6 w-6',
             isCurrentUser ? 'left-[-30px]' : 'right-[-30px]'
           )}
           onClick={() => onSetReply(message)}
