@@ -38,10 +38,9 @@ export class ChatService {
         let status: 'online' | 'offline' = 'offline';
 
         if (convo.otherParticipant?.id) {
-          const isOnline = await redisClient.sIsMember(
-            ONLINE_USERS_KEY,
-            convo.otherParticipant.id
-          );
+          const isOnline = await (
+            await redisClient
+          ).sIsMember(ONLINE_USERS_KEY, convo.otherParticipant.id);
           status = isOnline ? 'online' : 'offline';
         }
         return {

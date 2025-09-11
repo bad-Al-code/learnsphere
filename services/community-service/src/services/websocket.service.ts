@@ -15,6 +15,7 @@ import { UserPayload } from '../middlewares/current-user';
 import { clientToServerMessageSchema } from '../schemas/chat.schema';
 import { ChatCacheService } from './cache.service';
 import { ChatService } from './chat.service';
+import { metricsService } from './metrics.service';
 import { PresenceService } from './presence.service';
 
 export class WebSocketService {
@@ -117,6 +118,7 @@ export class WebSocketService {
     }
 
     this.clients.set(userId, ws);
+    metricsService.websocketConnectionsActive.inc();
     this.presenceService.userDidConnect(userId);
 
     logger.info(
@@ -130,6 +132,7 @@ export class WebSocketService {
    */
   private removeClient(userId: string): void {
     this.clients.delete(userId);
+    metricsService.websocketConnectionsActive.dec();
     this.presenceService.userDidDisconnect(userId);
 
     logger.info(
