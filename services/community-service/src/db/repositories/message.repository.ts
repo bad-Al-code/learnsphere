@@ -154,26 +154,33 @@ export class MessageRepository {
     userId: string,
     emoji: string
   ): Promise<Record<string, string[]> | null> {
-    const query = sql`
-      UPDATE messages
-      SET reactions = (
-        CASE
-          WHEN reactions -> ${emoji} IS NULL THEN
-            jsonb_set(COALESCE(reactions, '{}'::jsonb), ${`{${emoji}}`}, jsonb_build_array(${userId}))
+    const message = await db.query.messages.findFirst({
+      where: eq(messages.id, messageId),
+    });
 
-          WHEN reactions -> ${emoji} ? ${userId} THEN
-            jsonb_set(reactions, ${`{${emoji}}`}, (reactions -> ${emoji}) - ${userId})
+    if (!message) {
+      return null;
+    }
 
-          ELSE
-            jsonb_set(reactions, ${`{${emoji}}`}, (reactions -> ${emoji}) || jsonb_build_array(${userId}))
-        END
-      )
-      WHERE id = ${messageId}
-      RETURNING reactions;
-    `;
+    const reactions = message.reactions || {};
+    const usersForEmoji = reactions[emoji] || [];
 
-    const result = await db.execute(query);
+    if (usersForEmoji.includes(userId)) {
+      reactions[emoji] = usersForEmoji.filter((id) => id !== userId);
 
-    return result.rows[0]?.reactions as Record<string, string[]> | null;
+      if (reactions[emoji].length === 0) {
+        delete reactions[emoji];
+      }
+    } else {
+      reactions[emoji] = [...usersForEmoji, userId];
+    }
+
+    const [updatedMessage] = await db
+      .update(messages)
+      .set({ reactions })
+      .where(eq(messages.id, messageId))
+      .returning({ updatedReactions: messages.reactions });
+
+    return updatedMessage.updatedReactions;
   }
 }

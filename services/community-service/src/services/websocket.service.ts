@@ -13,6 +13,7 @@ import { Message, NewMessage, users } from '../db/schema';
 import { MessageSentPublisher } from '../events/publisher';
 import { UserPayload } from '../middlewares/current-user';
 import { clientToServerMessageSchema } from '../schemas/chat.schema';
+import { ChatCacheService } from './cache.service';
 import { ChatService } from './chat.service';
 import { PresenceService } from './presence.service';
 
@@ -220,6 +221,16 @@ export class WebSocketService {
               error,
             });
           }
+
+          const participantIds =
+            await ConversationRepository.findParticipantIds(
+              payload.conversationId
+            );
+          const invalidationPromises = participantIds.map((id) =>
+            ChatCacheService.invalidateConversations(id)
+          );
+          await Promise.all(invalidationPromises);
+
           break;
         }
 

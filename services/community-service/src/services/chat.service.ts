@@ -4,6 +4,7 @@ import { redisConnection } from '../config/redis';
 import { ConversationRepository, MessageRepository } from '../db/repositories';
 import { NewConversation } from '../db/schema';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
+import { ChatCacheService } from './cache.service';
 import { ONLINE_USERS_KEY } from './presence.service';
 import { UserService } from './user.service';
 
@@ -14,6 +15,11 @@ export class ChatService {
    * @returns A list of enriched conversation objects.
    */
   public static async getConversationsForUser(userId: string) {
+    const cachedConversations = await ChatCacheService.getConversations(userId);
+    if (cachedConversations) {
+      return cachedConversations;
+    }
+
     const conversations = await ConversationRepository.findManyByUserId(userId);
     if (conversations.length === 0) {
       return [];
@@ -47,6 +53,10 @@ export class ChatService {
         };
       })
     );
+
+    if (enrichedConversations.length > 0) {
+      await ChatCacheService.setConversations(userId, enrichedConversations);
+    }
 
     return enrichedConversations;
   }
@@ -123,6 +133,9 @@ export class ChatService {
       [initiatorId, recipientId]
     );
 
+    await ChatCacheService.invalidateConversations(initiatorId);
+    await ChatCacheService.invalidateConversations(recipientId);
+
     return newConversation;
   }
 
@@ -188,6 +201,11 @@ export class ChatService {
       conversationData,
       allParticipantIds
     );
+
+    const invalidationPromises = allParticipantIds.map((id) =>
+      ChatCacheService.invalidateConversations(id)
+    );
+    await Promise.all(invalidationPromises);
 
     return newConversation;
   }

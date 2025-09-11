@@ -1,7 +1,12 @@
 import { ConsumeMessage } from 'amqplib';
 import { webSocketService } from '..';
 import logger from '../config/logger';
-import { MessageRepository, UserRepository } from '../db/repositories';
+import {
+  ConversationRepository,
+  MessageRepository,
+  UserRepository,
+} from '../db/repositories';
+import { ChatCacheService } from '../services/cache.service';
 import { rabbitMQConnection } from './connection';
 
 interface Event {
@@ -107,6 +112,27 @@ export class UserProfileUpdatedListener extends Listener<UserProfileUpdatedEvent
         name: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
         avatarUrl: data.avatarUrls?.small,
       });
+
+      const conversations = await ConversationRepository.findManyByUserIdSimple(
+        data.userId
+      );
+      const conversationIds = conversations.map((c) => c.id);
+
+      if (conversationIds.length > 0) {
+        const participants =
+          await ConversationRepository.findParticipantsForConversations(
+            conversationIds
+          );
+
+        const userIdsToInvalidate = [
+          ...new Set(participants.map((p) => p.userId)),
+        ];
+        const invalidationPromises = userIdsToInvalidate.map((id) =>
+          ChatCacheService.invalidateConversations(id)
+        );
+
+        await Promise.all(invalidationPromises);
+      }
     } catch (error) {
       logger.error('Failed to sync user profile update', { data, error });
     }
