@@ -1,8 +1,7 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-
-const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
 
 interface ReactionPickerProps {
   onSelect: (emoji: string) => void;
@@ -10,18 +9,14 @@ interface ReactionPickerProps {
 
 export function ReactionPicker({ onSelect }: ReactionPickerProps) {
   return (
-    <div className="bg-secondary flex gap-1 rounded-full p-1 dark:bg-black/70">
-      {EMOJIS.map((emoji) => (
-        <Button
-          key={emoji}
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 rounded-full hover:bg-black/20"
-          onClick={() => onSelect(emoji)}
-        >
-          {emoji}
-        </Button>
-      ))}
+    <div className="bg-background rounded-xl shadow-lg">
+      <Picker
+        data={data}
+        onEmojiSelect={(emoji: any) => onSelect(emoji.native)}
+        previewPosition="none"
+        skinTonePosition="none"
+        navPosition="none"
+      />
     </div>
   );
 }
