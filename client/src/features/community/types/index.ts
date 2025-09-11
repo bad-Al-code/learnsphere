@@ -16,6 +16,17 @@ export type Conversation = {
     name: string | null;
   };
   unreadCount: number | null;
+  participants?: { userId: string }[];
+};
+
+export type Participant = {
+  userId: string;
+  joinedAt: string;
+  user: {
+    id: string;
+    name: string | null;
+    avatarUrl: string | null;
+  };
 };
 
 export type Message = {

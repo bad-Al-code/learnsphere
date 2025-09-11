@@ -113,4 +113,22 @@ export class ChatController {
       next(error);
     }
   }
+
+  public static async getParticipants(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id: conversationId } = req.params;
+      const userId = req.currentUser!.id;
+      const participants = await ChatService.getConversationParticipants(
+        conversationId,
+        userId
+      );
+      res.status(StatusCodes.OK).json(participants);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

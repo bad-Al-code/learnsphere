@@ -129,9 +129,6 @@ export class ConversationRepository {
           name: otherUser.name,
           avatarUrl: otherUser.avatarUrl,
         },
-        // unreadCount: sql<number>`COALESCE(${unreadCountSq.count}, 0)`.mapWith(
-        //   Number
-        // ),
       })
       .from(conversations)
       .innerJoin(p1, eq(conversations.id, p1.conversationId))
@@ -147,10 +144,6 @@ export class ConversationRepository {
         and(eq(conversations.id, p2.conversationId), ne(p2.userId, userId))
       )
       .leftJoin(otherUser, eq(p2.userId, otherUser.id))
-      // .leftJoin(
-      //   unreadCountSq,
-      //   eq(conversations.id, unreadCountSq.conversationId)
-      // )
       .where(eq(p1.userId, userId))
       .orderBy(
         desc(
@@ -161,28 +154,6 @@ export class ConversationRepository {
     if (conversationsResult.length === 0) {
       return [];
     }
-
-    // const redisClient = redisConnection.getClient();
-    // const enrichedConversation = await Promise.all(
-    //   conversationsResult.map(async (convo) => {
-    //     let status: 'online' | 'offline' = 'offline';
-    //     if (convo.otherParticipant?.id) {
-    //       const isOnline = await redisClient.sIsMember(
-    //         ONLINE_USERS_KEY,
-    //         convo.otherParticipant.id
-    //       );
-
-    //       if (isOnline) status = 'online';
-    //     }
-
-    //     return {
-    //       ...convo,
-    //       otherParticipant: convo.otherParticipant
-    //         ? { ...convo.otherParticipant, status }
-    //         : null,
-    //     };
-    //   })
-    // );
 
     return conversationsResult;
   }
@@ -221,6 +192,26 @@ export class ConversationRepository {
       .where(eq(conversationParticipants.conversationId, conversationId));
 
     return participants.map((p) => p.userId);
+  }
+
+  /**
+   * Finds all participants for a conversation, including their user details.
+   * @param conversationId The ID of the conversation.
+   * @returns An array of participant objects with user details.
+   */
+  public static async findParticipantsWithDetails(conversationId: string) {
+    return db.query.conversationParticipants.findMany({
+      where: eq(conversationParticipants.conversationId, conversationId),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
   }
 
   /**

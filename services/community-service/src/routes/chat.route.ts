@@ -153,4 +153,25 @@ router.post(
  */
 router.post('/conversations/:id/read', ChatController.markAsRead);
 
+/**
+ * @openapi
+ * /api/community/conversations/{id}/participants:
+ *   get:
+ *     summary: Get the list of participants for a conversation
+ *     tags: [Chat]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       '200':
+ *         description: An array of participant objects.
+ *       '403':
+ *         description: User is not a member of the conversation.
+ */
+router.get('/conversations/:id/participants', ChatController.getParticipants);
+
 export { router as chatRouter };

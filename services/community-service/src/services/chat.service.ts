@@ -249,4 +249,24 @@ export class ChatService {
       );
     }
   }
+
+  /**
+   * Retrieves the list of participants for a given conversation.
+   * @param conversationId The ID of the conversation.
+   * @param userId The ID of the user making the request (for auth check).
+   */
+  public static async getConversationParticipants(
+    conversationId: string,
+    userId: string
+  ) {
+    const isParticipant = await ConversationRepository.isUserParticipant(
+      conversationId,
+      userId
+    );
+    if (!isParticipant) {
+      throw new ForbiddenError('You are not a member of this conversation.');
+    }
+
+    return ConversationRepository.findParticipantsWithDetails(conversationId);
+  }
 }

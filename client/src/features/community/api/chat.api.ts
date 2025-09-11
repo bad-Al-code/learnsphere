@@ -1,5 +1,5 @@
 import { communityService } from '@/lib/api/client';
-import { Conversation, Message } from '../types';
+import { Conversation, Message, Participant } from '../types';
 
 const GET_MESSAGE_LIMIT: string = '50';
 
@@ -84,6 +84,16 @@ export async function createGroupConversation(
   const response = await communityService.post<Conversation>(
     '/api/community/conversations/group',
     { name, participantIds }
+  );
+
+  return response.data;
+}
+
+export async function getConversationParticipants(
+  conversationId: string
+): Promise<Participant[]> {
+  const response = await communityService.get<Participant[]>(
+    `/api/community/conversations/${conversationId}/participants`
   );
 
   return response.data;

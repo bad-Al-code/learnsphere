@@ -7,6 +7,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn, getInitials } from '@/lib/utils';
 import { useSessionStore } from '@/stores/session-store';
 import { format } from 'date-fns';
@@ -71,17 +76,15 @@ export function MessageItem({
   return (
     <div
       className={cn(
-        'group flex w-full items-start gap-2',
+        'group flex w-full items-center gap-2',
         isCurrentUser && 'justify-end'
       )}
     >
       {!isCurrentUser && (
-        <div className="flex flex-shrink-0 items-center self-start">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={message.sender?.avatarUrl || undefined} />
-            <AvatarFallback>{getInitials(message.sender?.name)}</AvatarFallback>
-          </Avatar>
-        </div>
+        <Avatar>
+          <AvatarImage src={message.sender?.avatarUrl || undefined} />
+          <AvatarFallback>{getInitials(message.sender?.name)}</AvatarFallback>
+        </Avatar>
       )}
 
       <div
@@ -179,9 +182,16 @@ export function MessageItem({
             <>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-6 w-6">
-                    <SmilePlus className="h-4 w-4" />
-                  </Button>
+                  <div className="">
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Button variant="ghost" size="icon" className="h-6 w-6">
+                          <SmilePlus className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Add Reactions</TooltipContent>
+                    </Tooltip>
+                  </div>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto border-none bg-transparent p-0 shadow-none">
                   <ReactionPicker
@@ -190,31 +200,48 @@ export function MessageItem({
                 </PopoverContent>
               </Popover>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={() => onSetReply(message)}
-              >
-                <Reply className="h-4 w-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => onSetReply(message)}
+                  >
+                    <Reply className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Reply</TooltipContent>
+              </Tooltip>
             </>
           ) : (
             <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={() => onSetReply(message)}
-              >
-                <Reply className="h-4 w-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => onSetReply(message)}
+                  >
+                    <Reply className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Reply</TooltipContent>
+              </Tooltip>
 
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-6 w-6">
-                    <SmilePlus className="h-4 w-4" />
-                  </Button>
+                  <div className="">
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Button variant="ghost" size="icon" className="h-6 w-6">
+                          <SmilePlus className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Add Reactions</TooltipContent>
+                    </Tooltip>
+                  </div>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto border-none bg-transparent p-0 shadow-none">
                   <ReactionPicker

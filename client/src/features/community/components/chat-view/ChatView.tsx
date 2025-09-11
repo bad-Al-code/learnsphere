@@ -1,9 +1,12 @@
 'use client';
 
+import { cn } from '@/lib/utils';
+import { useState } from 'react';
 import { Conversation, Message } from '../../types';
 import { ChatHeader, ChatHeaderSkeleton } from './ChatHeader';
 import { MessageInput, MessageInputSkeleton } from './MessageInput';
 import { MessageList, MessageListSkeleton } from './MessageList';
+import { ParticipantSidebar } from './ParticipantSidebar';
 import { ReplyPreview } from './ReplyPreview';
 
 interface ChatViewProps {
@@ -29,6 +32,8 @@ export function ChatView({
   setReplyingTo,
   onReaction,
 }: ChatViewProps) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   if (isLoading) {
     return <ChatViewSkeleton />;
   }
@@ -42,6 +47,7 @@ export function ChatView({
   }
 
   const user = conversation?.otherParticipant;
+  const isGroup = conversation?.type === 'group';
 
   if (!user) {
     return (
@@ -52,34 +58,50 @@ export function ChatView({
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <ChatHeader
-        conversation={conversation}
-        typingUser={conversation.typingUser}
-      />
-      <MessageList
-        messages={messages}
-        conversationType={conversation.type}
-        onSetReply={setReplyingTo}
-        onReaction={onReaction}
-      />
-
-      {replyingTo && (
-        <ReplyPreview
-          message={replyingTo}
-          onCancel={() => setReplyingTo(null)}
+    <div className="flex h-full">
+      <div className="flex h-full flex-1 flex-col">
+        <div
+          onClick={() => isGroup && setIsSidebarOpen(true)}
+          className={cn(isGroup && 'cursor-pointer')}
+        >
+          <ChatHeader
+            conversation={conversation}
+            typingUser={conversation.typingUser}
+          />
+        </div>
+        <MessageList
+          messages={messages}
+          conversationType={conversation.type}
+          onSetReply={setReplyingTo}
+          onReaction={onReaction}
         />
-      )}
 
-      <MessageInput
-        recipientName={
-          conversation.name || conversation.otherParticipant?.name || 'user'
-        }
-        conversationId={conversation.id}
-        senderId={user.id}
-        onSend={(content) => onSend(content, replyingTo)}
-        onTyping={onTyping}
-      />
+        {replyingTo && (
+          <ReplyPreview
+            message={replyingTo}
+            onCancel={() => setReplyingTo(null)}
+          />
+        )}
+
+        <MessageInput
+          recipientName={
+            conversation.name || conversation.otherParticipant?.name || 'user'
+          }
+          conversationId={conversation.id}
+          senderId={user.id}
+          onSend={(content) => onSend(content, replyingTo)}
+          onTyping={onTyping}
+        />
+      </div>
+
+      {isGroup && isSidebarOpen && (
+        <div className="w-64">
+          <ParticipantSidebar
+            conversationId={conversation!.id}
+            onClose={() => setIsSidebarOpen(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }
