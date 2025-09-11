@@ -40,11 +40,11 @@ export function ChatHeader({ conversation, typingUser }: ChatHeaderProps) {
       <div className="">
         <p className="font-semibold">{displayName}</p>
 
-        {typingUser ? (
+        {!isGroup && typingUser ? (
           <span className="text-muted-foreground italic">Typing...</span>
         ) : (
           <span className="text-muted-foreground">
-            {user?.status || 'Offline'}
+            {!isGroup ? user?.status || 'Offline' : ''}
           </span>
         )}
       </div>

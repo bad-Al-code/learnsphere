@@ -52,3 +52,10 @@ export interface PaginatedResponse<T> {
     totalResults: number;
   };
 }
+
+export type MediaAttachment = {
+  type: 'file' | 'image';
+  url: string;
+  name: string;
+  mimeType: string;
+};

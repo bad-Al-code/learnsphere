@@ -4,8 +4,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn, getInitials } from '@/lib/utils';
 import { useSessionStore } from '@/stores/session-store';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { Check, CheckCheck } from 'lucide-react';
-import { Conversation, Message } from '../../types';
+import { Check, CheckCheck, Download, File } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { parseMessageContent } from '../../lib/utils';
+import { Conversation, MediaAttachment, Message } from '../../types';
 
 interface MessageItemProps {
   message: Message;
@@ -16,6 +19,8 @@ export function MessageItem({ message, conversationType }: MessageItemProps) {
   const currentUser = useSessionStore((state) => state.user);
   const isCurrentUser = message.senderId === currentUser?.userId;
   const showSenderInfo = conversationType === 'group' && !isCurrentUser;
+
+  const { isMedia, data: contentData } = parseMessageContent(message.content);
 
   return (
     <div
@@ -42,13 +47,30 @@ export function MessageItem({ message, conversationType }: MessageItemProps) {
 
         <div
           className={cn(
-            'max-w-xs rounded-lg p-2 text-sm',
+            'max-w-xs rounded-lg text-sm',
+            !(isMedia && (contentData as MediaAttachment).type === 'image') &&
+              'rounded-lg p-2',
             isCurrentUser
               ? 'from-secondary/50 to-secondary text-primary bg-gradient-to-r'
               : 'from-secondary/50 to-secondary bg-gradient-to-r'
           )}
         >
-          <p>{message.content}</p>
+          {isMedia ? (
+            (contentData as MediaAttachment).type === 'image' ? (
+              <Image
+                src={(contentData as MediaAttachment).url}
+                alt={(contentData as MediaAttachment).name}
+                width={250}
+                height={250}
+                className="max-h-[300px] w-full rounded-md object-cover"
+              />
+            ) : (
+              <FileAttachment attachment={contentData as MediaAttachment} />
+            )
+          ) : (
+            <p>{contentData as string}</p>
+          )}
+
           <div className="text-muted-foreground/80 mt-1 flex items-center justify-end gap-1.5 text-xs">
             <span>
               {formatDistanceToNowStrict(new Date(message.createdAt), {
@@ -70,3 +92,27 @@ export function MessageItem({ message, conversationType }: MessageItemProps) {
     </div>
   );
 }
+
+export const FileAttachment = ({
+  attachment,
+}: {
+  attachment: MediaAttachment;
+}) => (
+  <Link
+    href={attachment.url}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="bg-muted/50 hover:bg-muted flex items-center gap-3 rounded-md p-2 transition-colors"
+  >
+    <div className="bg-background flex h-10 w-10 items-center justify-center rounded-md">
+      <File className="h-6 w-6" />
+    </div>
+
+    <div className="flex-1">
+      <p className="font-semibold">{attachment.name}</p>
+      <p className="text-muted-foreground text-xs">{attachment.mimeType}</p>
+    </div>
+
+    <Download className="h-5 w-5 flex-shrink-0" />
+  </Link>
+);
