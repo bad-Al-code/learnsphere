@@ -6,6 +6,7 @@ import logger from './config/logger';
 import { checkDatabaseConnection } from './db';
 import { rabbitMQConnection } from './events/connection';
 import {
+  CourseContentUpdatedListener,
   UserAvatarProcessedListener,
   UserRegisteredListener,
   UserSessionCreatedListener,
@@ -19,6 +20,7 @@ const startServer = async () => {
     new UserRegisteredListener().listen();
     new UserAvatarProcessedListener().listen();
     new UserSessionCreatedListener().listen();
+    new CourseContentUpdatedListener().listen();
 
     const PORT = env.PORT || 8001;
     app.listen(PORT, () => {

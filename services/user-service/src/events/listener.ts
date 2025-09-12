@@ -1,5 +1,6 @@
 import { ConsumeMessage } from 'amqplib';
 import logger from '../config/logger';
+import { AIRepository } from '../features/ai/ai.repository';
 import { ProfileService } from '../services/profile.service';
 import { rabbitMQConnection } from './connection';
 
@@ -166,6 +167,37 @@ export class UserSessionCreatedListener extends Listener<UserSessionCreatedEvent
         userId: data.userId,
         error: error instanceof Error ? error.message : String(error),
       });
+    }
+  }
+}
+
+interface CourseContentUpdatedEvent {
+  topic: 'course.content.updated';
+  data: {
+    courseId: string;
+    content: string;
+  };
+}
+
+export class CourseContentUpdatedListener extends Listener<CourseContentUpdatedEvent> {
+  readonly topic = 'course.content.updated' as const;
+  queueGroupName = 'user-service-course-content-sync';
+
+  async onMessage(
+    data: CourseContentUpdatedEvent['data'],
+    _msg: ConsumeMessage
+  ): Promise<void> {
+    try {
+      if (data.content && data.content.length > 0) {
+        logger.info(`Syncing content for course: ${data.courseId}`);
+
+        await AIRepository.upsertCourseContent(data.courseId, data.content);
+      } else {
+        logger.info(`Deleting content for course: ${data.courseId}`);
+        await AIRepository.deleteCourseContent(data.courseId);
+      }
+    } catch (error) {
+      logger.error('Failed to sync course content', { data, error });
     }
   }
 }
