@@ -24,6 +24,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.11.1",
   "dependencies": {
+    "@google/genai": "^1.19.0",
     "amqplib": "^0.10.8",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

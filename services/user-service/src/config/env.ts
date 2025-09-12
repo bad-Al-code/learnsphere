@@ -13,6 +13,7 @@ const envSchema = z.object({
 
   JWT_SECRET: z.string().min(1, 'JWT_SECRET is required'),
   COOKIE_PARSER_SECRET: z.string().min(1, 'COOKIE_PARSER_SECRET is required'),
+  GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

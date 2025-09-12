@@ -1,9 +1,9 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { studentAiToolsTabs } from '@/config/nav-items';
 import { Suspense } from 'react';
-import { PageHeader, PageHeaderSkeleton } from '../_components/page-header';
 import { AiToolsTabs } from './_components/ai-tools-tabs';
 import { AiTutorTabSkeleton } from './_components/ai-tutor-tab';
+import { PageHeader, PageHeaderSkeleton } from './_components/page-header';
 
 function AiToolsPageSkeleton() {
   return (

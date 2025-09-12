@@ -1,5 +1,5 @@
 import { HomepageClient } from '@/components/shared/homepage-client';
-import { ChatInterface } from '@/features/community/components/ChatInterface';
+import AiToolsPage from '../features/ai-tools/page';
 import { getCurrentUser } from './(auth)/actions';
 
 export default async function Home() {
@@ -8,7 +8,7 @@ export default async function Home() {
   return (
     <>
       <main className="container mx-auto space-y-4">
-        <ChatInterface />
+        <AiToolsPage />
       </main>
 
       <HomepageClient user={user} />
