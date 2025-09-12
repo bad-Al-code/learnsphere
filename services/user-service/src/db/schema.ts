@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
   date,
   jsonb,
@@ -6,6 +6,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
 
@@ -80,3 +81,53 @@ export const profiles = pgTable('profiles', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+export const aiTutorMessageRoleEnum = pgEnum('ai_tutor_message_role', [
+  'user',
+  'model',
+]);
+
+export const aiTutorConversations = pgTable('ai_tutor_conversations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => profiles.userId, { onDelete: 'cascade' }),
+  courseId: uuid('course_id').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const aiTutorMessages = pgTable('ai_tutor_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  conversationId: uuid('conversation_id')
+    .notNull()
+    .references(() => aiTutorConversations.id, { onDelete: 'cascade' }),
+  role: aiTutorMessageRoleEnum('role').notNull(),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const profilesRelations = relations(profiles, ({ many }) => ({
+  aiTutorConversations: many(aiTutorConversations),
+}));
+
+export const aiTutorConversationsRelations = relations(
+  aiTutorConversations,
+  ({ one, many }) => ({
+    user: one(profiles, {
+      fields: [aiTutorConversations.userId],
+      references: [profiles.userId],
+    }),
+    messages: many(aiTutorMessages),
+  })
+);
+
+export const aiTutorMessagesRelations = relations(
+  aiTutorMessages,
+  ({ one }) => ({
+    conversation: one(aiTutorConversations, {
+      fields: [aiTutorMessages.conversationId],
+      references: [aiTutorConversations.id],
+    }),
+  })
+);
