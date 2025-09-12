@@ -11,6 +11,7 @@ import { CreateLessonDto, lessonCreateSchema } from '../schemas';
 import { Requester, UpdateLessonDto } from '../types';
 import { AuthorizationService } from './authorization.service';
 import { CourseCacheService } from './course-cache.service';
+import { CourseService } from './course.service';
 
 export class LessonService {
   /**
@@ -82,6 +83,10 @@ export class LessonService {
 
     await CourseCacheService.invalidateCacheDetails(parentModule.courseId);
 
+    if (validatedData.lessonType === 'text') {
+      await CourseService.publishCourseContentUpdate(parentModule.courseId);
+    }
+
     return newLessonWithContent;
   }
 
@@ -139,6 +144,10 @@ export class LessonService {
 
     await CourseCacheService.invalidateCacheDetails(lesson.module.courseId);
 
+    if (lesson.lessonType === 'text') {
+      await CourseService.publishCourseContentUpdate(lesson.module.courseId);
+    }
+
     return this.getLessonDetails(lessonId);
   }
 
@@ -158,6 +167,10 @@ export class LessonService {
     await LessonRepository.delete(lessonId);
 
     await CourseCacheService.invalidateCacheDetails(lesson.module.courseId);
+
+    if (lesson.lessonType === 'text') {
+      await CourseService.publishCourseContentUpdate(lesson.module.courseId);
+    }
 
     logger.info(`Deleted lesson ${lessonId} by user ${requester}`);
   }
@@ -209,6 +222,7 @@ export class LessonService {
       await Promise.all(updatePromises);
 
       await CourseCacheService.invalidateCacheDetails(parentModule.courseId);
+      await CourseService.publishCourseContentUpdate(parentModule.courseId);
     });
   }
 

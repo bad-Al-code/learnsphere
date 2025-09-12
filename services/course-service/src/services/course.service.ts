@@ -4,6 +4,7 @@ import { CourseRepository } from '../db/repostiories';
 import { CourseLevel } from '../db/schema';
 import { NotFoundError } from '../errors';
 import {
+  CourseContentUpdatedPublisher,
   CourseCreatedPublisher,
   CourseDeletedPublisher,
   CourseUpdatedPublisher,
@@ -37,6 +38,38 @@ export class CourseService {
       ...course,
       instructor: instructorProfile.get(course.instructorId),
     }));
+  }
+
+  /**
+   * Assembles all text content for a course into a single string for AI context.
+   * @param courseId The ID of the course.
+   * @returns A formatted string of all course content, or an empty string if not found.
+   * @private
+   */
+  private static async _getCourseContentForAI(
+    courseId: string
+  ): Promise<string> {
+    const data = await CourseRepository.findCourseContentById(courseId);
+    if (!data) return '';
+
+    let content = `Course Title: ${data.title}\nCourse Description: ${
+      data.description || 'N/A'
+    }\n\n`;
+
+    for (const module of data.modules) {
+      content += `--- Module: ${module.title} ---\n`;
+
+      for (const lesson of module.lessons) {
+        content += `Lesson: ${lesson.title}\n`;
+
+        if (lesson.textContent) {
+          content += `${lesson.textContent.content}\n`;
+        }
+      }
+      content += `\n`;
+    }
+
+    return content;
   }
 
   private static calculatePercentageChange(
@@ -294,6 +327,8 @@ export class CourseService {
       });
     }
 
+    await this.publishCourseContentUpdate(courseId);
+
     await CourseCacheService.invalidateCacheDetails(courseId);
     await CourseCacheService.invalidateCourseList();
 
@@ -326,6 +361,8 @@ export class CourseService {
         courseId,
       });
     }
+
+    await this.publishCourseContentUpdate(courseId, true);
 
     await CourseCacheService.invalidateCacheDetails(courseId);
     await CourseCacheService.invalidateCourseList();
@@ -522,5 +559,33 @@ export class CourseService {
         change: averageRatingChange, // NOTE: Still a placeholder as we don't store historical ratings
       },
     };
+  }
+
+  /**
+   * Publishes the full text content of a course to the message broker.
+   * @param courseId The ID of the course whose content should be published.
+   * @param isDeletion If true, publishes an empty content string to signal deletion.
+   */
+  public static async publishCourseContentUpdate(
+    courseId: string,
+    isDeletion: boolean = false
+  ): Promise<void> {
+    try {
+      const content = isDeletion
+        ? ''
+        : await this._getCourseContentForAI(courseId);
+
+      const publisher = new CourseContentUpdatedPublisher();
+      await publisher.publish({ courseId, content });
+
+      logger.info(
+        `Published 'course.content.updated' event for course ${courseId}. Deletion: ${isDeletion}`
+      );
+    } catch (error) {
+      logger.error(
+        `Failed to publish course.content.updated event for course ${courseId}`,
+        { error }
+      );
+    }
   }
 }

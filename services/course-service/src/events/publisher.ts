@@ -108,3 +108,15 @@ export interface ResourceDownloadedEvent {
 export class ResourceDownloadedPublisher extends Publisher<ResourceDownloadedEvent> {
   readonly topic = 'resource.downloaded' as const;
 }
+
+interface CourseContentUpdatedEvent {
+  topic: 'course.content.updated';
+  data: {
+    courseId: string;
+    content: string;
+  };
+}
+
+export class CourseContentUpdatedPublisher extends Publisher<CourseContentUpdatedEvent> {
+  readonly topic = 'course.content.updated' as const;
+}

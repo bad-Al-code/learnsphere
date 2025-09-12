@@ -14,6 +14,7 @@ import {
 import { Requester, UpdateModuleDto } from '../types';
 import { AuthorizationService } from './authorization.service';
 import { CourseCacheService } from './course-cache.service';
+import { CourseService } from './course.service';
 
 export class ModuleService {
   public static async addModuleToCourse(
@@ -43,6 +44,7 @@ export class ModuleService {
     });
 
     await CourseCacheService.invalidateCacheDetails(data.courseId);
+    await CourseService.publishCourseContentUpdate(data.courseId);
 
     return newModule;
   }
@@ -92,6 +94,7 @@ export class ModuleService {
     }
 
     await CourseCacheService.invalidateCacheDetails(parentModule.course.id);
+    await CourseService.publishCourseContentUpdate(parentModule.course.id);
 
     return updatedModule;
   }
@@ -106,6 +109,7 @@ export class ModuleService {
     await ModuleRepository.delete(moduleId);
 
     await CourseCacheService.invalidateCacheDetails(parentModule.courseId);
+    await CourseService.publishCourseContentUpdate(parentModule.courseId);
 
     logger.info(`Deleted module ${moduleId} by user ${requester}`);
   }
@@ -154,6 +158,7 @@ export class ModuleService {
 
       await Promise.all(updatePromises);
       await CourseCacheService.invalidateCacheDetails(parentCourseId);
+      await CourseService.publishCourseContentUpdate(parentCourseId);
     });
   }
 

@@ -16,7 +16,7 @@ import {
   GetCoursesByInstructorOptions,
 } from '../../schemas';
 import { Course, NewCourse, UpdateCourse } from '../../types';
-import { CourseLevel, courses, modules } from '../schema';
+import { CourseLevel, courses, lessons, modules } from '../schema';
 
 export class CourseRepository {
   /**
@@ -487,5 +487,45 @@ export class CourseRepository {
       coursesThisPeriod: currentPeriodStats.totalCourses || 0,
       coursesLastPeriod: previousPeriodStats.totalCourses || 0,
     };
+  }
+
+  /**
+   * Fetches all text-based content for a specific course for AI context.
+   * This includes course title/description, all module titles, and all text lesson content.
+   * @param courseId The ID of the course.
+   * @returns A structured object with all course content or undefined if not found.
+   */
+  public static async findCourseContentById(courseId: string) {
+    return db.query.courses.findFirst({
+      where: eq(courses.id, courseId),
+      columns: {
+        title: true,
+        description: true,
+      },
+      with: {
+        modules: {
+          columns: {
+            title: true,
+          },
+          orderBy: (modules, { asc }) => [asc(modules.order)],
+          with: {
+            lessons: {
+              columns: {
+                title: true,
+              },
+              where: eq(lessons.lessonType, 'text'),
+              orderBy: (lessons, { asc }) => [asc(lessons.order)],
+              with: {
+                textContent: {
+                  columns: {
+                    content: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
   }
 }
