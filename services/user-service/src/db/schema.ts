@@ -4,6 +4,7 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uuid,
@@ -119,8 +120,27 @@ export const replicatedCourseContent = pgTable('replicated_course_content', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+/**
+ * @table enrollments
+ * @description Stores a local replica of user-course enrollments.
+ * This table is populated by listening to 'user.enrolled' events
+ * to allow for fast, local authorization checks.
+ */
+export const enrollments = pgTable(
+  'enrollments',
+  {
+    userId: text('user_id')
+      .notNull()
+      .references(() => profiles.userId, { onDelete: 'cascade' }),
+    courseId: uuid('course_id').notNull(),
+    enrolledAt: timestamp('enrolled_at').defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.courseId] })]
+);
+
 export const profilesRelations = relations(profiles, ({ many }) => ({
   aiTutorConversations: many(aiTutorConversations),
+  enrollments: many(enrollments),
 }));
 
 export const aiTutorConversationsRelations = relations(
@@ -143,3 +163,10 @@ export const aiTutorMessagesRelations = relations(
     }),
   })
 );
+
+export const enrollmentsRelations = relations(enrollments, ({ one }) => ({
+  profile: one(profiles, {
+    fields: [enrollments.userId],
+    references: [profiles.userId],
+  }),
+}));

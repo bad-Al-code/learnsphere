@@ -201,3 +201,33 @@ export class CourseContentUpdatedListener extends Listener<CourseContentUpdatedE
     }
   }
 }
+
+interface UserEnrolledEvent {
+  topic: 'user.enrolled';
+  data: {
+    userId: string;
+    courseId: string;
+    enrollmentId: string;
+    enrolledAt: Date;
+  };
+}
+
+export class UserEnrolledListener extends Listener<UserEnrolledEvent> {
+  readonly topic = 'user.enrolled' as const;
+  queueGroupName = 'user-service-enrollment-sync';
+
+  async onMessage(
+    data: UserEnrolledEvent['data'],
+    _msg: ConsumeMessage
+  ): Promise<void> {
+    try {
+      logger.info(
+        `Syncing enrollment for user ${data.userId} in course ${data.courseId}`
+      );
+
+      await AIRepository.addEnrollment(data.userId, data.courseId);
+    } catch (error) {
+      logger.error('Failed to sync user enrollment', { data, error });
+    }
+  }
+}

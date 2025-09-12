@@ -1,7 +1,7 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 import { db } from '../../db';
-import { replicatedCourseContent } from '../../db/schema';
+import { enrollments, replicatedCourseContent } from '../../db/schema';
 
 export class AIRepository {
   /**
@@ -31,5 +31,40 @@ export class AIRepository {
     await db
       .delete(replicatedCourseContent)
       .where(eq(replicatedCourseContent.courseId, courseId));
+  }
+
+  /**
+   * Creates a new enrollment record in the local replica.
+   * @param userId The ID of the user.
+   * @param courseId The ID of the course.
+   */
+  public static async addEnrollment(
+    userId: string,
+    courseId: string
+  ): Promise<void> {
+    await db
+      .insert(enrollments)
+      .values({ userId, courseId })
+      .onConflictDoNothing();
+  }
+
+  /**
+   * Checks if a user is enrolled in a course using the local replica.
+   * @param userId The ID of the user.
+   * @param courseId The ID of the course.
+   * @returns True if an enrollment record exists, false otherwise.
+   */
+  public static async isUserEnrolled(
+    userId: string,
+    courseId: string
+  ): Promise<boolean> {
+    const result = await db.query.enrollments.findFirst({
+      where: and(
+        eq(enrollments.userId, userId),
+        eq(enrollments.courseId, courseId)
+      ),
+    });
+
+    return !!result;
   }
 }

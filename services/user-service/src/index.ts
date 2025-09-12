@@ -8,6 +8,7 @@ import { rabbitMQConnection } from './events/connection';
 import {
   CourseContentUpdatedListener,
   UserAvatarProcessedListener,
+  UserEnrolledListener,
   UserRegisteredListener,
   UserSessionCreatedListener,
 } from './events/listener';
@@ -21,6 +22,7 @@ const startServer = async () => {
     new UserAvatarProcessedListener().listen();
     new UserSessionCreatedListener().listen();
     new CourseContentUpdatedListener().listen();
+    new UserEnrolledListener().listen();
 
     const PORT = env.PORT || 8001;
     app.listen(PORT, () => {
