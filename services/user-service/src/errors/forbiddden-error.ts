@@ -4,9 +4,10 @@ import { CustomError } from './custom-error';
 export class ForbiddenError extends CustomError {
   statusCode: number = StatusCodes.FORBIDDEN;
 
-  constructor() {
+  constructor(message?: string) {
     super(
-      'Access Forbidden: You do not have permission to perform this action.'
+      message ||
+        'Access Forbidden: You do not have permission to perform this action.'
     );
 
     Object.setPrototypeOf(this, ForbiddenError.prototype);

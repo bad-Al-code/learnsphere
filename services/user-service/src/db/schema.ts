@@ -107,6 +107,8 @@ export const aiTutorMessages = pgTable('ai_tutor_messages', {
   content: text('content').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+export type NewAITutorMessage = typeof aiTutorMessages.$inferInsert;
+export type AITutorMessage = typeof aiTutorMessages.$inferSelect;
 
 /**
  * @table replicated_course_content

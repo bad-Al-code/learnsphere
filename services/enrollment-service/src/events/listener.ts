@@ -93,7 +93,7 @@ export class CourseSyncCreatedListener extends Listener<CourseCreatedEvent> {
         currency: data.currency,
       });
     } catch (error) {
-      logger.error('Failed to sync created course', { data, error });
+      logger.error('Failed to sync created course %o', { data, error });
     }
   }
 }

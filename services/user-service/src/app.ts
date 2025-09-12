@@ -6,6 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import helmet from 'helmet';
 import { env } from './config/env';
 import { swaggerSpec } from './config/swagger';
+import { aiRouter } from './features/ai/ai.route';
 import { currentUser } from './middlewares/current-user';
 import { errorHandler } from './middlewares/error-handler';
 import { httpLogger } from './middlewares/http-logger';
@@ -31,6 +32,7 @@ app.use(currentUser);
 
 app.use('/api/users', healthRouter);
 app.use('/api/users', profileRouter);
+app.use('/api/users/ai', aiRouter);
 
 app.use(errorHandler);
 
