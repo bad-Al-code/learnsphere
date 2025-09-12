@@ -107,6 +107,18 @@ export const aiTutorMessages = pgTable('ai_tutor_messages', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+/**
+ * @table replicated_course_content
+ * @description Stores a local, denormalized copy of course content.
+ * This table is populated by listening to 'course.content.updated' events
+ * from the course-service to enable fast, resilient context fetching for the AI tutor.
+ */
+export const replicatedCourseContent = pgTable('replicated_course_content', {
+  courseId: uuid('course_id').primaryKey(),
+  content: text('content').notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 export const profilesRelations = relations(profiles, ({ many }) => ({
   aiTutorConversations: many(aiTutorConversations),
 }));
