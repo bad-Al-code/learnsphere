@@ -5,23 +5,26 @@ import { AIRepository } from './ai.repository';
 import { buildTutorInstruction } from './prompts/tutorInstruction.prompt';
 import { Providers } from './providers';
 import { tutorResponseSchema } from './schema/tutorResponse.schema';
-import { findPackageJSON } from 'node:module';
 
 export class AiService {
   private provider = Providers.google;
 
   /**
-   * Generates a response from the AI Tutor.
-   * @param {string} userId The ID of the user making the request.
-   * @param {string} courseId The ID of the course context.
-   * @param {string} prompt The user's message/question.
-   * @returns {Promise<string>} The AI model's response as a string.
+   * Generates a response from the AI Tutor within the context of a course conversation.
+   * @param {string} userId - The ID of the user making the request.
+   * @param {string} courseId - The ID of the course providing the context for the AI Tutor.
+   * @param {string} prompt - The user's message or question to the AI Tutor.
+   * @param {string} [conversationId] - Optional existing conversation ID to continue the chat.
+   * @returns {Promise<{ response: string; conversationId: string }>}
+   * @throws {ForbiddenError} If the user is not enrolled in the course or tries to access a conversation they do not own.
+   * @throws {NotFoundError} If the course content cannot be found or is still syncing.
    */
   public async generateTutorResponse(
     userId: string,
     courseId: string,
-    prompt: string
-  ): Promise<string> {
+    prompt: string,
+    conversationId?: string
+  ): Promise<{ response: string; conversationId: string }> {
     const isEnrolled = await AIRepository.isUserEnrolled(userId, courseId);
     if (!isEnrolled) {
       throw new ForbiddenError(
@@ -36,10 +39,26 @@ export class AiService {
       );
     }
 
-    const conversation = await AIRepository.findOrCreateConversation(
-      userId,
-      courseId
-    );
+    let conversation;
+    if (conversationId) {
+      const existingConversation =
+        await AIRepository.findConversationById(conversationId);
+
+      if (!existingConversation || existingConversation.userId !== userId) {
+        throw new ForbiddenError();
+      }
+
+      conversation = existingConversation;
+    } else {
+      const initialTitle =
+        prompt.substring(0, 40) + (prompt.length > 40 ? '...' : '');
+
+      conversation = await AIRepository.createConversation(
+        userId,
+        courseId,
+        initialTitle
+      );
+    }
 
     const history = await AIRepository.getMessages(conversation.id);
 
@@ -74,21 +93,22 @@ export class AiService {
     });
 
     const rawResponseText = result.text;
-let finalResponseText  = '';
-try {
-  const jsonResponse = JSON.parse(rawResponseText!);
 
-      finalResponseText = jsonResponse.answer || 'The AI returned an empty answer.';
-} catch (e) {
-  logger.error('Failed to parse structured JSON object from Gemini', {
+    let finalResponseText = '';
+    try {
+      const jsonResponse = JSON.parse(rawResponseText!);
+
+      finalResponseText =
+        jsonResponse.answer || 'The AI returned an empty answer.';
+    } catch (e) {
+      logger.error('Failed to parse structured JSON object from Gemini', {
         rawResponse: rawResponseText,
         error: e,
       });
-      finalResponseText = "I'm sorry, I encountered an issue processing the response. Please try again.";
-}
+      finalResponseText =
+        "I'm sorry, I encountered an issue processing the response. Please try again.";
+    }
 
-logger.debug(rawResponseText);
-logger.debug(finalResponseText)
     await AIRepository.addMessage({
       conversationId: conversation.id,
       role: 'user',
@@ -98,13 +118,80 @@ logger.debug(finalResponseText)
     await AIRepository.addMessage({
       conversationId: conversation.id,
       role: 'model',
-      content: finalResponseText
+      content: finalResponseText,
     });
 
     logger.info(
       `AI Tutor response generated for user ${userId} in course ${courseId}`
     );
 
-    return finalResponseText;
+    return { response: finalResponseText, conversationId: conversation.id };
+  }
+
+  /**
+   * Creates a new, empty conversation.
+   * @param userId The user creating the conversation.
+   * @param courseId The course context for the conversation.
+   * @returns The newly created conversation object.
+   */
+  public async createNewConversation(
+    userId: string,
+    courseId: string,
+    title?: string
+  ) {
+    const isEnrolled = await AIRepository.isUserEnrolled(userId, courseId);
+    if (!isEnrolled) {
+      throw new ForbiddenError('You must be enrolled to start a conversation.');
+    }
+
+    return AIRepository.createConversation(
+      userId,
+      courseId,
+      title || 'New Chat'
+    );
+  }
+
+  /**
+   * Retrieves all conversations for a given user.
+   * @param userId The ID of the user.
+   * @returns A list of conversation objects.
+   */
+  public async getConversationsForUser(userId: string) {
+    return AIRepository.findConversationsByUserId(userId);
+  }
+
+  /**
+   * Renames a conversation after verifying ownership.
+   * @param conversationId The ID of the conversation.
+   * @param newTitle The new title.
+   * @param userId The ID of the user making the request.
+   */
+  public async renameConversation(
+    conversationId: string,
+    newTitle: string,
+    userId: string
+  ) {
+    const conversation =
+      await AIRepository.findConversationById(conversationId);
+    if (!conversation || conversation.userId !== userId) {
+      throw new ForbiddenError();
+    }
+
+    await AIRepository.updateConversationTitle(conversationId, newTitle);
+  }
+
+  /**
+   * Deletes a conversation after verifying ownership.
+   * @param conversationId The ID of the conversation.
+   * @param userId The ID of the user making the request.
+   */
+  public async deleteConversation(conversationId: string, userId: string) {
+    const conversation =
+      await AIRepository.findConversationById(conversationId);
+    if (!conversation || conversation.userId !== userId) {
+      throw new ForbiddenError();
+    }
+
+    await AIRepository.deleteConversation(conversationId);
   }
 }
