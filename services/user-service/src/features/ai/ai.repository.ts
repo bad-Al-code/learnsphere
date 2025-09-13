@@ -135,4 +135,74 @@ export class AIRepository {
       where: eq(replicatedCourseContent.courseId, courseId),
     });
   }
+
+  /**
+   * Creates a new, empty conversation for a user and course.
+   * @param userId The ID of the user.
+   * @param courseId The ID of the course.
+   * @param title The initial title for the conversation.
+   * @returns The newly created conversation object.
+   */
+  public static async createConversation(
+    userId: string,
+    courseId: string,
+    title: string
+  ) {
+    const [newConversation] = await db
+      .insert(aiTutorConversations)
+      .values({ userId, courseId, title })
+      .returning();
+
+    return newConversation;
+  }
+
+  /**
+   * Finds a single conversation by its ID.
+   * @param conversationId The ID of the conversation.
+   * @returns The conversation object or undefined if not found.
+   */
+  public static async findConversationById(conversationId: string) {
+    return db.query.aiTutorConversations.findFirst({
+      where: eq(aiTutorConversations.id, conversationId),
+    });
+  }
+
+  /**
+   * Finds all conversations for a specific user.
+   * @param userId The ID of the user.
+   * @returns A list of the user's conversations, sorted by most recently updated.
+   */
+  public static async findConversationsByUserId(userId: string) {
+    return db.query.aiTutorConversations.findMany({
+      where: eq(aiTutorConversations.userId, userId),
+      orderBy: [desc(aiTutorConversations.updatedAt)],
+    });
+  }
+
+  /**
+   * Updates the title of a conversation.
+   * @param conversationId The ID of the conversation to update.
+   * @param title The new title.
+   */
+  public static async updateConversationTitle(
+    conversationId: string,
+    title: string
+  ): Promise<void> {
+    await db
+      .update(aiTutorConversations)
+      .set({ title, updatedAt: new Date() })
+      .where(eq(aiTutorConversations.id, conversationId));
+  }
+
+  /**
+   * Deletes a conversation and all its associated messages.
+   * @param conversationId The ID of the conversation to delete.
+   */
+  public static async deleteConversation(
+    conversationId: string
+  ): Promise<void> {
+    await db
+      .delete(aiTutorConversations)
+      .where(eq(aiTutorConversations.id, conversationId));
+  }
 }

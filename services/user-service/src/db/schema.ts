@@ -94,6 +94,7 @@ export const aiTutorConversations = pgTable('ai_tutor_conversations', {
     .notNull()
     .references(() => profiles.userId, { onDelete: 'cascade' }),
   courseId: uuid('course_id').notNull(),
+  title: varchar('title', { length: 255 }).notNull().default('New Chat'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

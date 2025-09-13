@@ -1,0 +1,1 @@
+ALTER TABLE "ai_tutor_conversations" ADD COLUMN "title" varchar(255) DEFAULT 'New Chat' NOT NULL;

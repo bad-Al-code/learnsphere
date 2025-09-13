@@ -36,6 +36,13 @@
       "when": 1757660728962,
       "tag": "0004_light_black_bird",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1757759960077,
+      "tag": "0005_flaky_supernaut",
+      "breakpoints": true
     }
   ]
 }
