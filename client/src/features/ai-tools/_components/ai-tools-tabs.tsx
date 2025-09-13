@@ -62,11 +62,7 @@ export function AiToolsTabs() {
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-      <AppTabs
-        tabs={studentAiToolsTabs}
-        basePath="/student/ai-tools"
-        activeTab="tab"
-      />
+      <AppTabs tabs={studentAiToolsTabs} basePath="/" activeTab="tab" />
       <div className="">
         {isPending ? (
           pendingSkeleton
