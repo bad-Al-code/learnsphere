@@ -59,7 +59,11 @@ function AiStudyAssistant() {
           if (data.data) {
             setMessages((prev) => [
               ...prev,
-              { id: crypto.randomUUID(), role: 'model', content: data.data! },
+              {
+                id: crypto.randomUUID(),
+                role: 'model',
+                content: data.data?.response!,
+              },
             ]);
           }
           if (data.error) {

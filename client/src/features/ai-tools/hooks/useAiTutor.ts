@@ -5,7 +5,10 @@ import { askAiTutor } from '../actions/chat';
 import { TutorChatRequest } from '../schemas/chat.schema';
 
 type TutorChatActionResult = {
-  data?: string;
+  data?: {
+    response: string;
+    conversationId: string;
+  };
   error?: string;
 };
 
