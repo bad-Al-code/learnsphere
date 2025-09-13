@@ -1,4 +1,4 @@
-import { Content, GoogleGenAI } from '@google/genai'; //
+import { Content, GoogleGenAI, Type } from '@google/genai';
 import { gemini } from '../../config/gemini';
 import logger from '../../config/logger';
 import { ForbiddenError, NotFoundError } from '../../errors';
@@ -41,6 +41,7 @@ export class AiService {
       userId,
       courseId
     );
+
     const history = await AIRepository.getMessages(conversation.id);
 
     const formattedHistory: Content[] = history
@@ -50,20 +51,38 @@ export class AiService {
       }))
       .reverse();
 
-    const model = this.gemini.models;
+    const responseSchema = {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          answer: {
+            type: Type.STRING,
+          },
+        },
+      },
+    };
 
     const contents: Content[] = [
       ...formattedHistory,
       { role: 'user', parts: [{ text: prompt }] },
     ];
+    const systemInstruction = {
+      role: 'system',
+      parts: [{ text: this.getSystemInstruction(courseContent.content) }],
+    };
+
+    const model = this.gemini.models;
 
     const result = await model.generateContent({
-      model: 'gemini-1.5-flash',
-      contents: contents,
+      model: 'gemini-2.5-flash',
+      contents,
       config: {
-        systemInstruction: {
-          role: 'system',
-          parts: [{ text: this.getSystemInstruction(courseContent.content) }],
+        systemInstruction,
+        responseMimeType: 'application/json',
+        responseSchema,
+        thinkingConfig: {
+          thinkingBudget: 1000,
         },
       },
     });
@@ -95,7 +114,7 @@ export class AiService {
       You must ONLY answer questions based on the provided course content.
       If a user asks a question that is outside the scope of the provided content, you MUST politely decline and guide them back to topics covered in the course.
       Do not answer general knowledge questions.
-      Your tone should be patient and supportive. Use formatting like markdown for code blocks, bold text for key terms, and bullet points for lists.
+      Your tone should be patient and supportive. Use formatting like markdown for code blocks, bold text for key terms, and bullet points for lists inside your answer.
 
       HERE IS THE COURSE CONTENT:
       ---
