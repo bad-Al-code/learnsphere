@@ -9,5 +9,5 @@ import { TutorChatRequest, TutorChatResponse } from '../schemas/chat.schema';
 export const sendAiTutorMessage = (
   data: TutorChatRequest
 ): Promise<TutorChatResponse> => {
-  return userService.post<TutorChatResponse>('/ai/tutor-chat', data);
+  return userService.postTyped<TutorChatResponse>('/ai/tutor-chat', data);
 };

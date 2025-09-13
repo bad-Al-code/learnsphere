@@ -67,6 +67,62 @@ class ApiClient {
       headers: await this.getHeaders(options?.headers),
     });
   }
+
+  private async handleResponse<T>(response: Response): Promise<T> {
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(
+        `API Error: ${response.status} ${response.statusText}`,
+        errorBody
+      );
+
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+
+    return response.json() as T;
+  }
+
+  public async postTyped<T>(
+    path: string,
+    body: unknown,
+    options?: RequestInit
+  ): Promise<T> {
+    const response = await this.post(path, body, options);
+
+    return this.handleResponse<T>(response);
+  }
+
+  public async getTyped<T>(path: string, options?: RequestInit): Promise<T> {
+    const response = await this.get(path, options);
+
+    return this.handleResponse<T>(response);
+  }
+
+  public async putTyped<T>(
+    path: string,
+    body: unknown,
+    options?: RequestInit
+  ): Promise<T> {
+    const response = await this.put(path, body, options);
+
+    return this.handleResponse<T>(response);
+  }
+
+  public async patchTyped<T>(
+    path: string,
+    body: unknown,
+    options?: RequestInit
+  ): Promise<T> {
+    const response = await this.patch(path, body, options);
+
+    return this.handleResponse<T>(response);
+  }
+
+  public async deleteTyped<T>(path: string, options?: RequestInit): Promise<T> {
+    const response = await this.delete(path, options);
+
+    return this.handleResponse<T>(response);
+  }
 }
 
 export const authService = new ApiClient(process.env.AUTH_SERVICE_URL!);
