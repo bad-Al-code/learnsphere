@@ -32,7 +32,7 @@ app.use(currentUser);
 
 app.use('/api/users', healthRouter);
 app.use('/api/users', profileRouter);
-app.use('/api/users/ai', aiRouter);
+app.use('/api/ai', aiRouter);
 
 app.use(errorHandler);
 
