@@ -1,9 +1,9 @@
 'use client';
 
 import { ArrowUp, Bot } from 'lucide-react';
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import React, { FormEvent, useEffect, useRef, useState } from 'react';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -12,15 +12,22 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { useSessionStore } from '@/stores/session-store';
 import { useAiTutorChat } from '../hooks/useAiTutor';
 import { ChatMessage } from '../types/inedx';
 
 const COURSE_ID = '0b72ac05-aa68-43a3-b340-258feebf573c';
 
 function AiStudyAssistant() {
+  const { user } = useSessionStore();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [prompt, setPrompt] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -74,6 +81,21 @@ function AiStudyAssistant() {
     setPrompt('');
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e as unknown as FormEvent);
+    }
+  };
+
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('');
+  };
+
   return (
     <Card className="flex h-[calc(100vh-12.5rem)] flex-col">
       <CardHeader>
@@ -124,7 +146,11 @@ function AiStudyAssistant() {
 
             {msg.role === 'user' && (
               <Avatar className="h-8 w-8 border">
-                <AvatarFallback>You</AvatarFallback>
+                <AvatarImage
+                  src={user?.avatarUrls?.small}
+                  alt={user?.firstName || 'User'}
+                />
+                <AvatarFallback>{getInitials(user?.firstName)}</AvatarFallback>
               </Avatar>
             )}
           </div>
@@ -138,32 +164,39 @@ function AiStudyAssistant() {
               </AvatarFallback>
             </Avatar>
 
-            <div className="max-w-md space-y-1">
-              <div className="bg-muted rounded-lg rounded-bl-none p-3 text-sm">
-                <p className="animate-pulse">AI is thinking...</p>
-              </div>
+            <div className="bg-muted max-w-md space-y-2 rounded-lg p-3">
+              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-4 w-32" />
             </div>
           </div>
         )}
       </CardContent>
 
-      <CardContent className="border-t pt-4">
+      <CardContent className="">
         <form onSubmit={handleSubmit} className="relative">
-          <Input
+          <Textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Ask a follow-up question..."
-            className="h-12 pr-12"
+            onKeyDown={handleKeyDown}
+            placeholder="Ask a follow-up question... (Shift+Enter for new line)"
+            className="max-h-48 min-h-12 resize-none pr-12"
             disabled={isPending}
+            rows={1}
           />
-          <Button
-            type="submit"
-            size="icon"
-            className="absolute top-1/2 right-1 h-9 w-9 -translate-y-1/2 rounded-full"
-            disabled={isPending || !prompt.trim()}
-          >
-            <ArrowUp className="h-4 w-4" />
-          </Button>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="submit"
+                size="icon"
+                className="absolute right-2 bottom-1 h-9 w-9 rounded-full"
+                disabled={isPending || !prompt.trim()}
+              >
+                <ArrowUp className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Send Message</TooltipContent>
+          </Tooltip>
         </form>
       </CardContent>
     </Card>
@@ -177,10 +210,11 @@ export function AiTutorTab() {
     </div>
   );
 }
+
 export function AiTutorTabSkeleton() {
   return (
     <div className="space-y-2">
-      <Card className="flex h-[74vh] flex-col">
+      <Card className="flex h-[calc(100vh-12.5rem)] flex-col">
         <CardHeader>
           <Skeleton className="h-6 w-1/2" />
           <Skeleton className="mt-2 h-4 w-3/4" />
