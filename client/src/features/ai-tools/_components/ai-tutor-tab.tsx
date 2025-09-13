@@ -4,7 +4,7 @@ import { ArrowUp, Bot } from 'lucide-react';
 import React, { FormEvent, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -20,15 +20,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn, getInitials } from '@/lib/utils';
-import { useSessionStore } from '@/stores/session-store';
+import { cn } from '@/lib/utils';
 import { useAiTutorChat } from '../hooks/useAiTutor';
 import { ChatMessage } from '../types/inedx';
 
 const COURSE_ID = '8bc1e072-e11a-40d4-b436-e713b0921433';
 
 function AiStudyAssistant() {
-  const { user } = useSessionStore();
+  // const { user } = useSessionStore();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [prompt, setPrompt] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -90,9 +89,9 @@ function AiStudyAssistant() {
   };
 
   return (
-    <Card className="flex h-[calc(100vh-12.5rem)] flex-col">
-      <CardHeader>
-        <div className="flex items-center gap-2">
+    <Card className="flex h-[calc(100vh-12.5rem)] flex-col pb-0">
+      <CardHeader className="">
+        <div className="gapa-2 flex items-center">
           <Bot className="h-5 w-5" />
           <CardTitle>AI Study Assistant</CardTitle>
         </div>
@@ -114,18 +113,18 @@ function AiStudyAssistant() {
               msg.role === 'user' && 'justify-end'
             )}
           >
-            {msg.role === 'model' && (
+            {/* {msg.role === 'model' && (
               <Avatar className="h-8 w-8 border">
                 <AvatarFallback>
                   <Bot className="h-4 w-4" />
                 </AvatarFallback>
               </Avatar>
-            )}
+            )} */}
 
             <div className="max-w-md space-y-1">
               <div
                 className={cn(
-                  'prose dark:prose-invert prose-p:my-0 prose-ul:my-0 prose-li:my-0 rounded-lg p-3 text-sm whitespace-pre-wrap',
+                  'prose dark:prose-invert prose-p:my-0 prose-ul:my-0 prose-li:my-0 rounded-lg p-2 text-sm whitespace-pre-wrap',
                   msg.role === 'user' ? 'bg-muted' : 'bg-muted',
                   msg.role === 'system' && 'bg-destructive/10 text-destructive'
                 )}
@@ -134,7 +133,7 @@ function AiStudyAssistant() {
               </div>
             </div>
 
-            {msg.role === 'user' && (
+            {/* {msg.role === 'user' && (
               <Avatar className="h-8 w-8 border">
                 <AvatarImage
                   src={user?.avatarUrls?.small}
@@ -142,7 +141,7 @@ function AiStudyAssistant() {
                 />
                 <AvatarFallback>{getInitials(user?.firstName)}</AvatarFallback>
               </Avatar>
-            )}
+            )} */}
           </div>
         ))}
 
@@ -165,14 +164,14 @@ function AiStudyAssistant() {
         )}
       </CardContent>
 
-      <CardContent className="">
-        <form onSubmit={handleSubmit} className="relative">
+      <CardContent className="p-1">
+        <form onSubmit={handleSubmit} className="relative flex items-center">
           <Textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask a follow-up question... (Shift+Enter for new line)"
-            className="max-h-48 min-h-12 resize-none items-center pr-12"
+            className="max-h-48 min-h-[44px] resize-none py-2 pr-12 leading-relaxed"
             disabled={isPending}
             rows={1}
           />
