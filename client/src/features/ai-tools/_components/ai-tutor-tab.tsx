@@ -2,6 +2,7 @@
 
 import { ArrowUp, Bot } from 'lucide-react';
 import React, { FormEvent, useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -19,12 +20,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 import { useSessionStore } from '@/stores/session-store';
 import { useAiTutorChat } from '../hooks/useAiTutor';
 import { ChatMessage } from '../types/inedx';
 
-const COURSE_ID = '0b72ac05-aa68-43a3-b340-258feebf573c';
+const COURSE_ID = '8bc1e072-e11a-40d4-b436-e713b0921433';
 
 function AiStudyAssistant() {
   const { user } = useSessionStore();
@@ -88,14 +89,6 @@ function AiStudyAssistant() {
     }
   };
 
-  const getInitials = (name: string | null | undefined) => {
-    if (!name) return 'U';
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('');
-  };
-
   return (
     <Card className="flex h-[calc(100vh-12.5rem)] flex-col">
       <CardHeader>
@@ -132,15 +125,12 @@ function AiStudyAssistant() {
             <div className="max-w-md space-y-1">
               <div
                 className={cn(
-                  'rounded-lg p-3 text-sm whitespace-pre-wrap',
-                  msg.role === 'user'
-                    ? 'bg-primary text-primary-foreground rounded-br-none'
-                    : 'bg-muted rounded-bl-none',
-                  msg.role === 'system' &&
-                    'bg-destructive/10 text-destructive rounded-none'
+                  'prose dark:prose-invert prose-p:my-0 prose-ul:my-0 prose-li:my-0 rounded-lg p-3 text-sm whitespace-pre-wrap',
+                  msg.role === 'user' ? 'bg-muted' : 'bg-muted',
+                  msg.role === 'system' && 'bg-destructive/10 text-destructive'
                 )}
               >
-                <p>{msg.content}</p>
+                <ReactMarkdown>{msg.content}</ReactMarkdown>
               </div>
             </div>
 
@@ -164,9 +154,12 @@ function AiStudyAssistant() {
               </AvatarFallback>
             </Avatar>
 
-            <div className="bg-muted max-w-md space-y-2 rounded-lg p-3">
-              <Skeleton className="h-4 w-48" />
-              <Skeleton className="h-4 w-32" />
+            <div className="bg-muted max-w-xs rounded-lg p-3">
+              <div className="flex space-x-2">
+                <span className="bg-foreground h-2 w-2 animate-bounce rounded-full [animation-delay:-0.3s]" />
+                <span className="bg-foreground h-2 w-2 animate-bounce rounded-full [animation-delay:-0.15s]" />
+                <span className="bg-foreground h-2 w-2 animate-bounce rounded-full" />
+              </div>
             </div>
           </div>
         )}
@@ -179,7 +172,7 @@ function AiStudyAssistant() {
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask a follow-up question... (Shift+Enter for new line)"
-            className="max-h-48 min-h-12 resize-none pr-12"
+            className="max-h-48 min-h-12 resize-none items-center pr-12"
             disabled={isPending}
             rows={1}
           />
@@ -205,7 +198,7 @@ function AiStudyAssistant() {
 
 export function AiTutorTab() {
   return (
-    <div className="space-y-2">
+    <div className="">
       <AiStudyAssistant />
     </div>
   );
