@@ -3,6 +3,7 @@
 import {
   ArrowUp,
   Bot,
+  MoreHorizontal,
   PanelLeftClose,
   PanelRightClose,
   Plus,
@@ -13,6 +14,22 @@ import ReactMarkdown from 'react-markdown';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   ResizableHandle,
   ResizablePanel,
@@ -26,17 +43,126 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { DropdownMenuItem } from '@radix-ui/react-dropdown-menu';
 import { ImperativePanelHandle } from 'react-resizable-panels';
+import { toast } from 'sonner';
+import {
+  useCreateConversation,
+  useDeleteConversation,
+  useGetConversations,
+  useRenameConversation,
+} from '../hooks/useAiConversations';
 import { useAiTutorChat } from '../hooks/useAiTutor';
+import { Conversation } from '../schemas/chat.schema';
 import { ChatMessage } from '../types/inedx';
+
+function RenameConversationDialog({
+  conversation,
+}: {
+  conversation: Conversation;
+}) {
+  const [title, setTitle] = useState(conversation.title);
+  const [isOpen, setIsOpen] = useState(false);
+  const { mutate: rename, isPending } = useRenameConversation();
+
+  const handleRename = () => {
+    if (!title.trim() || title === conversation.title) {
+      setIsOpen(false);
+      return;
+    }
+    rename(
+      { conversationId: conversation.id, title },
+      {
+        onSuccess: () => {
+          toast.success('Conversation renamed.');
+          setIsOpen(false);
+        },
+        onError: (error) => toast.error(error.message),
+      }
+    );
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+          Rename
+        </DropdownMenuItem>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Rename Conversation</DialogTitle>
+        </DialogHeader>
+        <div className="py-4">
+          <Label htmlFor="title">New Title</Label>
+          <Input
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+          <Button onClick={handleRename} disabled={isPending}>
+            {isPending ? 'Renaming...' : 'Save'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export function ConversationSidebar({
   isCollapsed,
   onToggle,
+  activeConversationId,
+  setActiveConversationId,
 }: {
   isCollapsed: boolean;
   onToggle: () => void;
+  activeConversationId: string | null;
+  setActiveConversationId: (id: string | null) => void;
 }) {
+  const { data: conversations, isLoading } = useGetConversations();
+  const { mutate: createConversation } = useCreateConversation();
+  const { mutate: deleteConversation } = useDeleteConversation();
+
+  const handleNewChat = () => {
+    createConversation(
+      { courseId: COURSE_ID },
+      {
+        onSuccess: (result) => {
+          if (result.data) {
+            setActiveConversationId(result.data.id);
+            toast.success('New chat created.');
+          } else if (result.error) {
+            toast.error(result.error);
+          }
+        },
+      }
+    );
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this chat?')) {
+      deleteConversation(id, {
+        onSuccess: () => {
+          if (activeConversationId === id) {
+            setActiveConversationId(null);
+          }
+          toast.success('Chat deleted.');
+        },
+        onError: (error) => toast.error(error.message),
+      });
+    }
+  };
+
+  if (isLoading) {
+    return <ConversationSidebarSkeleton />;
+  }
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b px-3 py-2">
@@ -70,7 +196,7 @@ export function ConversationSidebar({
           {!isCollapsed && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="icon" variant="ghost">
+                <Button size="icon" variant="ghost" onClick={ handleNewChat }>
                   <Plus className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -82,14 +208,50 @@ export function ConversationSidebar({
 
       <div className="flex-1 overflow-y-auto p-3">
         {!isCollapsed ? (
-          <p className="text-muted-foreground text-sm">
-            Conversation list will appear here.
-          </p>
+          <div className="flex flex-col gap-1">
+            {conversations?.map((convo) => (
+              <Button
+                key={convo.id}
+                variant={
+                  activeConversationId === convo.id ? 'secondary' : 'ghost'
+                }
+                className="h-auto w-full justify-between gap-2 px-2 py-1.5"
+                onClick={() => setActiveConversationId(convo.id)}
+              >
+                <span className="truncate text-sm">{convo.title}</span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 shrink-0"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <RenameConversationDialog conversation={convo} />
+                    <DropdownMenuItem
+                      onClick={() => handleDelete(convo.id)}
+                      className="text-red-500"
+                    >
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </Button>
+            ))}
+            {conversations?.length === 0 && (
+              <p className="text-muted-foreground p-2 text-center text-sm">
+                No chats yet.
+              </p>
+            )}
+          </div>
         ) : (
           <div className="flex h-full flex-col items-center justify-start">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="icon" variant="ghost" className="h-8 w-8">
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleNewChat}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -340,6 +502,9 @@ function AiStudyAssistant() {
 export function AiTutorTab() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const panelRef = useRef<ImperativePanelHandle>(null);
+  const [activeConversationId, setActiveConversationId] = useState<
+    string | null
+  >(null);
 
   const toggleCollapse = () => {
     if (!panelRef.current) return;
@@ -381,6 +546,8 @@ export function AiTutorTab() {
         <ConversationSidebar
           isCollapsed={isCollapsed}
           onToggle={toggleCollapse}
+          activeConversationId={activeConversationId}
+          setActiveConversationId={setActiveConversationId}
         />
       </ResizablePanel>
 
