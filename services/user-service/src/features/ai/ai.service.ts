@@ -5,6 +5,7 @@ import { AIRepository } from './ai.repository';
 import { buildTutorInstruction } from './prompts/tutorInstruction.prompt';
 import { Providers } from './providers';
 import { tutorResponseSchema } from './schema/tutorResponse.schema';
+import { findPackageJSON } from 'node:module';
 
 export class AiService {
   private provider = Providers.google;
@@ -72,8 +73,22 @@ export class AiService {
       },
     });
 
-    const responseText = result.text;
+    const rawResponseText = result.text;
+let finalResponseText  = '';
+try {
+  const jsonResponse = JSON.parse(rawResponseText!);
 
+      finalResponseText = jsonResponse.answer || 'The AI returned an empty answer.';
+} catch (e) {
+  logger.error('Failed to parse structured JSON object from Gemini', {
+        rawResponse: rawResponseText,
+        error: e,
+      });
+      finalResponseText = "I'm sorry, I encountered an issue processing the response. Please try again.";
+}
+
+logger.debug(rawResponseText);
+logger.debug(finalResponseText)
     await AIRepository.addMessage({
       conversationId: conversation.id,
       role: 'user',
@@ -83,13 +98,13 @@ export class AiService {
     await AIRepository.addMessage({
       conversationId: conversation.id,
       role: 'model',
-      content: responseText!,
+      content: finalResponseText
     });
 
     logger.info(
       `AI Tutor response generated for user ${userId} in course ${courseId}`
     );
 
-    return responseText!;
+    return finalResponseText;
   }
 }
