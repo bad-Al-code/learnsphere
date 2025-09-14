@@ -33,3 +33,12 @@ export const renameConversationSchema = z.object({
   title: z.string().min(1, 'Title cannot be empty.').max(255),
 });
 export type RenameConversationInput = z.infer<typeof renameConversationSchema>;
+
+export const messageSchema = z.object({
+  id: z.uuid(),
+  conversationId: z.uuid(),
+  role: z.enum(['user', 'model', 'system']),
+  content: z.string(),
+  createdAt: z.iso.datetime(),
+});
+export type Message = z.infer<typeof messageSchema>;

@@ -3,6 +3,7 @@ import {
   Conversation,
   CreateConversationInput,
   TutorChatRequest,
+  Message
 } from '../schemas/chat.schema';
 
 /**
@@ -64,4 +65,15 @@ export const renameConversation = (
  */
 export const deleteConversation = (id: string): Promise<void> => {
   return userService.deleteTyped<void>(`/api/ai/tutor/conversations/${id}`);
+};
+
+/**
+ * Fetches messages for a specific conversation.
+ * @param id The ID of the conversation.
+ * @returns A promise resolving to an array of message objects.
+ */
+export const getMessages = (id: string): Promise<Message[]> => {
+  return userService.getTyped<Message[]>(
+    `/api/ai/tutor/conversations/${id}/messages?limit=100`
+  );
 };

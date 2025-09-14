@@ -113,4 +113,24 @@ export class AiController {
       next(error);
     }
   }
+
+  public static async getMessagesForConversation(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { id } = req.params;
+
+      const messages = await AiController.aiService.getMessagesForConversation(
+        id,
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(messages);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

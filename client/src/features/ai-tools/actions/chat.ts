@@ -5,6 +5,7 @@ import {
   createConversation,
   deleteConversation,
   getConversations,
+  getMessages,
   renameConversation,
   sendAiTutorMessage,
 } from '../api/ai.api';
@@ -95,5 +96,17 @@ export const deleteConversationAction = async (conversationId: string) => {
     console.error('Delete conversation action error:', error);
 
     return { error: 'Failed to delete conversation.' };
+  }
+};
+
+export const getMessagesAction = async (conversationId: string) => {
+  try {
+    const messages = await getMessages(conversationId);
+
+    return { data: messages };
+  } catch (error) {
+    console.error('Get messages action error:', error);
+
+    return { error: 'Failed to fetch messages.' };
   }
 };

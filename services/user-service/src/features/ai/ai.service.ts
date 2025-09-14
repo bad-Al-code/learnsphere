@@ -129,6 +129,25 @@ export class AiService {
   }
 
   /**
+   * Retrieves messages for a specific conversation after verifying ownership.
+   * @param conversationId The ID of the conversation.
+   * @param userId The ID of the user making the request.
+   * @returns A list of message objects.
+   */
+  public async getMessagesForConversation(
+    conversationId: string,
+    userId: string
+  ) {
+    const conversation =
+      await AIRepository.findConversationById(conversationId);
+    if (!conversation || conversation.userId !== userId) {
+      throw new ForbiddenError();
+    }
+
+    return AIRepository.getMessages(conversationId);
+  }
+
+  /**
    * Creates a new, empty conversation.
    * @param userId The user creating the conversation.
    * @param courseId The course context for the conversation.

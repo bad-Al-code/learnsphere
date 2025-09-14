@@ -172,4 +172,32 @@ router.delete(
   AiController.deleteConversation
 );
 
+
+/**
+ * @openapi
+ * /api/users/ai/tutor/conversations/{id}/messages:
+ *   get:
+ *     summary: Get all messages for a specific conversation
+ *     tags: [AI Tools]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       '200':
+ *         description: A list of messages for the conversation.
+ *       '403':
+ *         description: Forbidden if the user is not a participant.
+ */
+router.get(
+  '/tutor/conversations/:id/messages',
+  validateRequest(conversationIdParamSchema),
+  AiController.getMessagesForConversation
+);
+
 export { router as aiRouter };

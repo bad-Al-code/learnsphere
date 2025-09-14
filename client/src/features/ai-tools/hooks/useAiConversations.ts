@@ -5,6 +5,7 @@ import {
   createConversationAction,
   deleteConversationAction,
   getConversationsAction,
+  getMessagesAction,
   renameConversationAction,
 } from '../actions/chat';
 import { Conversation } from '../schemas/chat.schema';
@@ -64,5 +65,22 @@ export const useDeleteConversation = () => {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['ai-conversations'] });
     },
+  });
+};
+
+export const useGetMessages = (conversationId: string | null) => {
+  return useQuery({
+    queryKey: ['ai-messages', conversationId],
+
+    queryFn: async () => {
+      if (!conversationId) return [];
+
+      const result = await getMessagesAction(conversationId);
+      if (result.error) throw new Error(result.error);
+
+      return result.data?.reverse() || [];
+    },
+    enabled: !!conversationId,
+    staleTime: 5 * 60 * 1000,
   });
 };

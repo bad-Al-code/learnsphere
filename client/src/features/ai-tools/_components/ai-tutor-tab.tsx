@@ -3,17 +3,20 @@
 import {
   ArrowUp,
   Bot,
+  Edit3,
+  MessageCircle,
   MoreHorizontal,
   PanelLeftClose,
   PanelRightClose,
   Plus,
+  Sparkles,
+  Trash2,
+  User,
 } from 'lucide-react';
 import React, { FormEvent, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
   Dialog,
   DialogClose,
@@ -26,6 +29,8 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -43,13 +48,14 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { DropdownMenuItem } from '@radix-ui/react-dropdown-menu';
+import { useQueryClient } from '@tanstack/react-query';
 import { ImperativePanelHandle } from 'react-resizable-panels';
 import { toast } from 'sonner';
 import {
   useCreateConversation,
   useDeleteConversation,
   useGetConversations,
+  useGetMessages,
   useRenameConversation,
 } from '../hooks/useAiConversations';
 import { useAiTutorChat } from '../hooks/useAiTutor';
@@ -74,7 +80,7 @@ function RenameConversationDialog({
       { conversationId: conversation.id, title },
       {
         onSuccess: () => {
-          toast.success('Conversation renamed.');
+          toast.success('Conversation renamed successfully!');
           setIsOpen(false);
         },
         onError: (error) => toast.error(error.message),
@@ -86,27 +92,127 @@ function RenameConversationDialog({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+          <Edit3 className="mr-2 h-4 w-4" />
           Rename
         </DropdownMenuItem>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Rename Conversation</DialogTitle>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+              <Edit3 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            </div>
+            <DialogTitle>Rename Conversation</DialogTitle>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            Give your conversation a memorable name.
+          </p>
         </DialogHeader>
-        <div className="py-4">
-          <Label htmlFor="title">New Title</Label>
-          <Input
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="title" className="text-sm font-medium">
+              Conversation Name
+            </Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter a new name..."
+              className="w-full"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !isPending) {
+                  handleRename();
+                }
+              }}
+            />
+          </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-0">
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline" className="w-full sm:w-auto">
+              Cancel
+            </Button>
           </DialogClose>
-          <Button onClick={handleRename} disabled={isPending}>
-            {isPending ? 'Renaming...' : 'Save'}
+          <Button
+            onClick={handleRename}
+            disabled={
+              isPending || !title.trim() || title === conversation.title
+            }
+            className="w-full sm:w-auto"
+          >
+            {isPending ? (
+              <>
+                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-transparent border-t-current" />
+                Saving...
+              </>
+            ) : (
+              'Save Changes'
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DeleteConversationDialog({
+  conversationId,
+  conversationTitle,
+  onDelete,
+}: {
+  conversationId: string;
+  conversationTitle: string;
+  onDelete: (id: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleDelete = () => {
+    onDelete(conversationId);
+    setIsOpen(false);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <DropdownMenuItem
+          onSelect={(e) => e.preventDefault()}
+          className="text-red-600 focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-900/20"
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          Delete
+        </DropdownMenuItem>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+              <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+            </div>
+            <DialogTitle>Delete Conversation</DialogTitle>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            This action cannot be undone. This will permanently delete the
+            conversation and all its messages.
+          </p>
+        </DialogHeader>
+        <div className="bg-muted/50 rounded-lg p-3">
+          <p className="text-foreground text-sm font-medium">
+            "{conversationTitle}"
+          </p>
+        </div>
+        <DialogFooter className="gap-2 sm:gap-0">
+          <DialogClose asChild>
+            <Button variant="outline" className="w-full sm:w-auto">
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button
+            onClick={handleDelete}
+            variant="destructive"
+            className="w-full sm:w-auto"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete Conversation
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -136,7 +242,7 @@ export function ConversationSidebar({
         onSuccess: (result) => {
           if (result.data) {
             setActiveConversationId(result.data.id);
-            toast.success('New chat created.');
+            toast.success('New chat created!');
           } else if (result.error) {
             toast.error(result.error);
           }
@@ -146,29 +252,30 @@ export function ConversationSidebar({
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this chat?')) {
-      deleteConversation(id, {
-        onSuccess: () => {
-          if (activeConversationId === id) {
-            setActiveConversationId(null);
-          }
-          toast.success('Chat deleted.');
-        },
-        onError: (error) => toast.error(error.message),
-      });
-    }
+    deleteConversation(id, {
+      onSuccess: () => {
+        if (activeConversationId === id) {
+          setActiveConversationId(null);
+        }
+        toast.success('Chat deleted successfully!');
+      },
+      onError: (error) => toast.error(error.message),
+    });
   };
 
   if (isLoading) {
-    return <ConversationSidebarSkeleton />;
+    return <ConversationSidebarSkeleton isCollapsed={isCollapsed} />;
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b px-3 py-2">
+    <div className="bg-background/50 flex h-full flex-col">
+      <div className="bg-background/80 flex items-center justify-between border-b px-3 py-3 backdrop-blur-sm">
         {!isCollapsed && (
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold">Chats</h2>
+            <div className="bg-primary/10 flex h-6 w-6 items-center justify-center rounded-md">
+              <MessageCircle className="text-primary h-4 w-4" />
+            </div>
+            <h2 className="text-foreground font-semibold">Chats</h2>
           </div>
         )}
 
@@ -180,7 +287,12 @@ export function ConversationSidebar({
         >
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button size="icon" variant="ghost" onClick={onToggle}>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={onToggle}
+                className="h-8 w-8"
+              >
                 {isCollapsed ? (
                   <PanelRightClose className="h-4 w-4" />
                 ) : (
@@ -189,74 +301,144 @@ export function ConversationSidebar({
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">
-              {isCollapsed ? 'Expand' : 'Collapse'}
+              {isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             </TooltipContent>
           </Tooltip>
 
           {!isCollapsed && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="icon" variant="ghost" onClick={ handleNewChat }>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={handleNewChat}
+                  className="hover:bg-primary/10 hover:text-primary h-8 w-8"
+                >
                   <Plus className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>New Chat</TooltipContent>
+              <TooltipContent>Start new chat</TooltipContent>
             </Tooltip>
           )}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="flex-1 overflow-y-auto">
         {!isCollapsed ? (
-          <div className="flex flex-col gap-1">
-            {conversations?.map((convo) => (
-              <Button
-                key={convo.id}
-                variant={
-                  activeConversationId === convo.id ? 'secondary' : 'ghost'
-                }
-                className="h-auto w-full justify-between gap-2 px-2 py-1.5"
-                onClick={() => setActiveConversationId(convo.id)}
-              >
-                <span className="truncate text-sm">{convo.title}</span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 shrink-0"
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <RenameConversationDialog conversation={convo} />
-                    <DropdownMenuItem
-                      onClick={() => handleDelete(convo.id)}
-                      className="text-red-500"
-                    >
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </Button>
-            ))}
+          <div className="p-2">
+            <div className="space-y-1">
+              {conversations?.map((convo) => (
+                <div
+                  key={convo.id}
+                  className={cn(
+                    'group relative flex items-center rounded-lg border transition-all duration-200',
+                    activeConversationId === convo.id
+                      ? 'border-primary/20 bg-primary/5 shadow-sm'
+                      : 'hover:border-border/50 hover:bg-muted/30 border-transparent'
+                  )}
+                >
+                  <Button
+                    variant="ghost"
+                    className="flex h-auto w-full justify-start gap-3 rounded-lg p-3 text-left hover:bg-transparent"
+                    onClick={() => setActiveConversationId(convo.id)}
+                  >
+                    <div className="from-primary/10 to-primary/5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br">
+                      <MessageCircle className="text-primary/70 h-4 w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-foreground truncate text-sm font-medium">
+                        {convo.title}
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        {new Date(
+                          convo.createdAt || Date.now()
+                        ).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </Button>
+
+                  <div className="absolute top-1/2 right-2 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="hover:bg-background/80 h-7 w-7"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <RenameConversationDialog conversation={convo} />
+                        <DropdownMenuSeparator />
+                        <DeleteConversationDialog
+                          conversationId={convo.id}
+                          conversationTitle={convo.title}
+                          onDelete={handleDelete}
+                        />
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              ))}
+            </div>
+
             {conversations?.length === 0 && (
-              <p className="text-muted-foreground p-2 text-center text-sm">
-                No chats yet.
-              </p>
+              <div className="flex h-full items-center justify-center p-8">
+                <div className="text-center">
+                  <div className="bg-muted/50 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                    <MessageCircle className="text-muted-foreground h-6 w-6" />
+                  </div>
+                  <p className="text-muted-foreground text-sm font-medium">
+                    No chats yet
+                  </p>
+                  <p className="text-muted-foreground/70 text-xs">
+                    Start a conversation to begin learning
+                  </p>
+                </div>
+              </div>
             )}
           </div>
         ) : (
-          <div className="flex h-full flex-col items-center justify-start">
+          <div className="flex flex-col items-center gap-2 p-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleNewChat}>
-                  <Plus className="h-4 w-4" />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="hover:bg-primary/10 hover:text-primary h-10 w-10"
+                  onClick={handleNewChat}
+                >
+                  <Plus className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="right">New Chat</TooltipContent>
+              <TooltipContent side="right">Start new chat</TooltipContent>
             </Tooltip>
+
+            <div className="w-full space-y-1">
+              {conversations?.slice(0, 5).map((convo) => (
+                <Tooltip key={convo.id}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant={
+                        activeConversationId === convo.id
+                          ? 'secondary'
+                          : 'ghost'
+                      }
+                      className="h-10 w-10"
+                      onClick={() => setActiveConversationId(convo.id)}
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-xs">
+                    <p className="truncate">{convo.title}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -266,58 +448,77 @@ export function ConversationSidebar({
 
 const COURSE_ID = '8bc1e072-e11a-40d4-b436-e713b0921433';
 
-function AiStudyAssistant() {
-  // const { user } = useSessionStore();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+function AiStudyAssistant({
+  activeConversationId,
+  setActiveConversationId,
+}: {
+  activeConversationId: string | null;
+  setActiveConversationId: (id: string) => void;
+}) {
   const [prompt, setPrompt] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
 
   const { mutate: sendMessage, isPending } = useAiTutorChat();
+  const { data: messages = [], isLoading: isLoadingMessages } =
+    useGetMessages(activeConversationId);
 
   useEffect(() => {
-    chatContainerRef.current?.scrollTo({
-      top: chatContainerRef.current.scrollHeight,
-      behavior: 'smooth',
-    });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
   }, [messages]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!prompt.trim() || isPending) return;
 
-    const userMessage: ChatMessage = {
+    const optimisticMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: 'user',
       content: prompt,
     };
-    setMessages((prev) => [...prev, userMessage]);
+
+    queryClient.setQueryData(
+      ['ai-messages', activeConversationId],
+      (oldData: ChatMessage[] | undefined) => [
+        ...(oldData || []),
+        optimisticMessage,
+      ]
+    );
 
     sendMessage(
-      { courseId: COURSE_ID, prompt },
+      {
+        courseId: COURSE_ID,
+        prompt,
+        conversationId: activeConversationId || undefined,
+      },
       {
         onSuccess: (data) => {
           if (data.data) {
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: crypto.randomUUID(),
-                role: 'model',
-                content: data.data?.response!,
-              },
-            ]);
+            if (!activeConversationId) {
+              setActiveConversationId(data.data.conversationId);
+              queryClient.invalidateQueries({ queryKey: ['ai-conversations'] });
+            }
+            queryClient.invalidateQueries({
+              queryKey: ['ai-messages', data.data.conversationId],
+            });
           }
           if (data.error) {
-            setMessages((prev) => [
-              ...prev,
-              { id: crypto.randomUUID(), role: 'system', content: data.error! },
-            ]);
+            toast.error(data.error);
+            queryClient.invalidateQueries({
+              queryKey: ['ai-messages', activeConversationId],
+            });
           }
         },
         onError: (error) => {
-          setMessages((prev) => [
-            ...prev,
-            { id: crypto.randomUUID(), role: 'system', content: error.message },
-          ]);
+          toast.error(error.message);
+          queryClient.invalidateQueries({
+            queryKey: ['ai-messages', activeConversationId],
+          });
         },
       }
     );
@@ -332,170 +533,178 @@ function AiStudyAssistant() {
     }
   };
 
-  return (
-    <Card className="flex h-[calc(100vh-12.5rem)] flex-col border-0 pb-0">
-      {/* <CardHeader className="">
-        <div className="flex items-center gap-2">
-          <Bot className="h-5 w-5" />
-          <CardTitle>AI Study Assistant</CardTitle>
-        </div>
-
-        <CardDescription>
-          Ask anything about your course content.
-        </CardDescription>
-      </CardHeader> */}
-
-      <CardContent
-        ref={chatContainerRef}
-        className="flex-1 space-y-4 overflow-y-auto"
-      >
-        {messages.length === 0 && (
-          <div className="animate-in fade-in-0 zoom-in-95 flex h-full items-center justify-center duration-500">
-            <div className="max-w-md space-y-4 text-center">
-              <div className="relative mx-auto h-16 w-16">
-                <Bot className="text-primary/60 h-16 w-16 animate-pulse" />
-                <div className="from-primary/20 absolute inset-0 animate-spin rounded-full bg-gradient-to-r to-transparent" />
-              </div>
-              <h3 className="text-muted-foreground text-lg font-semibold">
-                Ready to help you learn!
-              </h3>
-              <p className="text-muted-foreground/80 text-sm">
-                Ask me questions about your course content, request
-                explanations, or get study tips.
-              </p>
+  if (!activeConversationId) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center p-8">
+        <div className="max-w-md space-y-6 text-center">
+          <div className="relative mx-auto">
+            <div className="from-primary/20 to-primary/5 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br shadow-lg">
+              <Bot className="text-primary h-10 w-10" />
+            </div>
+            <div className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 shadow-sm">
+              <Sparkles className="h-3 w-3 text-white" />
             </div>
           </div>
-        )}
-
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={cn(
-              'flex items-start gap-3',
-              msg.role === 'user' && 'justify-end'
-            )}
-          >
-            {/* {msg.role === 'model' && (
-              <Avatar className="h-8 w-8 border">
-                <AvatarFallback>
-                  <Bot className="h-4 w-4" />
-                </AvatarFallback>
-              </Avatar>
-            )} */}
-
-            <div className="max-w-[80%] space-y-1">
+          <div className="space-y-2">
+            <h2 className="text-foreground text-2xl font-bold">
+              AI Study Assistant
+            </h2>
+            <p className="text-muted-foreground">
+              Ready to help you learn! Start a new conversation or select an
+              existing one to continue.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-3 text-left">
+            {[
+              { icon: MessageCircle, text: 'Ask questions about your course' },
+              { icon: Sparkles, text: 'Get explanations and examples' },
+              { icon: Bot, text: 'Receive personalized study tips' },
+            ].map((item, index) => (
               <div
+                key={index}
+                className="border-border/50 flex items-center gap-3 rounded-lg border p-3"
+              >
+                <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
+                  <item.icon className="text-primary h-4 w-4" />
+                </div>
+                <span className="text-muted-foreground text-sm">
+                  {item.text}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full flex-col">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4">
+        {isLoadingMessages ? (
+          <AiStudyAssistantSkeleton />
+        ) : (
+          <div className="space-y-6">
+            {messages.length === 0 && (
+              <div className="flex h-full items-center justify-center">
+                <div className="max-w-md space-y-4 text-center">
+                  <div className="relative mx-auto h-16 w-16">
+                    <Bot className="text-primary/60 h-16 w-16 animate-pulse" />
+                    <div className="from-primary/20 absolute inset-0 animate-spin rounded-full bg-gradient-to-r to-transparent" />
+                  </div>
+                  <h3 className="text-muted-foreground text-lg font-semibold">
+                    Ready to help you learn!
+                  </h3>
+                  <p className="text-muted-foreground/80 text-sm">
+                    Ask me questions about your course content, request
+                    explanations, or get study tips.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {messages.map((msg, index) => (
+              <div
+                key={msg.id}
                 className={cn(
-                  'prose dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-li:my-0 rounded-2xl border p-4 text-sm whitespace-pre-wrap transition-all duration-200 hover:shadow-sm',
-                  msg.role === 'user'
-                    ? 'border-border/50 prose-invert" shadow-sm'
-                    : msg.role === 'system'
-                      ? 'from-destructive/10 to-destructive/5 text-destructive border-destructive/20 bg-gradient-to-br'
-                      : 'border-border/50 hover:border-border'
+                  'animate-in fade-in-0 slide-in-from-bottom-2 flex gap-4',
+                  msg.role === 'user' && 'flex-row-reverse'
                 )}
               >
-                <ReactMarkdown>{msg.content}</ReactMarkdown>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border shadow-sm">
+                  {msg.role === 'user' ? (
+                    <User className="h-4 w-4" />
+                  ) : (
+                    <Bot className="text-primary h-4 w-4" />
+                  )}
+                </div>
+
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">
+                      {msg.role === 'user' ? 'You' : 'AI Assistant'}
+                    </span>
+                    <span className="text-muted-foreground text-xs">
+                      Just now
+                    </span>
+                  </div>
+                  <div
+                    className={cn(
+                      'prose prose-sm dark:prose-invert max-w-none rounded-lg border p-4 shadow-sm transition-all duration-200 hover:shadow-md',
+                      msg.role === 'user'
+                        ? 'border-primary/20 bg-primary/5'
+                        : 'border-border/50 bg-background/80'
+                    )}
+                  >
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
 
-            {/* {msg.role === 'user' && (
-              <Avatar className="h-8 w-8 border">
-                <AvatarImage
-                  src={user?.avatarUrls?.small}
-                  alt={user?.firstName || 'User'}
-                />
-                <AvatarFallback>{getInitials(user?.firstName)}</AvatarFallback>
-              </Avatar>
-            )} */}
-          </div>
-        ))}
-
-        {isPending && (
-          <div className="animate-in fade-in-0 slide-in-from-left-2 flex items-start gap-3 duration-300">
-            <Avatar className="border-primary/20 h-8 w-8 border-2 shadow-sm">
-              <AvatarFallback className="from-primary/10 to-primary/5 bg-gradient-to-br">
-                <Bot className="text-primary h-4 w-4 animate-pulse" />
-              </AvatarFallback>
-            </Avatar>
-
-            <div className="border-border/50 max-w-xs rounded-2xl border p-3 shadow-sm">
-              <div className="flex space-x-2">
-                <span className="bg-primary/60 h-2 w-2 animate-bounce rounded-full [animation-delay:-0.3s]" />
-                <span className="bg-primary/60 h-2 w-2 animate-bounce rounded-full [animation-delay:-0.15s]" />
-                <span className="bg-primary/60 h-2 w-2 animate-bounce rounded-full" />
+            {isPending && (
+              <div className="animate-in fade-in-0 slide-in-from-bottom-2 flex gap-4">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border shadow-sm">
+                  <Bot className="text-primary h-4 w-4 animate-pulse" />
+                </div>
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">AI Assistant</span>
+                    <span className="text-muted-foreground text-xs">
+                      Thinking...
+                    </span>
+                  </div>
+                  <div className="border-border/50 bg-background/80 rounded-lg border p-4 shadow-sm">
+                    <div className="flex space-x-2">
+                      <div className="bg-primary/60 h-2 w-2 animate-bounce rounded-full [animation-delay:-0.3s]" />
+                      <div className="bg-primary/60 h-2 w-2 animate-bounce rounded-full [animation-delay:-0.15s]" />
+                      <div className="bg-primary/60 h-2 w-2 animate-bounce rounded-full" />
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
-      </CardContent>
+      </div>
 
-      <CardContent className="border-border/50 bg-background/50 p-2 backdrop-blur-sm">
+      <div className="bg-background/80 border-t p-4 backdrop-blur-sm">
         <form onSubmit={handleSubmit} className="relative">
-          <div
-            className={cn(
-              'bg-background/80 relative flex items-end gap-3 rounded-2xl border p-3 shadow-sm backdrop-blur-sm transition-all duration-300',
-              'hover:border-primary/30 hover:shadow-md',
-              isPending && 'border-primary/40 shadow-md'
-            )}
-          >
+          <div className="bg-background/50 focus-within:border-primary/50 relative flex items-end gap-3 rounded-xl border p-3 shadow-sm backdrop-blur-sm transition-all duration-200 focus-within:shadow-md hover:shadow-md">
             <Textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask a follow-up question... (Shift+Enter for new line)"
-              className={cn(
-                'placeholder:text-muted-foreground/60 max-h-32 min-h-[24px] flex-1 resize-none border-0 bg-transparent py-1.5 text-sm leading-6 focus-visible:ring-0 focus-visible:ring-offset-0',
-                '!bg-transparent'
-              )}
+              placeholder="Ask me anything about your course... (Press Shift+Enter for new line)"
+              className="max-h-32 min-h-[24px] flex-1 resize-none border-0 bg-transparent py-2 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
               disabled={isPending}
               rows={1}
             />
 
-            <div className="flex items-center gap-2 pb-0.5">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="submit"
-                    size="icon"
-                    className={cn(
-                      'relative h-8 w-8 overflow-hidden rounded-xl shadow-sm transition-all duration-300',
-                      prompt.trim() && !isPending
-                        ? 'from-primary to-primary/90 text-primary-foreground bg-gradient-to-r hover:scale-110 hover:rotate-6 hover:shadow-lg'
-                        : 'bg-muted/60 text-muted-foreground cursor-not-allowed'
-                    )}
-                    disabled={isPending || !prompt.trim()}
-                  >
-                    <ArrowUp
-                      className={cn(
-                        'h-4 w-4 transition-all duration-200',
-                        prompt.trim() && !isPending && 'animate-pulse'
-                      )}
-                    />
-                    {prompt.trim() && !isPending && (
-                      <div className="animate-shimmer absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="text-xs">
-                  {isPending ? 'Sending...' : 'Send Message'}
-                </TooltipContent>
-              </Tooltip>
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="submit"
+                  size="icon"
+                  className={cn(
+                    'h-8 w-8 shrink-0 rounded-lg shadow-sm transition-all duration-200',
+                    prompt.trim() && !isPending
+                      ? 'bg-primary hover:bg-primary/90 hover:scale-105 hover:shadow-md'
+                      : 'bg-muted/50 text-muted-foreground hover:bg-muted/50 cursor-not-allowed'
+                  )}
+                  disabled={isPending || !prompt.trim()}
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isPending ? 'Sending...' : 'Send message'}
+              </TooltipContent>
+            </Tooltip>
           </div>
-
-          {isPending && (
-            <div className="animate-in fade-in-0 slide-in-from-bottom-2 absolute -top-3 left-1/2 -translate-x-1/2 transform duration-200">
-              <div className="from-primary/10 to-primary/20 text-primary border-primary/20 rounded-full border bg-gradient-to-r px-3 py-1.5 text-xs shadow-sm backdrop-blur-sm">
-                <div className="flex items-center gap-2">
-                  <div className="bg-primary h-2 w-2 animate-ping rounded-full" />
-                  AI is thinking...
-                </div>
-              </div>
-            </div>
-          )}
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -511,79 +720,125 @@ export function AiTutorTab() {
 
     if (isCollapsed) {
       panelRef.current.resize(25);
-
       setIsCollapsed(false);
     } else {
       panelRef.current.collapse();
-
       setIsCollapsed(true);
     }
   };
 
   return (
-    <ResizablePanelGroup
-      direction="horizontal"
-      className="h-[calc(100vh-12.5rem)] rounded-lg border"
-      onLayout={(sizes) => {
-        const sidebarSize = sizes[0];
-
-        if (sidebarSize <= 5) {
-          setIsCollapsed(true);
-        } else if (sidebarSize >= 15) {
-          setIsCollapsed(false);
-        }
-      }}
-    >
-      <ResizablePanel
-        ref={panelRef}
-        collapsible
-        collapsedSize={4}
-        minSize={20}
-        defaultSize={25}
-        maxSize={40}
-        className="transition-all duration-200 ease-in-out"
+    <div className="h-[calc(100vh-12.5rem)]">
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="bg-background h-full rounded-lg border shadow-sm"
+        onLayout={(sizes) => {
+          const sidebarSize = sizes[0];
+          if (sidebarSize <= 5) {
+            setIsCollapsed(true);
+          } else if (sidebarSize >= 15) {
+            setIsCollapsed(false);
+          }
+        }}
       >
-        <ConversationSidebar
-          isCollapsed={isCollapsed}
-          onToggle={toggleCollapse}
-          activeConversationId={activeConversationId}
-          setActiveConversationId={setActiveConversationId}
+        <ResizablePanel
+          ref={panelRef}
+          collapsible
+          collapsedSize={4}
+          minSize={20}
+          defaultSize={25}
+          maxSize={40}
+          className="transition-all duration-200 ease-in-out"
+        >
+          <ConversationSidebar
+            isCollapsed={isCollapsed}
+            onToggle={toggleCollapse}
+            activeConversationId={activeConversationId}
+            setActiveConversationId={setActiveConversationId}
+          />
+        </ResizablePanel>
+
+        <ResizableHandle
+          withHandle
+          className="bg-border/50 hover:bg-border w-1 transition-colors"
         />
-      </ResizablePanel>
 
-      <ResizableHandle withHandle />
-
-      <ResizablePanel defaultSize={75} minSize={60}>
-        <AiStudyAssistant />
-      </ResizablePanel>
-    </ResizablePanelGroup>
+        <ResizablePanel defaultSize={75} minSize={60}>
+          <AiStudyAssistant
+            key={activeConversationId}
+            activeConversationId={activeConversationId}
+            setActiveConversationId={setActiveConversationId}
+          />
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
   );
 }
 
 export function AiTutorTabSkeleton() {
   return (
-    <div className="flex h-[calc(100vh-12.5rem)] rounded-lg border">
-      <div className="w-[25%] p-2">
-        <ConversationSidebarSkeleton />
-      </div>
-      <div className="w-[75%] border-l">
-        <AiStudyAssistantSkeleton />
+    <div className="bg-background h-[calc(100vh-12.5rem)] rounded-lg border shadow-sm">
+      <div className="flex h-full">
+        <div className="w-1/4 border-r">
+          <ConversationSidebarSkeleton isCollapsed={false} />
+        </div>
+        <div className="flex-1">
+          <AiStudyAssistantSkeleton />
+        </div>
       </div>
     </div>
   );
 }
 
-export function ConversationSidebarSkeleton() {
+export function ConversationSidebarSkeleton({
+  isCollapsed,
+}: {
+  isCollapsed: boolean;
+}) {
   return (
-    <div className="flex h-full flex-col p-2">
-      <div className="flex items-center justify-between p-2">
-        <Skeleton className="h-6 w-20" />
-        <Skeleton className="h-8 w-8 rounded-full" />
+    <div className="bg-background/50 flex h-full flex-col">
+      <div className="bg-background/80 flex items-center justify-between border-b px-3 py-3">
+        {!isCollapsed && (
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-6 w-6 rounded-md" />
+            <Skeleton className="h-5 w-12" />
+          </div>
+        )}
+        <div
+          className={cn(
+            'flex items-center gap-1',
+            isCollapsed && 'w-full justify-center'
+          )}
+        >
+          <Skeleton className="h-8 w-8 rounded-md" />
+          {!isCollapsed && <Skeleton className="h-8 w-8 rounded-md" />}
+        </div>
       </div>
-      <div className="flex-1 space-y-2 overflow-y-auto p-2">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
+
+      <div className="flex-1 overflow-y-auto p-2">
+        {!isCollapsed ? (
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="rounded-lg border border-transparent p-3">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-8 w-8 rounded-lg" />
+                  <div className="flex-1 space-y-1">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                  <Skeleton className="h-7 w-7 rounded-md" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2">
+            <Skeleton className="h-10 w-10 rounded-md" />
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-10 w-10 rounded-md" />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -591,24 +846,42 @@ export function ConversationSidebarSkeleton() {
 
 export function AiStudyAssistantSkeleton() {
   return (
-    <Card className="flex h-full flex-col border-none shadow-none">
-      <CardHeader>
-        <Skeleton className="h-6 w-1/2" />
-        <Skeleton className="mt-2 h-4 w-3/4" />
-      </CardHeader>
-      <CardContent className="flex-1 space-y-4">
-        <div className="flex gap-3">
-          <Skeleton className="h-8 w-8 rounded-full" />
-          <Skeleton className="h-20 max-w-md flex-1 rounded-lg" />
+    <div className="flex h-full flex-col">
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="space-y-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={i}
+              className={cn(
+                'flex gap-4',
+                i % 2 === 0 ? 'flex-row-reverse' : ''
+              )}
+            >
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+                <div className="rounded-lg border p-4 shadow-sm">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-4/5" />
+                    <Skeleton className="h-4 w-3/5" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-        <div className="flex justify-end gap-3">
-          <Skeleton className="h-16 max-w-sm flex-1 rounded-lg" />
-          <Skeleton className="h-8 w-8 rounded-full" />
+      </div>
+
+      <div className="bg-background/80 border-t p-4">
+        <div className="flex items-end gap-3 rounded-xl border p-3">
+          <Skeleton className="h-6 flex-1" />
+          <Skeleton className="h-8 w-8 rounded-lg" />
         </div>
-      </CardContent>
-      <CardContent className="border-t pt-4">
-        <Skeleton className="h-12 w-full" />
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
