@@ -12,6 +12,7 @@ import { tutorResponseSchema } from './schema/tutorResponse.schema';
 
 export class AiService {
   private provider = Providers.google;
+  private model: string = 'gemini-2.5-flash-lite';
 
   /**
    * Generates a response from the AI Tutor within the context of a course conversation.
@@ -94,7 +95,7 @@ export class AiService {
     };
 
     const result = await this.provider.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: this.model,
       contents,
       config: {
         systemInstruction,
@@ -314,7 +315,7 @@ export class AiService {
 
     const response: GenerateContentResponse =
       await this.provider.models.generateContent({
-        model: 'gemini-2.5-flash-lite	',
+        model: this.model,
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
