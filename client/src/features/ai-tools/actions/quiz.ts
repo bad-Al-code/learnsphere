@@ -4,12 +4,20 @@ import { generateQuiz } from '../api/ai.api';
 import {
   GenerateQuizInput,
   generateQuizInputSchema,
+  Quiz,
 } from '../schemas/quiz.schema';
 
-export const generateQuizAction = async (data: GenerateQuizInput) => {
+export type GenerateQuizActionResult = {
+  data?: Quiz;
+  error?: string;
+};
+
+export const generateQuizAction = async (
+  data: GenerateQuizInput
+): Promise<GenerateQuizActionResult> => {
   const validation = generateQuizInputSchema.safeParse(data);
   if (!validation.success) {
-    return { error: 'Invalid input.' };
+    return { error: 'Invalid input. Please check your data.' };
   }
 
   try {
@@ -17,8 +25,8 @@ export const generateQuizAction = async (data: GenerateQuizInput) => {
 
     return { data: newQuiz };
   } catch (error) {
-    console.error('Generate quiz action error:', error);
-
-    return { error: 'Failed to generate the quiz. Please try again.' };
+    return {
+      error: 'Failed to generate the quiz. Please try again.',
+    };
   }
 };

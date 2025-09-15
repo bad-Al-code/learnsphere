@@ -1,14 +1,8 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
-
-import { generateQuizAction } from '../actions/quiz';
-import { GenerateQuizInput, Quiz } from '../schemas/quiz.schema';
-
-type GenerateQuizActionResult = {
-  data?: Quiz;
-  error?: string;
-};
+import { generateQuizAction, GenerateQuizActionResult } from '../actions/quiz';
+import { GenerateQuizInput } from '../schemas/quiz.schema';
 
 export const useGenerateQuiz = () => {
   return useMutation<GenerateQuizActionResult, Error, GenerateQuizInput>({

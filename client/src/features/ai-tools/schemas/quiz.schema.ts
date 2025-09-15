@@ -21,12 +21,12 @@ export const quizSchema = z.object({
   courseId: z.uuid(),
   topic: z.string(),
   difficulty: z.string(),
-  createdAt: z.iso.datetime(),
+  createdAt: z.string(),
   questions: z.array(quizQuestionSchema),
 });
 
 export const generateQuizInputSchema = z.object({
-  courseId: z.uuid(),
+  courseId: z.uuid().optional(),
   topic: z.string().min(3, 'Topic must be at least 3 characters.'),
   difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced']),
 });
