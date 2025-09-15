@@ -102,8 +102,66 @@ export const renameConversationSchema = z.object({
   }),
 });
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     GetConversationsQuery:
+ *       type: object
+ *       required:
+ *         - courseId
+ *       properties:
+ *         courseId:
+ *           type: string
+ *           format: uuid
+ *           description: Unique ID of the course to filter conversations.
+ */
 export const getConversationsSchema = z.object({
   query: z.object({
     courseId: z.string().uuid('Invalid courseId format in query parameter.'),
   }),
 });
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     GenerateQuizRequest:
+ *       type: object
+ *       required:
+ *         - courseId
+ *         - topic
+ *         - difficulty
+ *       properties:
+ *         courseId:
+ *           type: string
+ *           format: uuid
+ *           description: Unique ID of the course.
+ *         topic:
+ *           type: string
+ *           minLength: 3
+ *           maxLength: 100
+ *           description: Topic for which to generate the quiz.
+ *         difficulty:
+ *           type: string
+ *           enum: [Beginner, Intermediate, Advanced]
+ *           description: Difficulty level of the quiz.
+ */
+export const generateQuizSchema = z.object({
+  body: z.object({
+    courseId: z.string().uuid('Invalid course ID format.'),
+    topic: z.string().min(3, 'Topic must be at least 3 characters.').max(100),
+    difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced']),
+  }),
+});
+
+export const quizResponseSchemaZod = z.object({
+  questions: z.array(
+    z.object({
+      questionText: z.string(),
+      options: z.array(z.string()),
+      correctAnswerIndex: z.number().int().nonnegative(),
+    })
+  ),
+});
+export type QuizResponse = z.infer<typeof quizResponseSchemaZod>;

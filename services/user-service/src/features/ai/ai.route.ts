@@ -5,6 +5,7 @@ import { AiController } from './ai.controller';
 import {
   conversationIdParamSchema,
   createConversationSchema,
+  generateQuizSchema,
   getConversationsSchema,
   renameConversationSchema,
   tutorChatSchema,
@@ -68,6 +69,40 @@ router.post(
   '/tutor-chat',
   validateRequest(tutorChatSchema),
   AiController.handleTutorChat
+);
+
+/**
+ * @openapi
+ * /api/users/ai/tutor/generate-quiz:
+ *   post:
+ *     summary: Generate a practice quiz for a course
+ *     tags: [AI Tools]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               courseId:
+ *                 type: string
+ *                 format: uuid
+ *               topic:
+ *                 type: string
+ *                 example: "React Hooks"
+ *               difficulty:
+ *                 type: string
+ *                 enum: [Beginner, Intermediate, Advanced]
+ *     responses:
+ *       '201':
+ *         description: The newly created quiz object with questions and options.
+ */
+router.post(
+  '/tutor/generate-quiz',
+  validateRequest(generateQuizSchema),
+  AiController.handleGenerateQuiz
 );
 
 /**

@@ -140,4 +140,26 @@ export class AiController {
       next(error);
     }
   }
+
+  public static async handleGenerateQuiz(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { courseId, topic, difficulty } = req.body;
+
+      const newQuiz = await AiController.aiService.generateAndSaveQuiz(
+        req.currentUser.id,
+        courseId,
+        topic,
+        difficulty
+      );
+
+      res.status(StatusCodes.CREATED).json(newQuiz);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

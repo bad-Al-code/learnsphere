@@ -2,12 +2,16 @@ import { and, desc, eq } from 'drizzle-orm';
 
 import { db } from '../../db';
 import {
+  aiQuizOptions,
+  aiQuizQuestions,
+  aiQuizzes,
   aiTutorConversations,
   aiTutorMessages,
   enrollments,
   NewAITutorMessage,
   replicatedCourseContent,
 } from '../../db/schema';
+import { GeneratedQuiz } from './ai.types';
 
 export class AIRepository {
   /**
@@ -228,5 +232,64 @@ export class AIRepository {
     await db
       .delete(aiTutorConversations)
       .where(eq(aiTutorConversations.id, conversationId));
+  }
+
+  /**
+   * Creates a new quiz with questions and options for a given user and course.
+   * @param userId - Unique ID of the user creating the quiz.
+   * @param courseId - Unique ID of the course the quiz belongs to.
+   * @param quizData - The quiz data to insert, including topic, difficulty, and questions with options.
+   * @returns A promise that resolves to the newly created quiz object,
+   *          including its questions and options, ordered by question order.
+   */
+  public static async createQuiz(
+    userId: string,
+    courseId: string,
+    quizData: GeneratedQuiz
+  ) {
+    return db.transaction(async (tx) => {
+      const [quiz] = await tx
+        .insert(aiQuizzes)
+        .values({
+          userId,
+          courseId,
+          topic: quizData.topic,
+          difficulty: quizData.difficulty,
+        })
+        .returning();
+
+      const questionsToInsert = quizData.questions.map((q, index) => ({
+        quizId: quiz.id,
+        questionText: q.questionText,
+        order: index,
+      }));
+
+      const insertedQuestions = await tx
+        .insert(aiQuizQuestions)
+        .values(questionsToInsert)
+        .returning();
+
+      const optionsToInsert = quizData.questions.flatMap((q, qIndex) =>
+        q.options.map((opt, oIndex) => ({
+          questionId: insertedQuestions[qIndex].id,
+          optionText: opt,
+          isCorrect: oIndex === q.correctAnswerIndex,
+        }))
+      );
+
+      await tx.insert(aiQuizOptions).values(optionsToInsert);
+
+      return db.query.aiQuizzes.findFirst({
+        where: eq(aiQuizzes.id, quiz.id),
+        with: {
+          questions: {
+            with: {
+              options: true,
+            },
+            orderBy: (questions, { asc }) => [asc(questions.order)],
+          },
+        },
+      });
+    });
   }
 }

@@ -1,9 +1,13 @@
-import { Content } from '@google/genai';
+import { Content, GenerateContentResponse } from '@google/genai';
 import logger from '../../config/logger';
 import { ForbiddenError, NotFoundError } from '../../errors';
 import { AIRepository } from './ai.repository';
+import { quizResponseSchemaZod } from './ai.schema';
+import { GeneratedQuiz } from './ai.types';
+import { buildQuizInstruction } from './prompts/quizInstruction.prompt';
 import { buildTutorInstruction } from './prompts/tutorInstruction.prompt';
 import { Providers } from './providers';
+import { quizResponseSchema } from './schema/quizResponse.schema';
 import { tutorResponseSchema } from './schema/tutorResponse.schema';
 
 export class AiService {
@@ -275,5 +279,69 @@ export class AiService {
     }
 
     await AIRepository.deleteConversation(conversationId);
+  }
+
+  /**
+   * Generates a quiz using Gemini and saves it in the database.
+   * @param userId - ID of the user generating the quiz.
+   * @param courseId - ID of the course the quiz belongs to.
+   * @param topic - Topic for the quiz.
+   * @param difficulty - Difficulty level of the quiz.
+   * @returns The newly created quiz, including questions and options.
+   */
+  public async generateAndSaveQuiz(
+    userId: string,
+    courseId: string,
+    topic: string,
+    difficulty: 'Beginner' | 'Intermediate' | 'Advanced'
+  ) {
+    const isEnrolled = await AIRepository.isUserEnrolled(userId, courseId);
+    if (!isEnrolled) {
+      throw new ForbiddenError('You must be enrolled to generate a quiz.');
+    }
+
+    const courseContent = await AIRepository.getCourseContent(courseId);
+    if (!courseContent?.content) {
+      throw new NotFoundError('Course content not found.');
+    }
+
+    const systemInstruction = buildQuizInstruction(
+      courseContent.content,
+      topic,
+      difficulty
+    );
+    const prompt = `Generate the quiz now based on the topic "${topic}".`;
+
+    const response: GenerateContentResponse =
+      await this.provider.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          systemInstruction,
+          responseSchema: quizResponseSchema,
+        },
+      });
+
+    if (!response.text) {
+      throw new Error('No response text received from GenAI');
+    }
+
+    const parsed = quizResponseSchemaZod.safeParse(JSON.parse(response.text));
+    if (!parsed.success) {
+      logger.error(parsed.error);
+      throw new Error('Quiz response did not match expected schema');
+    }
+
+    const quizData: GeneratedQuiz = {
+      topic,
+      difficulty,
+      questions: parsed.data.questions,
+    };
+
+    const newQuiz = await AIRepository.createQuiz(userId, courseId, quizData);
+
+    logger.info(`New quiz ${newQuiz?.id} created for user ${userId}`);
+    return newQuiz;
   }
 }
