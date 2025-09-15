@@ -92,7 +92,7 @@ function RenameConversationDialog({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          <Edit3 className="mr-2 h-4 w-4" />
+          <Edit3 className="h-4 w-4" />
           Rename
         </DropdownMenuItem>
       </DialogTrigger>
@@ -142,7 +142,7 @@ function RenameConversationDialog({
           >
             {isPending ? (
               <>
-                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-transparent border-t-current" />
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-transparent border-t-current" />
                 Saving...
               </>
             ) : (
@@ -178,40 +178,46 @@ function DeleteConversationDialog({
           onSelect={(e) => e.preventDefault()}
           className="text-red-600 focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-900/20"
         >
-          <Trash2 className="mr-2 h-4 w-4" />
+          <Trash2 className="h-4 w-4" />
           Delete
         </DropdownMenuItem>
       </DialogTrigger>
+
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader className="space-y-3">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
               <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
             </div>
+
             <DialogTitle>Delete Conversation</DialogTitle>
           </div>
+
           <p className="text-muted-foreground text-sm">
             This action cannot be undone. This will permanently delete the
             conversation and all its messages.
           </p>
         </DialogHeader>
+
         <div className="bg-muted/50 rounded-lg p-3">
           <p className="text-foreground text-sm font-medium">
             "{conversationTitle}"
           </p>
         </div>
+
         <DialogFooter className="gap-2 sm:gap-0">
           <DialogClose asChild>
             <Button variant="outline" className="w-full sm:w-auto">
               Cancel
             </Button>
           </DialogClose>
+
           <Button
             onClick={handleDelete}
             variant="destructive"
             className="w-full sm:w-auto"
           >
-            <Trash2 className="mr-2 h-4 w-4" />
+            <Trash2 className="h-4 w-4" />
             Delete Conversation
           </Button>
         </DialogFooter>
@@ -225,11 +231,13 @@ export function ConversationSidebar({
   onToggle,
   activeConversationId,
   setActiveConversationId,
+  courseId,
 }: {
   isCollapsed: boolean;
   onToggle: () => void;
   activeConversationId: string | null;
   setActiveConversationId: (id: string | null) => void;
+  courseId: string;
 }) {
   const { data: conversations, isLoading } = useGetConversations();
   const { mutate: createConversation } = useCreateConversation();
@@ -237,11 +245,12 @@ export function ConversationSidebar({
 
   const handleNewChat = () => {
     createConversation(
-      { courseId: COURSE_ID },
+      { courseId },
       {
         onSuccess: (result) => {
           if (result.data) {
             setActiveConversationId(result.data.id);
+
             toast.success('New chat created!');
           } else if (result.error) {
             toast.error(result.error);
@@ -257,6 +266,7 @@ export function ConversationSidebar({
         if (activeConversationId === id) {
           setActiveConversationId(null);
         }
+
         toast.success('Chat deleted successfully!');
       },
       onError: (error) => toast.error(error.message),
@@ -345,10 +355,12 @@ export function ConversationSidebar({
                     <div className="from-primary/10 to-primary/5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br">
                       <MessageCircle className="text-primary/70 h-4 w-4" />
                     </div>
+
                     <div className="min-w-0 flex-1">
                       <p className="text-foreground truncate text-sm font-medium">
                         {convo.title}
                       </p>
+
                       <p className="text-muted-foreground text-xs">
                         {new Date(
                           convo.createdAt || Date.now()
@@ -369,9 +381,12 @@ export function ConversationSidebar({
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
+
                       <DropdownMenuContent align="end" className="w-48">
                         <RenameConversationDialog conversation={convo} />
+
                         <DropdownMenuSeparator />
+
                         <DeleteConversationDialog
                           conversationId={convo.id}
                           conversationTitle={convo.title}
@@ -451,7 +466,9 @@ const COURSE_ID = '8bc1e072-e11a-40d4-b436-e713b0921433';
 function AiStudyAssistant({
   activeConversationId,
   setActiveConversationId,
+  courseId,
 }: {
+  courseId: string;
   activeConversationId: string | null;
   setActiveConversationId: (id: string) => void;
 }) {
@@ -492,7 +509,7 @@ function AiStudyAssistant({
 
     sendMessage(
       {
-        courseId: COURSE_ID,
+        courseId,
         prompt,
         conversationId: activeConversationId || undefined,
       },
@@ -501,21 +518,27 @@ function AiStudyAssistant({
           if (data.data) {
             if (!activeConversationId) {
               setActiveConversationId(data.data.conversationId);
+
               queryClient.invalidateQueries({ queryKey: ['ai-conversations'] });
             }
+
             queryClient.invalidateQueries({
               queryKey: ['ai-messages', data.data.conversationId],
             });
           }
+
           if (data.error) {
             toast.error(data.error);
+
             queryClient.invalidateQueries({
               queryKey: ['ai-messages', activeConversationId],
             });
           }
         },
+
         onError: (error) => {
           toast.error(error.message);
+
           queryClient.invalidateQueries({
             queryKey: ['ai-messages', activeConversationId],
           });
@@ -529,6 +552,7 @@ function AiStudyAssistant({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+
       handleSubmit(e as unknown as FormEvent);
     }
   };
@@ -537,14 +561,16 @@ function AiStudyAssistant({
     return (
       <div className="flex h-full flex-col items-center justify-center p-8">
         <div className="max-w-md space-y-6 text-center">
-          <div className="relative mx-auto">
+          <div className="flex items-center justify-center">
             <div className="from-primary/20 to-primary/5 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br shadow-lg">
               <Bot className="text-primary h-10 w-10" />
             </div>
+            {/* 
             <div className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 shadow-sm">
               <Sparkles className="h-3 w-3 text-white" />
-            </div>
+            </div> */}
           </div>
+
           <div className="space-y-2">
             <h2 className="text-foreground text-2xl font-bold">
               AI Study Assistant
@@ -554,6 +580,7 @@ function AiStudyAssistant({
               existing one to continue.
             </p>
           </div>
+
           <div className="grid grid-cols-1 gap-3 text-left">
             {[
               { icon: MessageCircle, text: 'Ask questions about your course' },
@@ -586,12 +613,14 @@ function AiStudyAssistant({
         ) : (
           <div className="space-y-6">
             {messages.length === 0 && (
-              <div className="flex h-full items-center justify-center">
+              <div className="flex items-center justify-center">
                 <div className="max-w-md space-y-4 text-center">
                   <div className="relative mx-auto h-16 w-16">
                     <Bot className="text-primary/60 h-16 w-16 animate-pulse" />
+
                     <div className="from-primary/20 absolute inset-0 animate-spin rounded-full bg-gradient-to-r to-transparent" />
                   </div>
+
                   <h3 className="text-muted-foreground text-lg font-semibold">
                     Ready to help you learn!
                   </h3>
@@ -619,21 +648,40 @@ function AiStudyAssistant({
                   )}
                 </div>
 
-                <div className="min-w-0 flex-1 space-y-2">
-                  <div className="flex items-center gap-2">
+                <div
+                  className={cn(
+                    'space-y-2 transition-all duration-200',
+                    msg.role === 'user'
+                      ? 'max-w-[50%] min-w-0'
+                      : 'min-w-0 flex-1'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'flex items-center gap-2',
+                      msg.role === 'user' && 'justify-end'
+                    )}
+                  >
                     <span className="text-sm font-medium">
-                      {msg.role === 'user' ? 'You' : 'AI Assistant'}
+                      {msg.role === 'user'
+                        ? 'You'
+                        : msg.role === 'system'
+                          ? 'System Error'
+                          : 'AI Assistant'}
                     </span>
                     <span className="text-muted-foreground text-xs">
                       Just now
                     </span>
                   </div>
+
                   <div
                     className={cn(
-                      'prose prose-sm dark:prose-invert max-w-none rounded-lg border p-4 shadow-sm transition-all duration-200 hover:shadow-md',
+                      'group prose prose-sm dark:prose-invert max-w-none rounded-lg border p-4 shadow-sm transition-all duration-200 hover:shadow-md',
                       msg.role === 'user'
-                        ? 'border-primary/20 bg-primary/5'
-                        : 'border-border/50 bg-background/80'
+                        ? 'border-primary/20 from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15 bg-gradient-to-br'
+                        : msg.role === 'system'
+                          ? 'border-red-200 bg-gradient-to-br from-red-50 to-red-100 hover:shadow-red-100 dark:from-red-900/20 dark:to-red-800/20'
+                          : 'border-border/50 from-background/80 to-muted/20 hover:from-muted/30 hover:to-muted/40 bg-gradient-to-br'
                     )}
                   >
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
@@ -668,7 +716,7 @@ function AiStudyAssistant({
         )}
       </div>
 
-      <div className="bg-background/80 border-t p-4 backdrop-blur-sm">
+      <div className="bg-background/80 p-2 backdrop-blur-sm">
         <form onSubmit={handleSubmit} className="relative">
           <div className="bg-background/50 focus-within:border-primary/50 relative flex items-end gap-3 rounded-xl border p-3 shadow-sm backdrop-blur-sm transition-all duration-200 focus-within:shadow-md hover:shadow-md">
             <Textarea
@@ -708,7 +756,7 @@ function AiStudyAssistant({
   );
 }
 
-export function AiTutorTab() {
+export function AiTutorTab({ courseId }: { courseId?: string }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const panelRef = useRef<ImperativePanelHandle>(null);
   const [activeConversationId, setActiveConversationId] = useState<
@@ -726,6 +774,19 @@ export function AiTutorTab() {
       setIsCollapsed(true);
     }
   };
+
+  if (!courseId) {
+    return (
+      <div className="flex h-[calc(100vh-12.5rem)] items-center justify-center rounded-lg border">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">No Course Selected</h3>
+          <p className="text-muted-foreground text-sm">
+            Please select a course to use the AI Learning Assistant.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-[calc(100vh-12.5rem)]">
@@ -755,6 +816,7 @@ export function AiTutorTab() {
             onToggle={toggleCollapse}
             activeConversationId={activeConversationId}
             setActiveConversationId={setActiveConversationId}
+            courseId={courseId}
           />
         </ResizablePanel>
 
@@ -768,6 +830,7 @@ export function AiTutorTab() {
             key={activeConversationId}
             activeConversationId={activeConversationId}
             setActiveConversationId={setActiveConversationId}
+            courseId={courseId}
           />
         </ResizablePanel>
       </ResizablePanelGroup>
@@ -876,12 +939,12 @@ export function AiStudyAssistantSkeleton() {
         </div>
       </div>
 
-      <div className="bg-background/80 border-t p-4">
+      {/* <div className="bg-background/80 border-t p-4">
         <div className="flex items-end gap-3 rounded-xl border p-3">
           <Skeleton className="h-6 flex-1" />
           <Skeleton className="h-8 w-8 rounded-lg" />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

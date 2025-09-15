@@ -5,6 +5,7 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { studentAiToolsTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
+
 import { AiTutorTab, AiTutorTabSkeleton } from './ai-tutor-tab';
 import { AnalyticsTab, AnalyticsTabSkeleton } from './analytics-tab';
 import { FlashcardsTab, FlashcardsTabSkeleton } from './flashcards-tab';
@@ -28,18 +29,21 @@ const skeletonMap: Record<string, React.ReactNode> = {
   quiz: <QuizTabSkeleton />,
 };
 
-const contentMap: Record<string, React.ReactNode> = {
-  'ai-tutor': <AiTutorTab />,
-  'smart-notes': <SmartNotesTab />,
-  'writing-assistant': <WritingAssistantTab />,
-  flashcards: <FlashcardsTab />,
-  'voice-tutor': <VoiceTutorTab />,
-  research: <ResearchTab />,
-  analytics: <AnalyticsTab />,
-  quiz: <QuizTab />,
+const contentMap: Record<
+  string,
+  (props: { courseId?: string }) => React.ReactNode
+> = {
+  'ai-tutor': (props) => <AiTutorTab {...props} />,
+  'smart-notes': (props) => <SmartNotesTab {...props} />,
+  'writing-assistant': (props) => <WritingAssistantTab {...props} />,
+  flashcards: (props) => <FlashcardsTab {...props} />,
+  'voice-tutor': (props) => <VoiceTutorTab {...props} />,
+  research: (props) => <ResearchTab {...props} />,
+  analytics: (props) => <AnalyticsTab {...props} />,
+  quiz: (props) => <QuizTab {...props} />,
 };
 
-export function AiToolsTabs() {
+export function AiToolsTabs({ courseId }: { courseId?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -58,12 +62,17 @@ export function AiToolsTabs() {
   };
 
   const pendingSkeleton = skeletonMap[activeTab] || <p>Loading AI Tutor...</p>;
-  const activeContent = contentMap[currentTabFromUrl] || <p>AI Tutor</p>;
+
+  const activeContent = contentMap[currentTabFromUrl] ? (
+    contentMap[currentTabFromUrl]({ courseId })
+  ) : (
+    <p>AI Tutor</p>
+  );
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <AppTabs tabs={studentAiToolsTabs} basePath="/" activeTab="tab" />
-      <div className="">
+      <div>
         {isPending ? (
           pendingSkeleton
         ) : (

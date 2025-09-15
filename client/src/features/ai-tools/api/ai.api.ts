@@ -2,8 +2,8 @@ import { userService } from '@/lib/api/server';
 import {
   Conversation,
   CreateConversationInput,
+  Message,
   TutorChatRequest,
-  Message
 } from '../schemas/chat.schema';
 
 /**

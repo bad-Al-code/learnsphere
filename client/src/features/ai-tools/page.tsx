@@ -21,7 +21,13 @@ function AiToolsPageSkeleton() {
   );
 }
 
-export default function AiToolsPage() {
+interface Props {
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
+export default function AiToolsPage({ searchParams }: Props) {
+  const courseId = searchParams?.courseId as string | undefined;
+
   return (
     <div className="mb-4 space-y-2">
       <PageHeader
@@ -31,7 +37,7 @@ export default function AiToolsPage() {
       />
 
       <Suspense fallback={<AiToolsPageSkeleton />}>
-        <AiToolsTabs />
+        <AiToolsTabs courseId={courseId} />
       </Suspense>
     </div>
   );
