@@ -113,6 +113,7 @@ export const aiTutorMessages = pgTable('ai_tutor_messages', {
 export type NewAITutorMessage = typeof aiTutorMessages.$inferInsert;
 export type AITutorMessage = typeof aiTutorMessages.$inferSelect;
 
+/**  AI QUIZZES */
 export const aiQuizzes = pgTable('ai_quizzes', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: text('user_id')
@@ -141,6 +142,63 @@ export const aiQuizOptions = pgTable('ai_quiz_options', {
   optionText: text('option_text').notNull(),
   isCorrect: boolean('is_correct').notNull().default(false),
 });
+
+export const aiQuizzesRelations = relations(aiQuizzes, ({ one, many }) => ({
+  user: one(profiles, {
+    fields: [aiQuizzes.userId],
+    references: [profiles.userId],
+  }),
+
+  questions: many(aiQuizQuestions),
+}));
+
+export const aiQuizQuestionsRelations = relations(
+  aiQuizQuestions,
+  ({ one, many }) => ({
+    quiz: one(aiQuizzes, {
+      fields: [aiQuizQuestions.quizId],
+      references: [aiQuizzes.id],
+    }),
+
+    options: many(aiQuizOptions, {
+      relationName: 'aiQuizOptionsToAiQuizQuestions',
+    }),
+  })
+);
+
+export const aiQuizOptionsRelations = relations(aiQuizOptions, ({ one }) => ({
+  question: one(aiQuizOptions, {
+    fields: [aiQuizOptions.questionId],
+    references: [aiQuizOptions.id],
+    relationName: 'aiQuizOptionsToAiQuizQuestions',
+  }),
+}));
+
+/**  SMART NOTES */
+export const userNotes = pgTable('user_notes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => profiles.userId, { onDelete: 'cascade' }),
+  courseId: uuid('course_id').notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  content: text('content'),
+  insights: jsonb('insights').$type<{
+    keyConcepts?: string[];
+    studyActions?: string[];
+    knowledgeGaps?: string[];
+  }>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+export type NewUserNote = typeof userNotes.$inferInsert;
+
+export const userNotesRelations = relations(userNotes, ({ one }) => ({
+  user: one(profiles, {
+    fields: [userNotes.userId],
+    references: [profiles.userId],
+  }),
+}));
 
 /**
  * @table replicated_course_content
@@ -175,6 +233,7 @@ export const enrollments = pgTable(
 export const profilesRelations = relations(profiles, ({ many }) => ({
   aiTutorConversations: many(aiTutorConversations),
   enrollments: many(enrollments),
+  userNotes: many(userNotes),
 }));
 
 export const aiTutorConversationsRelations = relations(
@@ -202,36 +261,5 @@ export const enrollmentsRelations = relations(enrollments, ({ one }) => ({
   profile: one(profiles, {
     fields: [enrollments.userId],
     references: [profiles.userId],
-  }),
-}));
-
-export const aiQuizzesRelations = relations(aiQuizzes, ({ one, many }) => ({
-  user: one(profiles, {
-    fields: [aiQuizzes.userId],
-    references: [profiles.userId],
-  }),
-
-  questions: many(aiQuizQuestions),
-}));
-
-export const aiQuizQuestionsRelations = relations(
-  aiQuizQuestions,
-  ({ one, many }) => ({
-    quiz: one(aiQuizzes, {
-      fields: [aiQuizQuestions.quizId],
-      references: [aiQuizzes.id],
-    }),
-
-    options: many(aiQuizOptions, {
-      relationName: 'aiQuizOptionsToAiQuizQuestions',
-    }),
-  })
-);
-
-export const aiQuizOptionsRelations = relations(aiQuizOptions, ({ one }) => ({
-  question: one(aiQuizOptions, {
-    fields: [aiQuizOptions.questionId],
-    references: [aiQuizOptions.id],
-    relationName: 'aiQuizOptionsToAiQuizQuestions',
   }),
 }));

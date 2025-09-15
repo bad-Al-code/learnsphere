@@ -50,6 +50,13 @@
       "when": 1757940491485,
       "tag": "0006_yellow_nico_minoru",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1757951598041,
+      "tag": "0007_milky_grandmaster",
+      "breakpoints": true
     }
   ]
 }
