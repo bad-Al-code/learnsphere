@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { NotAuthorizedError } from '../../errors';
+import { BadRequestError, NotAuthorizedError } from '../../errors';
 import { AiService } from './ai.service';
 
 export class AiController {
@@ -61,10 +61,15 @@ export class AiController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
+      const { courseId } = req.query;
+      if (!courseId || typeof courseId !== 'string') {
+        throw new BadRequestError('courseId query parameter is required.');
+      }
 
       const conversations =
         await AiController.aiService.getConversationsForUser(
-          req.currentUser.id
+          req.currentUser.id,
+          courseId
         );
 
       res.status(StatusCodes.OK).json(conversations);

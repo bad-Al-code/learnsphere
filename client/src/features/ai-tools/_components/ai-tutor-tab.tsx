@@ -460,7 +460,7 @@ export function ConversationSidebar({
   setActiveConversationId: (id: string | null) => void;
   courseId: string;
 }) {
-  const { data: conversations, isLoading } = useGetConversations();
+  const { data: conversations, isLoading } = useGetConversations(courseId);
   const { mutate: createConversation } = useCreateConversation();
   const { mutate: deleteConversation } = useDeleteConversation();
 

@@ -24,8 +24,10 @@ export const sendAiTutorMessage = (
  * Fetches all AI Tutor conversations for the current user.
  * @returns A promise resolving to an array of conversation objects.
  */
-export const getConversations = (): Promise<Conversation[]> => {
-  return userService.getTyped<Conversation[]>('/api/ai/tutor/conversations');
+export const getConversations = (courseId: string): Promise<Conversation[]> => {
+  return userService.getTyped<Conversation[]>(
+    `/api/ai/tutor/conversations?courseId=${courseId}`
+  );
 };
 
 /**

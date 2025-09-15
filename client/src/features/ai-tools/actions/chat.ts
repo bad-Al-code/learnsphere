@@ -42,9 +42,9 @@ export const askAiTutor = async (
   }
 };
 
-export const getConversationsAction = async () => {
+export const getConversationsAction = async (courseId: string) => {
   try {
-    const conversations = await getConversations();
+    const conversations = await getConversations(courseId);
 
     return { data: conversations };
   } catch (error) {

@@ -180,6 +180,25 @@ export class AIRepository {
   }
 
   /**
+   * Finds all conversations for a specific user and course.
+   * @param userId The ID of the user.
+   * @param courseId The ID of the course to filter by.
+   * @returns A list of the user's conversations for that course.
+   */
+  public static async findConversationsByUserAndCourse(
+    userId: string,
+    courseId: string
+  ) {
+    return db.query.aiTutorConversations.findMany({
+      where: and(
+        eq(aiTutorConversations.userId, userId),
+        eq(aiTutorConversations.courseId, courseId)
+      ),
+      orderBy: [desc(aiTutorConversations.updatedAt)],
+    });
+  }
+
+  /**
    * Updates the title of a conversation.
    * @param conversationId The ID of the conversation to update.
    * @param title The new title.

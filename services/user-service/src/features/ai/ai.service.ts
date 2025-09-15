@@ -171,12 +171,13 @@ export class AiService {
   }
 
   /**
-   * Retrieves all conversations for a given user.
+   * Retrieves all conversations for a given user for a specific course.
    * @param userId The ID of the user.
+   * @param courseId The ID of the course.
    * @returns A list of conversation objects.
    */
-  public async getConversationsForUser(userId: string) {
-    return AIRepository.findConversationsByUserId(userId);
+  public async getConversationsForUser(userId: string, courseId: string) {
+    return AIRepository.findConversationsByUserAndCourse(userId, courseId);
   }
 
   /**

@@ -5,6 +5,7 @@ import { AiController } from './ai.controller';
 import {
   conversationIdParamSchema,
   createConversationSchema,
+  getConversationsSchema,
   renameConversationSchema,
   tutorChatSchema,
 } from './ai.schema';
@@ -73,15 +74,27 @@ router.post(
  * @openapi
  * /api/ai/tutor/conversations:
  *   get:
- *     summary: Get all AI Tutor conversations for the current user
+ *     summary: Get AI Tutor conversations for a specific course
  *     tags: [AI Tools]
  *     security:
  *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the course to fetch conversations for.
  *     responses:
  *       '200':
- *         description: A list of the user's conversations.
+ *         description: A list of the user's conversations for the specified course.
  */
-router.get('/tutor/conversations', AiController.getConversations);
+router.get(
+  '/tutor/conversations',
+  validateRequest(getConversationsSchema),
+  AiController.getConversations
+);
 
 /**
  * @openapi
@@ -171,7 +184,6 @@ router.delete(
   validateRequest(conversationIdParamSchema),
   AiController.deleteConversation
 );
-
 
 /**
  * @openapi

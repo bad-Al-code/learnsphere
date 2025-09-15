@@ -43,7 +43,7 @@ const contentMap: Record<
   quiz: (props) => <QuizTab {...props} />,
 };
 
-export function AiToolsTabs({ courseId }: { courseId?: string }) {
+export function AiToolsTabs({ courseId }: { courseId: string | null }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -70,6 +70,9 @@ export function AiToolsTabs({ courseId }: { courseId?: string }) {
 
   console.log('Current courseId:', courseId);
   console.log('Active tab:', activeTab);
+  // if (!courseId) {
+  //   return <p>CourseId is not provided</p>;
+  // }
 
   const activeContent = contentMap[activeTab]?.({ courseId }) || (
     <p>Loading...</p>

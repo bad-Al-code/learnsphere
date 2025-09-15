@@ -101,3 +101,9 @@ export const renameConversationSchema = z.object({
     title: z.string().min(1, 'Title cannot be empty.').max(255),
   }),
 });
+
+export const getConversationsSchema = z.object({
+  query: z.object({
+    courseId: z.string().uuid('Invalid courseId format in query parameter.'),
+  }),
+});

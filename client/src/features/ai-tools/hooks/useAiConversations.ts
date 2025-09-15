@@ -11,11 +11,11 @@ import {
 import { getEnrolledCoursesAction } from '../actions/enrollment';
 import { Conversation } from '../schemas/chat.schema';
 
-export const useGetConversations = () => {
+export const useGetConversations = (courseId: string) => {
   return useQuery({
-    queryKey: ['ai-conversations'],
+    queryKey: ['ai-conversations', courseId],
     queryFn: async () => {
-      const result = await getConversationsAction();
+      const result = await getConversationsAction(courseId);
 
       if (result.error) throw new Error(result.error);
 
