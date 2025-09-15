@@ -702,6 +702,7 @@ function AiStudyAssistant({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
   const [isNearBottom, setIsNearBottom] = useState(true);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const previousScrollHeight = useRef<number>(0);
 
   const {
@@ -726,14 +727,25 @@ function AiStudyAssistant({
       .reverse()
       .flatMap((page) => page.messages) ?? [];
 
+  const scrollToBottom = (smooth = true) => {
+    const container = chatContainerRef.current;
+    if (!container) return;
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: smooth ? 'smooth' : 'instant',
+    });
+
+    setShouldScrollToBottom(false);
+    setShowScrollButton(false);
+  };
+
   useLayoutEffect(() => {
     const container = chatContainerRef.current;
     if (!container) return;
 
     if (shouldScrollToBottom) {
-      container.scrollTop = container.scrollHeight;
-
-      setShouldScrollToBottom(false);
+      scrollToBottom(false);
     } else if (isFetchingNextPage && previousScrollHeight.current > 0) {
       const newScrollHeight = container.scrollHeight;
       const scrollDifference = newScrollHeight - previousScrollHeight.current;
@@ -756,9 +768,13 @@ function AiStudyAssistant({
 
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = container;
+      const scrollFromBottom = scrollHeight - scrollTop - clientHeight;
 
-      const nearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      const nearBottom = scrollFromBottom < 100;
       setIsNearBottom(nearBottom);
+
+      const shouldShowButton = scrollFromBottom > 200 && messages.length > 0;
+      setShowScrollButton(shouldShowButton);
 
       if (scrollTop === 0 && hasNextPage && !isFetchingNextPage) {
         previousScrollHeight.current = scrollHeight;
@@ -768,7 +784,7 @@ function AiStudyAssistant({
 
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleScroll);
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, messages.length]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -814,8 +830,6 @@ function AiStudyAssistant({
         }
       );
     }
-
-    setPrompt('');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -828,39 +842,67 @@ function AiStudyAssistant({
   if (!activeConversationId) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-8">
-        <div className="max-w-md space-y-6 text-center">
-          <div className="flex items-center justify-center">
-            <div className="from-primary/20 to-primary/5 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br shadow-lg">
-              <Bot className="text-primary h-10 w-10" />
+        <div className="max-w-md space-y-8 text-center">
+          <div className="relative flex items-center justify-center">
+            <div className="from-primary/20 to-primary/5 ring-primary/10 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br shadow-lg ring-1">
+              <Bot className="text-primary h-12 w-12" />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <h2 className="text-foreground text-2xl font-bold">
+          <div className="space-y-3">
+            <h2 className="text-foreground text-3xl font-bold tracking-tight">
               AI Study Assistant
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-lg leading-relaxed">
               Ready to help you learn! Start a new conversation or select an
               existing one to continue.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 text-left">
+          <div className="grid grid-cols-1 gap-4 text-left">
             {[
-              { icon: MessageCircle, text: 'Ask questions about your course' },
-              { icon: Sparkles, text: 'Get explanations and examples' },
-              { icon: Bot, text: 'Receive personalized study tips' },
+              {
+                icon: MessageCircle,
+                text: 'Ask questions about your course',
+                color: 'blue',
+              },
+              {
+                icon: Sparkles,
+                text: 'Get explanations and examples',
+                color: 'purple',
+              },
+              {
+                icon: Bot,
+                text: 'Receive personalized study tips',
+                color: 'green',
+              },
             ].map((item, index) => (
               <div
                 key={index}
-                className="border-border/50 flex items-center gap-3 rounded-lg border p-3"
+                className={cn(
+                  'border-border/50 flex items-center gap-4 rounded-xl border bg-gradient-to-r p-4 backdrop-blur-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-md',
+                  item.color === 'blue' &&
+                    'from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/20',
+                  item.color === 'purple' &&
+                    'from-purple-50 to-purple-100/50 dark:from-purple-950/50 dark:to-purple-900/20',
+                  item.color === 'green' &&
+                    'from-green-50 to-green-100/50 dark:from-green-950/50 dark:to-green-900/20'
+                )}
               >
-                <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
-                  <item.icon className="text-primary h-4 w-4" />
+                <div
+                  className={cn(
+                    'flex h-10 w-10 items-center justify-center rounded-lg ring-1',
+                    item.color === 'blue' &&
+                      'bg-blue-500/10 text-blue-600 ring-blue-500/20 dark:text-blue-400',
+                    item.color === 'purple' &&
+                      'bg-purple-500/10 text-purple-600 ring-purple-500/20 dark:text-purple-400',
+                    item.color === 'green' &&
+                      'bg-green-500/10 text-green-600 ring-green-500/20 dark:text-green-400'
+                  )}
+                >
+                  <item.icon className="h-5 w-5" />
                 </div>
-                <span className="text-muted-foreground text-sm">
-                  {item.text}
-                </span>
+                <span className="text-foreground font-medium">{item.text}</span>
               </div>
             ))}
           </div>
@@ -871,14 +913,18 @@ function AiStudyAssistant({
 
   return (
     <div className="flex h-full flex-col">
-      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4">
+      <div
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-auto scroll-smooth p-4"
+        style={{ scrollBehavior: 'smooth' }}
+      >
         {isLoadingMessages ? (
           <AiStudyAssistantSkeleton />
         ) : (
           <div className="space-y-6">
             {isFetchingNextPage && (
-              <div className="flex justify-center py-2">
-                <div className="text-muted-foreground flex items-center gap-2 text-sm">
+              <div className="flex justify-center py-4">
+                <div className="text-muted-foreground bg-background/80 ring-border/50 flex items-center gap-3 rounded-full px-4 py-2 text-sm shadow-sm ring-1 backdrop-blur-sm">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-transparent border-t-current" />
                   Loading older messages...
                 </div>
@@ -886,20 +932,22 @@ function AiStudyAssistant({
             )}
 
             {messages.length === 0 && (
-              <div className="flex items-center justify-center">
-                <div className="max-w-md space-y-4 text-center">
-                  <div className="relative mx-auto h-16 w-16">
-                    <Bot className="text-primary/60 h-16 w-16 animate-pulse" />
-                    <div className="from-primary/20 absolute inset-0 animate-spin rounded-full bg-gradient-to-r to-transparent" />
+              <div className="flex items-center justify-center py-16">
+                <div className="max-w-md space-y-6 text-center">
+                  <div className="relative mx-auto h-20 w-20">
+                    <Bot className="text-primary/60 h-20 w-20 animate-pulse" />
+                    <div className="from-primary/30 absolute inset-0 animate-spin rounded-full bg-gradient-to-r to-transparent opacity-20" />
                   </div>
 
-                  <h3 className="text-muted-foreground text-lg font-semibold">
-                    Ready to help you learn!
-                  </h3>
-                  <p className="text-muted-foreground/80 text-sm">
-                    Ask me questions about your course content, request
-                    explanations, or get study tips.
-                  </p>
+                  <div className="space-y-2">
+                    <h3 className="text-foreground text-xl font-semibold">
+                      Ready to help you learn!
+                    </h3>
+                    <p className="text-muted-foreground/80">
+                      Ask me questions about your course content, request
+                      explanations, or get study tips.
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
@@ -908,18 +956,18 @@ function AiStudyAssistant({
               <div
                 key={msg.id}
                 className={cn(
-                  'animate-in fade-in-0 slide-in-from-bottom-2 flex gap-4',
+                  'animate-in fade-in-0 slide-in-from-bottom-2 flex gap-4 duration-300',
                   msg.role === 'user' && 'flex-row-reverse'
                 )}
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border shadow-sm">
+                <div className="ring-border/20 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border shadow-sm ring-1">
                   {msg.role === 'user' ? (
                     <Avatar className="h-8 w-8 border">
                       <AvatarImage
                         src={user?.avatarUrls?.small}
                         alt={user?.firstName || 'User'}
                       />
-                      <AvatarFallback>
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
                         {getInitials(user?.firstName)}
                       </AvatarFallback>
                     </Avatar>
@@ -932,7 +980,7 @@ function AiStudyAssistant({
                   className={cn(
                     'space-y-2 transition-all duration-200',
                     msg.role === 'user'
-                      ? 'max-w-[50%] min-w-0'
+                      ? 'max-w-[70%] min-w-0'
                       : 'min-w-0 flex-1'
                   )}
                 >
@@ -942,7 +990,7 @@ function AiStudyAssistant({
                       msg.role === 'user' && 'justify-end'
                     )}
                   >
-                    <span className="text-sm font-medium">
+                    <span className="text-foreground text-sm font-semibold">
                       {msg.role === 'user'
                         ? 'You'
                         : msg.role === 'system'
@@ -958,12 +1006,12 @@ function AiStudyAssistant({
 
                   <div
                     className={cn(
-                      'group prose prose-sm dark:prose-invert max-w-none rounded-lg border p-4 shadow-sm transition-all duration-200 hover:shadow-md',
+                      'group prose prose-sm dark:prose-invert max-w-none rounded-2xl border p-4 shadow-sm ring-1 transition-all duration-300 hover:shadow-md',
                       msg.role === 'user'
-                        ? 'border-primary/20 from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15 bg-gradient-to-br'
+                        ? 'border-primary/20 from-primary/8 to-primary/12 hover:from-primary/12 hover:to-primary/16 ring-primary/10 bg-gradient-to-br'
                         : msg.role === 'system'
-                          ? 'border-red-200 bg-gradient-to-br from-red-50 to-red-100 hover:shadow-red-100 dark:from-red-900/20 dark:to-red-800/20'
-                          : 'border-border/50 from-background/80 to-muted/20 hover:from-muted/30 hover:to-muted/40 bg-gradient-to-br'
+                          ? 'border-red-200 bg-gradient-to-br from-red-50 to-red-100 ring-red-200/50 hover:shadow-red-100 dark:from-red-900/20 dark:to-red-800/20'
+                          : 'border-border/50 from-background/80 to-muted/30 hover:from-muted/40 hover:to-muted/50 ring-border/20 bg-gradient-to-br'
                     )}
                   >
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
@@ -973,18 +1021,20 @@ function AiStudyAssistant({
             ))}
 
             {isPending && (
-              <div className="animate-in fade-in-0 slide-in-from-bottom-2 flex gap-4">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border shadow-sm">
+              <div className="animate-in fade-in-0 slide-in-from-bottom-2 flex gap-4 duration-300">
+                <div className="ring-border/20 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border shadow-sm ring-1">
                   <Bot className="text-primary h-4 w-4 animate-pulse" />
                 </div>
                 <div className="min-w-0 flex-1 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">AI Assistant</span>
-                    <span className="text-muted-foreground text-xs">
+                    <span className="text-foreground text-sm font-semibold">
+                      AI Assistant
+                    </span>
+                    <span className="text-muted-foreground animate-pulse text-xs">
                       Thinking...
                     </span>
                   </div>
-                  <div className="border-border/50 bg-background/80 w-fit rounded-lg border p-4 shadow-sm">
+                  <div className="border-border/50 from-background/80 to-muted/30 ring-border/20 w-fit rounded-2xl border bg-gradient-to-br p-4 shadow-sm ring-1">
                     <div className="flex space-x-2">
                       <div className="bg-primary/60 h-2 w-2 animate-bounce rounded-full [animation-delay:-0.3s]" />
                       <div className="bg-primary/60 h-2 w-2 animate-bounce rounded-full [animation-delay:-0.15s]" />
@@ -998,14 +1048,14 @@ function AiStudyAssistant({
         )}
       </div>
 
-      <div className="bg-background relative p-2 backdrop-blur-md">
-        {!isNearBottom && messages.length > 0 && (
-          <div className="absolute -top-12 left-1/2 -translate-x-1/2">
+      <div className="relative p-2 backdrop-blur-sm">
+        {showScrollButton && (
+          <div className="absolute -top-16 left-1/2 z-10 -translate-x-1/2">
             <Button
               size="sm"
               variant="secondary"
-              className=""
-              onClick={() => setShouldScrollToBottom(true)}
+              className="ring-border/20 shadow-lg ring-1 backdrop-blur-sm transition-all duration-300 hover:scale-105 active:scale-95"
+              onClick={() => scrollToBottom(true)}
             >
               <ArrowDown className="h-4 w-4" />
               Back to bottom
@@ -1014,13 +1064,13 @@ function AiStudyAssistant({
         )}
 
         <form onSubmit={handleSubmit} className="relative">
-          <div className="bg-background/50 focus-within:border-primary/30 relative flex items-end gap-3 rounded-xl border p-3 shadow-sm backdrop-blur-sm transition-all duration-200 focus-within:shadow-md hover:shadow-md">
+          <div className="bg-background/90 focus-within:ring-primary/30 ring-border/20 relative flex items-end gap-3 rounded-2xl border p-3 shadow-lg ring-1 backdrop-blur-sm transition-all duration-300 focus-within:shadow-xl focus-within:ring-2 hover:shadow-lg">
             <Textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask me anything about your course... (Press Shift+Enter for new line)"
-              className="max-h-32 min-h-[24px] flex-1 resize-none border-0 bg-transparent py-2 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="placeholder:text-muted-foreground/70 max-h-56 min-h-[44px] flex-1 resize-none border-0 bg-transparent py-3 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
               disabled={isPending}
               rows={1}
             />
@@ -1031,14 +1081,18 @@ function AiStudyAssistant({
                   type="submit"
                   size="icon"
                   className={cn(
-                    'h-8 w-8 shrink-0 rounded-lg shadow-sm transition-all duration-200',
+                    'h-10 w-10 shrink-0 rounded-xl shadow-sm ring-1 transition-all duration-300',
                     prompt.trim() && !isPending
-                      ? 'bg-primary hover:bg-primary/90 hover:scale-105 hover:shadow-md'
-                      : 'bg-muted/50 text-muted-foreground hover:bg-muted/50 cursor-not-allowed'
+                      ? 'bg-primary hover:bg-primary/90 ring-primary/20 hover:scale-110 hover:shadow-lg active:scale-95'
+                      : 'bg-muted/50 text-muted-foreground hover:bg-muted/50 ring-muted/20 cursor-not-allowed'
                   )}
                   disabled={isPending || !prompt.trim()}
                 >
-                  <ArrowUp className="h-4 w-4" />
+                  {isPending ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-transparent border-t-current" />
+                  ) : (
+                    <ArrowUp className="h-4 w-4" />
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -1053,8 +1107,6 @@ function AiStudyAssistant({
 }
 
 export function AiTutorTab({ courseId }: { courseId?: string }) {
-  console.log('AiTutorTab received courseId:', courseId);
-
   const [isCollapsed, setIsCollapsed] = useState(false);
   const panelRef = useRef<ImperativePanelHandle>(null);
   const [activeConversationId, setActiveConversationId] = useState<

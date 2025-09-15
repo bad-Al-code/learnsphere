@@ -76,6 +76,6 @@ export const deleteConversation = (id: string): Promise<void> => {
  */
 export const getMessages = (id: string, page: number): Promise<Message[]> => {
   return userService.getTyped<Message[]>(
-    `/api/ai/tutor/conversations/${id}/messages?page=${page}&limit=5`
+    `/api/ai/tutor/conversations/${id}/messages?page=${page}&limit=100`
   );
 };

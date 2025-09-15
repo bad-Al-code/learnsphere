@@ -93,7 +93,8 @@ export const useGetMessages = (conversationId: string | null) => {
 
       return {
         messages: result.data?.reverse() || [],
-        nextPage: (result.data?.length || 0) === 5 ? pageParam + 1 : undefined,
+        nextPage:
+          (result.data?.length || 0) === 100 ? pageParam + 1 : undefined,
       };
     },
 
