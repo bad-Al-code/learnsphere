@@ -4,7 +4,7 @@ import { AppTabs } from '@/components/ui/app-tabs';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { studentAiToolsTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect,useState, useTransition } from 'react';
+import React, { useEffect, useState, useTransition } from 'react';
 
 import { AiTutorTab, AiTutorTabSkeleton } from './ai-tutor-tab';
 import { AnalyticsTab, AnalyticsTabSkeleton } from './analytics-tab';
@@ -48,14 +48,13 @@ export function AiToolsTabs({ courseId }: { courseId?: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-
   const currentTabFromUrl = searchParams.get('tab') || 'ai-tutor';
   const [activeTab, setActiveTab] = useState(currentTabFromUrl);
   const [isPending, startTransition] = useTransition();
 
-useEffect(() => {
-  setActiveTab(currentTabFromUrl);
-}, [currentTabFromUrl]);
+  useEffect(() => {
+    setActiveTab(currentTabFromUrl);
+  }, [currentTabFromUrl]);
 
   const handleTabChange = (newTab: string) => {
     setActiveTab(newTab);
@@ -69,19 +68,19 @@ useEffect(() => {
     });
   };
 
-  const pendingSkeleton = skeletonMap[activeTab] || <p>Loading AI Tutor...</p>;
+  console.log('Current courseId:', courseId);
+  console.log('Active tab:', activeTab);
 
-  const activeContent = contentMap[activeTab] ? (
-    contentMap[activeTab]({ courseId })
-  ) : (
-    <p>AI Tutor</p>
+  const activeContent = contentMap[activeTab]?.({ courseId }) || (
+    <p>Loading...</p>
   );
+
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <AppTabs tabs={studentAiToolsTabs} basePath="/" activeTab="tab" />
       <div>
         {isPending ? (
-          pendingSkeleton
+          skeletonMap[activeTab] || <p>Loading...</p>
         ) : (
           <TabsContent value={activeTab}>{activeContent}</TabsContent>
         )}

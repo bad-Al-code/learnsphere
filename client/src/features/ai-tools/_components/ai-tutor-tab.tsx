@@ -67,7 +67,6 @@ import {
 } from '../hooks/useAiConversations';
 import { useAiTutorChat } from '../hooks/useAiTutor';
 import { Conversation } from '../schemas/chat.schema';
-import { ChatMessage } from '../types/inedx';
 
 function CourseSelectionSkeleton() {
   return (
@@ -223,7 +222,7 @@ export function CourseSelectionScreen() {
         {courses.map((enrollment) => (
           <Card
             key={enrollment.enrollmentId}
-            className="group hover:border-primary/30 border-border/50 cursor-pointer overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl pt-0"
+            className="group hover:border-primary/30 border-border/50 cursor-pointer overflow-hidden pt-0 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
             onClick={() => handleCourseSelect(enrollment.course.id)}
           >
             <div className="relative overflow-hidden">
@@ -696,7 +695,8 @@ function AiStudyAssistant({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
-  const { mutate: sendMessage, isPending } = useAiTutorChat();
+  const { mutate: sendMessage, isPending } =
+    useAiTutorChat(activeConversationId);
   const { data: messages = [], isLoading: isLoadingMessages } =
     useGetMessages(activeConversationId);
 
@@ -713,19 +713,19 @@ function AiStudyAssistant({
     e.preventDefault();
     if (!prompt.trim() || isPending) return;
 
-    const optimisticMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: prompt,
-    };
+    // const optimisticMessage: ChatMessage = {
+    //   id: crypto.randomUUID(),
+    //   role: 'user',
+    //   content: prompt,
+    // };
 
-    queryClient.setQueryData(
-      ['ai-messages', activeConversationId],
-      (oldData: ChatMessage[] | undefined) => [
-        ...(oldData || []),
-        optimisticMessage,
-      ]
-    );
+    // queryClient.setQueryData(
+    //   ['ai-messages', activeConversationId],
+    //   (oldData: ChatMessage[] | undefined) => [
+    //     ...(oldData || []),
+    //     optimisticMessage,
+    //   ]
+    // );
 
     sendMessage(
       {
@@ -735,33 +735,9 @@ function AiStudyAssistant({
       },
       {
         onSuccess: (data) => {
-          if (data.data) {
-            if (!activeConversationId) {
-              setActiveConversationId(data.data.conversationId);
-
-              queryClient.invalidateQueries({ queryKey: ['ai-conversations'] });
-            }
-
-            queryClient.invalidateQueries({
-              queryKey: ['ai-messages', data.data.conversationId],
-            });
+          if (data.data && !activeConversationId) {
+            setActiveConversationId(data.data.conversationId);
           }
-
-          if (data.error) {
-            toast.error(data.error);
-
-            queryClient.invalidateQueries({
-              queryKey: ['ai-messages', activeConversationId],
-            });
-          }
-        },
-
-        onError: (error) => {
-          toast.error(error.message);
-
-          queryClient.invalidateQueries({
-            queryKey: ['ai-messages', activeConversationId],
-          });
         },
       }
     );
@@ -918,7 +894,7 @@ function AiStudyAssistant({
                       Thinking...
                     </span>
                   </div>
-                  <div className="border-border/50 bg-background/80 rounded-lg border p-4 shadow-sm">
+                  <div className="border-border/50 bg-background/80 w-fit rounded-lg border p-4 shadow-sm">
                     <div className="flex space-x-2">
                       <div className="bg-primary/60 h-2 w-2 animate-bounce rounded-full [animation-delay:-0.3s]" />
                       <div className="bg-primary/60 h-2 w-2 animate-bounce rounded-full [animation-delay:-0.15s]" />
@@ -973,6 +949,8 @@ function AiStudyAssistant({
 }
 
 export function AiTutorTab({ courseId }: { courseId?: string }) {
+  console.log('AiTutorTab received courseId:', courseId);
+
   const [isCollapsed, setIsCollapsed] = useState(false);
   const panelRef = useRef<ImperativePanelHandle>(null);
   const [activeConversationId, setActiveConversationId] = useState<

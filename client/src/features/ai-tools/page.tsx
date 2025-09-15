@@ -1,9 +1,14 @@
+'use client';
+
 import { Skeleton } from '@/components/ui/skeleton';
 import { studentAiToolsTabs } from '@/config/nav-items';
+import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { AiToolsTabs } from './_components/ai-tools-tabs';
 import { AiTutorTabSkeleton } from './_components/ai-tutor-tab';
 import { PageHeader, PageHeaderSkeleton } from './_components/page-header';
+
+export const dynamic = 'force-dynamic';
 
 function AiToolsPageSkeleton() {
   return (
@@ -25,8 +30,9 @@ interface Props {
   searchParams: { [key: string]: string | string[] | undefined };
 }
 
-export default function AiToolsPage({ searchParams }: Props) {
-  const courseId = searchParams?.courseId as string | undefined;
+export default function AiToolsPage() {
+  const searchParams = useSearchParams();
+  const courseId = searchParams.get('courseId');
 
   return (
     <div className="mb-4 space-y-2">
