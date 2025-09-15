@@ -28,6 +28,7 @@ export const useAiTutorChat = (activeConversationId: string | null) => {
 
   return useMutation<TutorChatActionResult, Error, TutorChatRequest>({
     mutationFn: askAiTutor,
+
     onMutate: async (newMessage) => {
       const queryKey = ['ai-messages', activeConversationId];
       await queryClient.cancelQueries({ queryKey });
@@ -83,7 +84,7 @@ export const useAiTutorChat = (activeConversationId: string | null) => {
       toast.error(err.message);
     },
 
-    onSettled: (data) => {
+    onSettled: (data, error, variables) => {
       const finalConversationId =
         data?.data?.conversationId || activeConversationId;
 
@@ -93,9 +94,13 @@ export const useAiTutorChat = (activeConversationId: string | null) => {
         });
       }
 
-      if (!activeConversationId && data?.data?.conversationId) {
-        queryClient.invalidateQueries({ queryKey: ['ai-conversations'] });
-      }
+      queryClient.invalidateQueries({
+        queryKey: ['ai-conversations', variables.courseId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ['ai-conversations'],
+      });
     },
   });
 };

@@ -23,8 +23,18 @@ export class AiService {
     userId: string,
     courseId: string,
     prompt: string,
-    conversationId?: string
+    conversationId: string
   ): Promise<{ response: string; conversationId: string }> {
+    const conversation =
+      await AIRepository.findConversationById(conversationId);
+    if (
+      !conversation ||
+      conversation.userId !== userId ||
+      conversation.courseId !== courseId
+    ) {
+      throw new ForbiddenError();
+    }
+
     const isEnrolled = await AIRepository.isUserEnrolled(userId, courseId);
     if (!isEnrolled) {
       throw new ForbiddenError(
@@ -39,29 +49,28 @@ export class AiService {
       );
     }
 
-    let conversation;
-    let isNewConversation = false;
+    // if (conversationId) {
+    //   const existingConversation =
+    //     await AIRepository.findConversationById(conversationId);
 
-    if (conversationId) {
-      const existingConversation =
-        await AIRepository.findConversationById(conversationId);
+    //   if (!existingConversation || existingConversation.userId !== userId) {
+    //     throw new ForbiddenError();
+    //   }
 
-      if (!existingConversation || existingConversation.userId !== userId) {
-        throw new ForbiddenError();
-      }
+    //   conversation = existingConversation;
+    // } else {
+    //   const initialTitle =
+    //     prompt.substring(0, 40) + (prompt.length > 40 ? '...' : '');
 
-      conversation = existingConversation;
-    } else {
-      isNewConversation = true;
-
-      conversation = await AIRepository.createConversation(
-        userId,
-        courseId,
-        'New Chat'
-      );
-    }
+    //   conversation = await AIRepository.createConversation(
+    //     userId,
+    //     courseId,
+    //     initialTitle
+    //   );
+    // }
 
     const history = await AIRepository.getMessages(conversation.id);
+    const isFirstMessage = history.length === 0;
 
     const formattedHistory: Content[] = history
       .map((msg) => ({
@@ -122,32 +131,61 @@ export class AiService {
       content: finalResponseText,
     });
 
+    if (isFirstMessage) {
+      const newTitle = this.generateConversationTitle(
+        prompt,
+        finalResponseText
+      );
+      await AIRepository.updateConversationTitle(conversation.id, newTitle);
+    }
+
     logger.info(
       `AI Tutor response generated for user ${userId} in course ${courseId}`
     );
 
-    if (isNewConversation) {
-      try {
-        const titlePrompt = `Based on the following user prompt, create a concise and descriptive title for this conversation. The title show be no more than 5 words. User Prompt: "${prompt}`;
+    return { response: finalResponseText, conversationId: conversation.id };
+  }
 
-        const titleModel = await this.provider.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: titlePrompt,
-        });
+  /**
+   * Generates a meaningful title for the conversation based on the first prompt and AI response.
+   * @param prompt The user's first message
+   * @param aiResponse The AI's response
+   * @returns A conversation title
+   */
+  private generateConversationTitle(
+    prompt: string,
+    aiResponse: string
+  ): string {
+    const promptWords = prompt
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(
+        (word) =>
+          word.length > 3 &&
+          ![
+            'what',
+            'how',
+            'why',
+            'when',
+            'where',
+            'can',
+            'could',
+            'would',
+            'should',
+            'explain',
+            'tell',
+            'about',
+          ].includes(word)
+      );
 
-        const rawTitle = titleModel.text;
-        const title = rawTitle ? rawTitle.replace(/["']/g, '') : 'New Chat';
+    const keyWords = promptWords.slice(0, 4).join(' ');
 
-        await AIRepository.updateConversationTitle(conversation.id, title);
-      } catch (error) {
-        logger.error(
-          `Failed to generate title for new conversation ${conversation.id}`,
-          { error }
-        );
-      }
+    if (keyWords.length > 0) {
+      const title = keyWords.replace(/\b\w/g, (l) => l.toUpperCase());
+      return title.length > 50 ? title.substring(0, 47) + '...' : title;
     }
 
-    return { response: finalResponseText, conversationId: conversation.id };
+    return prompt.length > 50 ? prompt.substring(0, 47) + '...' : prompt;
   }
 
   /**

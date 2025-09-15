@@ -83,3 +83,20 @@ export const getLetterGrade = (grade: number | null | undefined): string => {
 
   return 'F';
 };
+
+export const generateOptimisticTitle = (prompt: string): string => {
+  const promptWords = prompt.toLowerCase().split(/\s+/).filter(word => 
+    word.length > 3 && 
+    !['what', 'how', 'why', 'when', 'where', 'can', 'could', 'would', 'should', 'explain', 'tell', 'about'].includes(word)
+  );
+
+  const keyWords = promptWords.slice(0, 4).join(' ');
+  
+  if (keyWords.length > 0) {
+    const title = keyWords.replace(/\b\w/g, l => l.toUpperCase());
+
+    return title.length > 50 ? title.substring(0, 47) + '...' : title;
+  }
+
+  return prompt.length > 50 ? prompt.substring(0, 47) + '...' : prompt;
+};

@@ -695,7 +695,7 @@ function AiStudyAssistant({
 }: {
   courseId: string;
   activeConversationId: string | null;
-  setActiveConversationId: (id: string) => void;
+  setActiveConversationId: (id: string | null) => void;
 }) {
   const { user } = useSessionStore();
   const [prompt, setPrompt] = useState('');
@@ -711,6 +711,14 @@ function AiStudyAssistant({
     isFetchingNextPage,
     isLoading: isLoadingMessages,
   } = useGetMessages(activeConversationId);
+
+  const { mutate: createConversation, isPending: isCreatingConversation } =
+    useCreateConversation();
+
+  const { mutate: sendMessage, isPending: isSendingMessage } =
+    useAiTutorChat(activeConversationId);
+
+  const isPending = isSendingMessage || isCreatingConversation;
 
   const messages =
     data?.pages
@@ -762,29 +770,50 @@ function AiStudyAssistant({
     return () => container.removeEventListener('scroll', handleScroll);
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const { mutate: sendMessage, isPending } =
-    useAiTutorChat(activeConversationId);
-
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!prompt.trim() || isPending) return;
 
-    sendMessage(
-      {
-        courseId,
-        prompt,
-        conversationId: activeConversationId || undefined,
-      },
-      {
-        onSuccess: (data) => {
-          if (data.data && !activeConversationId) {
-            setActiveConversationId(data.data.conversationId);
-          }
+    const currentPrompt = prompt;
+    setPrompt('');
 
-          setShouldScrollToBottom(true);
+    if (activeConversationId) {
+      sendMessage({
+        courseId,
+        prompt: currentPrompt,
+        conversationId: activeConversationId,
+      });
+    } else {
+      createConversation(
+        {
+          courseId,
+          title:
+            currentPrompt.substring(0, 40) +
+            (currentPrompt.length > 40 ? '...' : ''),
         },
-      }
-    );
+
+        {
+          onSuccess: (result) => {
+            if (result.data) {
+              const newConversationId = result.data.id;
+              setActiveConversationId(newConversationId);
+
+              sendMessage({
+                courseId,
+                prompt: currentPrompt,
+                conversationId: newConversationId,
+              });
+            } else if (result.error) {
+              toast.error(result.error);
+            }
+          },
+
+          onError: (error) => {
+            toast.error(`Failed to create conversation: ${error.message}`);
+          },
+        }
+      );
+    }
 
     setPrompt('');
   };
