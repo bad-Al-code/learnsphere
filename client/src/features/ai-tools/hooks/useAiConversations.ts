@@ -8,6 +8,7 @@ import {
   getMessagesAction,
   renameConversationAction,
 } from '../actions/chat';
+import { getEnrolledCoursesAction } from '../actions/enrollment';
 import { Conversation } from '../schemas/chat.schema';
 
 export const useGetConversations = () => {
@@ -82,5 +83,19 @@ export const useGetMessages = (conversationId: string | null) => {
     },
     enabled: !!conversationId,
     staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const useGetEnrolledCourses = () => {
+  return useQuery({
+    queryKey: ['enrolled-courses'],
+
+    queryFn: async () => {
+      const result = await getEnrolledCoursesAction();
+
+      if (result.error) throw new Error(result.error);
+
+      return result.data;
+    },
   });
 };

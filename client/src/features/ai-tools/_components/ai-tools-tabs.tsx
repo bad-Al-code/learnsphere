@@ -4,7 +4,7 @@ import { AppTabs } from '@/components/ui/app-tabs';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { studentAiToolsTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import React, { useState, useTransition } from 'react';
+import React, { useEffect,useState, useTransition } from 'react';
 
 import { AiTutorTab, AiTutorTabSkeleton } from './ai-tutor-tab';
 import { AnalyticsTab, AnalyticsTabSkeleton } from './analytics-tab';
@@ -48,14 +48,22 @@ export function AiToolsTabs({ courseId }: { courseId?: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+
   const currentTabFromUrl = searchParams.get('tab') || 'ai-tutor';
   const [activeTab, setActiveTab] = useState(currentTabFromUrl);
   const [isPending, startTransition] = useTransition();
+
+useEffect(() => {
+  setActiveTab(currentTabFromUrl);
+}, [currentTabFromUrl]);
 
   const handleTabChange = (newTab: string) => {
     setActiveTab(newTab);
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', newTab);
+    if (courseId) {
+      params.set('courseId', courseId);
+    }
     startTransition(() => {
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     });
@@ -63,12 +71,11 @@ export function AiToolsTabs({ courseId }: { courseId?: string }) {
 
   const pendingSkeleton = skeletonMap[activeTab] || <p>Loading AI Tutor...</p>;
 
-  const activeContent = contentMap[currentTabFromUrl] ? (
-    contentMap[currentTabFromUrl]({ courseId })
+  const activeContent = contentMap[activeTab] ? (
+    contentMap[activeTab]({ courseId })
   ) : (
     <p>AI Tutor</p>
   );
-
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <AppTabs tabs={studentAiToolsTabs} basePath="/" activeTab="tab" />
@@ -76,7 +83,7 @@ export function AiToolsTabs({ courseId }: { courseId?: string }) {
         {isPending ? (
           pendingSkeleton
         ) : (
-          <TabsContent value={currentTabFromUrl}>{activeContent}</TabsContent>
+          <TabsContent value={activeTab}>{activeContent}</TabsContent>
         )}
       </div>
     </Tabs>
