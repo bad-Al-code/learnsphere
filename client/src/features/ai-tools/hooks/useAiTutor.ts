@@ -1,6 +1,10 @@
 'use client';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  InfiniteData,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { askAiTutor } from '../actions/chat';
 import { TutorChatRequest } from '../schemas/chat.schema';
@@ -14,20 +18,22 @@ type TutorChatActionResult = {
   error?: string;
 };
 
+type InfiniteMessages = InfiniteData<{
+  messages: ChatMessage[];
+  nextPage?: number;
+}>;
+
 export const useAiTutorChat = (activeConversationId: string | null) => {
   const queryClient = useQueryClient();
 
   return useMutation<TutorChatActionResult, Error, TutorChatRequest>({
     mutationFn: askAiTutor,
     onMutate: async (newMessage) => {
-      await queryClient.cancelQueries({
-        queryKey: ['ai-messages', activeConversationId],
-      });
+      const queryKey = ['ai-messages', activeConversationId];
+      await queryClient.cancelQueries({ queryKey });
 
-      const previousMessages = queryClient.getQueryData<ChatMessage[]>([
-        'ai-messages',
-        activeConversationId,
-      ]);
+      const previousMessages =
+        queryClient.getQueryData<InfiniteMessages>(queryKey);
 
       const optimisticMessage: ChatMessage = {
         id: crypto.randomUUID(),
@@ -36,18 +42,41 @@ export const useAiTutorChat = (activeConversationId: string | null) => {
       };
 
       queryClient.setQueryData(
-        ['ai-messages', activeConversationId],
-        [...(previousMessages || []), optimisticMessage]
+        queryKey,
+        (oldData: InfiniteMessages | undefined) => {
+          if (!oldData) {
+            return {
+              pages: [{ messages: [optimisticMessage], nextPage: undefined }],
+              pageParams: [1],
+            };
+          }
+
+          const newPages = [...oldData.pages];
+          const lastPageIndex = newPages.length - 1;
+          const lastPage = newPages[lastPageIndex];
+
+          newPages[lastPageIndex] = {
+            ...lastPage,
+            messages: [...lastPage.messages, optimisticMessage],
+          };
+
+          return {
+            ...oldData,
+            pages: newPages,
+          };
+        }
       );
 
       return { previousMessages };
     },
 
     onError: (err, variables, context) => {
-      if (context?.previousMessages) {
+      const typedContext = context as { previousMessages?: InfiniteMessages };
+
+      if (typedContext?.previousMessages) {
         queryClient.setQueryData(
           ['ai-messages', activeConversationId],
-          context.previousMessages
+          typedContext.previousMessages
         );
       }
 

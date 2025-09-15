@@ -119,7 +119,7 @@ export class AIRepository {
    */
   public static async getMessages(
     conversationId: string,
-    limit: number = 50,
+    limit: number = 5,
     offset: number = 0
   ) {
     return db.query.aiTutorMessages.findMany({

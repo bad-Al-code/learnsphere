@@ -13,13 +13,19 @@ import {
   Plus,
   Sparkles,
   Trash2,
-  User,
 } from 'lucide-react';
 import Image from 'next/image';
-import React, { FormEvent, useEffect, useRef, useState } from 'react';
+import React, {
+  FormEvent,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import ReactMarkdown from 'react-markdown';
 
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -52,8 +58,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
-import { useQueryClient } from '@tanstack/react-query';
+import { cn, getInitials } from '@/lib/utils';
+import { useSessionStore } from '@/stores/session-store';
+import { format } from 'date-fns';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ImperativePanelHandle } from 'react-resizable-panels';
 import { toast } from 'sonner';
@@ -691,12 +698,11 @@ function AiStudyAssistant({
   activeConversationId: string | null;
   setActiveConversationId: (id: string) => void;
 }) {
+  const { user } = useSessionStore();
   const [prompt, setPrompt] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const queryClient = useQueryClient();
+  const scrollAnkerRef = useRef<HTMLDivElement>(null);
 
-  const { mutate: sendMessage, isPending } =
-    useAiTutorChat(activeConversationId);
   const {
     data,
     fetchNextPage,
@@ -707,14 +713,23 @@ function AiStudyAssistant({
 
   const messages = data?.pages.flatMap((page) => page.messages) ?? [];
 
+  useLayoutEffect(() => {
+    if (scrollAnkerRef.current) {
+      chatContainerRef.current!.scrollTop = scrollAnkerRef.current.offsetTop;
+      scrollAnkerRef.current = null;
+    }
+  }, [data]);
+
+  const { mutate: sendMessage, isPending } =
+    useAiTutorChat(activeConversationId);
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTo({
+    if (!isFetchingNextPage) {
+      chatContainerRef.current?.scrollTo({
         top: chatContainerRef.current.scrollHeight,
         behavior: 'smooth',
       });
     }
-  }, [messages]);
+  }, [messages.length, isFetchingNextPage]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -807,23 +822,23 @@ function AiStudyAssistant({
   return (
     <div className="flex h-full flex-col">
       <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4">
-        {hasNextPage && (
-          <div className="flex justify-center">
-            <Button
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
-              variant="outline"
-              size="sm"
-            >
-              {isFetchingNextPage ? 'Loading...' : 'Load older messages'}
-            </Button>
-          </div>
-        )}
-
         {isLoadingMessages ? (
           <AiStudyAssistantSkeleton />
         ) : (
           <div className="space-y-6">
+            {hasNextPage && (
+              <div ref={scrollAnkerRef} className="flex justify-center">
+                <Button
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  variant="outline"
+                  size="sm"
+                >
+                  {isFetchingNextPage ? 'Loading...' : 'Load older messages'}
+                </Button>
+              </div>
+            )}
+
             {messages.length === 0 && (
               <div className="flex items-center justify-center">
                 <div className="max-w-md space-y-4 text-center">
@@ -854,7 +869,15 @@ function AiStudyAssistant({
               >
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border shadow-sm">
                   {msg.role === 'user' ? (
-                    <User className="h-4 w-4" />
+                    <Avatar className="h-8 w-8 border">
+                      <AvatarImage
+                        src={user?.avatarUrls?.small}
+                        alt={user?.firstName || 'User'}
+                      />
+                      <AvatarFallback>
+                        {getInitials(user?.firstName)}
+                      </AvatarFallback>
+                    </Avatar>
                   ) : (
                     <Bot className="text-primary h-4 w-4" />
                   )}
@@ -882,7 +905,9 @@ function AiStudyAssistant({
                           : 'AI Assistant'}
                     </span>
                     <span className="text-muted-foreground text-xs">
-                      Just now
+                      {msg.createdAt
+                        ? format(new Date(msg.createdAt), 'p')
+                        : ''}
                     </span>
                   </div>
 

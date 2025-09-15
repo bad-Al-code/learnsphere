@@ -68,8 +68,6 @@ export function AiToolsTabs({ courseId }: { courseId: string | null }) {
     });
   };
 
-  console.log('Current courseId:', courseId);
-  console.log('Active tab:', activeTab);
   // if (!courseId) {
   //   return <p>CourseId is not provided</p>;
   // }
