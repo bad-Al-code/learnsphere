@@ -222,7 +222,9 @@ export const aiQuizQuestionsRelations = relations(
       references: [aiQuizzes.id],
     }),
 
-    options: many(aiQuizOptions),
+    options: many(aiQuizOptions, {
+      relationName: 'aiQuizOptionsToAiQuizQuestions',
+    }),
   })
 );
 
@@ -230,5 +232,6 @@ export const aiQuizOptionsRelations = relations(aiQuizOptions, ({ one }) => ({
   question: one(aiQuizOptions, {
     fields: [aiQuizOptions.questionId],
     references: [aiQuizOptions.id],
+    relationName: 'aiQuizOptionsToAiQuizQuestions',
   }),
 }));
