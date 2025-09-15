@@ -264,16 +264,14 @@ export class AIRepository {
         order: index,
       }));
 
+      if (questionsToInsert.length === 0) {
+        throw new Error('Quiz must have at least one question.');
+      }
+
       const insertedQuestions = await tx
         .insert(aiQuizQuestions)
         .values(questionsToInsert)
         .returning();
-
-      if (insertedQuestions.length === 0) {
-        tx.rollback();
-
-        throw new Error('Failed to insert quiz questions.');
-      }
 
       const optionsToInsert = quizData.questions.flatMap((q, qIndex) =>
         q.options.map((opt, oIndex) => ({
@@ -282,9 +280,12 @@ export class AIRepository {
           isCorrect: oIndex === q.correctAnswerIndex,
         }))
       );
-      if (optionsToInsert.length > 0) {
-        await tx.insert(aiQuizOptions).values(optionsToInsert);
+
+      if (optionsToInsert.length === 0) {
+        throw new Error('Each question must have at least one option.');
       }
+
+      await tx.insert(aiQuizOptions).values(optionsToInsert);
 
       return tx.query.aiQuizzes.findFirst({
         where: eq(aiQuizzes.id, quiz.id),

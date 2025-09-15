@@ -314,7 +314,7 @@ export class AiService {
 
     const response: GenerateContentResponse =
       await this.provider.models.generateContent({
-        model: 'gemini-2.5-pro',
+        model: 'gemini-2.5-flash-lite	',
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
