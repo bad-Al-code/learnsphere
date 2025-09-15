@@ -269,6 +269,12 @@ export class AIRepository {
         .values(questionsToInsert)
         .returning();
 
+      if (insertedQuestions.length === 0) {
+        tx.rollback();
+
+        throw new Error('Failed to insert quiz questions.');
+      }
+
       const optionsToInsert = quizData.questions.flatMap((q, qIndex) =>
         q.options.map((opt, oIndex) => ({
           questionId: insertedQuestions[qIndex].id,
@@ -276,15 +282,18 @@ export class AIRepository {
           isCorrect: oIndex === q.correctAnswerIndex,
         }))
       );
+      if (optionsToInsert.length > 0) {
+        await tx.insert(aiQuizOptions).values(optionsToInsert);
+      }
 
-      await tx.insert(aiQuizOptions).values(optionsToInsert);
-
-      return db.query.aiQuizzes.findFirst({
+      return tx.query.aiQuizzes.findFirst({
         where: eq(aiQuizzes.id, quiz.id),
         with: {
           questions: {
             with: {
-              options: true,
+              options: {
+                orderBy: (options, { asc }) => [asc(options.id)],
+              },
             },
             orderBy: (questions, { asc }) => [asc(questions.order)],
           },
