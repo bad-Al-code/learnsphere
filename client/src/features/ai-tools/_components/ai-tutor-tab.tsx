@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  ArrowDown,
   ArrowUp,
   BookOpen,
   Bot,
@@ -433,18 +434,14 @@ function DeleteConversationDialog({
           </p>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="space-y-2">
           <DialogClose asChild>
             <Button variant="outline" className="w-full sm:w-auto">
               Cancel
             </Button>
           </DialogClose>
 
-          <Button
-            onClick={handleDelete}
-            variant="destructive"
-            className="w-full sm:w-auto"
-          >
+          <Button onClick={handleDelete} variant="destructive" className="">
             <Trash2 className="h-4 w-4" />
             Delete Conversation
           </Button>
@@ -701,7 +698,9 @@ function AiStudyAssistant({
   const { user } = useSessionStore();
   const [prompt, setPrompt] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const scrollAnkerRef = useRef<HTMLDivElement>(null);
+  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
+  const [isNearBottom, setIsNearBottom] = useState(true);
+  const previousScrollHeight = useRef<number>(0);
 
   const {
     data,
@@ -711,43 +710,68 @@ function AiStudyAssistant({
     isLoading: isLoadingMessages,
   } = useGetMessages(activeConversationId);
 
-  const messages = data?.pages.flatMap((page) => page.messages) ?? [];
+  const messages =
+    data?.pages
+      .slice()
+      .reverse()
+      .flatMap((page) => page.messages) ?? [];
 
+  // Handle auto-scrolling behavior
   useLayoutEffect(() => {
-    if (scrollAnkerRef.current) {
-      chatContainerRef.current!.scrollTop = scrollAnkerRef.current.offsetTop;
-      scrollAnkerRef.current = null;
+    const container = chatContainerRef.current;
+    if (!container) return;
+
+    if (shouldScrollToBottom) {
+      // Scroll to bottom for new messages
+      container.scrollTop = container.scrollHeight;
+      setShouldScrollToBottom(false);
+    } else if (isFetchingNextPage && previousScrollHeight.current > 0) {
+      // Maintain scroll position when loading older messages
+      const newScrollHeight = container.scrollHeight;
+      const scrollDifference = newScrollHeight - previousScrollHeight.current;
+      container.scrollTop = scrollDifference;
     }
-  }, [data]);
+
+    previousScrollHeight.current = container.scrollHeight;
+  }, [messages.length, isFetchingNextPage, shouldScrollToBottom]);
+
+  // Auto-scroll for new messages (only if user is near bottom)
+  useEffect(() => {
+    const container = chatContainerRef.current;
+    if (!container || !isNearBottom) return;
+
+    setShouldScrollToBottom(true);
+  }, [messages.length, isNearBottom]);
+
+  // Handle scroll events for auto-loading and scroll position tracking
+  useEffect(() => {
+    const container = chatContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+
+      // Check if user is near bottom (within 100px)
+      const nearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      setIsNearBottom(nearBottom);
+
+      // Auto-load more messages when scrolled to top
+      if (scrollTop === 0 && hasNextPage && !isFetchingNextPage) {
+        previousScrollHeight.current = scrollHeight;
+        fetchNextPage();
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const { mutate: sendMessage, isPending } =
     useAiTutorChat(activeConversationId);
-  useEffect(() => {
-    if (!isFetchingNextPage) {
-      chatContainerRef.current?.scrollTo({
-        top: chatContainerRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
-    }
-  }, [messages.length, isFetchingNextPage]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!prompt.trim() || isPending) return;
-
-    // const optimisticMessage: ChatMessage = {
-    //   id: crypto.randomUUID(),
-    //   role: 'user',
-    //   content: prompt,
-    // };
-
-    // queryClient.setQueryData(
-    //   ['ai-messages', activeConversationId],
-    //   (oldData: ChatMessage[] | undefined) => [
-    //     ...(oldData || []),
-    //     optimisticMessage,
-    //   ]
-    // );
 
     sendMessage(
       {
@@ -760,6 +784,8 @@ function AiStudyAssistant({
           if (data.data && !activeConversationId) {
             setActiveConversationId(data.data.conversationId);
           }
+          // Scroll to bottom for new sent messages
+          setShouldScrollToBottom(true);
         },
       }
     );
@@ -770,7 +796,6 @@ function AiStudyAssistant({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-
       handleSubmit(e as unknown as FormEvent);
     }
   };
@@ -826,16 +851,12 @@ function AiStudyAssistant({
           <AiStudyAssistantSkeleton />
         ) : (
           <div className="space-y-6">
-            {hasNextPage && (
-              <div ref={scrollAnkerRef} className="flex justify-center">
-                <Button
-                  onClick={() => fetchNextPage()}
-                  disabled={isFetchingNextPage}
-                  variant="outline"
-                  size="sm"
-                >
-                  {isFetchingNextPage ? 'Loading...' : 'Load older messages'}
-                </Button>
+            {isFetchingNextPage && (
+              <div className="flex justify-center py-2">
+                <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-transparent border-t-current" />
+                  Loading older messages...
+                </div>
               </div>
             )}
 
@@ -844,7 +865,6 @@ function AiStudyAssistant({
                 <div className="max-w-md space-y-4 text-center">
                   <div className="relative mx-auto h-16 w-16">
                     <Bot className="text-primary/60 h-16 w-16 animate-pulse" />
-
                     <div className="from-primary/20 absolute inset-0 animate-spin rounded-full bg-gradient-to-r to-transparent" />
                   </div>
 
@@ -953,9 +973,23 @@ function AiStudyAssistant({
         )}
       </div>
 
-      <div className="bg-background/80 p-2 backdrop-blur-sm">
+      <div className="bg-background relative p-2 backdrop-blur-md">
+        {!isNearBottom && messages.length > 0 && (
+          <div className="absolute -top-12 left-1/2 -translate-x-1/2">
+            <Button
+              size="sm"
+              variant="secondary"
+              className=""
+              onClick={() => setShouldScrollToBottom(true)}
+            >
+              <ArrowDown className="h-4 w-4" />
+              Back to bottom
+            </Button>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="relative">
-          <div className="bg-background/50 focus-within:border-primary/50 relative flex items-end gap-3 rounded-xl border p-3 shadow-sm backdrop-blur-sm transition-all duration-200 focus-within:shadow-md hover:shadow-md">
+          <div className="bg-background/50 focus-within:border-primary/30 relative flex items-end gap-3 rounded-xl border p-3 shadow-sm backdrop-blur-sm transition-all duration-200 focus-within:shadow-md hover:shadow-md">
             <Textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
