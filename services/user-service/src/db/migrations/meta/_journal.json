@@ -43,6 +43,13 @@
       "when": 1757759960077,
       "tag": "0005_flaky_supernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1757940491485,
+      "tag": "0006_yellow_nico_minoru",
+      "breakpoints": true
     }
   ]
 }

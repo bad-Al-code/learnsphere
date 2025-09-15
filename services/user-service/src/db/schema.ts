@@ -1,6 +1,8 @@
 import { relations, sql } from 'drizzle-orm';
 import {
+  boolean,
   date,
+  integer,
   jsonb,
   pgEnum,
   pgTable,
@@ -111,6 +113,35 @@ export const aiTutorMessages = pgTable('ai_tutor_messages', {
 export type NewAITutorMessage = typeof aiTutorMessages.$inferInsert;
 export type AITutorMessage = typeof aiTutorMessages.$inferSelect;
 
+export const aiQuizzes = pgTable('ai_quizzes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => profiles.userId, { onDelete: 'cascade' }),
+  courseId: uuid('course_id').notNull(),
+  topic: varchar('topic', { length: 255 }).notNull(),
+  difficulty: varchar('difficulty', { length: 50 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const aiQuizQuestions = pgTable('ai_quiz_questions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  quizId: uuid('quiz_id')
+    .notNull()
+    .references(() => aiQuizzes.id, { onDelete: 'cascade' }),
+  questionText: text('question_text').notNull(),
+  order: integer('order').notNull(),
+});
+
+export const aiQuizOptions = pgTable('ai_quiz_options', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  questionId: uuid('question_id')
+    .notNull()
+    .references(() => aiQuizQuestions.id, { onDelete: 'cascade' }),
+  optionText: text('option_text').notNull(),
+  isCorrect: boolean('is_correct').notNull().default(false),
+});
+
 /**
  * @table replicated_course_content
  * @description Stores a local, denormalized copy of course content.
@@ -171,5 +202,33 @@ export const enrollmentsRelations = relations(enrollments, ({ one }) => ({
   profile: one(profiles, {
     fields: [enrollments.userId],
     references: [profiles.userId],
+  }),
+}));
+
+export const aiQuizzesRelations = relations(aiQuizzes, ({ one, many }) => ({
+  user: one(profiles, {
+    fields: [aiQuizzes.userId],
+    references: [profiles.userId],
+  }),
+
+  questions: many(aiQuizQuestions),
+}));
+
+export const aiQuizQuestionsRelations = relations(
+  aiQuizQuestions,
+  ({ one, many }) => ({
+    quiz: one(aiQuizzes, {
+      fields: [aiQuizQuestions.quizId],
+      references: [aiQuizzes.id],
+    }),
+
+    options: many(aiQuizOptions),
+  })
+);
+
+export const aiQuizOptionsRelations = relations(aiQuizOptions, ({ one }) => ({
+  question: one(aiQuizOptions, {
+    fields: [aiQuizOptions.questionId],
+    references: [aiQuizOptions.id],
   }),
 }));
