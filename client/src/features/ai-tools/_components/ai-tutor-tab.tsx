@@ -697,8 +697,15 @@ function AiStudyAssistant({
 
   const { mutate: sendMessage, isPending } =
     useAiTutorChat(activeConversationId);
-  const { data: messages = [], isLoading: isLoadingMessages } =
-    useGetMessages(activeConversationId);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: isLoadingMessages,
+  } = useGetMessages(activeConversationId);
+
+  const messages = data?.pages.flatMap((page) => page.messages) ?? [];
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -800,6 +807,19 @@ function AiStudyAssistant({
   return (
     <div className="flex h-full flex-col">
       <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4">
+        {hasNextPage && (
+          <div className="flex justify-center">
+            <Button
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              variant="outline"
+              size="sm"
+            >
+              {isFetchingNextPage ? 'Loading...' : 'Load older messages'}
+            </Button>
+          </div>
+        )}
+
         {isLoadingMessages ? (
           <AiStudyAssistantSkeleton />
         ) : (

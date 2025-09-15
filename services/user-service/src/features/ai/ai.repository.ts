@@ -117,11 +117,16 @@ export class AIRepository {
    * @param limit The maximum number of messages to retrieve.
    * @returns An array of message objects.
    */
-  public static async getMessages(conversationId: string, limit: number = 20) {
+  public static async getMessages(
+    conversationId: string,
+    limit: number = 50,
+    offset: number = 0
+  ) {
     return db.query.aiTutorMessages.findMany({
       where: eq(aiTutorMessages.conversationId, conversationId),
       orderBy: [desc(aiTutorMessages.createdAt)],
       limit,
+      offset,
     });
   }
 

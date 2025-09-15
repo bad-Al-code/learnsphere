@@ -74,8 +74,8 @@ export const deleteConversation = (id: string): Promise<void> => {
  * @param id The ID of the conversation.
  * @returns A promise resolving to an array of message objects.
  */
-export const getMessages = (id: string): Promise<Message[]> => {
+export const getMessages = (id: string, page: number): Promise<Message[]> => {
   return userService.getTyped<Message[]>(
-    `/api/ai/tutor/conversations/${id}/messages?limit=100`
+    `/api/ai/tutor/conversations/${id}/messages?page=${page}&limit=5`
   );
 };

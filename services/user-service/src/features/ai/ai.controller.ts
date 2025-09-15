@@ -127,10 +127,12 @@ export class AiController {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
       const { id } = req.params;
+      const { page = '1', limit = '50' } = req.query;
 
       const messages = await AiController.aiService.getMessagesForConversation(
         id,
-        req.currentUser.id
+        req.currentUser.id,
+        { page: parseInt(page as string), limit: parseInt(limit as string) }
       );
 
       res.status(StatusCodes.OK).json(messages);

@@ -1,6 +1,11 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import {
   createConversationAction,
   deleteConversationAction,
@@ -70,19 +75,24 @@ export const useDeleteConversation = () => {
 };
 
 export const useGetMessages = (conversationId: string | null) => {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['ai-messages', conversationId],
 
-    queryFn: async () => {
-      if (!conversationId) return [];
+    queryFn: async ({ pageParam = 1 }) => {
+      if (!conversationId) return { messages: [], nextPage: undefined };
 
-      const result = await getMessagesAction(conversationId);
+      const result = await getMessagesAction(conversationId, pageParam);
       if (result.error) throw new Error(result.error);
 
-      return result.data?.reverse() || [];
+      return {
+        messages: result.data?.reverse() || [],
+        nextPage: (result.data?.length || 0) === 50 ? pageParam + 1 : undefined,
+      };
     },
+
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 1,
     enabled: !!conversationId,
-    staleTime: 5 * 60 * 1000,
   });
 };
 

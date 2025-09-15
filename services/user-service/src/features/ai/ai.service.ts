@@ -40,6 +40,8 @@ export class AiService {
     }
 
     let conversation;
+    let isNewConversation = false;
+
     if (conversationId) {
       const existingConversation =
         await AIRepository.findConversationById(conversationId);
@@ -50,13 +52,12 @@ export class AiService {
 
       conversation = existingConversation;
     } else {
-      const initialTitle =
-        prompt.substring(0, 40) + (prompt.length > 40 ? '...' : '');
+      isNewConversation = true;
 
       conversation = await AIRepository.createConversation(
         userId,
         courseId,
-        initialTitle
+        'New Chat'
       );
     }
 
@@ -125,6 +126,27 @@ export class AiService {
       `AI Tutor response generated for user ${userId} in course ${courseId}`
     );
 
+    if (isNewConversation) {
+      try {
+        const titlePrompt = `Based on the following user prompt, create a concise and descriptive title for this conversation. The title show be no more than 5 words. User Prompt: "${prompt}`;
+
+        const titleModel = await this.provider.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: titlePrompt,
+        });
+
+        const rawTitle = titleModel.text;
+        const title = rawTitle ? rawTitle.replace(/["']/g, '') : 'New Chat';
+
+        await AIRepository.updateConversationTitle(conversation.id, title);
+      } catch (error) {
+        logger.error(
+          `Failed to generate title for new conversation ${conversation.id}`,
+          { error }
+        );
+      }
+    }
+
     return { response: finalResponseText, conversationId: conversation.id };
   }
 
@@ -136,7 +158,8 @@ export class AiService {
    */
   public async getMessagesForConversation(
     conversationId: string,
-    userId: string
+    userId: string,
+    options: { page: number; limit: number }
   ) {
     const conversation =
       await AIRepository.findConversationById(conversationId);
@@ -144,7 +167,8 @@ export class AiService {
       throw new ForbiddenError();
     }
 
-    return AIRepository.getMessages(conversationId);
+    const offset = (options.page - 1) * options.limit;
+    return AIRepository.getMessages(conversationId, options.limit, offset);
   }
 
   /**

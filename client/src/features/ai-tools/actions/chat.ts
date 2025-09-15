@@ -99,9 +99,12 @@ export const deleteConversationAction = async (conversationId: string) => {
   }
 };
 
-export const getMessagesAction = async (conversationId: string) => {
+export const getMessagesAction = async (
+  conversationId: string,
+  page: number
+) => {
   try {
-    const messages = await getMessages(conversationId);
+    const messages = await getMessages(conversationId, page);
 
     return { data: messages };
   } catch (error) {
