@@ -5,6 +5,7 @@ import {
   Message,
   TutorChatRequest,
 } from '../schemas/chat.schema';
+import { GenerateQuizInput, Quiz } from '../schemas/quiz.schema';
 
 /**
  * Sends a prompt to an AI Tutor conversation.
@@ -78,4 +79,13 @@ export const getMessages = (id: string, page: number): Promise<Message[]> => {
   return userService.getTyped<Message[]>(
     `/api/ai/tutor/conversations/${id}/messages?page=${page}&limit=100`
   );
+};
+
+/**
+ * Calls the backend to generate and save a new quiz.
+ * @param data The quiz generation parameters.
+ * @returns The newly created quiz object.
+ */
+export const generateQuiz = (data: GenerateQuizInput): Promise<Quiz> => {
+  return userService.postTyped<Quiz>('/api/ai/tutor/generate-quiz', data);
 };
