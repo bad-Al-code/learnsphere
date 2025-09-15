@@ -48,9 +48,10 @@ export const useRenameConversation = () => {
     mutationFn: renameConversationAction,
 
     onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['ai-conversations'] });
+
       queryClient.setQueryData(
         ['ai-conversations'],
-
         (oldData: Conversation[] | undefined) =>
           oldData?.map((convo) =>
             convo.id === variables.conversationId
@@ -68,8 +69,14 @@ export const useDeleteConversation = () => {
   return useMutation({
     mutationFn: deleteConversationAction,
 
-    onSuccess: (data, variables) => {
+    onSuccess: (data, variables_conversationId) => {
       queryClient.invalidateQueries({ queryKey: ['ai-conversations'] });
+
+      queryClient.setQueryData(
+        ['ai-conversations'],
+        (oldData: Conversation[] | undefined) =>
+          oldData?.filter((convo) => convo.id !== variables_conversationId)
+      );
     },
   });
 };

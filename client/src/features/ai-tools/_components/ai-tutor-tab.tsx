@@ -305,6 +305,7 @@ function RenameConversationDialog({
       setIsOpen(false);
       return;
     }
+
     rename(
       { conversationId: conversation.id, title },
       {
@@ -312,6 +313,7 @@ function RenameConversationDialog({
           toast.success('Conversation renamed successfully!');
           setIsOpen(false);
         },
+
         onError: (error) => toast.error(error.message),
       }
     );
@@ -356,7 +358,7 @@ function RenameConversationDialog({
             />
           </div>
         </div>
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="space-y-2">
           <DialogClose asChild>
             <Button variant="outline" className="w-full sm:w-auto">
               Cancel
@@ -716,17 +718,15 @@ function AiStudyAssistant({
       .reverse()
       .flatMap((page) => page.messages) ?? [];
 
-  // Handle auto-scrolling behavior
   useLayoutEffect(() => {
     const container = chatContainerRef.current;
     if (!container) return;
 
     if (shouldScrollToBottom) {
-      // Scroll to bottom for new messages
       container.scrollTop = container.scrollHeight;
+
       setShouldScrollToBottom(false);
     } else if (isFetchingNextPage && previousScrollHeight.current > 0) {
-      // Maintain scroll position when loading older messages
       const newScrollHeight = container.scrollHeight;
       const scrollDifference = newScrollHeight - previousScrollHeight.current;
       container.scrollTop = scrollDifference;
@@ -735,7 +735,6 @@ function AiStudyAssistant({
     previousScrollHeight.current = container.scrollHeight;
   }, [messages.length, isFetchingNextPage, shouldScrollToBottom]);
 
-  // Auto-scroll for new messages (only if user is near bottom)
   useEffect(() => {
     const container = chatContainerRef.current;
     if (!container || !isNearBottom) return;
@@ -743,7 +742,6 @@ function AiStudyAssistant({
     setShouldScrollToBottom(true);
   }, [messages.length, isNearBottom]);
 
-  // Handle scroll events for auto-loading and scroll position tracking
   useEffect(() => {
     const container = chatContainerRef.current;
     if (!container) return;
@@ -751,11 +749,9 @@ function AiStudyAssistant({
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = container;
 
-      // Check if user is near bottom (within 100px)
       const nearBottom = scrollHeight - scrollTop - clientHeight < 100;
       setIsNearBottom(nearBottom);
 
-      // Auto-load more messages when scrolled to top
       if (scrollTop === 0 && hasNextPage && !isFetchingNextPage) {
         previousScrollHeight.current = scrollHeight;
         fetchNextPage();
@@ -784,7 +780,7 @@ function AiStudyAssistant({
           if (data.data && !activeConversationId) {
             setActiveConversationId(data.data.conversationId);
           }
-          // Scroll to bottom for new sent messages
+
           setShouldScrollToBottom(true);
         },
       }
