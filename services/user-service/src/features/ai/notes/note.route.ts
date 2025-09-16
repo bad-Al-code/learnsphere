@@ -16,7 +16,7 @@ router.use(requireAuth);
 
 /**
  * @openapi
- * /api/users/ai/notes:
+ * /api/ai/notes:
  *   get:
  *     summary: Get all notes for the current user in a specific course
  *     tags: [AI Smart Notes]
@@ -44,7 +44,7 @@ router.get('/', validateRequest(getNotesQuerySchema), NoteController.getNotes);
 
 /**
  * @openapi
- * /api/users/ai/notes:
+ * /api/ai/notes:
  *   post:
  *     summary: Create a new note for the current user
  *     tags: [AI Smart Notes]
@@ -68,7 +68,7 @@ router.post('/', validateRequest(createNoteSchema), NoteController.createNote);
 
 /**
  * @openapi
- * /api/users/ai/notes/{id}:
+ * /api/ai/notes/{id}:
  *   put:
  *     summary: Update a user's note (title or content)
  *     tags: [AI Smart Notes]
@@ -97,7 +97,7 @@ router.put(
 
 /**
  * @openapi
- * /api/users/ai/notes/{id}:
+ * /api/ai/notes/{id}:
  *   delete:
  *     summary: Delete a user's note
  *     tags: [AI Smart Notes]
@@ -120,7 +120,7 @@ router.delete(
 
 /**
  * @openapi
- * /api/users/ai/notes/{id}/analyze:
+ * /api/ai/notes/{id}/analyze:
  *   post:
  *     summary: Analyze a note to generate AI insights
  *     tags: [AI Smart Notes]

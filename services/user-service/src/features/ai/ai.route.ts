@@ -73,7 +73,7 @@ router.post(
 
 /**
  * @openapi
- * /api/users/ai/tutor/generate-quiz:
+ * /api/ai/tutor/generate-quiz:
  *   post:
  *     summary: Generate a practice quiz for a course
  *     tags: [AI Tools]
@@ -197,7 +197,7 @@ router.patch(
 
 /**
  * @openapi
- * /api/users/ai/tutor/conversations/{id}:
+ * /api/ai/tutor/conversations/{id}:
  *   delete:
  *     summary: Delete a specific conversation
  *     tags: [AI Tools]
@@ -222,7 +222,7 @@ router.delete(
 
 /**
  * @openapi
- * /api/users/ai/tutor/conversations/{id}/messages:
+ * /api/ai/tutor/conversations/{id}/messages:
  *   get:
  *     summary: Get all messages for a specific conversation
  *     tags: [AI Tools]
