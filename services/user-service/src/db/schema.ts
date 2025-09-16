@@ -201,6 +201,54 @@ export const userNotesRelations = relations(userNotes, ({ one }) => ({
   }),
 }));
 
+/** RESEARCH WORKSPACE */
+export const aiResearchBoards = pgTable('ai_research_boards', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => profiles.userId, { onDelete: 'cascade' }),
+  courseId: uuid('course_id').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const aiResearchFindings = pgTable('ai_research_findings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  boardId: uuid('board_id')
+    .notNull()
+    .references(() => aiResearchBoards.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  source: varchar('source', { length: 255 }),
+  url: text('url'),
+  description: text('description'),
+  aiSummary: text('ai_summary'),
+  userNotes: text('user_notes'),
+  tags: jsonb('tags').$type<string[]>(),
+  relevance: integer('relevance'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const aiResearchBoardsRelations = relations(
+  aiResearchBoards,
+  ({ one, many }) => ({
+    user: one(profiles, {
+      fields: [aiResearchBoards.userId],
+      references: [profiles.userId],
+    }),
+
+    findings: many(aiResearchFindings),
+  })
+);
+
+export const aiResearchFindingsRelations = relations(
+  aiResearchFindings,
+  ({ one }) => ({
+    board: one(aiResearchBoards, {
+      fields: [aiResearchFindings.boardId],
+      references: [aiResearchBoards.id],
+    }),
+  })
+);
+
 /**
  * @table replicated_course_content
  * @description Stores a local, denormalized copy of course content.
@@ -235,6 +283,8 @@ export const profilesRelations = relations(profiles, ({ many }) => ({
   aiTutorConversations: many(aiTutorConversations),
   enrollments: many(enrollments),
   userNotes: many(userNotes),
+  aiQuizzes: many(aiQuizzes),
+  aiResearchBoards: many(aiResearchBoards),
 }));
 
 export const aiTutorConversationsRelations = relations(

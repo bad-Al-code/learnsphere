@@ -291,7 +291,7 @@ function NoteManager({
 
   return (
     <Card className="flex h-full flex-col border-none shadow-sm">
-      <CardHeader className="self-start pl-2">
+      <CardHeader className="">
         <div className="flex items-center justify-between">
           <div
             className={cn(
@@ -1489,9 +1489,97 @@ function AiInsights({
   );
 }
 
+export function SmartNotesTab({ courseId }: { courseId?: string }) {
+  const [activeNote, setActiveNote] = useState<UserNote | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  if (!courseId) {
+    return (
+      <div className="flex h-full min-h-[600px] items-center justify-center">
+        <div className="space-y-4 text-center">
+          <div className="bg-muted mx-auto flex h-16 w-16 items-center justify-center rounded-full">
+            <BookOpen className="text-muted-foreground h-8 w-8" />
+          </div>
+          <div>
+            <h3 className="mb-2 text-lg font-medium">No Course Selected</h3>
+            <p className="text-muted-foreground">
+              Please select a course to start taking smart notes.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <TooltipProvider>
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="h-full min-h-[600px] rounded-lg border"
+      >
+        <ResizablePanel
+          defaultSize={isCollapsed ? 5 : 25}
+          minSize={isCollapsed ? 5 : 20}
+          maxSize={isCollapsed ? 5 : 40}
+          className={cn(
+            'transition-all duration-300 ease-in-out',
+            isCollapsed && 'max-w-[60px] min-w-[60px]'
+          )}
+        >
+          <NoteManager
+            activeNote={activeNote}
+            setActiveNote={setActiveNote}
+            courseId={courseId}
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+          />
+        </ResizablePanel>
+        <ResizablePanel defaultSize={75} minSize={40}>
+          <div className="grid h-full grid-cols-1 gap-4 xl:grid-cols-2">
+            <NoteEditor activeNote={activeNote} setActiveNote={setActiveNote} />
+            <AiInsights
+              insights={activeNote?.insights || null}
+              activeNote={activeNote}
+            />
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </TooltipProvider>
+  );
+}
+
+export function SmartNotesTabSkeleton() {
+  const [isCollapsed] = useState(false);
+
+  return (
+    <ResizablePanelGroup
+      direction="horizontal"
+      className="h-full min-h-[600px] rounded-lg border"
+    >
+      <ResizablePanel
+        defaultSize={isCollapsed ? 5 : 25}
+        minSize={isCollapsed ? 5 : 20}
+        maxSize={isCollapsed ? 5 : 40}
+        className={cn(
+          'transition-all duration-300 ease-in-out',
+          isCollapsed && 'max-w-[60px] min-w-[60px]'
+        )}
+      >
+        <NoteManagerSkeleton isCollapsed={isCollapsed} />
+      </ResizablePanel>
+      <ResizablePanel defaultSize={75} minSize={40}>
+        <div className="grid h-full grid-cols-1 gap-4 xl:grid-cols-2">
+          <NoteEditorSkeleton />
+          <AiInsightsSkeleton />
+        </div>
+      </ResizablePanel>
+    </ResizablePanelGroup>
+  );
+}
+
 function NoteManagerSkeleton({ isCollapsed }: { isCollapsed: boolean }) {
   return (
-    <Card className="bg-muted/30 flex h-full flex-col border-r">
+    <Card className="flex h-full flex-col border-none">
       <CardHeader className="bg-background/50 border-b">
         <div className="flex items-center justify-between">
           <div
@@ -1576,7 +1664,7 @@ function NoteManagerSkeleton({ isCollapsed }: { isCollapsed: boolean }) {
 
 function NoteEditorSkeleton() {
   return (
-    <Card className="flex h-full flex-col">
+    <Card className="m-1 flex h-full flex-col">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -1620,148 +1708,62 @@ function NoteEditorSkeleton() {
 
 function AiInsightsSkeleton() {
   return (
-    <Card className="flex h-full flex-col">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-5 w-5" />
-            <Skeleton className="h-6 w-24" />
-          </div>
-          <Skeleton className="h-5 w-16" />
-        </div>
-        <Skeleton className="h-4 w-48" />
-      </CardHeader>
-
-      <CardContent className="flex-1 space-y-4">
-        <div className="rounded-lg border p-4">
-          <Skeleton className="mb-2 h-5 w-32" />
-          <div className="grid grid-cols-3 gap-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="space-y-1 text-center">
-                <Skeleton className="mx-auto h-8 w-8" />
-                <Skeleton className="mx-auto h-4 w-16" />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="space-y-3 rounded-lg border p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-4" />
-                <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-4 w-8" />
-              </div>
-              <Skeleton className="h-4 w-4" />
+    <div className="m-1">
+      <Card className="flex h-full flex-col">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-5 w-5" />
+              <Skeleton className="h-6 w-24" />
             </div>
-            <div className="space-y-2">
-              {[...Array(3)].map((_, j) => (
-                <div key={j} className="flex gap-2">
-                  <Skeleton className="mt-0.5 h-4 w-4" />
-                  <Skeleton className="h-4 flex-1" />
+            <Skeleton className="h-5 w-16" />
+          </div>
+          <Skeleton className="h-4 w-48" />
+        </CardHeader>
+
+        <CardContent className="flex-1 space-y-4">
+          <div className="rounded-lg border p-4">
+            <Skeleton className="mb-2 h-5 w-32" />
+            <div className="grid grid-cols-3 gap-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="space-y-1 text-center">
+                  <Skeleton className="mx-auto h-8 w-8" />
+                  <Skeleton className="mx-auto h-4 w-16" />
                 </div>
               ))}
             </div>
           </div>
-        ))}
 
-        <div className="space-y-3 border-t pt-4">
-          <Skeleton className="h-5 w-24" />
-          <div className="grid grid-cols-2 gap-2">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="space-y-3 rounded-lg border p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-4 w-8" />
+                </div>
+                <Skeleton className="h-4 w-4" />
+              </div>
+              <div className="space-y-2">
+                {[...Array(3)].map((_, j) => (
+                  <div key={j} className="flex gap-2">
+                    <Skeleton className="mt-0.5 h-4 w-4" />
+                    <Skeleton className="h-4 flex-1" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <div className="space-y-3 border-t pt-4">
+            <Skeleton className="h-5 w-24" />
+            <div className="grid grid-cols-2 gap-2">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-export function SmartNotesTab({ courseId }: { courseId?: string }) {
-  const [activeNote, setActiveNote] = useState<UserNote | null>(null);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  if (!courseId) {
-    return (
-      <div className="flex h-full min-h-[600px] items-center justify-center">
-        <div className="space-y-4 text-center">
-          <div className="bg-muted mx-auto flex h-16 w-16 items-center justify-center rounded-full">
-            <BookOpen className="text-muted-foreground h-8 w-8" />
-          </div>
-          <div>
-            <h3 className="mb-2 text-lg font-medium">No Course Selected</h3>
-            <p className="text-muted-foreground">
-              Please select a course to start taking smart notes.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <TooltipProvider>
-      <ResizablePanelGroup
-        direction="horizontal"
-        className="h-full min-h-[600px] rounded-lg border"
-      >
-        <ResizablePanel
-          defaultSize={isCollapsed ? 5 : 25}
-          minSize={isCollapsed ? 5 : 20}
-          maxSize={isCollapsed ? 5 : 40}
-          className={cn(
-            'transition-all duration-300 ease-in-out',
-            isCollapsed && 'max-w-[60px] min-w-[60px]'
-          )}
-        >
-          <NoteManager
-            activeNote={activeNote}
-            setActiveNote={setActiveNote}
-            courseId={courseId}
-            isCollapsed={isCollapsed}
-            setIsCollapsed={setIsCollapsed}
-          />
-        </ResizablePanel>
-        <ResizablePanel defaultSize={75} minSize={40}>
-          <div className="grid h-full grid-cols-1 gap-4 xl:grid-cols-2">
-            <NoteEditor activeNote={activeNote} setActiveNote={setActiveNote} />
-            <AiInsights
-              insights={activeNote?.insights || null}
-              activeNote={activeNote}
-            />
-          </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
-    </TooltipProvider>
-  );
-}
-
-export function SmartNotesTabSkeleton() {
-  const [isCollapsed] = useState(false);
-
-  return (
-    <ResizablePanelGroup
-      direction="horizontal"
-      className="h-full min-h-[600px] rounded-lg border"
-    >
-      <ResizablePanel
-        defaultSize={isCollapsed ? 5 : 25}
-        minSize={isCollapsed ? 5 : 20}
-        maxSize={isCollapsed ? 5 : 40}
-        className={cn(
-          'transition-all duration-300 ease-in-out',
-          isCollapsed && 'max-w-[60px] min-w-[60px]'
-        )}
-      >
-        <NoteManagerSkeleton isCollapsed={isCollapsed} />
-      </ResizablePanel>
-      <div className="lg:col-span-2">
-        <div className="grid h-full grid-cols-1 gap-4 xl:grid-cols-2">
-          <NoteEditorSkeleton></NoteEditorSkeleton>
-          <AiInsightsSkeleton />
-        </div>
-      </div>
-    </ResizablePanelGroup>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
