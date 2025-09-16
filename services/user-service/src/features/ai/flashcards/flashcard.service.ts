@@ -123,4 +123,81 @@ export class FlashcardService {
 
     return FlashcardRepository.addCardsToDeck(deckId, parsed.flashcards);
   }
+
+  /**
+   * Fetches a study session for a user and deck.
+   * @param deckId - Deck ID
+   * @param userId - User ID
+   * @returns Array of flashcards to study
+   */
+  public static async getStudySession(deckId: string, userId: string) {
+    const deck = await FlashcardRepository.findDeckById(deckId);
+    if (!deck || deck.userId !== userId) {
+      throw new ForbiddenError();
+    }
+
+    return FlashcardRepository.getStudySession(userId, deckId);
+  }
+
+  /**
+   * Records feedback for a user's study session on a card.
+   * @param userId - User ID
+   * @param deckId - Deck ID
+   * @param cardId - Card ID
+   * @param feedback - User feedback ('Hard' | 'Good' | 'Easy')
+   * @returns Status object
+   */
+  public static async recordStudyFeedback(
+    userId: string,
+    deckId: string,
+    cardId: string,
+    feedback: 'Hard' | 'Good' | 'Easy'
+  ): Promise<{ status: string }> {
+    const card = await FlashcardRepository.findCardInDeck(deckId, cardId);
+    if (!card) throw new NotFoundError('Card not found in this deck.');
+
+    const progress = (await FlashcardRepository.getCardProgress(
+      userId,
+      cardId
+    )) || {
+      correctStreaks: 0,
+      status: 'New',
+    };
+
+    let newStatus: 'Learning' | 'Mastered' = 'Learning';
+    let newCorrectStreaks = progress.correctStreaks;
+    const now = new Date();
+    const nextReviewDate = new Date(now);
+
+    if (feedback === 'Easy') {
+      newCorrectStreaks += 1;
+      const daysToAdd = Math.pow(newCorrectStreaks, 2.2) + 1;
+      nextReviewDate.setDate(now.getDate() + Math.round(daysToAdd));
+
+      if (newCorrectStreaks >= 3) newStatus = 'Mastered';
+    } else if (feedback === 'Good') {
+      newCorrectStreaks += 1;
+
+      const daysToAdd = Math.pow(newCorrectStreaks, 1.7) + 1;
+      nextReviewDate.setDate(now.getDate() + Math.round(daysToAdd));
+
+      if (newCorrectStreaks >= 5) newStatus = 'Mastered';
+    } else {
+      newCorrectStreaks = 0;
+
+      nextReviewDate.setMinutes(now.getMinutes() + 10);
+    }
+
+    await FlashcardRepository.updateCardProgress({
+      userId,
+      cardId,
+      deckId,
+      status: newStatus,
+      nextReviewAt: nextReviewDate,
+      lastReviewedAt: now,
+      correctStreaks: newCorrectStreaks,
+    });
+
+    return { status: 'OK' };
+  }
 }

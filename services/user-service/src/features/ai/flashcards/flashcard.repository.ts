@@ -1,4 +1,4 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, sql } from 'drizzle-orm';
 
 import { db } from '../../../db';
 import {
@@ -6,6 +6,8 @@ import {
   aiFlashcards,
   Flashcard,
   FlashcardDecks,
+  NewUserFlashcardProgress,
+  userFlashcardProgress,
 } from '../../../db/schema';
 import { GeneratedCard } from './flashcard.types';
 
@@ -100,6 +102,75 @@ export class FlashcardRepository {
           cards: true,
         },
       });
+    });
+  }
+
+  /**
+   * Fetches the cards for a study session for a specific user and deck.
+   * Prioritizes cards that are due for review, then new cards.
+   * @param userId The ID of the user.
+   * @param deckId The ID of the deck.
+   * @param limit The maximum number of cards to return for the session.
+   * @returns An array of flashcard objects to be studied.
+   */
+  public static async getStudySession(
+    userId: string,
+    deckId: string,
+    limit: number = 10
+  ) {
+    return db
+      .select()
+      .from(aiFlashcards)
+      .leftJoin(
+        userFlashcardProgress,
+        and(
+          eq(userFlashcardProgress.cardId, aiFlashcards.id),
+          eq(userFlashcardProgress.userId, userId)
+        )
+      )
+      .where(eq(aiFlashcards.deckId, deckId))
+      .orderBy(
+        sql`CASE WHEN ${userFlashcardProgress.nextReviewAt} <= NOW() THEN 0 ELSE 1 END`,
+        asc(userFlashcardProgress.status),
+        asc(aiFlashcards.id)
+      )
+      .limit(limit);
+  }
+
+  /**
+   * Updates or inserts a user's progress for a specific flashcard.
+   * @param data The progress data to save.
+   */
+  public static async updateCardProgress(data: NewUserFlashcardProgress) {
+    await db
+      .insert(userFlashcardProgress)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [userFlashcardProgress.userId, userFlashcardProgress.cardId],
+        set: {
+          status: data.status,
+          nextReviewAt: data.nextReviewAt,
+          lastReviewedAt: new Date(),
+          correctStreaks: data.correctStreaks,
+        },
+      });
+  }
+
+  public static async findCardInDeck(
+    deckId: string,
+    cardId: string
+  ): Promise<Flashcard | undefined> {
+    return db.query.aiFlashcards.findFirst({
+      where: and(eq(aiFlashcards.id, cardId), eq(aiFlashcards.deckId, deckId)),
+    });
+  }
+
+  public static async getCardProgress(userId: string, cardId: string) {
+    return db.query.userFlashcardProgress.findFirst({
+      where: and(
+        eq(userFlashcardProgress.userId, userId),
+        eq(userFlashcardProgress.cardId, cardId)
+      ),
     });
   }
 }

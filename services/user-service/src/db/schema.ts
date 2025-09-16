@@ -330,6 +330,8 @@ export const userFlashcardProgress = pgTable(
   },
   (table) => [primaryKey({ columns: [table.userId, table.cardId] })]
 );
+export type NewUserFlashcardProgress =
+  typeof userFlashcardProgress.$inferInsert;
 
 export const aiFlashcardDecksRelations = relations(
   aiFlashcardDecks,

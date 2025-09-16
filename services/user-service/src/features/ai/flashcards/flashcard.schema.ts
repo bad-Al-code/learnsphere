@@ -131,3 +131,11 @@ export const flashcardResponseSchemaZod = z.object({
 export type GeneratedCard = z.infer<
   typeof flashcardResponseSchemaZod
 >['flashcards'][number];
+
+export const recordProgressSchema = z.object({
+  body: z.object({
+    cardId: z.string().uuid(),
+    deckId: z.string().uuid(),
+    feedback: z.enum(['Hard', 'Good', 'Easy']),
+  }),
+});

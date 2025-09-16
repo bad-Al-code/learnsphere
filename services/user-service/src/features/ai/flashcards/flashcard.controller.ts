@@ -85,4 +85,46 @@ export class FlashcardController {
       next(error);
     }
   }
+
+  public static async getStudySession(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { deckId } = req.params;
+
+      const sessionCards = await FlashcardService.getStudySession(
+        deckId,
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(sessionCards);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async recordProgress(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { cardId, deckId, feedback } = req.body;
+
+      await FlashcardService.recordStudyFeedback(
+        req.currentUser.id,
+        deckId,
+        cardId,
+        feedback
+      );
+
+      res.status(StatusCodes.OK).json({ message: 'Progress recorded.' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

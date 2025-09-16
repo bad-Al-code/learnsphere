@@ -8,6 +8,7 @@ import {
   deckIdParamSchema,
   generateCardsSchema,
   getDecksQuerySchema,
+  recordProgressSchema,
 } from './flashcard.schema';
 
 const router = Router();
@@ -126,6 +127,63 @@ router.post(
   '/decks/:deckId/generate-cards',
   validateRequest(deckIdParamSchema.merge(generateCardsSchema)),
   FlashcardController.handleGenerateCards
+);
+
+/**
+ * @openapi
+ * /api/ai/flashcards/decks/{deckId}/study-session:
+ *   get:
+ *     summary: Get a curated list of flashcards for a study session
+ *     tags: [AI Flashcards]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: deckId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       '200':
+ *         description: An array of flashcard objects due for review.
+ */
+router.get(
+  '/decks/:deckId/study-session',
+  validateRequest(deckIdParamSchema),
+  FlashcardController.getStudySession
+);
+
+/**
+ * @openapi
+ * /api/ai/flashcards/progress:
+ *   post:
+ *     summary: Record a user's feedback on a flashcard
+ *     tags: [AI Flashcards]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cardId:
+ *                 type: string
+ *                 format: uuid
+ *               deckId:
+ *                 type: string
+ *                 format: uuid
+ *               feedback:
+ *                 type: string
+ *                 enum: [Hard, Good, Easy]
+ *     responses:
+ *       '200':
+ *         description: Progress was recorded successfully.
+ */
+router.post(
+  '/progress',
+  validateRequest(recordProgressSchema),
+  FlashcardController.recordProgress
 );
 
 export { router as flashcardRouter };
