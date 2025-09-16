@@ -68,17 +68,20 @@ export const performResearchSchema = z.object({
  *               type: integer
  *               description: Relevance score assigned by the user or system.
  */
+const findingSchema = z.object({
+  title: z.string(),
+  source: z.string().optional(),
+  url: z.string().url().optional(),
+  description: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  relevance: z.number().int().optional(),
+});
+export type FindingData = z.infer<typeof findingSchema>;
+
 export const saveFindingSchema = z.object({
   body: z.object({
     courseId: z.string().uuid(),
-    finding: z.object({
-      title: z.string(),
-      source: z.string().optional(),
-      url: z.string().url().optional(),
-      description: z.string().optional(),
-      tags: z.array(z.string()).optional(),
-      relevance: z.number().int().optional(),
-    }),
+    finding: findingSchema,
   }),
 });
 
@@ -98,7 +101,7 @@ export const saveFindingSchema = z.object({
  */
 export const findingIdParamSchema = z.object({
   params: z.object({
-    findingId: z.string().uuid(),
+    id: z.string().uuid(),
   }),
 });
 
@@ -141,6 +144,20 @@ export const getBoardQuerySchema = z.object({
   }),
 });
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ResearchResponse:
+ *       type: object
+ *       required:
+ *         - findings
+ *       properties:
+ *         findings:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Finding'
+ */
 export const researchResponseSchemaZod = z.object({
   findings: z.array(
     z.object({
@@ -154,3 +171,22 @@ export const researchResponseSchemaZod = z.object({
   ),
 });
 export type ResearchResponse = z.infer<typeof researchResponseSchemaZod>;
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     SummarizeFindingResponse:
+ *       type: object
+ *       required:
+ *         - summary
+ *       properties:
+ *         summary:
+ *           type: string
+ *           minLength: 20
+ *           description: AI-generated summary of the research finding.
+ */
+export const summaryResponseSchemaZod = z.object({
+  summary: z.string().min(20),
+});
+export type SummaryResponse = z.infer<typeof summaryResponseSchemaZod>;

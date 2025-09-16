@@ -45,4 +45,76 @@ export class ResearchController {
       next(error);
     }
   }
+
+  public static async saveFinding(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { courseId, finding } = req.body;
+      const newFinding = await ResearchService.saveFinding(
+        req.currentUser.id,
+        courseId,
+        finding
+      );
+      res.status(StatusCodes.CREATED).json(newFinding);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async updateFindingNotes(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { id } = req.params;
+      const { userNotes } = req.body;
+      const updatedFinding = await ResearchService.updateFindingNotes(
+        id,
+        req.currentUser.id,
+        userNotes
+      );
+      res.status(StatusCodes.OK).json(updatedFinding);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async deleteFinding(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { id } = req.params;
+      await ResearchService.deleteFinding(id, req.currentUser.id);
+      res.status(StatusCodes.NO_CONTENT).send();
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async summarizeFinding(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { id } = req.params;
+      const summarizedFinding = await ResearchService.summarizeFinding(
+        id,
+        req.currentUser.id
+      );
+      res.status(StatusCodes.OK).json(summarizedFinding);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
