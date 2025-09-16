@@ -57,7 +57,7 @@ export const Logo = ({ variant = 'full', className = '' }: LogoProps) => {
           height="32"
           rx="4"
           // fill="none"
-          className="fill-background"
+          className="fill-none"
           fillOpacity="0.9"
         />
         <path

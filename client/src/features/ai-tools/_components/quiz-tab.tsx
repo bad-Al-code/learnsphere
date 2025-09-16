@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Award,
+  BookOpen,
   Calendar,
   CheckCircle,
   Clock,
@@ -48,6 +49,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatDate } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -61,20 +63,6 @@ import {
   QuizQuestion,
 } from '../schemas/quiz.schema';
 
-const formatDate = (dateString: string) => {
-  try {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return 'Unknown';
-  }
-};
-
 function QuizStats({
   quiz,
   selectedAnswers,
@@ -86,27 +74,27 @@ function QuizStats({
 }) {
   const totalQuestions = quiz.questions.length;
   const answeredCount = Object.keys(selectedAnswers).length;
-  const correctCount = Object.entries(selectedAnswers).reduce(
-    (acc, [questionId, answerId]) => {
-      const question = quiz.questions.find((q) => q.id === questionId);
-      const option = question?.options.find((opt) => opt.id === answerId);
-      return acc + (option?.isCorrect ? 1 : 0);
-    },
-    0
-  );
+  // const correctCount = Object.entries(selectedAnswers).reduce(
+  //   (acc, [questionId, answerId]) => {
+  //     const question = quiz.questions.find((q) => q.id === questionId);
+  //     const option = question?.options.find((opt) => opt.id === answerId);
+  //     return acc + (option?.isCorrect ? 1 : 0);
+  //   },
+  //   0
+  // );
 
   return (
-    <div className="grid grid-cols-2 gap-4 rounded-lg border bg-gradient-to-r from-blue-50 to-indigo-50 p-4 md:grid-cols-4 dark:from-blue-950/20 dark:to-indigo-950/20">
+    <div className="grid grid-cols-3 gap-4 rounded-lg border bg-gradient-to-r from-blue-50 to-indigo-50 p-4 dark:from-blue-950/20 dark:to-indigo-950/20">
       <div className="space-y-1 text-center">
         <div className="text-2xl font-bold text-blue-600">
           {currentQuestionIndex + 1}
         </div>
         <div className="text-muted-foreground text-xs">Current</div>
       </div>
-      <div className="space-y-1 text-center">
+      {/* <div className="space-y-1 text-center">
         <div className="text-2xl font-bold text-green-600">{correctCount}</div>
         <div className="text-muted-foreground text-xs">Correct</div>
-      </div>
+      </div> */}
       <div className="space-y-1 text-center">
         <div className="text-2xl font-bold text-orange-600">
           {answeredCount}
@@ -180,7 +168,7 @@ function QuestionNavigation({
           return (
             <Button
               key={question.id}
-              variant="outline"
+              // variant="outline"
               size="sm"
               className={`h-10 w-10 p-0 ${getStatusColor(status)} transition-all hover:scale-110`}
               onClick={() => onQuestionSelect(index)}
@@ -190,6 +178,7 @@ function QuestionNavigation({
           );
         })}
       </div>
+
       <div className="flex flex-wrap gap-2 text-xs">
         <div className="flex items-center gap-1">
           <div className="h-3 w-3 rounded bg-blue-500"></div>
@@ -280,6 +269,7 @@ function PracticeQuiz({ quiz }: { quiz: Quiz | null }) {
       ...selectedAnswers,
       [currentQuestion.id]: option.id,
     };
+
     setSelectedAnswers(newAnswers);
     setIsAdvancing(true);
 
@@ -290,6 +280,7 @@ function PracticeQuiz({ quiz }: { quiz: Quiz | null }) {
       } else {
         setCurrentQuestionIndex((prev) => prev + 1);
       }
+
       setIsAdvancing(false);
     }, 800);
   };
@@ -342,6 +333,7 @@ function PracticeQuiz({ quiz }: { quiz: Quiz | null }) {
     if (isSelected && option.isCorrect) return 'default';
     if (isSelected && !option.isCorrect) return 'destructive';
     if (option.isCorrect) return 'secondary';
+
     return 'outline';
   };
 
@@ -355,9 +347,11 @@ function PracticeQuiz({ quiz }: { quiz: Quiz | null }) {
     if (option.isCorrect) {
       return <CheckCircle className="h-4 w-4 text-green-600" />;
     }
+
     if (isSelected && !option.isCorrect) {
       return <XCircle className="h-4 w-4 text-red-600" />;
     }
+
     return null;
   };
 
@@ -365,42 +359,6 @@ function PracticeQuiz({ quiz }: { quiz: Quiz | null }) {
     startTime && endTime
       ? Math.round((endTime.getTime() - startTime.getTime()) / 1000)
       : 0;
-
-  function TimerBadge({
-    startTime,
-    endTime,
-  }: {
-    startTime: Date | null;
-    endTime: Date | null;
-  }) {
-    const [elapsed, setElapsed] = useState(0);
-
-    useEffect(() => {
-      if (!startTime) return;
-
-      if (endTime) {
-        setElapsed(
-          Math.round((endTime.getTime() - startTime.getTime()) / 1000)
-        );
-        return;
-      }
-
-      const interval = setInterval(() => {
-        setElapsed(Math.round((Date.now() - startTime.getTime()) / 1000));
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }, [startTime, endTime]);
-
-    if (!startTime) return null;
-
-    return (
-      <Badge variant="secondary" className="flex items-center gap-1">
-        <Clock className="h-3 w-3" />
-        {elapsed}s
-      </Badge>
-    );
-  }
 
   if (!quiz) {
     return (
@@ -414,6 +372,7 @@ function PracticeQuiz({ quiz }: { quiz: Quiz | null }) {
             Generate a new quiz to start your learning journey.
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           <div className="flex flex-col items-center space-y-4">
             <div className="text-muted-foreground flex items-center space-x-4 text-sm">
@@ -573,6 +532,7 @@ function PracticeQuiz({ quiz }: { quiz: Quiz | null }) {
               {reviewMode ? 'Review Mode' : 'Practice Quiz'}
             </CardTitle>
           </div>
+
           {reviewMode && (
             <Button
               variant="outline"
@@ -602,9 +562,14 @@ function PracticeQuiz({ quiz }: { quiz: Quiz | null }) {
               Question {currentQuestionIndex + 1} of {totalQuestions}
             </span>
             <div className="flex items-center gap-2">
-              <TimerBadge startTime={startTime} endTime={endTime} />
+              {startTime && !endTime && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {Math.round((Date.now() - startTime.getTime()) / 1000)}s
+                </Badge>
+              )}
 
-              <Badge variant="outline">{scoreData.percentage}% Correct</Badge>
+              {/* <Badge variant="outline">{scoreData.percentage}% Correct</Badge> */}
             </div>
           </div>
           <Progress value={progress} className="h-2 w-full" />
@@ -625,6 +590,7 @@ function PracticeQuiz({ quiz }: { quiz: Quiz | null }) {
                 <Badge variant="secondary" className="mt-1">
                   Q{currentQuestion.order + 1}
                 </Badge>
+
                 <h3 className="flex-1 text-lg leading-relaxed font-semibold">
                   {currentQuestion.questionText}
                 </h3>
@@ -748,6 +714,7 @@ function GenerateNewQuiz({
   courseId?: string;
 }) {
   const { mutate: generateQuiz, isPending } = useGenerateQuiz();
+  const [recentTopics, setRecentTopics] = useState<string[]>([]);
 
   const form = useForm<GenerateQuizInput>({
     resolver: zodResolver(generateQuizInputSchema),
@@ -758,24 +725,51 @@ function GenerateNewQuiz({
     },
   });
 
+  const watchedTopic = form.watch('topic');
+
   const onSubmit = (values: GenerateQuizInput) => {
     generateQuiz(values, {
       onSuccess: (result) => {
         if (result.data) {
-          onQuizGenerated(result.data);
+          setRecentTopics((prev) => {
+            const updated = [
+              values.topic,
+              ...prev.filter((t) => t !== values.topic),
+            ].slice(0, 5);
 
+            return updated;
+          });
+
+          onQuizGenerated(result.data);
           form.reset({ courseId, topic: '', difficulty: 'Intermediate' });
-          toast.success(`Quiz "${result.data.topic}" is ready! 🎯`);
+
+          toast.success(`Quiz "${result.data.topic}" is ready! 🎯`, {
+            description: `${result.data.questions.length} questions • ${result.data.difficulty} level`,
+          });
         } else if (result.error) {
           toast.error(result.error);
         }
       },
-
       onError: (error) => {
         toast.error(error.message || 'Failed to generate quiz');
       },
     });
   };
+
+  const handleTopicSuggestion = (topic: string) => {
+    form.setValue('topic', topic);
+  };
+
+  const topicSuggestions = [
+    'React Hooks',
+    'JavaScript Closures',
+    'CSS Grid Layout',
+    'Node.js Streams',
+    'Database Indexing',
+    'API Design Patterns',
+    'Authentication & JWT',
+    'Docker Containers',
+  ];
 
   return (
     <Card className="h-full">
@@ -790,22 +784,26 @@ function GenerateNewQuiz({
               <CardTitle>Generate New Quiz</CardTitle>
             </div>
             <CardDescription>
-              Create a custom practice quiz on any topic from your course.
+              Create a personalized practice quiz tailored to your learning
+              needs.
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="flex-1 space-y-4">
+          <CardContent className="flex-1 space-y-6">
             <FormField
               control={form.control}
               name="topic"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Topic</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    Topic
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="e.g., React Hooks, JavaScript Closures, CSS Grid"
                       {...field}
-                      className="transition-all focus:scale-[1.02]"
+                      className="text-base transition-all focus:scale-[1.01]"
                     />
                   </FormControl>
                   <FormMessage />
@@ -813,35 +811,92 @@ function GenerateNewQuiz({
               )}
             />
 
+            {watchedTopic.length < 3 && (
+              <div className="space-y-3">
+                <h4 className="text-muted-foreground text-sm font-medium">
+                  💡 Popular Topics
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {topicSuggestions.map((suggestion) => (
+                    <Badge
+                      key={suggestion}
+                      variant="outline"
+                      onClick={() => handleTopicSuggestion(suggestion)}
+                      className="h-8 cursor-pointer text-xs transition-all hover:scale-105"
+                    >
+                      {suggestion}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {recentTopics.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
+                  <Clock className="h-4 w-4" />
+                  Recent Topics
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {recentTopics.map((topic) => (
+                    <Button
+                      key={topic}
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleTopicSuggestion(topic)}
+                      className="h-8 text-xs transition-all hover:scale-105"
+                    >
+                      {topic}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <FormField
               control={form.control}
               name="difficulty"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Difficulty Level</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    <Target className="h-4 w-4" />
+                    Difficulty Level
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger className="transition-all focus:scale-[1.02]">
+                      <SelectTrigger className="text-base transition-all focus:scale-[1.01]">
                         <SelectValue placeholder="Select difficulty" />
                       </SelectTrigger>
                     </FormControl>
+
                     <SelectContent>
                       <SelectItem value="Beginner">
-                        <div className="flex items-center gap-2">
-                          🟢 <span>Beginner</span>
+                        <div className="flex items-center gap-3 py-1">
+                          <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                          <div>
+                            <div className="font-medium">Beginner</div>
+                          </div>
                         </div>
                       </SelectItem>
+
                       <SelectItem value="Intermediate">
-                        <div className="flex items-center gap-2">
-                          🟡 <span>Intermediate</span>
+                        <div className="flex items-center gap-3 py-1">
+                          <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
+                          <div>
+                            <div className="font-medium">Intermediate</div>
+                          </div>
                         </div>
                       </SelectItem>
                       <SelectItem value="Advanced">
-                        <div className="flex items-center gap-2">
-                          🔴 <span>Advanced</span>
+                        <div className="flex items-center gap-3 py-1">
+                          <div className="h-3 w-3 rounded-full bg-red-500"></div>
+                          <div>
+                            <div className="font-medium">Advanced</div>
+                          </div>
                         </div>
                       </SelectItem>
                     </SelectContent>
@@ -851,23 +906,59 @@ function GenerateNewQuiz({
               )}
             />
 
-            <div className="bg-muted/50 space-y-2 rounded-lg p-4">
-              <h4 className="text-sm font-medium">
-                💡 Tips for better quizzes:
-              </h4>
-              <ul className="text-muted-foreground space-y-1 text-sm">
-                <li>• Be specific about the topic</li>
-                <li>• Choose appropriate difficulty level</li>
-                <li>• Include multiple concepts for variety</li>
-              </ul>
+            <div className="space-y-4">
+              <Separator />
+              <div className="from-muted/50 to-muted/5 space-y-3 rounded-lg border bg-gradient-to-r p-4">
+                <h4 className="flex items-center gap-2 text-sm font-medium">
+                  <Sparkles className="h-4 w-4 text-purple-500" />
+                  AI-Powered Features
+                </h4>
+
+                <div className="text-muted-foreground grid grid-cols-1 gap-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-3 w-3 text-green-500" />
+                    <span>Adaptive question generation</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-3 w-3 text-green-500" />
+                    <span>Real-time progress tracking</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-3 w-3 text-green-500" />
+                    <span>Detailed answer explanations</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-3 w-3 text-green-500" />
+                    <span>Performance analytics</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="from-muted/50 to-muted/5 space-y-2 rounded-lg border bg-gradient-to-r p-4">
+                <h4 className="flex items-center gap-2 text-sm font-medium">
+                  <Lightbulb className="h-4 w-4 text-orange-500" />
+                  Pro Tips for Better Results
+                </h4>
+                <ul className="text-muted-foreground space-y-1 text-sm">
+                  <li>
+                    • Be specific with your topic (e.g., "React useEffect Hook"
+                    vs "React")
+                  </li>
+                  <li>• Start with Beginner if you're new to the subject</li>
+                  <li>
+                    • Try different difficulty levels to challenge yourself
+                  </li>
+                  <li>• Use the review mode to understand your mistakes</li>
+                </ul>
+              </div>
             </div>
           </CardContent>
 
-          <CardFooter>
+          <CardFooter className="mt-4">
             <Button
               type="submit"
-              className="w-full transition-all hover:scale-[1.02] active:scale-[0.98]"
-              disabled={isPending}
+              className="h-12 w-full text-base transition-all hover:scale-[1.02] active:scale-[0.98]"
+              disabled={isPending || watchedTopic.length < 3}
               size="lg"
             >
               {isPending ? (
@@ -877,8 +968,8 @@ function GenerateNewQuiz({
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-4 w-4" />
-                  Generate Quiz
+                  <Sparkles className="h-5 w-5" />
+                  Generate {watchedTopic ? `"${watchedTopic}"` : ''} Quiz
                 </>
               )}
             </Button>
@@ -893,7 +984,7 @@ export function QuizTab({ courseId }: { courseId?: string }) {
   const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null);
 
   return (
-    <div className="grid h-full min-h-[600px] grid-cols-1 gap-2 lg:grid-cols-2">
+    <div className="grid h-full min-h-[700px] grid-cols-1 gap-2 lg:grid-cols-2">
       <PracticeQuiz quiz={activeQuiz} />
       <GenerateNewQuiz onQuizGenerated={setActiveQuiz} courseId={courseId} />
     </div>
@@ -902,7 +993,7 @@ export function QuizTab({ courseId }: { courseId?: string }) {
 
 export function QuizTabSkeleton() {
   return (
-    <div className="grid h-full min-h-[600px] grid-cols-1 gap-2 lg:grid-cols-2">
+    <div className="grid h-full min-h-[700px] grid-cols-1 gap-2 lg:grid-cols-2">
       <PracticeQuizSkeleton />
       <GenerateNewQuizSkeleton />
     </div>
@@ -913,28 +1004,44 @@ function PracticeQuizSkeleton() {
   return (
     <Card className="flex h-full flex-col">
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-5 w-5 rounded" />
-          <Skeleton className="h-6 w-32" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-5 w-5 rounded" />
+            <Skeleton className="h-6 w-32" />
+          </div>
+          <Skeleton className="h-8 w-24" />
         </div>
         <Skeleton className="h-4 w-48" />
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-6 w-20" />
+            <div className="flex gap-2">
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-6 w-20" />
+            </div>
           </div>
           <Skeleton className="h-2 w-full" />
         </div>
       </CardHeader>
-      <CardContent className="flex-1 space-y-4">
-        <div className="space-y-2">
-          <Skeleton className="h-5 w-full" />
-          <Skeleton className="h-5 w-3/4" />
-        </div>
-        <div className="space-y-3">
+      <CardContent className="flex-1 space-y-6">
+        <div className="grid grid-cols-4 gap-4 rounded-lg border p-4">
           {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-16 w-full" />
+            <div key={i} className="space-y-1 text-center">
+              <Skeleton className="mx-auto h-8 w-8" />
+              <Skeleton className="mx-auto h-3 w-12" />
+            </div>
           ))}
+        </div>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-full" />
+            <Skeleton className="h-5 w-3/4" />
+          </div>
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-16 w-full" />
+            ))}
+          </div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
@@ -955,16 +1062,24 @@ function GenerateNewQuizSkeleton() {
         </div>
         <Skeleton className="h-4 w-56" />
       </CardHeader>
-      <CardContent className="flex-1 space-y-4">
+      <CardContent className="flex-1 space-y-6">
         <div className="space-y-2">
           <Skeleton className="h-4 w-1/4" />
           <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-24" />
+          <div className="flex flex-wrap gap-2">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-8 w-20" />
+            ))}
+          </div>
         </div>
         <div className="space-y-2">
           <Skeleton className="h-4 w-1/4" />
           <Skeleton className="h-10 w-full" />
         </div>
-        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-32 w-full" />
       </CardContent>
       <CardFooter>
         <Skeleton className="h-12 w-full" />

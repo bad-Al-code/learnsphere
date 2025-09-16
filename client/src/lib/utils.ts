@@ -85,18 +85,49 @@ export const getLetterGrade = (grade: number | null | undefined): string => {
 };
 
 export const generateOptimisticTitle = (prompt: string): string => {
-  const promptWords = prompt.toLowerCase().split(/\s+/).filter(word => 
-    word.length > 3 && 
-    !['what', 'how', 'why', 'when', 'where', 'can', 'could', 'would', 'should', 'explain', 'tell', 'about'].includes(word)
-  );
+  const promptWords = prompt
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(
+      (word) =>
+        word.length > 3 &&
+        ![
+          'what',
+          'how',
+          'why',
+          'when',
+          'where',
+          'can',
+          'could',
+          'would',
+          'should',
+          'explain',
+          'tell',
+          'about',
+        ].includes(word)
+    );
 
   const keyWords = promptWords.slice(0, 4).join(' ');
-  
+
   if (keyWords.length > 0) {
-    const title = keyWords.replace(/\b\w/g, l => l.toUpperCase());
+    const title = keyWords.replace(/\b\w/g, (l) => l.toUpperCase());
 
     return title.length > 50 ? title.substring(0, 47) + '...' : title;
   }
 
   return prompt.length > 50 ? prompt.substring(0, 47) + '...' : prompt;
+};
+
+export const formatDate = (dateString: string) => {
+  try {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return 'Unknown';
+  }
 };
