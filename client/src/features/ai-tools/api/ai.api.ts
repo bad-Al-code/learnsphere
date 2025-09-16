@@ -5,6 +5,11 @@ import {
   Message,
   TutorChatRequest,
 } from '../schemas/chat.schema';
+import {
+  CreateNoteInput,
+  UpdateNoteInput,
+  UserNote,
+} from '../schemas/notes.schema';
 import { GenerateQuizInput, Quiz } from '../schemas/quiz.schema';
 
 /**
@@ -88,4 +93,25 @@ export const getMessages = (id: string, page: number): Promise<Message[]> => {
  */
 export const generateQuiz = (data: GenerateQuizInput): Promise<Quiz> => {
   return userService.postTyped<Quiz>('/api/ai/tutor/generate-quiz', data);
+};
+
+export const getNotes = (courseId: string): Promise<UserNote[]> => {
+  return userService.getTyped<UserNote[]>(`/api/ai/notes?courseId=${courseId}`);
+};
+
+export const createNote = (data: CreateNoteInput): Promise<UserNote> => {
+  return userService.postTyped<UserNote>('/api/ai/notes', data);
+};
+
+export const updateNote = (data: UpdateNoteInput): Promise<UserNote> => {
+  const { noteId, ...body } = data;
+  return userService.putTyped<UserNote>(`/api/ai/notes/${noteId}`, body);
+};
+
+export const deleteNote = (noteId: string): Promise<void> => {
+  return userService.deleteTyped<void>(`/api/ai/notes/${noteId}`);
+};
+
+export const analyzeNote = (noteId: string): Promise<UserNote> => {
+  return userService.postTyped<UserNote>(`/api/ai/notes/${noteId}/analyze`, {});
 };
