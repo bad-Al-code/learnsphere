@@ -156,6 +156,12 @@ export class FlashcardRepository {
       });
   }
 
+  /**
+   * Finds a flashcard in a specific deck.
+   * @param deckId - The ID of the deck to search in.
+   * @param cardId - The ID of the card to find.
+   * @returns The flashcard if found, otherwise `undefined`.
+   */
   public static async findCardInDeck(
     deckId: string,
     cardId: string
@@ -165,6 +171,12 @@ export class FlashcardRepository {
     });
   }
 
+  /**
+   * Retrieves a user's progress for a specific card.
+   * @param userId - The ID of the user.
+   * @param cardId - The ID of the flashcard.
+   * @returns The user's flashcard progress, or `undefined` if no progress exists.
+   */
   public static async getCardProgress(userId: string, cardId: string) {
     return db.query.userFlashcardProgress.findFirst({
       where: and(

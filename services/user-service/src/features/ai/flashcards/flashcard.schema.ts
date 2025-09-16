@@ -132,6 +132,30 @@ export type GeneratedCard = z.infer<
   typeof flashcardResponseSchemaZod
 >['flashcards'][number];
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     RecordProgressRequest:
+ *       type: object
+ *       required:
+ *         - cardId
+ *         - deckId
+ *         - feedback
+ *       properties:
+ *         cardId:
+ *           type: string
+ *           format: uuid
+ *           description: ID of the flashcard to record feedback for.
+ *         deckId:
+ *           type: string
+ *           format: uuid
+ *           description: ID of the deck the card belongs to.
+ *         feedback:
+ *           type: string
+ *           enum: [Hard, Good, Easy]
+ *           description: User feedback for spaced repetition.
+ */
 export const recordProgressSchema = z.object({
   body: z.object({
     cardId: z.string().uuid(),
