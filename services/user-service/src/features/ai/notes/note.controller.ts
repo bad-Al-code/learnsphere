@@ -54,13 +54,13 @@ export class NoteController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { noteId, title, content } = req.body;
+      const { id } = req.params;
+      const { title, content } = req.body;
 
-      const updatedNote = await NoteService.updateNote(
-        noteId,
-        req.currentUser.id,
-        { title, content }
-      );
+      const updatedNote = await NoteService.updateNote(id, req.currentUser.id, {
+        title,
+        content,
+      });
 
       res.status(StatusCodes.OK).json(updatedNote);
     } catch (error) {
@@ -75,11 +75,11 @@ export class NoteController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { noteId } = req.body;
+      const { id } = req.params;
 
-      await NoteService.deleteNote(noteId, req.currentUser.id);
+      await NoteService.deleteNote(id, req.currentUser.id);
 
-      res.sendStatus(StatusCodes.NO_CONTENT);
+      res.status(StatusCodes.NO_CONTENT).send();
     } catch (error) {
       next(error);
     }
@@ -93,12 +93,9 @@ export class NoteController {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
 
-      const { noteId } = req.params;
+      const { id } = req.params;
 
-      const updatedNote = await NoteService.analyzeNote(
-        noteId,
-        req.currentUser.id
-      );
+      const updatedNote = await NoteService.analyzeNote(id, req.currentUser.id);
 
       res.status(StatusCodes.OK).json(updatedNote);
     } catch (error) {
