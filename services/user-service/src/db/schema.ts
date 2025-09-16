@@ -85,6 +85,16 @@ export const profiles = pgTable('profiles', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+export const profilesRelations = relations(profiles, ({ many }) => ({
+  aiTutorConversations: many(aiTutorConversations),
+  enrollments: many(enrollments),
+  userNotes: many(userNotes),
+  aiQuizzes: many(aiQuizzes),
+  aiResearchBoards: many(aiResearchBoards),
+  aiFlashcardDecks: many(aiFlashcardDecks),
+}));
+
+/** AI Tutor */
 export const aiTutorMessageRoleEnum = pgEnum('ai_tutor_message_role', [
   'user',
   'model',
@@ -112,6 +122,27 @@ export const aiTutorMessages = pgTable('ai_tutor_messages', {
 });
 export type NewAITutorMessage = typeof aiTutorMessages.$inferInsert;
 export type AITutorMessage = typeof aiTutorMessages.$inferSelect;
+
+export const aiTutorConversationsRelations = relations(
+  aiTutorConversations,
+  ({ one, many }) => ({
+    user: one(profiles, {
+      fields: [aiTutorConversations.userId],
+      references: [profiles.userId],
+    }),
+    messages: many(aiTutorMessages),
+  })
+);
+
+export const aiTutorMessagesRelations = relations(
+  aiTutorMessages,
+  ({ one }) => ({
+    conversation: one(aiTutorConversations, {
+      fields: [aiTutorMessages.conversationId],
+      references: [aiTutorConversations.id],
+    }),
+  })
+);
 
 /**  AI QUIZZES */
 export const aiQuizzes = pgTable('ai_quizzes', {
@@ -251,6 +282,89 @@ export const aiResearchFindingsRelations = relations(
   })
 );
 
+/** FLASHCARD SYSTEM */
+export const aiFlashcardDecks = pgTable('ai_flashcard_decks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => profiles.userId, { onDelete: 'cascade' }),
+  courseId: uuid('course_id').notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const aiFlashcards = pgTable('ai_flashcards', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  deckId: uuid('deck_id')
+    .notNull()
+    .references(() => aiFlashcardDecks.id, { onDelete: 'cascade' }),
+  question: text('question').notNull(),
+  answer: text('answer').notNull(),
+});
+
+export const flashcardProgressStatusEnum = pgEnum('flashcard_progress_status', [
+  'New',
+  'Learning',
+  'Mastered',
+]);
+
+export const userFlashcardProgress = pgTable(
+  'user_flashcard_progress',
+  {
+    userId: text('user_id')
+      .notNull()
+      .references(() => profiles.userId, { onDelete: 'cascade' }),
+    cardId: uuid('card_id')
+      .notNull()
+      .references(() => aiFlashcards.id, { onDelete: 'cascade' }),
+    deckId: uuid('deck_id')
+      .notNull()
+      .references(() => aiFlashcardDecks.id, { onDelete: 'cascade' }),
+    status: flashcardProgressStatusEnum('status').notNull().default('New'),
+    nextReviewAt: timestamp('next_review_at').notNull().defaultNow(),
+    lastReviewedAt: timestamp('last_reviewed_at'),
+    correctStreaks: integer('correct_streaks').notNull().default(0),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.cardId] })]
+);
+
+export const aiFlashcardDecksRelations = relations(
+  aiFlashcardDecks,
+  ({ one, many }) => ({
+    user: one(profiles, {
+      fields: [aiFlashcardDecks.userId],
+      references: [profiles.userId],
+    }),
+    cards: many(aiFlashcards),
+  })
+);
+
+export const aiFlashcardsRelations = relations(
+  aiFlashcards,
+  ({ one, many }) => ({
+    deck: one(aiFlashcardDecks, {
+      fields: [aiFlashcards.deckId],
+      references: [aiFlashcardDecks.id],
+    }),
+    progress: many(userFlashcardProgress),
+  })
+);
+
+export const userFlashcardProgressRelations = relations(
+  userFlashcardProgress,
+  ({ one }) => ({
+    user: one(profiles, {
+      fields: [userFlashcardProgress.userId],
+      references: [profiles.userId],
+    }),
+    card: one(aiFlashcards, {
+      fields: [userFlashcardProgress.cardId],
+      references: [aiFlashcards.id],
+    }),
+  })
+);
+
 /**
  * @table replicated_course_content
  * @description Stores a local, denormalized copy of course content.
@@ -279,35 +393,6 @@ export const enrollments = pgTable(
     enrolledAt: timestamp('enrolled_at').defaultNow().notNull(),
   },
   (table) => [primaryKey({ columns: [table.userId, table.courseId] })]
-);
-
-export const profilesRelations = relations(profiles, ({ many }) => ({
-  aiTutorConversations: many(aiTutorConversations),
-  enrollments: many(enrollments),
-  userNotes: many(userNotes),
-  aiQuizzes: many(aiQuizzes),
-  aiResearchBoards: many(aiResearchBoards),
-}));
-
-export const aiTutorConversationsRelations = relations(
-  aiTutorConversations,
-  ({ one, many }) => ({
-    user: one(profiles, {
-      fields: [aiTutorConversations.userId],
-      references: [profiles.userId],
-    }),
-    messages: many(aiTutorMessages),
-  })
-);
-
-export const aiTutorMessagesRelations = relations(
-  aiTutorMessages,
-  ({ one }) => ({
-    conversation: one(aiTutorConversations, {
-      fields: [aiTutorMessages.conversationId],
-      references: [aiTutorConversations.id],
-    }),
-  })
 );
 
 export const enrollmentsRelations = relations(enrollments, ({ one }) => ({
