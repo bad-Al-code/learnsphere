@@ -6,6 +6,13 @@ import {
   TutorChatRequest,
 } from '../schemas/chat.schema';
 import {
+  CreateDeckInput,
+  FlashcardDeck,
+  GenerateCardsInput,
+  RecordProgressInput,
+  StudyCard,
+} from '../schemas/flashcard.schema';
+import {
   CreateNoteInput,
   UpdateNoteInput,
   UserNote,
@@ -163,5 +170,43 @@ export const summarizeFinding = (findingId: string): Promise<UserNote> => {
   return userService.postTyped<UserNote>(
     `/api/ai/research/board/findings/${findingId}/summarize`,
     {}
+  );
+};
+
+export const getDecks = (courseId: string): Promise<FlashcardDeck[]> => {
+  return userService.getTyped<FlashcardDeck[]>(
+    `/api/ai/flashcards/decks?courseId=${courseId}`
+  );
+};
+
+export const createDeck = (data: CreateDeckInput): Promise<FlashcardDeck> => {
+  return userService.postTyped<FlashcardDeck>('/api/ai/flashcards/decks', data);
+};
+
+export const deleteDeck = (deckId: string): Promise<void> => {
+  return userService.deleteTyped<void>(`/api/ai/flashcards/decks/${deckId}`);
+};
+
+export const generateCards = (
+  data: GenerateCardsInput
+): Promise<FlashcardDeck> => {
+  return userService.postTyped<FlashcardDeck>(
+    `/api/ai/flashcards/decks/${data.deckId}/generate-cards`,
+    data
+  );
+};
+
+export const getStudySession = (deckId: string): Promise<StudyCard[]> => {
+  return userService.getTyped<StudyCard[]>(
+    `/api/ai/flashcards/decks/${deckId}/study-session`
+  );
+};
+
+export const recordProgress = (
+  data: RecordProgressInput
+): Promise<{ message: string }> => {
+  return userService.postTyped<{ message: string }>(
+    '/api/ai/flashcards/progress',
+    data
   );
 };
