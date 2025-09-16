@@ -1,7 +1,13 @@
 import { and, desc, eq } from 'drizzle-orm';
 
 import { db } from '../../../db';
-import { aiFlashcardDecks, FlashcardDecks } from '../../../db/schema';
+import {
+  aiFlashcardDecks,
+  aiFlashcards,
+  Flashcard,
+  FlashcardDecks,
+} from '../../../db/schema';
+import { GeneratedCard } from './flashcard.types';
 
 export class FlashcardRepository {
   /**
@@ -41,6 +47,59 @@ export class FlashcardRepository {
       ),
       orderBy: [desc(aiFlashcardDecks.updatedAt)],
       with: { cards: { columns: { id: true } } },
+    });
+  }
+
+  /**
+   * Finds a flashcard deck by its ID.
+   * @param deckId - The unique identifier of the deck.
+   * @returns The flashcard deck if found, otherwise `null`.
+   */
+  public static async findDeckById(
+    deckId: string
+  ): Promise<FlashcardDecks | undefined> {
+    return db.query.aiFlashcardDecks.findFirst({
+      where: eq(aiFlashcardDecks.id, deckId),
+    });
+  }
+
+  /**
+   * Deletes a flashcard deck by its ID. Also cascades deletion of its cards.
+   * @param deckId - The unique identifier of the deck.
+   * @returns Nothing (`void`) if the deletion succeeds.
+   */
+  public static async deleteDeck(deckId: string): Promise<void> {
+    await db.delete(aiFlashcardDecks).where(eq(aiFlashcardDecks.id, deckId));
+  }
+
+  /**
+   * Adds a set of flashcards to an existing deck.
+   * Inserts all cards in a single transaction and returns the updated deck with cards.
+   * @param deckId - The unique identifier of the deck.
+   * @param cards - The flashcards to insert, each containing a `question` and `answer`.
+   * @returns The updated deck with all its cards.
+   */
+  public static async addCardsToDeck(
+    deckId: string,
+    cards: GeneratedCard[]
+  ): Promise<(FlashcardDecks & { cards: Flashcard[] }) | undefined> {
+    return db.transaction(async (tx) => {
+      const cardsToInsert = cards.map((card) => ({
+        deckId,
+        question: card.question,
+        answer: card.answer,
+      }));
+
+      if (cardsToInsert.length > 0) {
+        await tx.insert(aiFlashcards).values(cardsToInsert);
+      }
+
+      return tx.query.aiFlashcardDecks.findFirst({
+        where: eq(aiFlashcardDecks.id, deckId),
+        with: {
+          cards: true,
+        },
+      });
     });
   }
 }

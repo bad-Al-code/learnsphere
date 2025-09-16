@@ -303,6 +303,7 @@ export const aiFlashcards = pgTable('ai_flashcards', {
   question: text('question').notNull(),
   answer: text('answer').notNull(),
 });
+export type Flashcard = typeof aiFlashcards.$inferSelect;
 
 export const flashcardProgressStatusEnum = pgEnum('flashcard_progress_status', [
   'New',

@@ -46,3 +46,88 @@ export const getDecksQuerySchema = z.object({
     courseId: z.string().uuid('A valid courseId is required in the query.'),
   }),
 });
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     DeckIdParam:
+ *       type: object
+ *       required:
+ *         - deckId
+ *       properties:
+ *         deckId:
+ *           type: string
+ *           format: uuid
+ *           description: Unique identifier of the deck.
+ */
+export const deckIdParamSchema = z.object({
+  params: z.object({
+    deckId: z.string().uuid('A valid deckId is required.'),
+  }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     GenerateCardsRequest:
+ *       type: object
+ *       required:
+ *         - topic
+ *         - difficulty
+ *       properties:
+ *         topic:
+ *           type: string
+ *           minLength: 3
+ *           maxLength: 100
+ *           description: The topic for generating flashcards.
+ *         difficulty:
+ *           type: string
+ *           enum: [Beginner, Intermediate, Advanced]
+ *           description: Difficulty level of the generated flashcards.
+ */
+export const generateCardsSchema = z.object({
+  body: z.object({
+    topic: z.string().min(3, 'Topic must be at least 3 characters.').max(100),
+    difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced']),
+  }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     FlashcardResponse:
+ *       type: object
+ *       required:
+ *         - flashcards
+ *       properties:
+ *         flashcards:
+ *           type: array
+ *           description: List of generated flashcards.
+ *           items:
+ *             type: object
+ *             required:
+ *               - question
+ *               - answer
+ *             properties:
+ *               question:
+ *                 type: string
+ *                 description: The flashcard question.
+ *               answer:
+ *                 type: string
+ *                 description: The flashcard answer.
+ */
+export const flashcardResponseSchemaZod = z.object({
+  flashcards: z.array(
+    z.object({
+      question: z.string().min(5, 'Flashcard question must be meaningful.'),
+      answer: z.string().min(1, 'Flashcard must have an answer.'),
+    })
+  ),
+});
+
+export type GeneratedCard = z.infer<
+  typeof flashcardResponseSchemaZod
+>['flashcards'][number];

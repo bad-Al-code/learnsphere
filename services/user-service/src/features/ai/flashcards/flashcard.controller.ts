@@ -45,4 +45,44 @@ export class FlashcardController {
       next(error);
     }
   }
+
+  public static async deleteDeck(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { deckId } = req.params;
+
+      await FlashcardService.deleteDeck(deckId, req.currentUser.id);
+
+      res.status(StatusCodes.NO_CONTENT).send();
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async handleGenerateCards(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { deckId } = req.params;
+      const { topic, difficulty } = req.body;
+
+      const updatedDeck = await FlashcardService.generateAndAddCards(
+        deckId,
+        req.currentUser.id,
+        topic,
+        difficulty
+      );
+
+      res.status(StatusCodes.OK).json(updatedDeck);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

@@ -3,7 +3,12 @@ import { Router } from 'express';
 import { requireAuth } from '../../../middlewares/require-auth';
 import { validateRequest } from '../../../middlewares/validate-request';
 import { FlashcardController } from './flashcard.controller';
-import { createDeckSchema, getDecksQuerySchema } from './flashcard.schema';
+import {
+  createDeckSchema,
+  deckIdParamSchema,
+  generateCardsSchema,
+  getDecksQuerySchema,
+} from './flashcard.schema';
 
 const router = Router();
 router.use(requireAuth);
@@ -63,6 +68,64 @@ router.get(
   '/decks',
   validateRequest(getDecksQuerySchema),
   FlashcardController.getDecks
+);
+
+/**
+ * @openapi
+ * /api/ai/flashcards/decks/{deckId}:
+ *   delete:
+ *     summary: Delete a flashcard deck
+ *     tags: [AI Flashcards]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: deckId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       '204':
+ *         description: Deck deleted successfully.
+ */
+router.delete(
+  '/decks/:deckId',
+  validateRequest(deckIdParamSchema),
+  FlashcardController.deleteDeck
+);
+
+/**
+ * @openapi
+ * /api/ai/flashcards/decks/{deckId}/generate-cards:
+ *   post:
+ *     summary: Generate new flashcards for a deck using AI
+ *     tags: [AI Flashcards]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: deckId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               topic:
+ *                 type: string
+ *               difficulty:
+ *                 type: string
+ *                 enum: [Beginner, Intermediate, Advanced]
+ *     responses:
+ *       '200':
+ *         description: The updated deck object, now including the newly generated cards.
+ */
+router.post(
+  '/decks/:deckId/generate-cards',
+  validateRequest(deckIdParamSchema.merge(generateCardsSchema)),
+  FlashcardController.handleGenerateCards
 );
 
 export { router as flashcardRouter };
