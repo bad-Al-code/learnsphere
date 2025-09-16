@@ -210,6 +210,7 @@ export const aiResearchBoards = pgTable('ai_research_boards', {
   courseId: uuid('course_id').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+export type ResearchBoard = typeof aiResearchBoards.$inferSelect;
 
 export const aiResearchFindings = pgTable('ai_research_findings', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -226,6 +227,7 @@ export const aiResearchFindings = pgTable('ai_research_findings', {
   relevance: integer('relevance'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+export type ResearchFindings = typeof aiResearchFindings.$inferSelect;
 
 export const aiResearchBoardsRelations = relations(
   aiResearchBoards,
