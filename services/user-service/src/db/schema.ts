@@ -293,6 +293,7 @@ export const aiFlashcardDecks = pgTable('ai_flashcard_decks', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+export type FlashcardDecks = typeof aiFlashcardDecks.$inferSelect;
 
 export const aiFlashcards = pgTable('ai_flashcards', {
   id: uuid('id').primaryKey().defaultRandom(),
