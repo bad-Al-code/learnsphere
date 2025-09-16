@@ -192,6 +192,7 @@ export const userNotes = pgTable('user_notes', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 export type NewUserNote = typeof userNotes.$inferInsert;
+export type UserNote = typeof userNotes.$inferSelect;
 
 export const userNotesRelations = relations(userNotes, ({ one }) => ({
   user: one(profiles, {
