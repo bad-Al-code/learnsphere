@@ -53,7 +53,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable';
 import {
   Select,
   SelectContent,
@@ -1518,7 +1522,7 @@ export function SmartNotesTab({ courseId }: { courseId?: string }) {
         className="h-full min-h-[600px] rounded-lg border"
       >
         <ResizablePanel
-          defaultSize={isCollapsed ? 5 : 25}
+          defaultSize={isCollapsed ? 5 : 30}
           minSize={isCollapsed ? 5 : 20}
           maxSize={isCollapsed ? 5 : 40}
           className={cn(
@@ -1534,7 +1538,8 @@ export function SmartNotesTab({ courseId }: { courseId?: string }) {
             setIsCollapsed={setIsCollapsed}
           />
         </ResizablePanel>
-        <ResizablePanel defaultSize={75} minSize={40}>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize={70} minSize={40}>
           <div className="grid h-full grid-cols-1 gap-4 xl:grid-cols-2">
             <NoteEditor activeNote={activeNote} setActiveNote={setActiveNote} />
             <AiInsights

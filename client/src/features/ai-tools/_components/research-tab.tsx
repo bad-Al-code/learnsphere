@@ -213,7 +213,7 @@ function ResearchResultsSkeleton() {
   );
 }
 
-export function ResearchTab() {
+export function ResearchTab({ courseId }: { courseId?: string }) {
   return (
     <div className="grid h-full grid-cols-1 gap-2 lg:grid-cols-2">
       <AiResearchAssistant />

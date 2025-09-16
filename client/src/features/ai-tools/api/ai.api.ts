@@ -11,6 +11,13 @@ import {
   UserNote,
 } from '../schemas/notes.schema';
 import { GenerateQuizInput, Quiz } from '../schemas/quiz.schema';
+import {
+  PerformResearchInput,
+  ResearchBoard,
+  SaveFindingInput,
+  TempFinding,
+  UpdateFindingNotesInput,
+} from '../schemas/research.schema';
 
 /**
  * Sends a prompt to an AI Tutor conversation.
@@ -114,4 +121,47 @@ export const deleteNote = (noteId: string): Promise<void> => {
 
 export const analyzeNote = (noteId: string): Promise<UserNote> => {
   return userService.postTyped<UserNote>(`/api/ai/notes/${noteId}/analyze`, {});
+};
+
+export const performResearch = (
+  data: PerformResearchInput
+): Promise<TempFinding[]> => {
+  return userService.postTyped<TempFinding[]>('/api/ai/research/query', data);
+};
+
+export const getResearchBoard = (courseId: string): Promise<ResearchBoard> => {
+  return userService.getTyped<ResearchBoard>(
+    `/api/ai/research/board?courseId=${courseId}`
+  );
+};
+
+export const saveFinding = (data: SaveFindingInput): Promise<UserNote> => {
+  return userService.postTyped<UserNote>(
+    '/api/ai/research/board/findings',
+    data
+  );
+};
+
+export const updateFindingNotes = (
+  data: UpdateFindingNotesInput
+): Promise<UserNote> => {
+  return userService.putTyped<UserNote>(
+    `/api/ai/research/board/findings/${data.findingId}`,
+    {
+      userNotes: data.userNotes,
+    }
+  );
+};
+
+export const deleteFinding = (findingId: string): Promise<void> => {
+  return userService.deleteTyped<void>(
+    `/api/ai/research/board/findings/${findingId}`
+  );
+};
+
+export const summarizeFinding = (findingId: string): Promise<UserNote> => {
+  return userService.postTyped<UserNote>(
+    `/api/ai/research/board/findings/${findingId}/summarize`,
+    {}
+  );
 };
