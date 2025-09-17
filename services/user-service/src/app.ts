@@ -10,6 +10,7 @@ import { aiRouter } from './features/ai/ai.route';
 import { flashcardRouter } from './features/ai/flashcards/flashcard.route';
 import { noteRouter } from './features/ai/notes/note.route';
 import { researchRouter } from './features/ai/research/research.route';
+import { writingRouter } from './features/ai/writing/writing.route';
 import { currentUser } from './middlewares/current-user';
 import { errorHandler } from './middlewares/error-handler';
 import { httpLogger } from './middlewares/http-logger';
@@ -39,6 +40,7 @@ app.use('/api/ai', aiRouter);
 app.use('/api/ai/notes', noteRouter);
 app.use('/api/ai/research', researchRouter);
 app.use('/api/ai/flashcards', flashcardRouter);
+app.use('/api/ai/writing/assignments', writingRouter);
 
 app.use(errorHandler);
 

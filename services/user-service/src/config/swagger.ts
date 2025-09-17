@@ -35,6 +35,8 @@ const swaggerOptions: swaggerJsdoc.Options = {
     './src/features/ai/notes/*.route.ts',
     './src/features/ai/flashcards/*.schema.ts',
     './src/features/ai/flashcards/*.route.ts',
+    './src/features/ai/writing/*.schema.ts',
+    './src/features/ai/writing/*.route.ts',
     './src/features/ai/research/*.schema.ts',
     './src/features/ai/research/*.route.ts',
     './src/features/ai/ai.schema.ts',

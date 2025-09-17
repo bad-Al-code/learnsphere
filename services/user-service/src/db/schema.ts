@@ -383,6 +383,8 @@ export const aiWritingAssignments = pgTable('ai_writing_assignments', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+export type WritingAssignment = typeof aiWritingAssignments.$inferSelect;
+export type NewWritingAssignment = typeof aiWritingAssignments.$inferInsert;
 
 export const feedbackTypeEnum = pgEnum('feedback_type', [
   'Grammar',
