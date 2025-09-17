@@ -15,7 +15,9 @@ import { correlationIdMiddleware } from './middlewares/correlation-id.middleware
 import { currentUser } from './middlewares/current-user';
 import { errorHandler } from './middlewares/error-handler';
 import { httpLogger } from './middlewares/http-logger';
+import { metricsMiddleware } from './middlewares/metrics.middleware';
 import { healthRouter, profileRouter } from './routes';
+import { metricsService } from './services/metrics.service';
 
 const app = express();
 
@@ -28,11 +30,16 @@ app.use(
 );
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/api/users/metrics', async (req, res) => {
+  res.set('Content-Type', metricsService.register.contentType);
+  res.end(await metricsService.register.metrics());
+});
 
 app.use(json());
 app.use(helmet());
 app.use(correlationIdMiddleware);
 app.use(httpLogger);
+app.use(metricsMiddleware);
 app.use(cookieParser(env.COOKIE_PARSER_SECRET));
 app.use(currentUser);
 
