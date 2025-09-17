@@ -48,4 +48,43 @@ export class WritingService {
   ): Promise<WritingAssignment[]> {
     return WritingRepository.findAssignmentsByUserAndCourse(userId, courseId);
   }
+
+  /**
+   * Updates a writing assignment after verifying that the user owns it.
+   * @param assignmentId - The unique identifier of the assignment to update.
+   * @param userId - The ID of the user requesting the update.
+   * @param data - The fields to update (at least one of `title`, `content`, or `prompt`).
+   * @returns The updated assignment record.
+   */
+  public static async updateAssignment(
+    assignmentId: string,
+    userId: string,
+    data: { title?: string; content?: string; prompt?: string }
+  ): Promise<WritingAssignment> {
+    const assignment = await WritingRepository.findAssignmentById(assignmentId);
+    if (!assignment || assignment.userId !== userId) {
+      throw new ForbiddenError();
+    }
+
+    return WritingRepository.updateAssignment(assignmentId, data);
+  }
+
+  /**
+   * Deletes a writing assignment after verifying that the user owns it.
+   * @param assignmentId - The unique identifier of the assignment to delete.
+   * @param userId - The ID of the user requesting the deletion.
+   * @returns A promise that resolves when the assignment is deleted.
+   * @throws {ForbiddenError} If the assignment does not exist or the user does not own it.
+   */
+  public static async deleteAssignment(
+    assignmentId: string,
+    userId: string
+  ): Promise<void> {
+    const assignment = await WritingRepository.findAssignmentById(assignmentId);
+    if (!assignment || assignment.userId !== userId) {
+      throw new ForbiddenError();
+    }
+
+    await WritingRepository.deleteAssignment(assignmentId);
+  }
 }

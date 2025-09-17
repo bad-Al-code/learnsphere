@@ -46,4 +46,43 @@ export class WritingController {
       next(error);
     }
   }
+
+  public static async updateAssignment(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { id } = req.params;
+      const { title, content, prompt } = req.body;
+
+      const updatedAssignment = await WritingService.updateAssignment(
+        id,
+        req.currentUser.id,
+        { title, content, prompt }
+      );
+
+      res.status(StatusCodes.OK).json(updatedAssignment);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async deleteAssignment(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { id } = req.params;
+
+      await WritingService.deleteAssignment(id, req.currentUser.id);
+
+      res.status(StatusCodes.NO_CONTENT).send();
+    } catch (error) {
+      next(error);
+    }
+  }
 }
