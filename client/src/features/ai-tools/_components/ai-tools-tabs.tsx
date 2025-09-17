@@ -7,7 +7,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useState, useTransition } from 'react';
 
 import { AiTutorTab, AiTutorTabSkeleton } from './ai-tutor-tab';
-import { AnalyticsTab, AnalyticsTabSkeleton } from './analytics-tab';
 import { FlashcardsTab, FlashcardsTabSkeleton } from './flashcards-tab';
 import { QuizTab, QuizTabSkeleton } from './quiz-tab';
 import { ResearchTab, ResearchTabSkeleton } from './research-tab';
@@ -25,7 +24,6 @@ const skeletonMap: Record<string, React.ReactNode> = {
   flashcards: <FlashcardsTabSkeleton />,
   'voice-tutor': <VoiceTutorTabSkeleton />,
   research: <ResearchTabSkeleton />,
-  analytics: <AnalyticsTabSkeleton />,
   quiz: <QuizTabSkeleton />,
 };
 
@@ -39,7 +37,6 @@ const contentMap: Record<
   flashcards: (props) => <FlashcardsTab {...props} />,
   'voice-tutor': (props) => <VoiceTutorTab {...props} />,
   research: (props) => <ResearchTab {...props} />,
-  analytics: (props) => <AnalyticsTab {...props} />,
   quiz: (props) => <QuizTab {...props} />,
 };
 

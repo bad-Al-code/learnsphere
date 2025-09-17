@@ -206,10 +206,10 @@ export function CourseSelectionSkeleton() {
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Card key={i} className="overflow-hidden">
+          <Card key={i} className="overflow-hidden pt-0">
             <div className="relative">
               <Skeleton className="aspect-video w-full" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              <div className="from-muted/20 absolute inset-0 bg-gradient-to-t to-transparent" />
             </div>
             <CardHeader className="space-y-3">
               <div className="space-y-2">

@@ -696,12 +696,11 @@ function FindingCard({ finding }: { finding: ResearchFinding }) {
         </div>
 
         {finding.aiSummary && (
-          <div className="rounded-lg border-l-4 border-blue-500 bg-blue-50 p-3 dark:bg-blue-950">
+          // <div className="rounded-lg border-l-4 border-blue-500 bg-blue-50 p-3 dark:bg-blue-950">
+          <div className="from-muted/50 to-muted/5 border-l-primary/80 space-y-3 rounded-lg border border-l-4 bg-gradient-to-r p-4">
             <div className="mb-2 flex items-center gap-2">
               <Brain className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                AI Summary
-              </span>
+              <span className="text-sm font-medium">AI Summary</span>
             </div>
             <p className="text-sm text-blue-800 dark:text-blue-200">
               {finding.aiSummary}

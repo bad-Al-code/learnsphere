@@ -439,7 +439,6 @@ export const studentAiToolsTabs: NavItem[] = [
   },
   { href: '#', label: 'Voice Tutor', value: 'voice-tutor', icon: 'Mic' },
   { href: '#', label: 'Research', value: 'research', icon: 'Search' },
-  { href: '#', label: 'Analytics', value: 'analytics', icon: 'BarChart2' },
   { href: '#', label: 'Quiz', value: 'quiz', icon: 'HelpCircle' },
 ];
 
