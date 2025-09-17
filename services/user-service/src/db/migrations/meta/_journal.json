@@ -78,6 +78,13 @@
       "when": 1758087804230,
       "tag": "0010_harsh_retro_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1758115857280,
+      "tag": "0011_clumsy_rawhide_kid",
+      "breakpoints": true
     }
   ]
 }

@@ -9,6 +9,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  unique,
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
@@ -93,7 +94,57 @@ export const profilesRelations = relations(profiles, ({ many }) => ({
   aiResearchBoards: many(aiResearchBoards),
   aiFlashcardDecks: many(aiFlashcardDecks),
   aiWritingAssignments: many(aiWritingAssignments),
+  integrations: many(userIntegrations),
 }));
+
+/** INTEGRATION HUB */
+export const integrationProviderEnum = pgEnum('integration_provider', [
+  'google_calendar',
+  'outlook_calendar',
+  'gmail',
+  'google_drive',
+  'dropbox',
+  'canvas_lms',
+  'blackboard_learn',
+  'moodle',
+  'slack',
+  'notion',
+]);
+
+export const integrationStatusEnum = pgEnum('integration_status', [
+  'active',
+  'revoked',
+  'error',
+]);
+
+export const userIntegrations = pgTable(
+  'user_integrations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => profiles.userId, { onDelete: 'cascade' }),
+    provider: integrationProviderEnum('provider').notNull(),
+    accessToken: text('access_token').notNull(),
+    refreshToken: text('refresh_token'),
+    expiresAt: timestamp('expires_at'),
+    scopes: text('scopes').array(),
+    status: integrationStatusEnum('status').notNull().default('active'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [unique().on(table.userId, table.provider)]
+);
+
+export const userIntegrationsRelations = relations(
+  userIntegrations,
+  ({ one }) => ({
+    user: one(profiles, {
+      fields: [userIntegrations.userId],
+      references: [profiles.userId],
+    }),
+  })
+);
 
 /** AI Tutor */
 export const aiTutorMessageRoleEnum = pgEnum('ai_tutor_message_role', [
