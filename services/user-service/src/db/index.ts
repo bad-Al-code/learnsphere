@@ -30,10 +30,13 @@ export const db = drizzle(pool, {
 export const checkDatabaseConnection = async () => {
   try {
     await db.query.profiles.findFirst();
+
     logger.info(`Database connection verified successfully,`);
+
     healthState.set('db', true);
   } catch (error) {
     logger.info(`Failed to verify Database connection`);
+
     healthState.set('db', false);
 
     throw error;
