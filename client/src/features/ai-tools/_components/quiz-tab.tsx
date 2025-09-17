@@ -993,7 +993,7 @@ export function QuizTab({ courseId }: { courseId?: string }) {
   }
 
   return (
-    <div className="grid h-full min-h-[700px] grid-cols-1 gap-2 lg:grid-cols-2">
+    <div className="grid h-[calc(100vh-12.5rem)] grid-cols-1 gap-2 lg:grid-cols-2">
       <PracticeQuiz quiz={activeQuiz} />
       <GenerateNewQuiz onQuizGenerated={setActiveQuiz} courseId={courseId} />
     </div>
@@ -1002,7 +1002,7 @@ export function QuizTab({ courseId }: { courseId?: string }) {
 
 export function QuizTabSkeleton() {
   return (
-    <div className="grid h-full min-h-[700px] grid-cols-1 gap-2 lg:grid-cols-2">
+    <div className="grid h-[calc(100vh-12.5rem)] grid-cols-1 gap-2 lg:grid-cols-2">
       <PracticeQuizSkeleton />
       <GenerateNewQuizSkeleton />
     </div>

@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+import { CourseSelectionScreen } from './common/CourseSelectionScrren';
 
 type TWritingTool = {
   label: string;
@@ -176,9 +177,17 @@ function WritingToolsSkeleton() {
   );
 }
 
-export function WritingAssistantTab() {
+export function WritingAssistantTab({ courseId }: { courseId?: string }) {
+  if (!courseId) {
+    return (
+      <div className="h-[calc(100vh-12.5rem)]">
+        <CourseSelectionScreen />
+      </div>
+    );
+  }
+
   return (
-    <div className="grid h-full min-h-[550px] grid-cols-1 gap-2 lg:grid-cols-2">
+    <div className="grid h-[calc(100vh-12.5rem)] grid-cols-1 gap-2 lg:grid-cols-2">
       <AiWritingAssistant />
       <WritingTools />
     </div>
@@ -187,7 +196,7 @@ export function WritingAssistantTab() {
 
 export function WritingAssistantTabSkeleton() {
   return (
-    <div className="grid h-full min-h-[550px] grid-cols-1 gap-2 lg:grid-cols-2">
+    <div className="grid h-[calc(100vh-12.5rem)] grid-cols-1 gap-2 lg:grid-cols-2">
       <AiWritingAssistantSkeleton />
       <WritingToolsSkeleton />
     </div>

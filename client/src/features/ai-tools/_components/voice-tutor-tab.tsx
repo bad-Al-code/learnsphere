@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CourseSelectionScreen } from './common/CourseSelectionScrren';
 
 const voiceFeatures: string[] = [
   'Natural conversation flow',
@@ -98,7 +99,7 @@ function TrySaying() {
 
 function VoiceAiTutorSkeleton() {
   return (
-    <Card className="flex  flex-col items-start justify-center">
+    <Card className="flex flex-col items-start justify-center">
       <CardHeader className="items-center space-y-2">
         <Skeleton className="h-12 w-12 rounded-lg" />
         <Skeleton className="h-7 w-40" />
@@ -132,9 +133,17 @@ function FeatureCardSkeleton() {
   );
 }
 
-export function VoiceTutorTab() {
+export function VoiceTutorTab({ courseId }: { courseId?: string }) {
+  if (!courseId) {
+    return (
+      <div className="h-[calc(100vh-12.5rem)]">
+        <CourseSelectionScreen />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="h-[calc(100vh-12.5rem)] space-y-4">
       <VoiceAiTutor />
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         <VoiceFeatures />
@@ -146,7 +155,7 @@ export function VoiceTutorTab() {
 
 export function VoiceTutorTabSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="h-[calc(100vh-12.5rem)] space-y-4">
       <VoiceAiTutorSkeleton />
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         <FeatureCardSkeleton />

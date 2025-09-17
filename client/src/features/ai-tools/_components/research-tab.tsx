@@ -1083,7 +1083,7 @@ function ResearchBoardSkeleton() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
+        {Array.from({ length: 2 }).map((_, i) => (
           <Card key={i}>
             <CardHeader>
               <div className="space-y-2">
@@ -1116,7 +1116,7 @@ function ResearchBoardSkeleton() {
 
 function QueryPanelSkeleton() {
   return (
-    <Card className="w-full">
+    <Card className="h-[calc(100vh-12.5rem)] w-full">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Skeleton className="h-10 w-10 rounded-full" />
@@ -1147,7 +1147,10 @@ function QueryPanelSkeleton() {
           </div>
         </div>
       </CardContent>
-      <CardFooter>
+      <CardContent>
+        <SearchResultsSkeleton />
+      </CardContent>
+      <CardFooter className="mt-auto">
         <Skeleton className="h-10 w-full" />
       </CardFooter>
     </Card>
@@ -1156,7 +1159,7 @@ function QueryPanelSkeleton() {
 
 function SearchResultsSkeleton() {
   return (
-    <Card className="w-full">
+    <Card className="">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="space-y-2">
@@ -1164,13 +1167,13 @@ function SearchResultsSkeleton() {
             <Skeleton className="h-4 w-56" />
           </div>
           <div className="flex gap-2">
-            <Skeleton className="h-9 w-24" />
-            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-9 w-8" />
+            <Skeleton className="h-9 w-8" />
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
+        {Array.from({ length: 1 }).map((_, i) => (
           <Card key={i}>
             <CardHeader>
               <div className="flex justify-between">
@@ -1241,7 +1244,6 @@ export function ResearchTabSkeleton() {
     <div className="h-[calc(100vh-12.5rem)] space-y-6 lg:grid lg:grid-cols-12 lg:gap-2 lg:space-y-0">
       <div className="space-y-6 lg:col-span-5 xl:col-span-4">
         <QueryPanelSkeleton />
-        <SearchResultsSkeleton />
       </div>
 
       <div className="lg:col-span-7 xl:col-span-8">

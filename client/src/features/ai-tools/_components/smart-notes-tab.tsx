@@ -1509,7 +1509,7 @@ export function SmartNotesTab({ courseId }: { courseId?: string }) {
     <TooltipProvider>
       <ResizablePanelGroup
         direction="horizontal"
-        className="h-full min-h-[600px] rounded-lg border"
+        className="h-[calc(100vh-12.5rem)] rounded-lg border"
       >
         <ResizablePanel
           defaultSize={isCollapsed ? 5 : 30}
@@ -1549,7 +1549,7 @@ export function SmartNotesTabSkeleton() {
   return (
     <ResizablePanelGroup
       direction="horizontal"
-      className="h-full min-h-[600px] rounded-lg border"
+      className="h-[calc(100vh-12.5rem)] rounded-lg border"
     >
       <ResizablePanel
         defaultSize={isCollapsed ? 5 : 25}
@@ -1574,7 +1574,7 @@ export function SmartNotesTabSkeleton() {
 
 function NoteManagerSkeleton({ isCollapsed }: { isCollapsed: boolean }) {
   return (
-    <Card className="flex h-full flex-col border-none">
+    <Card className="flex flex-col border-none">
       <CardHeader className="bg-background/50 border-b">
         <div className="flex items-center justify-between">
           <div
@@ -1622,13 +1622,13 @@ function NoteManagerSkeleton({ isCollapsed }: { isCollapsed: boolean }) {
       <CardContent className={cn('flex-1', isCollapsed ? 'p-2' : 'p-3')}>
         {isCollapsed ? (
           <div className="space-y-2">
-            {[...Array(5)].map((_, i) => (
+            {[...Array(2)].map((_, i) => (
               <Skeleton key={i} className="h-12 w-full" />
             ))}
           </div>
         ) : (
           <div className="space-y-2">
-            {[...Array(5)].map((_, i) => (
+            {[...Array(2)].map((_, i) => (
               <div key={i} className="rounded-lg border p-3">
                 <div className="flex items-center gap-3">
                   <Skeleton className="h-4 w-4" />
@@ -1659,7 +1659,7 @@ function NoteManagerSkeleton({ isCollapsed }: { isCollapsed: boolean }) {
 
 function NoteEditorSkeleton() {
   return (
-    <Card className="m-1 flex h-full flex-col">
+    <Card className="m-1 flex flex-col">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -1704,7 +1704,7 @@ function NoteEditorSkeleton() {
 function AiInsightsSkeleton() {
   return (
     <div className="m-1">
-      <Card className="flex h-full flex-col">
+      <Card className="flex flex-col">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -1729,7 +1729,7 @@ function AiInsightsSkeleton() {
             </div>
           </div>
 
-          {[...Array(3)].map((_, i) => (
+          {[...Array(1)].map((_, i) => (
             <div key={i} className="space-y-3 rounded-lg border p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
