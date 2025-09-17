@@ -11,6 +11,7 @@ import { flashcardRouter } from './features/ai/flashcards/flashcard.route';
 import { noteRouter } from './features/ai/notes/note.route';
 import { researchRouter } from './features/ai/research/research.route';
 import { writingRouter } from './features/ai/writing/writing.route';
+import { integrationRouter } from './features/integrations/integration.route';
 import { correlationIdMiddleware } from './middlewares/correlation-id.middleware';
 import { currentUser } from './middlewares/current-user';
 import { errorHandler } from './middlewares/error-handler';
@@ -45,6 +46,8 @@ app.use(currentUser);
 
 app.use('/api/users', healthRouter);
 app.use('/api/users', profileRouter);
+app.use('/api/users/integrations', integrationRouter);
+
 app.use('/api/ai', aiRouter);
 app.use('/api/ai/notes', noteRouter);
 app.use('/api/ai/research', researchRouter);
