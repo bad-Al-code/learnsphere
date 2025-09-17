@@ -85,4 +85,48 @@ export class WritingController {
       next(error);
     }
   }
+
+  public static async handleGenerateDraft(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { courseId, title, prompt } = req.body;
+
+      const newAssignment = await WritingService.generateDraft(
+        req.currentUser.id,
+        courseId,
+        title,
+        prompt
+      );
+
+      res.status(StatusCodes.CREATED).json(newAssignment);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async handleGetFeedback(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { id } = req.params;
+      const { feedbackType } = req.body;
+
+      const feedback = await WritingService.getFeedback(
+        id,
+        req.currentUser.id,
+        feedbackType
+      );
+
+      res.status(StatusCodes.OK).json(feedback);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

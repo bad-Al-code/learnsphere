@@ -6,7 +6,9 @@ import { WritingController } from './writing.controller';
 import {
   assignmentIdParamSchema,
   createAssignmentSchema,
+  generateDraftSchema,
   getAssignmentsQuerySchema,
+  getFeedbackSchema,
   updateAssignmentSchema,
 } from './writing.schema';
 
@@ -126,6 +128,63 @@ router.delete(
   '/:id',
   validateRequest(assignmentIdParamSchema),
   WritingController.deleteAssignment
+);
+
+/**
+ * @openapi
+ * /api/ai/writing/assignments/generate-draft:
+ *   post:
+ *     summary: Generate an initial draft for a new assignment
+ *     tags: [AI Writing Assistant]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/GenerateDraftRequest'
+ *     responses:
+ *       '201':
+ *         description: A new assignment document created with the AI-generated draft.
+ */
+router.post(
+  '/generate-draft',
+  validateRequest(generateDraftSchema),
+  WritingController.handleGenerateDraft
+);
+
+/**
+ * @openapi
+ * /api/ai/writing/assignments/{id}/feedback:
+ *   post:
+ *     summary: Get AI feedback on an existing assignment
+ *     tags: [AI Writing Assistant]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               feedbackType:
+ *                 type: string
+ *                 enum: [Grammar, Style, Clarity, Argument]
+ *     responses:
+ *       '200':
+ *         description: An array of feedback suggestions.
+ */
+router.post(
+  '/:id/feedback',
+  validateRequest(getFeedbackSchema),
+  WritingController.handleGetFeedback
 );
 
 export { router as writingRouter };

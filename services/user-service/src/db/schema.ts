@@ -392,6 +392,7 @@ export const feedbackTypeEnum = pgEnum('feedback_type', [
   'Clarity',
   'Argument',
 ]);
+export type FeedbackType = (typeof feedbackTypeEnum.enumValues)[number];
 
 export const aiWritingFeedback = pgTable('ai_writing_feedback', {
   assignmentId: uuid('assignment_id')
@@ -401,6 +402,8 @@ export const aiWritingFeedback = pgTable('ai_writing_feedback', {
   feedbackText: text('feedback_text').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+export type NewWritingFeedback = typeof aiWritingFeedback.$inferInsert;
+export type WritingFeedback = typeof aiWritingFeedback.$inferSelect;
 
 export const aiWritingAssignmentsRelations = relations(
   aiWritingAssignments,

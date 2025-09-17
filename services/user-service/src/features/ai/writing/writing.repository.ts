@@ -3,7 +3,9 @@ import { and, desc, eq } from 'drizzle-orm';
 import { db } from '../../../db';
 import {
   aiWritingAssignments,
+  aiWritingFeedback,
   NewWritingAssignment,
+  NewWritingFeedback,
   WritingAssignment,
 } from '../../../db/schema';
 
@@ -83,5 +85,11 @@ export class WritingRepository {
     await db
       .delete(aiWritingAssignments)
       .where(eq(aiWritingAssignments.id, id));
+  }
+
+  public static async addFeedback(data: NewWritingFeedback[]) {
+    if (data.length === 0) return [];
+
+    return db.insert(aiWritingFeedback).values(data).returning();
   }
 }
