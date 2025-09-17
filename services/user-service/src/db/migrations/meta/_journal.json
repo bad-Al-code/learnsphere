@@ -85,6 +85,13 @@
       "when": 1758115857280,
       "tag": "0011_clumsy_rawhide_kid",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1758125747499,
+      "tag": "0012_quiet_fat_cobra",
+      "breakpoints": true
     }
   ]
 }

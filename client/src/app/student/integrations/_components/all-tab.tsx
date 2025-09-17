@@ -89,7 +89,8 @@ function IntegrationCard({
           <Badge variant="secondary">Not Connected</Badge>
         )}
       </CardContent>
-      <CardFooter>
+
+      <CardFooter className="mt-auto">
         {integration ? (
           <div className="flex w-full items-center justify-between">
             <Button
@@ -122,45 +123,6 @@ function IntegrationCard({
           </Button>
         )}
       </CardFooter>
-    </Card>
-  );
-}
-
-function IntegrationCardSkeleton() {
-  return (
-    <Card className="">
-      <CardHeader className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-6 w-6" />
-          <Skeleton className="h-5 w-32" />
-        </div>
-        <Skeleton className="h-4 w-full" />
-      </CardHeader>
-      <CardContent className="flex-1 space-y-3">
-        <Skeleton className="h-6 w-24" />
-        <div className="flex gap-2">
-          <Skeleton className="h-5 w-20" />
-          <Skeleton className="h-5 w-24" />
-        </div>
-      </CardContent>
-      <CardFooter>
-        <Skeleton className="h-10 w-full" />
-      </CardFooter>
-    </Card>
-  );
-}
-
-function IntegrationCategoryCardSkeleton() {
-  return (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-6 w-1/3" />
-        <Skeleton className="mt-2 h-4 w-1/4" />
-      </CardHeader>
-      <CardContent className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-        <IntegrationCardSkeleton />
-        <IntegrationCardSkeleton />
-      </CardContent>
     </Card>
   );
 }
@@ -249,5 +211,44 @@ export function AllTabSkeleton() {
         <IntegrationCategoryCardSkeleton />
       </div>
     </div>
+  );
+}
+
+function IntegrationCardSkeleton() {
+  return (
+    <Card className="">
+      <CardHeader className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-6 w-6" />
+          <Skeleton className="h-5 w-32" />
+        </div>
+        <Skeleton className="h-4 w-full" />
+      </CardHeader>
+      <CardContent className="flex-1 space-y-3">
+        <Skeleton className="h-6 w-24" />
+        <div className="flex gap-2">
+          <Skeleton className="h-5 w-20" />
+          <Skeleton className="h-5 w-24" />
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Skeleton className="h-10 w-full" />
+      </CardFooter>
+    </Card>
+  );
+}
+
+function IntegrationCategoryCardSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-1/3" />
+        <Skeleton className="mt-2 h-4 w-1/4" />
+      </CardHeader>
+      <CardContent className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+        <IntegrationCardSkeleton />
+        <IntegrationCardSkeleton />
+      </CardContent>
+    </Card>
   );
 }

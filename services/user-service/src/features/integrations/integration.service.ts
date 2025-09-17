@@ -1,5 +1,6 @@
 import { OAuth2Client } from 'google-auth-library';
 import { env } from '../../config/env';
+import logger from '../../config/logger';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../../errors';
 import { CryptoService } from '../../services/crypto.service';
 import { IntegrationRepository } from './integration.repository';
@@ -78,24 +79,56 @@ export class IntegrationService {
     return url;
   }
 
-  public static async handleGoogleOAuthCallback(code: string, state: string) {
+  /**
+   * Handles the Google OAuth 2.0 callback by:
+   *  - Exchanging the authorization code for tokens.
+   *  - Validating the presence of an access token.
+   *  - Encrypting and saving the tokens to the database via `IntegrationRepository`.
+   *  - Updating refresh token only if a new one is provided by Google.
+   * @param {string} code - The authorization code returned by Google after user consent.
+   * @param {string} state - The OAuth state parameter, used here as the user ID.
+   * @returns {Promise<void>} Resolves once the integration has been successfully stored.
+   */
+  public static async handleGoogleOAuthCallback(
+    code: string,
+    state: string
+  ): Promise<void> {
     const userId = state;
     const oauth2Client = this.getGoogleOAuth2Client();
 
-    const { tokens } = await oauth2Client.getToken(code);
+    try {
+      logger.info(`Exchanging OAuth code for tokens for user: ${userId}`);
+      const { tokens } = await oauth2Client.getToken(code);
 
-    if (!tokens.access_token || !tokens.refresh_token) {
-      throw new BadRequestError('Failed to retrieve tokens from Google.');
+      if (!tokens.access_token) {
+        throw new BadRequestError(
+          'Failed to retrieve access token from Google.'
+        );
+      }
+
+      logger.info(
+        `Tokens received. Encrypting and saving to database for user: ${userId}`
+      );
+
+      await IntegrationRepository.upsertIntegration({
+        userId,
+        provider: 'google_calendar',
+        accessToken: CryptoService.encrypt(tokens.access_token),
+        refreshToken: tokens.refresh_token
+          ? CryptoService.encrypt(tokens.refresh_token)
+          : undefined,
+        expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
+        scopes: [env.GOOGLE_CALENDAR_SCOPES],
+        status: 'active',
+      });
+
+      logger.info(`Successfully saved integration for user: ${userId}`);
+    } catch (error) {
+      logger.error(`Error during Google OAuth callback for user ${userId}`, {
+        error,
+      });
+
+      throw error;
     }
-
-    await IntegrationRepository.upsertIntegration({
-      userId,
-      provider: 'google_calendar',
-      accessToken: CryptoService.encrypt(tokens.access_token),
-      refreshToken: CryptoService.encrypt(tokens.refresh_token),
-      expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
-      scopes: [env.GOOGLE_CALENDAR_SCOPES],
-      status: 'active',
-    });
   }
 }

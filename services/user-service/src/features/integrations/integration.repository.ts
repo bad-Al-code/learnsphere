@@ -41,7 +41,17 @@ export class IntegrationRepository {
     await db.delete(userIntegrations).where(eq(userIntegrations.id, id));
   }
 
-  public static async upsertIntegration(data: NewUserIntegration) {
+  /**
+   * Inserts a new user integration into the database, or updates the existing one
+   * if an integration with the same user and provider already exists.
+   * - Uses `userId` + `provider` as the conflict target.
+   * - On conflict, updates tokens, expiration, scopes, status, and `updatedAt`.
+   * @param {NewUserIntegration} data - The integration data to insert or update.
+   * @returns {Promise<void>} Resolves when the operation is complete.
+   */
+  public static async upsertIntegration(
+    data: NewUserIntegration
+  ): Promise<void> {
     await db
       .insert(userIntegrations)
       .values(data)

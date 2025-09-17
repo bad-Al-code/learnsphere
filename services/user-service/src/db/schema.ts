@@ -133,7 +133,7 @@ export const userIntegrations = pgTable(
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
-  (table) => [unique().on(table.userId, table.provider)]
+  (table) => [unique('user_provider_unique').on(table.userId, table.provider)]
 );
 export type UserIntegration = typeof userIntegrations.$inferSelect;
 export type NewUserIntegration = typeof userIntegrations.$inferInsert;
