@@ -1,24 +1,6 @@
 'use client';
 
-import {
-  BookOpen,
-  Calendar,
-  CheckCircle,
-  Clock,
-  Cloud,
-  Database,
-  ExternalLink,
-  FileText,
-  Mail,
-  Send,
-  Settings,
-  Slack,
-  Sparkles,
-  TriangleAlert,
-  Users,
-  XCircle,
-} from 'lucide-react';
-import React from 'react';
+import { CheckCircle, ExternalLink, XCircle } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,287 +14,114 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
+import {
+  allIntegrations,
+  categories,
+  IntegrationDetails,
+  IntegrationProvider,
+} from '../config/integrations.config';
+import {
+  useConnectGoogle,
+  useDeleteIntegration,
+  useGetIntegrations,
+} from '../hooks/useIntegrations';
+import { PublicIntegration } from '../schema/integration.schema';
 
-type TStat = {
-  label: string;
-  value: string;
-  icon: React.ElementType;
-};
-
-type TConnectionStatus = 'connected' | 'syncing' | 'disconnected';
-
-type TIntegration = {
-  id: string;
-  name: string;
-  icon: React.ElementType;
-  description: string;
-  status: TConnectionStatus;
-  lastSync?: string;
-  tags: string[];
-};
-
-type TIntegrationCategory = {
-  id: string;
-  title: string;
-  icon: React.ElementType;
-  integrations: TIntegration[];
-};
-
-const statsData: TStat[] = [
-  { label: 'Connected', value: '5', icon: Database },
-  { label: 'Active', value: '4', icon: CheckCircle },
-  { label: 'Last Sync', value: '5m ago', icon: Clock },
-];
-
-const integrationsData: TIntegrationCategory[] = [
-  {
-    id: 'cat1',
-    title: 'Calendar & Scheduling',
-    icon: Calendar,
-    integrations: [
-      {
-        id: 'int1',
-        name: 'Google Calendar',
-        icon: Calendar,
-        description:
-          'Sync assignments and study sessions with your Google Calendar',
-        status: 'connected',
-        lastSync: '5m ago',
-        tags: [
-          'Assignment deadlines',
-          'Study sessions',
-          'Class schedules',
-          '+1 more',
-        ],
-      },
-      {
-        id: 'int2',
-        name: 'Outlook Calendar',
-        icon: Calendar,
-        description: 'Integrate with Microsoft Outlook for seamless scheduling',
-        status: 'disconnected',
-        tags: ['Assignment deadlines', 'Study sessions', 'Meeting integration'],
-      },
-    ],
-  },
-  {
-    id: 'cat2',
-    title: 'Email & Notifications',
-    icon: Mail,
-    integrations: [
-      {
-        id: 'int3',
-        name: 'Gmail',
-        icon: Mail,
-        description: 'Receive assignment notifications and updates via email',
-        status: 'connected',
-        lastSync: '2m ago',
-        tags: [
-          'Assignment notifications',
-          'Grade updates',
-          'Course announcements',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'cat3',
-    title: 'Cloud Storage',
-    icon: Cloud,
-    integrations: [
-      {
-        id: 'int4',
-        name: 'Google Drive',
-        icon: Cloud,
-        description: 'Store and access your assignments and course materials',
-        status: 'connected',
-        lastSync: 'Just now',
-        tags: ['File storage', 'Document sharing', 'Automatic backup'],
-      },
-      {
-        id: 'int5',
-        name: 'Dropbox',
-        icon: Cloud,
-        description: 'Sync files and collaborate on projects',
-        status: 'disconnected',
-        tags: ['File sync', 'Team collaboration', 'Version control'],
-      },
-    ],
-  },
-  {
-    id: 'cat4',
-    title: 'Learning Management',
-    icon: BookOpen,
-    integrations: [
-      {
-        id: 'int6',
-        name: 'Canvas LMS',
-        icon: BookOpen,
-        description: 'Import courses, assignments, and grades from Canvas',
-        status: 'syncing',
-        lastSync: '16m ago',
-        tags: ['Course import', 'Assignment sync', 'Grade tracking', '+1 more'],
-      },
-      {
-        id: 'int7',
-        name: 'Blackboard Learn',
-        icon: BookOpen,
-        description: 'Connect with Blackboard for course management',
-        status: 'disconnected',
-        tags: ['Course content', 'Assignment submission', 'Grade book'],
-      },
-      {
-        id: 'int8',
-        name: 'Moodle',
-        icon: BookOpen,
-        description: 'Integrate with Moodle learning platform',
-        status: 'disconnected',
-        tags: ['Course materials', 'Quiz integration', 'Forum discussions'],
-      },
-    ],
-  },
-  {
-    id: 'cat5',
-    title: 'Communication',
-    icon: Users,
-    integrations: [
-      {
-        id: 'int9',
-        name: 'Slack',
-        icon: Slack,
-        description: 'Get study group notifications and updates',
-        status: 'connected',
-        lastSync: '31m ago',
-        tags: ['Study group chat', 'Assignment reminders', 'Collaboration'],
-      },
-    ],
-  },
-  {
-    id: 'cat6',
-    title: 'Productivity Tools',
-    icon: Sparkles,
-    integrations: [
-      {
-        id: 'int10',
-        name: 'Notion',
-        icon: FileText,
-        description: 'Sync notes and study materials with Notion',
-        status: 'disconnected',
-        tags: ['Note taking', 'Task management', 'Knowledge base'],
-      },
-    ],
-  },
-];
-
-function IntegrationCard({ integration }: { integration: TIntegration }) {
-  const isConnected =
-    integration.status === 'connected' || integration.status === 'syncing';
-
-  return (
-    <Card className="">
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <integration.icon className="text-muted-foreground h-5 w-5" />
-          <h3 className="font-semibold">{integration.name}</h3>
-          {integration.status === 'connected' && (
-            <CheckCircle className="h-4 w-4 text-emerald-500" />
-          )}
-          {integration.status === 'syncing' && (
-            <TriangleAlert className="h-4 w-4 text-blue-500" />
-          )}
-        </div>
-        <CardDescription>{integration.description}</CardDescription>
-      </CardHeader>
-
-      <CardContent className="flex-1 space-y-3">
-        <div className="flex items-center gap-2 text-xs">
-          {integration.status === 'connected' && (
-            <Badge
-              variant="outline"
-              className="border-emerald-500 text-emerald-500"
-            >
-              Connected
-            </Badge>
-          )}
-          {integration.status === 'syncing' && (
-            <Badge variant="outline" className="border-blue-500 text-blue-500">
-              Syncing...
-            </Badge>
-          )}
-          {integration.status === 'disconnected' && (
-            <Badge variant="destructive">Disconnected</Badge>
-          )}
-          {integration.lastSync && (
-            <p className="text-muted-foreground">
-              Last sync: {integration.lastSync}
-            </p>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {integration.tags.map((tag) => (
-            <Badge key={tag} variant="secondary">
-              {tag}
-            </Badge>
-          ))}
-        </div>
-      </CardContent>
-
-      <CardFooter>
-        {isConnected ? (
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1"
-            >
-              <Switch defaultChecked />
-              <label className="text-sm">Enabled</label>
-            </Button>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <Settings className="h-4 w-4" />
-                Settings
-              </Button>
-              <Button variant="outline" size="sm">
-                <XCircle className="h-4 w-4" />
-                Disconnect
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <Button variant="secondary" className="w-full">
-            <ExternalLink className="h-4 w-4" /> Connect
-          </Button>
-        )}
-      </CardFooter>
-    </Card>
-  );
-}
-
-function IntegrationCategoryCard({
-  category,
+function IntegrationCard({
+  details,
+  integration,
 }: {
-  category: TIntegrationCategory;
+  details: IntegrationDetails;
+  integration: PublicIntegration | undefined;
 }) {
-  const connectedCount = category.integrations.filter(
-    (i) => i.status !== 'disconnected'
-  ).length;
+  const { mutate: connectGoogle, isPending: isConnecting } = useConnectGoogle();
+  const { mutate: deleteIntegration, isPending: isDeleting } =
+    useDeleteIntegration();
+
+  const handleConnect = (provider: IntegrationProvider) => {
+    if (provider === 'google_calendar') {
+      connectGoogle(undefined, {
+        onSuccess: (result) => {
+          if (result.data) window.location.href = result.data.redirectUrl;
+          else toast.error(result.error);
+        },
+
+        onError: (err) => toast.error(err.message),
+      });
+    } else {
+      toast.info(`${details.name} integration is coming soon!`);
+    }
+  };
+
+  const handleDisconnect = () => {
+    if (!integration) return;
+
+    deleteIntegration(integration.id, {
+      onSuccess: () => toast.success(`${details.name} has been disconnected.`),
+      onError: (err) => toast.error(err.message),
+    });
+  };
+
+  const isPending = isConnecting || isDeleting;
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <category.icon className="h-5 w-5" />
-          <CardTitle>{category.title}</CardTitle>
+          <details.icon className="text-muted-foreground h-5 w-5" />
+          <h3 className="font-semibold">{details.name}</h3>
+          {integration?.status === 'active' && (
+            <CheckCircle className="h-4 w-4 text-emerald-500" />
+          )}
         </div>
-        <CardDescription>
-          {connectedCount} of {category.integrations.length} connected
-        </CardDescription>
+        <CardDescription>{details.description}</CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-        {category.integrations.map((integration) => (
-          <IntegrationCard key={integration.id} integration={integration} />
-        ))}
+      <CardContent>
+        {integration ? (
+          <Badge
+            variant="outline"
+            className="border-emerald-500 text-emerald-500"
+          >
+            Connected
+          </Badge>
+        ) : (
+          <Badge variant="secondary">Not Connected</Badge>
+        )}
       </CardContent>
+      <CardFooter>
+        {integration ? (
+          <div className="flex w-full items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="pointer-events-none flex items-center gap-2"
+            >
+              <Switch checked={true} disabled />
+              <label className="text-sm">Enabled</label>
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDisconnect}
+              disabled={isPending}
+            >
+              <XCircle className="h-4 w-4" />
+              Disconnect
+            </Button>
+          </div>
+        ) : (
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => handleConnect(details.provider)}
+            disabled={isPending}
+          >
+            <ExternalLink className="h-4 w-4" />
+            {isConnecting ? 'Redirecting...' : 'Connect'}
+          </Button>
+        )}
+      </CardFooter>
     </Card>
   );
 }
@@ -357,34 +166,63 @@ function IntegrationCategoryCardSkeleton() {
 }
 
 export function AllTab() {
+  const { data: connectedIntegrations, isLoading } = useGetIntegrations();
+
+  if (isLoading) {
+    return <AllTabSkeleton />;
+  }
+
+  const connectedMap = new Map(
+    connectedIntegrations?.map((i) => [i.provider, i])
+  );
+
+  const stats = {
+    connected: connectedIntegrations?.length || 0,
+    active:
+      connectedIntegrations?.filter((i) => i.status === 'active').length || 0,
+  };
+
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {statsData.map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="p-4">
-              <p className="text-muted-foreground text-sm">{stat.label}</p>
-              <div className="mt-1 flex items-center gap-2">
-                <stat.icon className="text-muted-foreground h-5 w-5" />
-                <p className="text-2xl font-bold">{stat.value}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-
-        <Card className="flex items-center justify-center">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <Card>
           <CardContent className="p-4">
-            <Button variant="secondary" className="w-full">
-              <Send className="h-4 w-4" />
-              Sync All
-            </Button>
+            <p className="text-muted-foreground text-sm">Total Connected</p>
+            <p className="text-2xl font-bold">{stats.connected}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-muted-foreground text-sm">Actively Synced</p>
+            <p className="text-2xl font-bold">{stats.active}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-muted-foreground text-sm">
+              Integrations Available
+            </p>
+            <p className="text-2xl font-bold">{allIntegrations.length}</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="space-y-2">
-        {integrationsData.map((category) => (
-          <IntegrationCategoryCard key={category.id} category={category} />
+        {Object.entries(categories).map(([categoryTitle, integrations]) => (
+          <Card key={categoryTitle}>
+            <CardHeader>
+              <CardTitle>{categoryTitle}</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              {integrations.map((details) => (
+                <IntegrationCard
+                  key={details.provider}
+                  details={details}
+                  integration={connectedMap.get(details.provider)}
+                />
+              ))}
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>
@@ -393,7 +231,7 @@ export function AllTab() {
 
 export function AllTabSkeleton() {
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i}>

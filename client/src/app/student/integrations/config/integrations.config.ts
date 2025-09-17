@@ -65,3 +65,19 @@ export const allIntegrations: IntegrationDetails[] = [
     description: 'Sync notes and study materials with Notion.',
   },
 ];
+
+export const categories = {
+  'Calendar & Scheduling': allIntegrations.filter((i) =>
+    i.provider.includes('calendar')
+  ),
+  'Email & Notifications': allIntegrations.filter((i) =>
+    i.provider.includes('gmail')
+  ),
+  'Cloud Storage': allIntegrations.filter(
+    (i) => i.provider.includes('drive') || i.provider.includes('dropbox')
+  ),
+  Communication: allIntegrations.filter((i) => i.provider.includes('slack')),
+  'Productivity Tools': allIntegrations.filter((i) =>
+    i.provider.includes('notion')
+  ),
+};
