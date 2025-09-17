@@ -13,6 +13,10 @@ const envSchema = z.object({
 
   JWT_SECRET: z.string().min(1, 'JWT_SECRET is required'),
   COOKIE_PARSER_SECRET: z.string().min(1, 'COOKIE_PARSER_SECRET is required'),
+  ENCRYPTION_KEY: z
+    .string()
+    .length(64, 'ENCRYPTION_KEY must be a 64-character hex string (32 bytes).'),
+
   GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
 });
 
