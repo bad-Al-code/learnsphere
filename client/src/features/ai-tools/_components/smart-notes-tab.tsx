@@ -87,6 +87,7 @@ import {
   useUpdateNote,
 } from '../hooks/useAiNotes';
 import { NoteInsights, UserNote } from '../schemas/notes.schema';
+import { CourseSelectionScreen } from './common/CourseSelectionScrren';
 
 type TInsightCategory = 'concepts' | 'actions' | 'gaps';
 type TSortOption = 'recent' | 'title' | 'created' | 'analyzed';
@@ -1499,22 +1500,11 @@ export function SmartNotesTab({ courseId }: { courseId?: string }) {
 
   if (!courseId) {
     return (
-      <div className="flex h-full min-h-[600px] items-center justify-center">
-        <div className="space-y-4 text-center">
-          <div className="bg-muted mx-auto flex h-16 w-16 items-center justify-center rounded-full">
-            <BookOpen className="text-muted-foreground h-8 w-8" />
-          </div>
-          <div>
-            <h3 className="mb-2 text-lg font-medium">No Course Selected</h3>
-            <p className="text-muted-foreground">
-              Please select a course to start taking smart notes.
-            </p>
-          </div>
-        </div>
+      <div className="h-[calc(100vh-12.5rem)]">
+        <CourseSelectionScreen />
       </div>
     );
   }
-
   return (
     <TooltipProvider>
       <ResizablePanelGroup

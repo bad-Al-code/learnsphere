@@ -62,6 +62,7 @@ import {
   QuizOption,
   QuizQuestion,
 } from '../schemas/quiz.schema';
+import { CourseSelectionScreen } from './common/CourseSelectionScrren';
 
 function QuizStats({
   quiz,
@@ -982,6 +983,14 @@ function GenerateNewQuiz({
 
 export function QuizTab({ courseId }: { courseId?: string }) {
   const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null);
+
+  if (!courseId) {
+    return (
+      <div className="h-[calc(100vh-12.5rem)]">
+        <CourseSelectionScreen />
+      </div>
+    );
+  }
 
   return (
     <div className="grid h-full min-h-[700px] grid-cols-1 gap-2 lg:grid-cols-2">

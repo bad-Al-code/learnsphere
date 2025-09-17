@@ -90,6 +90,7 @@ import {
   ResearchFinding,
   TempFinding,
 } from '../schemas/research.schema';
+import { CourseSelectionScreen } from './common/CourseSelectionScrren';
 
 function ResearchQueryPanel({
   setSearchResults,
@@ -1213,15 +1214,8 @@ export function ResearchTab({ courseId }: { courseId?: string }) {
 
   if (!courseId) {
     return (
-      <div className="flex h-[calc(100vh-12.5rem)] flex-col items-center justify-center py-12 text-center">
-        <div className="bg-muted mb-4 rounded-full p-4">
-          <Search className="text-muted-foreground h-8 w-8" />
-        </div>
-        <h3 className="mb-2 text-lg font-semibold">Select a Course</h3>
-        <p className="text-muted-foreground max-w-md">
-          Please select a course from your dashboard to begin your AI-powered
-          research journey.
-        </p>
+      <div className="h-[calc(100vh-12.5rem)]">
+        <CourseSelectionScreen />
       </div>
     );
   }
