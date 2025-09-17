@@ -71,6 +71,13 @@
       "when": 1758040259785,
       "tag": "0009_known_black_crow",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1758087804230,
+      "tag": "0010_harsh_retro_girl",
+      "breakpoints": true
     }
   ]
 }

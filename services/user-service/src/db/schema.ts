@@ -92,6 +92,7 @@ export const profilesRelations = relations(profiles, ({ many }) => ({
   aiQuizzes: many(aiQuizzes),
   aiResearchBoards: many(aiResearchBoards),
   aiFlashcardDecks: many(aiFlashcardDecks),
+  aiWritingAssignments: many(aiWritingAssignments),
 }));
 
 /** AI Tutor */
@@ -365,6 +366,58 @@ export const userFlashcardProgressRelations = relations(
     card: one(aiFlashcards, {
       fields: [userFlashcardProgress.cardId],
       references: [aiFlashcards.id],
+    }),
+  })
+);
+
+/** AI WRITING WORKSPACE*/
+export const aiWritingAssignments = pgTable('ai_writing_assignments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => profiles.userId, { onDelete: 'cascade' }),
+  courseId: uuid('course_id').notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  prompt: text('prompt'),
+  content: text('content'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const feedbackTypeEnum = pgEnum('feedback_type', [
+  'Grammar',
+  'Style',
+  'Clarity',
+  'Argument',
+]);
+
+export const aiWritingFeedback = pgTable('ai_writing_feedback', {
+  assignmentId: uuid('assignment_id')
+    .notNull()
+    .references(() => aiWritingAssignments.id, { onDelete: 'cascade' }),
+  feedbackType: feedbackTypeEnum('feedback_type').notNull(),
+  feedbackText: text('feedback_text').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const aiWritingAssignmentsRelations = relations(
+  aiWritingAssignments,
+  ({ one, many }) => ({
+    user: one(profiles, {
+      fields: [aiWritingAssignments.userId],
+      references: [profiles.userId],
+    }),
+
+    feedback: many(aiWritingFeedback),
+  })
+);
+
+export const aiWritingFeedbackRelations = relations(
+  aiWritingFeedback,
+  ({ one }) => ({
+    assignment: one(aiWritingAssignments, {
+      fields: [aiWritingFeedback.assignmentId],
+      references: [aiWritingAssignments.id],
     }),
   })
 );
