@@ -62,9 +62,13 @@ export class IntegrationService {
   }
 
   /**
-   * Generates a Google OAuth 2.0 authorization URL for the given user.
+   * Generates a Google OAuth 2.0 authorization URL with a state payload
+   * containing the user ID and provider. Used internally by provider-specific
+   * helpers.
    * @private
    * @param {string} userId - The unique ID of the user requesting Google authentication.
+   * @param {string[]} scopes - List of OAuth scopes to request from Google.
+   * @param {string} provider - The integration provider identifier (e.g., "google_calendar").
    * @returns {string} A URL that the user can visit to grant access to their Google account.
    */
   private static generateGoogleAuthUrl(
@@ -86,6 +90,11 @@ export class IntegrationService {
     return url;
   }
 
+  /**
+   * Generates a Google OAuth 2.0 authorization URL for Google Calendar.
+   * @param {string} userId - The unique ID of the user requesting authentication.
+   * @returns {string} A Google Calendar OAuth consent URL.
+   */
   public static generateGoogleCalendarAuthUrl(userId: string): string {
     return this.generateGoogleAuthUrl(
       userId,
@@ -94,6 +103,11 @@ export class IntegrationService {
     );
   }
 
+  /**
+   * Generates a Google OAuth 2.0 authorization URL for Google Drive.
+   * @param {string} userId - The unique ID of the user requesting authentication.
+   * @returns {string} A Google Drive OAuth consent URL.
+   */
   public static generateGoogleDriveAuthUrl(userId: string): string {
     return this.generateGoogleAuthUrl(
       userId,
@@ -102,6 +116,11 @@ export class IntegrationService {
     );
   }
 
+  /**
+   * Generates a Google OAuth 2.0 authorization URL for Gmail.
+   * @param {string} userId - The unique ID of the user requesting authentication.
+   * @returns {string} A Gmail OAuth consent URL.
+   */
   public static generateGmailAuthUrl(userId: string): string {
     return this.generateGoogleAuthUrl(
       userId,

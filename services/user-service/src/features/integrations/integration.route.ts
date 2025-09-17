@@ -34,7 +34,9 @@ router.get('/', IntegrationController.getIntegrations);
  *       - in: path
  *         name: id
  *         required: true
- *         schema: { type: string, format: uuid }
+ *         schema:
+ *           type: string
+ *           format: uuid
  *         description: The ID of the integration to delete.
  *     responses:
  *       '204':
@@ -48,22 +50,47 @@ router.delete(
 
 /**
  * @openapi
- * /api/users/integrations/google/connect:
+ * /api/users/integrations/google-calendar/connect:
  *   get:
- *     summary: Get a redirect URL to start the Google OAuth flow
+ *     summary: Get a redirect URL to start the Google Calendar OAuth flow
  *     tags: [Integrations]
  *     security:
  *       - cookieAuth: []
  *     responses:
  *       '200':
- *         description: The URL to redirect the user to for Google consent.
+ *         description: The URL to redirect the user to for Google Calendar consent.
  */
 router.get(
   '/google-calendar/connect',
   IntegrationController.connectGoogleCalendar
 );
 
+/**
+ * @openapi
+ * /api/users/integrations/google-drive/connect:
+ *   get:
+ *     summary: Get a redirect URL to start the Google Drive OAuth flow
+ *     tags: [Integrations]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: The URL to redirect the user to for Google Drive consent.
+ */
 router.get('/google-drive/connect', IntegrationController.connectGoogleDrive);
+
+/**
+ * @openapi
+ * /api/users/integrations/gmail/connect:
+ *   get:
+ *     summary: Get a redirect URL to start the Gmail OAuth flow
+ *     tags: [Integrations]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: The URL to redirect the user to for Gmail consent.
+ */
 router.get('/gmail/connect', IntegrationController.connectGmail);
 
 /**
@@ -72,7 +99,7 @@ router.get('/gmail/connect', IntegrationController.connectGmail);
  *   get:
  *     summary: OAuth callback endpoint for Google
  *     tags: [Integrations]
- *     description: This endpoint is for Google to redirect to. It should not be called directly.
+ *     description: Google redirects here after user consent. This should not be called directly.
  *     responses:
  *       '302':
  *         description: Redirects the user back to the frontend integrations page.
