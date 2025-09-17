@@ -1,3 +1,4 @@
+import logger from '../../../config/logger';
 import { WritingAssignment, WritingFeedback } from '../../../db/schema';
 import {
   BadRequestError,
@@ -18,6 +19,7 @@ import { WritingRepository } from './writing.repository';
 import {
   DraftResponse,
   draftResponseSchemaZod,
+  FeedbackResponse,
   feedbackResponseSchemaZod,
 } from './writing.schema';
 
@@ -198,7 +200,9 @@ export class WritingService {
       assignment.content,
       feedbackType
     );
-    const apiPrompt = "Provide your feedback now based on the user's text.";
+
+    const apiPrompt =
+      'Please return an array of suggestions in the exact format: originalText, suggestion, explanation.';
 
     const response = await this.provider.models.generateContent({
       model: this.model,
@@ -215,9 +219,19 @@ export class WritingService {
       throw new Error('No response text from AI provider.');
     }
 
-    const parsed = feedbackResponseSchemaZod.parse(JSON.parse(text));
-    if (parsed.suggestions.length === 0) {
-      throw new Error('AI did not return any feedback suggestions.');
+    let parsed: FeedbackResponse;
+    try {
+      parsed = feedbackResponseSchemaZod.parse(JSON.parse(text));
+    } catch (err) {
+      throw new Error(`AI response failed validation: ${err}`);
+    }
+
+    if (!parsed.suggestions || parsed.suggestions.length === 0) {
+      logger.warn(
+        'AI returned no feedback suggestions, returning empty array.'
+      );
+
+      return [];
     }
 
     const feedbackToSave = parsed.suggestions.map((s) => ({
