@@ -44,6 +44,7 @@ function IntegrationCard({ details }: { details: IntegrationDetails }) {
           if (result.data) window.location.href = result.data.redirectUrl;
           else toast.error(result.error);
         },
+
         onError: (err) => toast.error(err.message),
       });
     } else {

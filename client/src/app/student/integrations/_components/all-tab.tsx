@@ -22,7 +22,9 @@ import {
   IntegrationProvider,
 } from '../config/integrations.config';
 import {
+  useConnectGmail,
   useConnectGoogleCalendar,
+  useConnectGoogleDrive,
   useDeleteIntegration,
   useGetIntegrations,
 } from '../hooks/useIntegrations';
@@ -35,17 +37,32 @@ function IntegrationCard({
   details: IntegrationDetails;
   integration: PublicIntegration | undefined;
 }) {
-  const { mutate: connectGoogle, isPending: isConnecting } =
+  const { mutate: connectCalendar, isPending: isConnectingCalendar } =
     useConnectGoogleCalendar();
+  const { mutate: connectDrive, isPending: isConnectingDrive } =
+    useConnectGoogleDrive();
+  const { mutate: connectGmail, isPending: isConnectingGmail } =
+    useConnectGmail();
   const { mutate: deleteIntegration, isPending: isDeleting } =
     useDeleteIntegration();
 
   const handleConnect = (provider: IntegrationProvider) => {
-    if (provider === 'google_calendar') {
-      connectGoogle(undefined, {
+    const connectActions = {
+      google_calendar: connectCalendar,
+      google_drive: connectDrive,
+      gmail: connectGmail,
+    };
+
+    const action = connectActions[provider as keyof typeof connectActions];
+
+    if (action) {
+      action(undefined, {
         onSuccess: (result) => {
-          if (result.data) window.location.href = result.data.redirectUrl;
-          else toast.error(result.error);
+          if (result.data) {
+            window.location.href = result.data.redirectUrl;
+          } else {
+            toast.error(result.error);
+          }
         },
 
         onError: (err) => toast.error(err.message),
@@ -64,7 +81,11 @@ function IntegrationCard({
     });
   };
 
-  const isPending = isConnecting || isDeleting;
+  const isPending =
+    isConnectingCalendar ||
+    isConnectingDrive ||
+    isConnectingGmail ||
+    isDeleting;
 
   return (
     <Card>
@@ -76,8 +97,10 @@ function IntegrationCard({
             <CheckCircle className="h-4 w-4 text-emerald-500" />
           )}
         </div>
+
         <CardDescription>{details.description}</CardDescription>
       </CardHeader>
+
       <CardContent>
         {integration ? (
           <Badge
@@ -100,8 +123,10 @@ function IntegrationCard({
               className="pointer-events-none flex items-center gap-2"
             >
               <Switch checked={true} disabled />
+
               <label className="text-sm">Enabled</label>
             </Button>
+
             <Button
               variant="destructive"
               size="sm"
@@ -120,7 +145,10 @@ function IntegrationCard({
             disabled={isPending}
           >
             <ExternalLink className="h-4 w-4" />
-            {isConnecting ? 'Redirecting...' : 'Connect'}
+
+            {isConnectingCalendar || isConnectingDrive || isConnectingGmail
+              ? 'Redirecting...'
+              : 'Connect'}
           </Button>
         )}
       </CardFooter>
@@ -154,12 +182,14 @@ export function AllTab() {
             <p className="text-2xl font-bold">{stats.connected}</p>
           </CardContent>
         </Card>
+
         <Card>
           <CardContent className="p-4">
             <p className="text-muted-foreground text-sm">Actively Synced</p>
             <p className="text-2xl font-bold">{stats.active}</p>
           </CardContent>
         </Card>
+
         <Card>
           <CardContent className="p-4">
             <p className="text-muted-foreground text-sm">
@@ -176,6 +206,7 @@ export function AllTab() {
             <CardHeader>
               <CardTitle>{categoryTitle}</CardTitle>
             </CardHeader>
+
             <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-2">
               {integrations.map((details) => (
                 <IntegrationCard
@@ -207,6 +238,7 @@ export function AllTabSkeleton() {
           </Card>
         ))}
       </div>
+
       <div className="space-y-4">
         <IntegrationCategoryCardSkeleton />
         <IntegrationCategoryCardSkeleton />
@@ -225,6 +257,7 @@ function IntegrationCardSkeleton() {
         </div>
         <Skeleton className="h-4 w-full" />
       </CardHeader>
+
       <CardContent className="flex-1 space-y-3">
         <Skeleton className="h-6 w-24" />
         <div className="flex gap-2">
@@ -232,6 +265,7 @@ function IntegrationCardSkeleton() {
           <Skeleton className="h-5 w-24" />
         </div>
       </CardContent>
+
       <CardFooter>
         <Skeleton className="h-10 w-full" />
       </CardFooter>
@@ -246,6 +280,7 @@ function IntegrationCategoryCardSkeleton() {
         <Skeleton className="h-6 w-1/3" />
         <Skeleton className="mt-2 h-4 w-1/4" />
       </CardHeader>
+
       <CardContent className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         <IntegrationCardSkeleton />
         <IntegrationCardSkeleton />
