@@ -259,8 +259,12 @@ function IntegrationCard({ integration }: { integration: TIntegration }) {
 
       <CardFooter>
         {isConnected ? (
-          <div className="mx-auto flex w-full items-center justify-between">
-            <Button variant="ghost" className="flex items-center gap-1">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1"
+            >
               <Switch defaultChecked />
               <label className="text-sm">Enabled</label>
             </Button>

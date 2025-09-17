@@ -1,74 +1,61 @@
 'use client';
 
-import {
-  BookOpen,
-  Calendar,
-  Cloud,
-  ExternalLink,
-  FileText,
-} from 'lucide-react';
-import React from 'react';
+import { ExternalLink } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
+import {
+  allIntegrations,
+  IntegrationDetails,
+  IntegrationProvider,
+} from '../config/integrations.config';
+import { useConnectGoogle, useGetIntegrations } from '../hooks/useIntegrations';
 
-type TIntegration = {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ElementType;
-};
+function IntegrationCard({ details }: { details: IntegrationDetails }) {
+  const { mutate: connectGoogle, isPending } = useConnectGoogle();
 
-const integrationsData: TIntegration[] = [
-  {
-    id: '1',
-    name: 'Outlook Calendar',
-    description: 'Integrate with Microsoft Outlook for seamless scheduling',
-    icon: Calendar,
-  },
-  {
-    id: '2',
-    name: 'Dropbox',
-    description: 'Sync files and collaborate on projects',
-    icon: Cloud,
-  },
-  {
-    id: '3',
-    name: 'Blackboard Learn',
-    description: 'Connect with Blackboard for course management',
-    icon: BookOpen,
-  },
-  {
-    id: '4',
-    name: 'Moodle',
-    description: 'Integrate with Moodle learning platform',
-    icon: BookOpen,
-  },
-  {
-    id: '5',
-    name: 'Notion',
-    description: 'Sync notes and study materials with Notion',
-    icon: FileText,
-  },
-];
+  const handleConnect = (provider: IntegrationProvider) => {
+    if (provider === 'google_calendar') {
+      connectGoogle(undefined, {
+        onSuccess: (result) => {
+          if (result.data) {
+            window.location.href = result.data.redirectUrl;
+          } else {
+            toast.error(result.error);
+          }
+        },
 
-function IntegrationCard({ integration }: { integration: TIntegration }) {
+        onError: (err) => toast.error(err.message),
+      });
+    } else {
+      toast.info(`${details.name} integration is coming soon!`);
+    }
+  };
+
   return (
     <Card className="">
       <CardContent className="flex flex-1 flex-col">
         <div className="flex flex-1 items-start gap-3">
-          <integration.icon className="text-muted-foreground mt-1 h-5 w-5" />
+          <details.icon className="text-muted-foreground mt-0.5 h-5 w-5" />
+
           <div>
-            <h3 className="font-semibold">{integration.name}</h3>
+            <h3 className="font-semibold">{details.name}</h3>
             <p className="text-muted-foreground text-sm">
-              {integration.description}
+              {details.description}
             </p>
           </div>
         </div>
-        <Button variant="secondary" className="mt-4 w-full">
+
+        <Button
+          variant="secondary"
+          className="mt-4 w-full"
+          onClick={() => handleConnect(details.provider)}
+          disabled={isPending}
+        >
           <ExternalLink className="h-4 w-4" />
-          Connect
+          {isPending ? 'Redirecting...' : 'Connect'}
         </Button>
       </CardContent>
     </Card>
@@ -93,10 +80,33 @@ function IntegrationCardSkeleton() {
 }
 
 export function AvailableTab() {
+  const { data: connectedIntegrations, isLoading } = useGetIntegrations();
+
+  if (isLoading) {
+    return <AvailableTabSkeleton />;
+  }
+
+  const connectedProviders = new Set(
+    connectedIntegrations?.map((i) => i.provider)
+  );
+  const availableIntegrations = allIntegrations.filter(
+    (details) => !connectedProviders.has(details.provider)
+  );
+
+  if (availableIntegrations.length === 0) {
+    return (
+      <div className="flex h-48 items-center justify-center rounded-lg border-2 border-dashed">
+        <p className="text-muted-foreground">
+          All available applications are connected.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-      {integrationsData.map((integration) => (
-        <IntegrationCard key={integration.id} integration={integration} />
+      {availableIntegrations.map((integration) => (
+        <IntegrationCard key={integration.provider} details={integration} />
       ))}
     </div>
   );
