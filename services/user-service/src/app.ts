@@ -44,15 +44,16 @@ app.use(metricsMiddleware);
 app.use(cookieParser(env.COOKIE_PARSER_SECRET));
 app.use(currentUser);
 
-app.use('/api/users', healthRouter);
-app.use('/api/users', profileRouter);
-app.use('/api/users/integrations', integrationRouter);
-
 app.use('/api/ai', aiRouter);
 app.use('/api/ai/notes', noteRouter);
 app.use('/api/ai/research', researchRouter);
 app.use('/api/ai/flashcards', flashcardRouter);
 app.use('/api/ai/writing/assignments', writingRouter);
+
+app.use('/api/users/integrations', integrationRouter);
+
+app.use('/api/users', healthRouter);
+app.use('/api/users', profileRouter);
 
 app.use(errorHandler);
 
