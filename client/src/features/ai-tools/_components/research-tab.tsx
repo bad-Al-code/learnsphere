@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import {
+  BookOpen,
   Brain,
   Calendar,
   Clock,
@@ -42,6 +43,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -92,8 +94,10 @@ import {
 function ResearchQueryPanel({
   setSearchResults,
   courseId,
+  searchResults,
 }: {
   setSearchResults: (results: TempFinding[]) => void;
+  searchResults: TempFinding[];
   courseId: string;
 }) {
   const { mutate: performResearch, isPending } = usePerformResearch();
@@ -123,22 +127,25 @@ function ResearchQueryPanel({
       onSuccess: (result) => {
         if (result.data) {
           setSearchResults(result.data);
+
           toast.success(`✨ Found ${result.data.length} relevant sources!`);
         } else {
           toast.error(result.error || 'Research failed');
         }
       },
+
       onError: (err) => toast.error(`Research error: ${err.message}`),
     });
   };
 
   return (
-    <Card className="w-full">
+    <Card className="h-[calc(100vh-12.5rem)] overflow-y-auto">
       <CardHeader>
         <div className="flex items-center gap-2">
           <div className="rounded-full bg-blue-100 p-2 dark:bg-blue-900">
             <Search className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           </div>
+
           <div>
             <CardTitle className="text-lg">AI Research Assistant</CardTitle>
             <CardDescription className="text-sm">
@@ -156,22 +163,21 @@ function ResearchQueryPanel({
               name="query"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2 border">
+                  <FormLabel className="flex items-center gap-2">
                     Research Topic
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Brain className="text-muted-foreground h-4 w-4" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="max-w-xs">
-                            Enter your research topic. Our AI will find the most
-                            relevant and credible sources.
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Brain className="text-muted-foreground h-4 w-4" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">
+                          Enter your research topic. Our AI will find the most
+                          relevant and credible sources.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
                   </FormLabel>
+
                   <FormControl>
                     <div className="relative">
                       <Input
@@ -179,6 +185,7 @@ function ResearchQueryPanel({
                         className="pr-10"
                         {...field}
                       />
+
                       <Search className="text-muted-foreground absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2" />
                     </div>
                   </FormControl>
@@ -192,6 +199,7 @@ function ResearchQueryPanel({
                 <label className="text-muted-foreground text-sm font-medium">
                   Quick Suggestions:
                 </label>
+
                 <div className="flex flex-wrap gap-2">
                   {suggestions.slice(0, 3).map((suggestion, index) => (
                     <Button
@@ -214,6 +222,7 @@ function ResearchQueryPanel({
                 <label className="text-muted-foreground text-sm font-medium">
                   Recent Searches:
                 </label>
+
                 <div className="flex flex-wrap gap-2">
                   {searchHistory.map((query, index) => (
                     <Button
@@ -231,9 +240,18 @@ function ResearchQueryPanel({
                 </div>
               </div>
             )}
+
+            {searchResults.length > 0 && (
+              <div className="mt-4">
+                <SearchResultsPanel
+                  results={searchResults}
+                  courseId={courseId}
+                />
+              </div>
+            )}
           </CardContent>
 
-          <CardFooter className="mt-2">
+          <CardFooter className="mt-4">
             <Button
               type="submit"
               className="w-full"
@@ -326,11 +344,11 @@ function SearchResultsPanel({
           </div>
 
           <div className="flex gap-2">
+            {' '}
             {allTags.length > 0 && (
               <Select value={filterTag} onValueChange={setFilterTag}>
-                <SelectTrigger className="w-32">
-                  <Filter className="h-4 w-4" />
-                  <SelectValue />
+                <SelectTrigger className="">
+                  <Filter className="h-4 w-4" /> <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Tags</SelectItem>
@@ -342,7 +360,6 @@ function SearchResultsPanel({
                 </SelectContent>
               </Select>
             )}
-
             <Select
               value={sortBy}
               onValueChange={(value: 'relevance' | 'title') => setSortBy(value)}
@@ -368,13 +385,14 @@ function SearchResultsPanel({
         {filteredAndSortedResults.map((result, i) => (
           <Card key={i} className="group transition-shadow hover:shadow-md">
             <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                <div className="min-w-0 flex-1 overflow-hidden">
-                  <CardTitle className="group-hover:text-primary truncate text-base transition-colors">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="group-hover:text-primary line-clamp-2 text-base transition-colors">
                     {result.title}
                   </CardTitle>
-                  <div className="mt-1 flex flex-wrap items-center gap-2">
-                    <Badge variant="secondary">
+
+                  <div className="mt-1 flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
                       <Globe className="mr-1 h-3 w-3" />
                       {result.source}
                     </Badge>
@@ -696,17 +714,23 @@ function FindingCard({ finding }: { finding: ResearchFinding }) {
               <User className="h-4 w-4" />
               My Notes
             </label>
+
             {!isEditingNotes && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setIsEditingNotes(true);
-                  setNoteText(finding.userNotes || '');
-                }}
-              >
-                <Edit3 className="h-4 w-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setIsEditingNotes(true);
+                      setNoteText(finding.userNotes || '');
+                    }}
+                  >
+                    <Edit3 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit</TooltipContent>
+              </Tooltip>
             )}
           </div>
 
@@ -794,69 +818,391 @@ function FindingCard({ finding }: { finding: ResearchFinding }) {
 
 function ResearchBoardPanel({ courseId }: { courseId: string }) {
   const { data: board, isLoading } = useGetResearchBoard(courseId);
-  const { mutate: deleteFinding } = useDeleteFinding();
-  const { mutate: summarizeFinding, isPending: isSummarizing } =
-    useSummarizeFinding();
+  const [sortBy, setSortBy] = useState<'date' | 'relevance' | 'title'>('date');
+  const [filterTag, setFilterTag] = useState<string>('all');
+  const [showStats, setShowStats] = useState(true);
+
+  const allTags = useMemo(() => {
+    if (!board?.findings) return [];
+
+    const tags = new Set<string>();
+    board.findings.forEach((finding) => {
+      finding.tags?.forEach((tag) => tags.add(tag));
+    });
+
+    return Array.from(tags);
+  }, [board?.findings]);
+
+  const filteredAndSortedFindings = useMemo(() => {
+    if (!board?.findings) return [];
+
+    let filtered = board.findings;
+
+    if (filterTag !== 'all') {
+      filtered = board.findings.filter((finding) =>
+        finding.tags?.includes(filterTag)
+      );
+    }
+
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'date':
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        case 'relevance':
+          return (b.relevance || 0) - (a.relevance || 0);
+        case 'title':
+          return a.title.localeCompare(b.title);
+        default:
+          return 0;
+      }
+    });
+  }, [board?.findings, sortBy, filterTag]);
+
+  const stats = useMemo(() => {
+    if (!board?.findings) return null;
+
+    const totalFindings = board.findings.length;
+    const withSummaries = board.findings.filter((f) => f.aiSummary).length;
+    const withNotes = board.findings.filter((f) => f.userNotes).length;
+    const avgRelevance =
+      board.findings.reduce((acc, f) => acc + (f.relevance || 0), 0) /
+        totalFindings || 0;
+
+    return {
+      totalFindings,
+      withSummaries,
+      withNotes,
+      avgRelevance: Math.round(avgRelevance),
+    };
+  }, [board?.findings]);
 
   if (isLoading) {
-    return <Skeleton className="h-full w-full" />;
+    return <ResearchBoardSkeleton />;
   }
 
   return (
-    <Card className="h-full">
+    <Card className="h-[calc(100vh-12.5rem)] overflow-y-auto">
       <CardHeader>
-        <CardTitle>My Research Board</CardTitle>
-        <CardDescription>Your saved findings for this course.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        {board?.findings.map((finding) => (
-          <Card key={finding.id}>
-            <CardHeader>
-              <CardTitle className="text-base">{finding.title}</CardTitle>
-              <a
-                href={finding.url || '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary text-xs hover:underline"
-              >
-                {finding.source}
-              </a>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="text-muted-foreground text-sm">
-                {finding.description}
-              </p>
-              {finding.aiSummary && (
-                <p className="border-primary border-l-2 pl-2 text-sm italic">
-                  {finding.aiSummary}
-                </p>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              My Research Board
+              {stats && (
+                <Badge variant="secondary">{stats.totalFindings}</Badge>
               )}
-            </CardContent>
-            <CardFooter className="gap-2">
+            </CardTitle>
+            <CardDescription>
+              Your curated research findings and insights
+            </CardDescription>
+          </div>
+
+          <div className="flex gap-2">
+            {stats && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setShowStats(!showStats)}
+                  >
+                    <TrendingUp className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{showStats ? 'Hide' : 'Show'} statistics</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {allTags.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="">
+                    <Select value={filterTag} onValueChange={setFilterTag}>
+                      <SelectTrigger className="">
+                        <Filter className="h-4 w-4" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Tags</SelectItem>
+                        {allTags.map((tag) => (
+                          <SelectItem key={tag} value={tag}>
+                            {tag}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Filter by tag</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="">
+                  <Select
+                    value={sortBy}
+                    onValueChange={(value: 'date' | 'relevance' | 'title') =>
+                      setSortBy(value)
+                    }
+                  >
+                    <SelectTrigger className="">
+                      {sortBy === 'date' && <Calendar className="h-4 w-4" />}
+                      {sortBy === 'relevance' && (
+                        <TrendingUp className="h-4 w-4" />
+                      )}
+                      {sortBy === 'title' && <SortAsc className="h-4 w-4" />}
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="date">Latest First</SelectItem>
+                      <SelectItem value="relevance">Most Relevant</SelectItem>
+                      <SelectItem value="title">Title A-Z</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Sort items</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+
+        {stats && showStats && (
+          <Collapsible open={showStats}>
+            <CollapsibleContent>
+              <div className="bg-muted/30 mt-4 grid grid-cols-2 gap-4 rounded-lg p-4 lg:grid-cols-4">
+                <div className="text-center">
+                  <div className="text-primary text-2xl font-bold">
+                    {stats.totalFindings}
+                  </div>
+                  <div className="text-muted-foreground text-sm">
+                    Total Findings
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {stats.withSummaries}
+                  </div>
+                  <div className="text-muted-foreground text-sm">
+                    AI Summaries
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {stats.withNotes}
+                  </div>
+                  <div className="text-muted-foreground text-sm">
+                    With Notes
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {stats.avgRelevance}%
+                  </div>
+                  <div className="text-muted-foreground text-sm">
+                    Avg. Relevance
+                  </div>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+      </CardHeader>
+
+      <CardContent className="flex-1">
+        {filteredAndSortedFindings.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="bg-muted mb-4 rounded-full p-4">
+              <BookOpen className="text-muted-foreground h-8 w-8" />
+            </div>
+
+            <h3 className="mb-2 text-lg font-semibold">
+              {board?.findings.length === 0
+                ? 'No Research Findings Yet'
+                : 'No Findings Match Filter'}
+            </h3>
+
+            <p className="text-muted-foreground max-w-md">
+              {board?.findings.length === 0
+                ? 'Start researching to save your first finding. Use the AI Research Assistant to discover relevant sources.'
+                : 'Try adjusting your filters or search for more findings.'}
+            </p>
+
+            {filterTag !== 'all' && (
               <Button
-                size="sm"
                 variant="outline"
-                onClick={() => summarizeFinding(finding.id)}
-                disabled={isSummarizing || !finding.url}
+                className="mt-4"
+                onClick={() => setFilterTag('all')}
               >
-                <Sparkles className="h-4 w-4" />{' '}
-                {isSummarizing ? 'Summarizing...' : 'AI Summary'}
+                Clear Filters
               </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => deleteFinding(finding.id)}
-              >
-                <Trash2 className="h-4 w-4" /> Delete
-              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredAndSortedFindings.map((finding) => (
+              <FindingCard key={finding.id} finding={finding} />
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ResearchBoardSkeleton() {
+  return (
+    <Card className="h-[calc(100vh-12.5rem)]">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-9 w-24" />
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="space-y-1 text-center">
+              <Skeleton className="mx-auto h-8 w-12" />
+              <Skeleton className="mx-auto h-4 w-16" />
+            </div>
+          ))}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Card key={i}>
+            <CardHeader>
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-3/4" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="h-5 w-16" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-20 w-full" />
+              <div className="flex gap-1">
+                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-5 w-14" />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Skeleton className="h-9 w-32" />
             </CardFooter>
           </Card>
         ))}
-        {board?.findings.length === 0 && (
-          <p className="text-muted-foreground text-center text-sm">
-            Save findings from your research to see them here.
-          </p>
-        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function QueryPanelSkeleton() {
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-32" />
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-24" />
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-8 w-28" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-28" />
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-20" />
+            <Skeleton className="h-8 w-24" />
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Skeleton className="h-10 w-full" />
+      </CardFooter>
+    </Card>
+  );
+}
+
+function SearchResultsSkeleton() {
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-4 w-56" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-9 w-24" />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Card key={i}>
+            <CardHeader>
+              <div className="flex justify-between">
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-5 w-3/4" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-5 w-20" />
+                    <Skeleton className="h-5 w-16" />
+                  </div>
+                </div>
+                <Skeleton className="h-8 w-8" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-4 w-4/5" />
+              </div>
+              <div className="flex gap-1">
+                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-5 w-14" />
+              </div>
+            </CardContent>
+            <CardFooter className="flex gap-2">
+              <Skeleton className="h-9 w-32" />
+              <Skeleton className="h-9 w-10" />
+              <Skeleton className="h-9 w-10" />
+            </CardFooter>
+          </Card>
+        ))}
       </CardContent>
     </Card>
   );
@@ -866,19 +1212,31 @@ export function ResearchTab({ courseId }: { courseId?: string }) {
   const [searchResults, setSearchResults] = useState<TempFinding[]>([]);
 
   if (!courseId) {
-    return <p>Please select a course to begin your research.</p>;
+    return (
+      <div className="flex h-[calc(100vh-12.5rem)] flex-col items-center justify-center py-12 text-center">
+        <div className="bg-muted mb-4 rounded-full p-4">
+          <Search className="text-muted-foreground h-8 w-8" />
+        </div>
+        <h3 className="mb-2 text-lg font-semibold">Select a Course</h3>
+        <p className="text-muted-foreground max-w-md">
+          Please select a course from your dashboard to begin your AI-powered
+          research journey.
+        </p>
+      </div>
+    );
   }
 
   return (
-    <div className="grid h-full grid-cols-1 gap-4 lg:grid-cols-3">
-      <div className="space-y-4 lg:col-span-1">
+    <div className="h-[calc(100vh-12.5rem)] space-y-6 lg:grid lg:grid-cols-12 lg:gap-2 lg:space-y-0">
+      <div className="space-y-6 lg:col-span-5 xl:col-span-4">
         <ResearchQueryPanel
           setSearchResults={setSearchResults}
+          searchResults={searchResults}
           courseId={courseId}
         />
-        <SearchResultsPanel results={searchResults} courseId={courseId} />
       </div>
-      <div className="lg:col-span-2">
+
+      <div className="lg:col-span-7 xl:col-span-8">
         <ResearchBoardPanel courseId={courseId} />
       </div>
     </div>
@@ -887,13 +1245,14 @@ export function ResearchTab({ courseId }: { courseId?: string }) {
 
 export function ResearchTabSkeleton() {
   return (
-    <div className="grid h-full grid-cols-1 gap-4 lg:grid-cols-3">
-      <div className="space-y-4 lg:col-span-1">
-        <Skeleton className="h-64 w-full" />
-        <Skeleton className="h-48 w-full" />
+    <div className="h-[calc(100vh-12.5rem)] space-y-6 lg:grid lg:grid-cols-12 lg:gap-2 lg:space-y-0">
+      <div className="space-y-6 lg:col-span-5 xl:col-span-4">
+        <QueryPanelSkeleton />
+        <SearchResultsSkeleton />
       </div>
-      <div className="lg:col-span-2">
-        <Skeleton className="h-full w-full" />
+
+      <div className="lg:col-span-7 xl:col-span-8">
+        <ResearchBoardSkeleton />
       </div>
     </div>
   );
