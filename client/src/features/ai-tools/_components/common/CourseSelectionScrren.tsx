@@ -15,7 +15,9 @@ export function CourseSelectionScreen() {
 
   const handleCourseSelect = (courseId: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', 'ai-tutor');
+    const currentTab = searchParams.get('tab') || 'ai-tutor';
+
+    params.set('tab', currentTab);
     params.set('courseId', courseId);
 
     router.replace(`${pathname}?${params.toString()}`);
