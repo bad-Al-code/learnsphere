@@ -63,20 +63,51 @@ export class IntegrationService {
 
   /**
    * Generates a Google OAuth 2.0 authorization URL for the given user.
+   * @private
    * @param {string} userId - The unique ID of the user requesting Google authentication.
    * @returns {string} A URL that the user can visit to grant access to their Google account.
    */
-  public static generateGoogleAuthUrl(userId: string): string {
+  private static generateGoogleAuthUrl(
+    userId: string,
+    scopes: string[],
+    provider: string
+  ): string {
     const oauth2Client = this.getGoogleOAuth2Client();
-    const scopes = [env.GOOGLE_CALENDAR_SCOPES];
+    const state = Buffer.from(JSON.stringify({ userId, provider })).toString(
+      'base64'
+    );
 
     const url = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: scopes,
-      state: userId,
+      state: state,
     });
 
     return url;
+  }
+
+  public static generateGoogleCalendarAuthUrl(userId: string): string {
+    return this.generateGoogleAuthUrl(
+      userId,
+      [env.GOOGLE_CALENDAR_SCOPES],
+      'google_calendar'
+    );
+  }
+
+  public static generateGoogleDriveAuthUrl(userId: string): string {
+    return this.generateGoogleAuthUrl(
+      userId,
+      [env.GOOGLE_DRIVE_SCOPES],
+      'google_drive'
+    );
+  }
+
+  public static generateGmailAuthUrl(userId: string): string {
+    return this.generateGoogleAuthUrl(
+      userId,
+      [env.GOOGLE_GMAIL_SCOPES],
+      'gmail'
+    );
   }
 
   /**
@@ -93,7 +124,9 @@ export class IntegrationService {
     code: string,
     state: string
   ): Promise<void> {
-    const userId = state;
+    const { userId, provider } = JSON.parse(
+      Buffer.from(state, 'base64').toString('utf8')
+    );
     const oauth2Client = this.getGoogleOAuth2Client();
 
     try {
@@ -112,7 +145,8 @@ export class IntegrationService {
 
       await IntegrationRepository.upsertIntegration({
         userId,
-        provider: 'google_calendar',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        provider: provider as any,
         accessToken: CryptoService.encrypt(tokens.access_token),
         refreshToken: tokens.refresh_token
           ? CryptoService.encrypt(tokens.refresh_token)

@@ -4,7 +4,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   deleteIntegrationAction,
-  getGoogleConnectUrlAction,
+  getGmailConnectUrlAction,
+  getGoogleCalendarConnectUrlAction,
+  getGoogleDriveConnectUrlAction,
   getIntegrationsAction,
 } from '../actions/integrations';
 
@@ -33,8 +35,20 @@ export const useDeleteIntegration = () => {
   });
 };
 
-export const useConnectGoogle = () => {
+export const useConnectGoogleCalendar = () => {
   return useMutation({
-    mutationFn: getGoogleConnectUrlAction,
+    mutationFn: getGoogleCalendarConnectUrlAction,
+  });
+};
+
+export const useConnectGoogleDrive = () => {
+  return useMutation({
+    mutationFn: getGoogleDriveConnectUrlAction,
+  });
+};
+
+export const useConnectGmail = () => {
+  return useMutation({
+    mutationFn: getGmailConnectUrlAction,
   });
 };

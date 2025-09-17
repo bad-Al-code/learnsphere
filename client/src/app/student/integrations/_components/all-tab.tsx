@@ -22,7 +22,7 @@ import {
   IntegrationProvider,
 } from '../config/integrations.config';
 import {
-  useConnectGoogle,
+  useConnectGoogleCalendar,
   useDeleteIntegration,
   useGetIntegrations,
 } from '../hooks/useIntegrations';
@@ -35,7 +35,8 @@ function IntegrationCard({
   details: IntegrationDetails;
   integration: PublicIntegration | undefined;
 }) {
-  const { mutate: connectGoogle, isPending: isConnecting } = useConnectGoogle();
+  const { mutate: connectGoogle, isPending: isConnecting } =
+    useConnectGoogleCalendar();
   const { mutate: deleteIntegration, isPending: isDeleting } =
     useDeleteIntegration();
 

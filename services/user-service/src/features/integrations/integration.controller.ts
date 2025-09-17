@@ -40,7 +40,7 @@ export class IntegrationController {
     }
   }
 
-  public static async connectGoogle(
+  public static async connectGoogleCalendar(
     req: Request,
     res: Response,
     next: NextFunction
@@ -48,7 +48,43 @@ export class IntegrationController {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
 
-      const authUrl = IntegrationService.generateGoogleAuthUrl(
+      const authUrl = IntegrationService.generateGoogleCalendarAuthUrl(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json({ redirectUrl: authUrl });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async connectGoogleDrive(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const authUrl = IntegrationService.generateGoogleDriveAuthUrl(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json({ redirectUrl: authUrl });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async connectGmail(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const authUrl = IntegrationService.generateGmailAuthUrl(
         req.currentUser.id
       );
 

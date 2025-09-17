@@ -21,11 +21,21 @@ export const deleteIntegration = (integrationId: string): Promise<void> => {
   );
 };
 
-/**
- * Gets the Google OAuth2 redirect URL from the backend.
- */
-export const getGoogleConnectUrl = (): Promise<ConnectGoogleResponse> => {
+export const getGoogleCalendarConnectUrl =
+  (): Promise<ConnectGoogleResponse> => {
+    return userService.getTyped<ConnectGoogleResponse>(
+      '/api/users/integrations/google-calendar/connect'
+    );
+  };
+
+export const getGoogleDriveConnectUrl = (): Promise<ConnectGoogleResponse> => {
   return userService.getTyped<ConnectGoogleResponse>(
-    '/api/users/integrations/google/connect'
+    '/api/users/integrations/google-drive/connect'
+  );
+};
+
+export const getGmailConnectUrl = (): Promise<ConnectGoogleResponse> => {
+  return userService.getTyped<ConnectGoogleResponse>(
+    '/api/users/integrations/gmail/connect'
   );
 };

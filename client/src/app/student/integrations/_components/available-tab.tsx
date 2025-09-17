@@ -11,22 +11,39 @@ import {
   IntegrationDetails,
   IntegrationProvider,
 } from '../config/integrations.config';
-import { useConnectGoogle, useGetIntegrations } from '../hooks/useIntegrations';
+import {
+  useConnectGmail,
+  useConnectGoogleCalendar,
+  useConnectGoogleDrive,
+  useGetIntegrations,
+} from '../hooks/useIntegrations';
 
 function IntegrationCard({ details }: { details: IntegrationDetails }) {
-  const { mutate: connectGoogle, isPending } = useConnectGoogle();
+  const { mutate: connectCalendar, isPending: isConnectingCalendar } =
+    useConnectGoogleCalendar();
+  const { mutate: connectDrive, isPending: isConnectingDrive } =
+    useConnectGoogleDrive();
+  const { mutate: connectGmail, isPending: isConnectingGmail } =
+    useConnectGmail();
+
+  const isPending =
+    isConnectingCalendar || isConnectingDrive || isConnectingGmail;
 
   const handleConnect = (provider: IntegrationProvider) => {
-    if (provider === 'google_calendar') {
-      connectGoogle(undefined, {
-        onSuccess: (result) => {
-          if (result.data) {
-            window.location.href = result.data.redirectUrl;
-          } else {
-            toast.error(result.error);
-          }
-        },
+    const actions = {
+      google_calendar: connectCalendar,
+      google_drive: connectDrive,
+      gmail: connectGmail,
+    };
 
+    const action = actions[provider as keyof typeof actions];
+
+    if (action) {
+      action(undefined, {
+        onSuccess: (result) => {
+          if (result.data) window.location.href = result.data.redirectUrl;
+          else toast.error(result.error);
+        },
         onError: (err) => toast.error(err.message),
       });
     } else {

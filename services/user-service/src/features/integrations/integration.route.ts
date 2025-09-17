@@ -58,7 +58,13 @@ router.delete(
  *       '200':
  *         description: The URL to redirect the user to for Google consent.
  */
-router.get('/google/connect', IntegrationController.connectGoogle);
+router.get(
+  '/google-calendar/connect',
+  IntegrationController.connectGoogleCalendar
+);
+
+router.get('/google-drive/connect', IntegrationController.connectGoogleDrive);
+router.get('/gmail/connect', IntegrationController.connectGmail);
 
 /**
  * @openapi

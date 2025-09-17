@@ -4,7 +4,9 @@ import { revalidatePath } from 'next/cache';
 
 import {
   deleteIntegration,
-  getGoogleConnectUrl,
+  getGmailConnectUrl,
+  getGoogleCalendarConnectUrl,
+  getGoogleDriveConnectUrl,
   getIntegrations,
 } from '../api/integration.api';
 
@@ -28,9 +30,25 @@ export const deleteIntegrationAction = async (integrationId: string) => {
   }
 };
 
-export const getGoogleConnectUrlAction = async () => {
+export const getGoogleCalendarConnectUrlAction = async () => {
   try {
-    return { data: await getGoogleConnectUrl() };
+    return { data: await getGoogleCalendarConnectUrl() };
+  } catch (error) {
+    return { error: 'Failed to initiate connection.' };
+  }
+};
+
+export const getGoogleDriveConnectUrlAction = async () => {
+  try {
+    return { data: await getGoogleDriveConnectUrl() };
+  } catch (error) {
+    return { error: 'Failed to initiate connection.' };
+  }
+};
+
+export const getGmailConnectUrlAction = async () => {
+  try {
+    return { data: await getGmailConnectUrl() };
   } catch (error) {
     return { error: 'Failed to initiate connection.' };
   }

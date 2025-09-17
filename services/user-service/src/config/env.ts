@@ -23,9 +23,12 @@ const envSchema = z.object({
   GOOGLE_CALLBACK_URL: z
     .string()
     .url('GOOGLE_CALLBACK_URL must be a valid URL'),
+
   GOOGLE_CALENDAR_SCOPES: z
     .string()
     .min(1, 'GOOGLE_CALENDAR_SCOPES is required'),
+  GOOGLE_DRIVE_SCOPES: z.string().min(1, 'GOOGLE_DRIVE_SCOPES is required'),
+  GOOGLE_GMAIL_SCOPES: z.string().min(1, 'GOOGLE_GMAIL_SCOPES is required'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
