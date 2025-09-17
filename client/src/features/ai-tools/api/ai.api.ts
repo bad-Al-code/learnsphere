@@ -10,7 +10,7 @@ import {
   FlashcardDeck,
   GenerateCardsInput,
   RecordProgressInput,
-  StudyCard,
+  StudySessionResponse,
 } from '../schemas/flashcard.schema';
 import {
   CreateNoteInput,
@@ -196,8 +196,10 @@ export const generateCards = (
   );
 };
 
-export const getStudySession = (deckId: string): Promise<StudyCard[]> => {
-  return userService.getTyped<StudyCard[]>(
+export const getStudySession = (
+  deckId: string
+): Promise<StudySessionResponse[]> => {
+  return userService.getTyped<StudySessionResponse[]>(
     `/api/ai/flashcards/decks/${deckId}/study-session`
   );
 };

@@ -15,7 +15,7 @@ import {
   TrendingUp,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   AlertDialog,
@@ -66,13 +66,54 @@ import {
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-import type {
-  CreateDeckInput,
-  Flashcard,
-  FlashcardDeck,
-  GenerateCardsInput,
-  RecordProgressInput,
-} from '../schemas/flashcard.schema';
+interface FlashcardData {
+  id: string;
+  deckId: string;
+  question: string;
+  answer: string;
+}
+
+interface UserProgress {
+  userId: string;
+  cardId: string;
+  deckId: string;
+  status: 'New' | 'Learning' | 'Mastered';
+  nextReviewAt: string;
+  lastReviewedAt: string | null;
+  correctStreaks: number;
+}
+
+interface StudySessionCard {
+  ai_flashcards: FlashcardData;
+  user_flashcard_progress: UserProgress | null;
+}
+
+interface FlashcardDeck {
+  id: string;
+  userId: string;
+  courseId: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  cards?: FlashcardData[];
+}
+
+interface CreateDeckInput {
+  courseId: string;
+  title: string;
+}
+
+interface GenerateCardsInput {
+  deckId: string;
+  topic: string;
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+}
+
+interface RecordProgressInput {
+  cardId: string;
+  deckId: string;
+  feedback: 'Hard' | 'Good' | 'Easy';
+}
 
 import {
   useCreateDeck,
@@ -82,29 +123,17 @@ import {
   useGetStudySession,
   useRecordProgress,
 } from '../hooks/useAiFlashcards';
-
-interface StudySessionResponse {
-  ai_flashcards: Flashcard;
-  user_flashcard_progress: {
-    userId: string;
-    cardId: string;
-    deckId: string;
-    status: 'New' | 'Learning' | 'Mastered';
-    nextReviewAt: string;
-    lastReviewedAt: string | null;
-    correctStreaks: number;
-  } | null;
-}
+import { CourseSelectionScreen } from './common/CourseSelectionScrren';
 
 const useMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
 
-  useState(() => {
+  useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  });
+  }, []);
 
   return isMobile;
 };
@@ -123,12 +152,14 @@ function CreateDeckDialog({ courseId }: { courseId: string }) {
       onSuccess: (result) => {
         if (result.data) {
           toast.success(`"${result.data.title}" created successfully!`);
+
           setIsOpen(false);
           setTitle('');
         } else if (result.error) {
           toast.error(result.error);
         }
       },
+
       onError: (error) => {
         toast.error(error.message || 'Failed to create deck');
       },
@@ -144,8 +175,13 @@ function CreateDeckDialog({ courseId }: { courseId: string }) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Card className="border-muted-foreground/25 hover:border-primary/50 group cursor-pointer border-2 border-dashed transition-all">
-          <CardHeader className={cn('text-center', isMobile ? 'pb-3' : 'pb-4')}>
+        <Card className="border-muted-foreground/25 hover:border-primary/50 group flex cursor-pointer flex-col justify-center border-2 border-dashed p-6 text-center transition-all">
+          <CardHeader
+            className={cn(
+              'flex flex-col items-center',
+              isMobile ? 'pb-3' : 'pb-4'
+            )}
+          >
             <div className="bg-primary/10 group-hover:bg-primary/20 mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full transition-colors">
               <Plus className="text-primary h-6 w-6" />
             </div>
@@ -158,13 +194,15 @@ function CreateDeckDialog({ courseId }: { courseId: string }) {
               Create New Deck
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-center">
+
+          <CardContent>
             <p className="text-muted-foreground text-sm">
               Start a new flashcard collection
             </p>
           </CardContent>
         </Card>
       </DialogTrigger>
+
       <DialogContent
         className={cn(isMobile ? 'w-[95vw] rounded-lg' : 'max-w-md')}
       >
@@ -176,7 +214,7 @@ function CreateDeckDialog({ courseId }: { courseId: string }) {
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="space-y-2">
+          <div className="space-y-4">
             <label className="text-sm font-medium">Deck Title</label>
             <Input
               placeholder="e.g., JavaScript Fundamentals"
@@ -186,10 +224,12 @@ function CreateDeckDialog({ courseId }: { courseId: string }) {
               maxLength={100}
               disabled={isPending}
             />
+
             <p className="text-muted-foreground text-xs">
               {title.length}/100 characters
             </p>
           </div>
+
           <DialogFooter className={cn(isMobile ? 'flex-col space-y-2' : '')}>
             <Button
               type="button"
@@ -200,6 +240,7 @@ function CreateDeckDialog({ courseId }: { courseId: string }) {
             >
               Cancel
             </Button>
+
             <Button
               onClick={onSubmit}
               disabled={isPending || !title.trim() || title.length < 3}
@@ -235,12 +276,14 @@ function GenerateCardsDialog({ deck }: { deck: FlashcardDeck }) {
     toast.info(
       `Generating 10 ${difficulty.toLowerCase()} cards for "${topic}"...`
     );
+
     generateCards(data, {
       onSuccess: (result) => {
         if (result.data) {
           toast.success(
             `${result.data.cards?.length || 10} new cards added to "${deck.title}"!`
           );
+
           setIsOpen(false);
           setTopic('');
           setDifficulty('Intermediate');
@@ -248,6 +291,7 @@ function GenerateCardsDialog({ deck }: { deck: FlashcardDeck }) {
           toast.error(result.error);
         }
       },
+
       onError: (error) => {
         toast.error(error.message || 'Failed to generate cards');
       },
@@ -261,7 +305,7 @@ function GenerateCardsDialog({ deck }: { deck: FlashcardDeck }) {
           <TooltipTrigger asChild>
             <DialogTrigger asChild>
               <Button size="sm" variant="outline" className="flex-1">
-                <Sparkles className="mr-2 h-4 w-4" />
+                <Sparkles className="h-4 w-4" />
                 {isMobile ? 'AI' : 'AI Generate'}
               </Button>
             </DialogTrigger>
@@ -270,6 +314,7 @@ function GenerateCardsDialog({ deck }: { deck: FlashcardDeck }) {
             <p>Generate flashcards using AI</p>
           </TooltipContent>
         </Tooltip>
+
         <DialogContent
           className={cn(isMobile ? 'w-[95vw] rounded-lg' : 'max-w-md')}
         >
@@ -280,6 +325,7 @@ function GenerateCardsDialog({ deck }: { deck: FlashcardDeck }) {
               difficulty level
             </DialogDescription>
           </DialogHeader>
+
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Topic</label>
@@ -294,6 +340,7 @@ function GenerateCardsDialog({ deck }: { deck: FlashcardDeck }) {
                 {topic.length}/100 characters
               </p>
             </div>
+
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <label className="text-sm font-medium">Difficulty Level</label>
@@ -306,6 +353,7 @@ function GenerateCardsDialog({ deck }: { deck: FlashcardDeck }) {
                   </TooltipContent>
                 </Tooltip>
               </div>
+
               <Select
                 onValueChange={(value) =>
                   setDifficulty(value as typeof difficulty)
@@ -323,12 +371,14 @@ function GenerateCardsDialog({ deck }: { deck: FlashcardDeck }) {
                       Beginner
                     </div>
                   </SelectItem>
+
                   <SelectItem value="Intermediate">
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-yellow-500" />
                       Intermediate
                     </div>
                   </SelectItem>
+
                   <SelectItem value="Advanced">
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-red-500" />
@@ -338,6 +388,7 @@ function GenerateCardsDialog({ deck }: { deck: FlashcardDeck }) {
                 </SelectContent>
               </Select>
             </div>
+
             <DialogFooter className={cn(isMobile ? 'flex-col space-y-2' : '')}>
               <Button
                 type="button"
@@ -348,6 +399,7 @@ function GenerateCardsDialog({ deck }: { deck: FlashcardDeck }) {
               >
                 Cancel
               </Button>
+
               <Button
                 onClick={onSubmit}
                 disabled={isPending || !topic.trim() || topic.length < 3}
@@ -355,12 +407,12 @@ function GenerateCardsDialog({ deck }: { deck: FlashcardDeck }) {
               >
                 {isPending ? (
                   <>
-                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
+                    <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
                     Generating...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="mr-2 h-4 w-4" />
+                    <Sparkles className="h-4 w-4" />
                     Generate 10 Cards
                   </>
                 )}
@@ -386,6 +438,7 @@ function DeleteDeckDialog({ deck }: { deck: FlashcardDeck }) {
           toast.error(result.error);
         }
       },
+
       onError: (error) => {
         toast.error(error.message || 'Failed to delete deck');
       },
@@ -411,6 +464,7 @@ function DeleteDeckDialog({ deck }: { deck: FlashcardDeck }) {
             <p>Delete deck</p>
           </TooltipContent>
         </Tooltip>
+
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Deck</AlertDialogTitle>
@@ -420,6 +474,7 @@ function DeleteDeckDialog({ deck }: { deck: FlashcardDeck }) {
               {cardCount !== 1 ? 's' : ''}.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
@@ -568,7 +623,7 @@ function DeckManager({
 
       <div
         className={cn(
-          'grid gap-6',
+          'grid gap-4',
           isMobile ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
         )}
       >
@@ -603,25 +658,23 @@ function DeckManager({
                 isMobile ? 'flex-col' : 'grid grid-cols-2'
               )}
             >
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className={cn('flex-1', isMobile && 'w-full')}
-                      onClick={() => onStartStudy(deck)}
-                      disabled={!deck.cards || deck.cards.length === 0}
-                    >
-                      <Brain className="mr-2 h-4 w-4" />
-                      Study
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {!deck.cards || deck.cards.length === 0
-                      ? 'Generate cards first to start studying'
-                      : 'Start studying this deck'}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className={cn('flex-1', isMobile && 'w-full')}
+                    onClick={() => onStartStudy(deck)}
+                    disabled={!deck.cards || deck.cards.length === 0}
+                  >
+                    <Brain className="h-4 w-4" />
+                    Study
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {!deck.cards || deck.cards.length === 0
+                    ? 'Generate cards first to start studying'
+                    : 'Start studying this deck'}
+                </TooltipContent>
+              </Tooltip>
               <GenerateCardsDialog deck={deck} />
             </CardFooter>
           </Card>
@@ -657,21 +710,25 @@ function StudySession({
 
     const card = studyCards[currentCardIndex];
     const data: RecordProgressInput = {
-      cardId: card.id,
+      cardId: card.ai_flashcards.id,
       deckId: deck.id,
       feedback,
     };
 
     recordProgress(data, {
-      onSuccess: () => {},
+      onSuccess: () => {
+        toast.info('Progress Saved');
+      },
       onError: (error) => {
         toast.error(error.message || 'Failed to save progress');
       },
     });
 
     const isCorrect = feedback === 'Easy' || feedback === 'Good';
+
     setSessionStats((prev) => {
       const newStreak = isCorrect ? prev.streak + 1 : 0;
+
       return {
         correct: prev.correct + (isCorrect ? 1 : 0),
         total: prev.total + 1,
@@ -688,6 +745,7 @@ function StudySession({
       toast.success(
         `Study session complete! You got ${sessionStats.correct + (isCorrect ? 1 : 0)} out of ${sessionStats.total + 1} cards right.`
       );
+
       onExit();
     }
   };
@@ -701,18 +759,20 @@ function StudySession({
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
+
       setIsFlipped((prev) => !prev);
     } else if (isFlipped && ['1', '2', '3'].includes(e.key)) {
       e.preventDefault();
+
       const feedbacks: ('Hard' | 'Good' | 'Easy')[] = ['Hard', 'Good', 'Easy'];
       handleFeedback(feedbacks[parseInt(e.key) - 1]);
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  });
+  }, [isFlipped, studyCards, currentCardIndex]);
 
   if (isLoading) {
     return <StudySessionSkeleton />;
@@ -724,15 +784,18 @@ function StudySession({
         <div className="bg-destructive/10 flex h-16 w-16 items-center justify-center rounded-full">
           <X className="text-destructive h-8 w-8" />
         </div>
+
         <div className="space-y-2">
           <h3 className="text-lg font-semibold">
             Failed to Load Study Session
           </h3>
+
           <p className="text-muted-foreground max-w-md">
             {error.message ||
               'Something went wrong while loading your study session.'}
           </p>
         </div>
+
         <Button onClick={onExit} variant="outline">
           Back to Decks
         </Button>
@@ -746,6 +809,7 @@ function StudySession({
         <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-full">
           <BookOpen className="text-muted-foreground h-8 w-8" />
         </div>
+
         <div className="space-y-2">
           <h3 className="text-lg font-semibold">No Cards to Study</h3>
           <p className="text-muted-foreground max-w-md">
@@ -753,8 +817,9 @@ function StudySession({
             to start studying!
           </p>
         </div>
+
         <Button onClick={onExit} variant="outline">
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="h-4 w-4" />
           Back to Decks
         </Button>
       </div>
@@ -787,7 +852,7 @@ function StudySession({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" size="sm" onClick={handleRestart}>
-                  <RotateCcw className="mr-2 h-4 w-4" />
+                  <RotateCcw className="h-4 w-4" />
                   Restart
                 </Button>
               </TooltipTrigger>
@@ -830,6 +895,7 @@ function StudySession({
               </div>
             </div>
           </Card>
+
           {!isMobile && (
             <Card className="p-4">
               <div className="flex items-center gap-2">
@@ -855,14 +921,18 @@ function StudySession({
               >
                 {isFlipped ? 'Answer' : 'Question'}
               </Badge>
+
               <div
                 className={cn(
                   'max-w-2xl leading-relaxed font-medium',
                   isMobile ? 'text-base' : 'text-lg'
                 )}
               >
-                {isFlipped ? currentCard.answer : currentCard.question}
+                {isFlipped
+                  ? currentCard.ai_flashcards.answer
+                  : currentCard.ai_flashcards.question}
               </div>
+
               {!isFlipped && (
                 <div className="text-muted-foreground mt-4 flex items-center gap-2 text-sm">
                   <Info className="h-4 w-4" />
@@ -898,7 +968,7 @@ function StudySession({
                     isMobile && 'w-full'
                   )}
                 >
-                  <X className="mr-2 h-4 w-4" />
+                  <X className="h-4 w-4" />
                   Hard {!isMobile && '(1)'}
                 </Button>
               </TooltipTrigger>
@@ -917,7 +987,7 @@ function StudySession({
                     isMobile && 'w-full'
                   )}
                 >
-                  <Clock className="mr-2 h-4 w-4" />
+                  <Clock className="h-4 w-4" />
                   Good {!isMobile && '(2)'}
                 </Button>
               </TooltipTrigger>
@@ -936,7 +1006,7 @@ function StudySession({
                     isMobile && 'w-full'
                   )}
                 >
-                  <Check className="mr-2 h-4 w-4" />
+                  <Check className="h-4 w-4" />
                   Easy {!isMobile && '(3)'}
                 </Button>
               </TooltipTrigger>
@@ -1019,16 +1089,8 @@ export function FlashcardsTab({ courseId }: { courseId?: string }) {
 
   if (!courseId) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center space-y-4 text-center">
-        <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-full">
-          <BookOpen className="text-muted-foreground h-8 w-8" />
-        </div>
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold">No Course Selected</h3>
-          <p className="text-muted-foreground max-w-md">
-            Please select a course to access flashcards and start studying.
-          </p>
-        </div>
+      <div className="h-[calc(100vh-12.5rem)]">
+        <CourseSelectionScreen />
       </div>
     );
   }
