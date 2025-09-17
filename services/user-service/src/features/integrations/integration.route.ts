@@ -46,4 +46,31 @@ router.delete(
   IntegrationController.deleteIntegration
 );
 
+/**
+ * @openapi
+ * /api/users/integrations/google/connect:
+ *   get:
+ *     summary: Get a redirect URL to start the Google OAuth flow
+ *     tags: [Integrations]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: The URL to redirect the user to for Google consent.
+ */
+router.get('/google/connect', IntegrationController.connectGoogle);
+
+/**
+ * @openapi
+ * /api/users/integrations/google/callback:
+ *   get:
+ *     summary: OAuth callback endpoint for Google
+ *     tags: [Integrations]
+ *     description: This endpoint is for Google to redirect to. It should not be called directly.
+ *     responses:
+ *       '302':
+ *         description: Redirects the user back to the frontend integrations page.
+ */
+router.get('/google/callback', IntegrationController.handleGoogleCallback);
+
 export { router as integrationRouter };

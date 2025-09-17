@@ -18,6 +18,14 @@ const envSchema = z.object({
     .length(64, 'ENCRYPTION_KEY must be a 64-character hex string (32 bytes).'),
 
   GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
+  GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID is required'),
+  GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET is required'),
+  GOOGLE_CALLBACK_URL: z
+    .string()
+    .url('GOOGLE_CALLBACK_URL must be a valid URL'),
+  GOOGLE_CALENDAR_SCOPES: z
+    .string()
+    .min(1, 'GOOGLE_CALENDAR_SCOPES is required'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

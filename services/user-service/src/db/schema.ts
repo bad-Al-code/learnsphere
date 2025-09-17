@@ -136,6 +136,7 @@ export const userIntegrations = pgTable(
   (table) => [unique().on(table.userId, table.provider)]
 );
 export type UserIntegration = typeof userIntegrations.$inferSelect;
+export type NewUserIntegration = typeof userIntegrations.$inferInsert;
 
 export const userIntegrationsRelations = relations(
   userIntegrations,

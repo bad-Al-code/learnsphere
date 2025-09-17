@@ -1,7 +1,11 @@
 import { desc, eq } from 'drizzle-orm';
 
 import { db } from '../../db';
-import { UserIntegration, userIntegrations } from '../../db/schema';
+import {
+  NewUserIntegration,
+  UserIntegration,
+  userIntegrations,
+} from '../../db/schema';
 
 export class IntegrationRepository {
   /**
@@ -35,5 +39,22 @@ export class IntegrationRepository {
    */
   public static async delete(id: string): Promise<void> {
     await db.delete(userIntegrations).where(eq(userIntegrations.id, id));
+  }
+
+  public static async upsertIntegration(data: NewUserIntegration) {
+    await db
+      .insert(userIntegrations)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [userIntegrations.userId, userIntegrations.provider],
+        set: {
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+          expiresAt: data.expiresAt,
+          scopes: data.scopes,
+          status: 'active',
+          updatedAt: new Date(),
+        },
+      });
   }
 }

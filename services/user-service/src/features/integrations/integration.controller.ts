@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { NotAuthorizedError } from '../../errors';
+import { BadRequestError, NotAuthorizedError } from '../../errors';
 import { IntegrationService } from './integration.service';
 
 export class IntegrationController {
@@ -37,6 +37,47 @@ export class IntegrationController {
       res.status(StatusCodes.NO_CONTENT).send();
     } catch (error) {
       next(error);
+    }
+  }
+
+  public static async connectGoogle(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const authUrl = IntegrationService.generateGoogleAuthUrl(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json({ redirectUrl: authUrl });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async handleGoogleCallback(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { code, state } = req.query as { code: string; state: string };
+      if (!code || !state) {
+        throw new BadRequestError('Missing code or state in callback.');
+      }
+
+      await IntegrationService.handleGoogleOAuthCallback(code, state);
+
+      res.redirect(
+        `${process.env.CLIENT_URL || 'http://localhost:3000'}/student/integrations?status=success`
+      );
+    } catch (error) {
+      res.redirect(
+        `${process.env.CLIENT_URL || 'http://localhost:3000'}/student/integrations?status=error`
+      );
     }
   }
 }
