@@ -10,11 +10,26 @@ export const errorHandler = (
   _next: NextFunction
 ) => {
   if (err instanceof CustomError) {
+    logger.warn('CustomError handled %o', {
+      correlationId: req.correlationId,
+      error: {
+        name: err.name,
+        message: err.message,
+        statusCode: err.statusCode,
+        fields: err.serializeErrors(),
+      },
+      request: {
+        method: req.method,
+        url: req.originalUrl,
+      },
+    });
+
     res.status(err.statusCode).json({ errors: err.serializeErrors() });
     return;
   }
 
   logger.warn('An unexpected error occured %o', {
+    correlationId: req.correlationId,
     error: err.message,
     stack: err.stack,
     path: req.path,
