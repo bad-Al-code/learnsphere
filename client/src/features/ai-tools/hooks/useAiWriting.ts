@@ -10,6 +10,7 @@ import {
   getWritingAssignmentsAction,
   updateAssignmentAction,
 } from '../actions/writing';
+import { WritingAssignment } from '../schemas/writing.schema';
 
 export const useGetWritingAssignments = (courseId: string) => {
   return useQuery({
@@ -52,10 +53,8 @@ export const useUpdateAssignment = () => {
       if (result.data) {
         queryClient.setQueryData(
           ['writing-assignments', result.data.courseId],
-          (oldData: any) =>
-            oldData?.map((a: any) =>
-              a.id === result.data!.id ? result.data : a
-            )
+          (oldData: WritingAssignment[] | undefined) =>
+            oldData?.map((a) => (a.id === result.data!.id ? result.data : a))
         );
       }
     },

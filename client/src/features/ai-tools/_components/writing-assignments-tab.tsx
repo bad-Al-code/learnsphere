@@ -357,39 +357,46 @@ function EditorPanel({ activeAssignment }: EditorPanelProps) {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showDraftDialog, setShowDraftDialog] = useState(false);
   const [prompt, setPrompt] = useState('');
+  const [editorState, setEditorState] = useState({ title: '', content: '' });
+  const [debouncedState] = useDebounce(editorState, 1000);
+
   const { mutate: generateDraft, isPending: isGenerating } = useGenerateDraft();
 
   useEffect(() => {
     if (activeAssignment) {
-      setContent(activeAssignment.content || '');
-      setTitle(activeAssignment.title);
-      setHasUnsavedChanges(false);
+      setEditorState({
+        title: activeAssignment.title,
+        content: activeAssignment.content || '',
+      });
     } else {
-      setContent('');
-      setTitle('');
+      setEditorState({ title: '', content: '' });
     }
   }, [activeAssignment]);
 
   useEffect(() => {
-    if (activeAssignment && debouncedContent !== activeAssignment.content) {
+    if (
+      activeAssignment &&
+      (debouncedState.title !== activeAssignment.title ||
+        debouncedState.content !== activeAssignment.content)
+    ) {
       updateAssignment({
         assignmentId: activeAssignment.id,
-        content: debouncedContent,
+        title: debouncedState.title,
+        content: debouncedState.content,
       });
-      setHasUnsavedChanges(false);
     }
-  }, [debouncedContent, activeAssignment, updateAssignment]);
+  }, [debouncedState, activeAssignment, updateAssignment]);
 
-  useEffect(() => {
-    if (activeAssignment && debouncedTitle !== activeAssignment.title) {
-      updateAssignment({
-        assignmentId: activeAssignment.id,
-        title: debouncedTitle,
-      });
+  // useEffect(() => {
+  //   if (activeAssignment && debouncedTitle !== activeAssignment.title) {
+  //     updateAssignment({
+  //       assignmentId: activeAssignment.id,
+  //       title: debouncedTitle,
+  //     });
 
-      setHasUnsavedChanges(false);
-    }
-  }, [debouncedTitle, activeAssignment, updateAssignment]);
+  //     setHasUnsavedChanges(false);
+  //   }
+  // }, [debouncedTitle, activeAssignment, updateAssignment]);
 
   const getWordCount = (text: string) => {
     return text
@@ -473,10 +480,9 @@ function EditorPanel({ activeAssignment }: EditorPanelProps) {
         <CardHeader className="pb-3">
           <div className="space-y-2">
             <Input
-              value={title}
+              value={editorState.title}
               onChange={(e) => {
-                setTitle(e.target.value);
-                setHasUnsavedChanges(true);
+                setEditorState((prev) => ({ ...prev, title: e.target.value }));
               }}
               className="border-none p-0 text-lg font-semibold shadow-none focus-visible:ring-0"
               placeholder="Document title..."
@@ -552,10 +558,9 @@ function EditorPanel({ activeAssignment }: EditorPanelProps) {
 
         <CardContent className="flex-1 p-1">
           <Textarea
-            value={content}
+            value={editorState.content}
             onChange={(e) => {
-              setContent(e.target.value);
-              setHasUnsavedChanges(true);
+              setEditorState((prev) => ({ ...prev, content: e.target.value }));
             }}
             placeholder="Start writing your assignment here..."
             className="h-full resize-none border-none text-base leading-relaxed shadow-none focus-visible:ring-0"
