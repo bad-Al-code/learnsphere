@@ -25,6 +25,14 @@ import {
   TempFinding,
   UpdateFindingNotesInput,
 } from '../schemas/research.schema';
+import {
+  CreateAssignmentInput,
+  GenerateDraftInput,
+  GetFeedbackInput,
+  UpdateAssignmentInput,
+  WritingAssignment,
+  WritingFeedback,
+} from '../schemas/writing.schema';
 
 /**
  * Sends a prompt to an AI Tutor conversation.
@@ -210,5 +218,59 @@ export const recordProgress = (
   return userService.postTyped<{ message: string }>(
     '/api/ai/flashcards/progress',
     data
+  );
+};
+
+export const getWritingAssignments = (
+  courseId: string
+): Promise<WritingAssignment[]> => {
+  return userService.getTyped<WritingAssignment[]>(
+    `/api/ai/writing/assignments?courseId=${courseId}`
+  );
+};
+
+export const createAssignment = (
+  data: CreateAssignmentInput
+): Promise<WritingAssignment> => {
+  return userService.postTyped<WritingAssignment>(
+    '/api/ai/writing/assignments',
+    data
+  );
+};
+
+export const updateAssignment = (
+  data: UpdateAssignmentInput
+): Promise<WritingAssignment> => {
+  const { assignmentId, ...body } = data;
+
+  return userService.putTyped<WritingAssignment>(
+    `/api/ai/writing/assignments/${assignmentId}`,
+    body
+  );
+};
+
+export const deleteAssignment = (assignmentId: string): Promise<void> => {
+  return userService.deleteTyped<void>(
+    `/api/ai/writing/assignments/${assignmentId}`
+  );
+};
+
+export const generateDraft = (
+  data: GenerateDraftInput
+): Promise<WritingAssignment> => {
+  return userService.postTyped<WritingAssignment>(
+    '/api/ai/writing/assignments/generate-draft',
+    data
+  );
+};
+
+export const getFeedback = (
+  data: GetFeedbackInput
+): Promise<WritingFeedback[]> => {
+  const { assignmentId, ...body } = data;
+
+  return userService.postTyped<WritingFeedback[]>(
+    `/api/ai/writing/assignments/${assignmentId}/feedback`,
+    body
   );
 };

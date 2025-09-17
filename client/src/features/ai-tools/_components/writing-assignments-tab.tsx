@@ -1,17 +1,8 @@
 'use client';
 
-import {
-  BookText,
-  Check,
-  PenSquare,
-  Repeat,
-  Sparkles,
-  TrendingUp,
-  Wand2,
-} from 'lucide-react';
-import React from 'react';
+import { Check, Plus, Wand2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -21,163 +12,201 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+
+import { toast } from 'sonner';
+import { useDebounce } from 'use-debounce';
+import {
+  useCreateAssignment,
+  useGetFeedback,
+  useGetWritingAssignments,
+  useUpdateAssignment,
+} from '../hooks/useAiWriting';
+import { WritingAssignment } from '../schemas/writing.schema';
 import { CourseSelectionScreen } from './common/CourseSelectionScrren';
 
-type TWritingTool = {
-  label: string;
-  icon: React.ElementType;
-};
+function AssignmentManager({
+  activeAssignment,
+  setActiveAssignment,
+  courseId,
+}: {
+  activeAssignment: WritingAssignment | null;
+  setActiveAssignment: (assignment: WritingAssignment | null) => void;
+  courseId: string;
+}) {
+  const { data: assignments, isLoading } = useGetWritingAssignments(courseId);
+  const { mutate: createAssignment, isPending: isCreating } =
+    useCreateAssignment();
 
-const writingToolsData: TWritingTool[] = [
-  { label: 'Grammar & Spell Check', icon: Check },
-  { label: 'Style Improvement', icon: TrendingUp },
-  { label: 'Paraphrase Text', icon: Repeat },
-  { label: 'Citation Generator', icon: BookText },
-];
+  const handleNewAssignment = () => {
+    createAssignment(
+      { courseId, title: 'Untitled Document' },
+      {
+        onSuccess: (res) => {
+          if (res.data) setActiveAssignment(res.data);
+          else toast.error(res.error);
+        },
+      }
+    );
+  };
 
-function AiWritingAssistant() {
   return (
     <Card className="flex h-full flex-col">
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <PenSquare className="h-5 w-5" />
-          <CardTitle>AI Writing Assistant</CardTitle>
-        </div>
+        <CardTitle>My Documents</CardTitle>
         <CardDescription>
-          Get help with essays, reports, and technical documentation
+          Your writing assignments for this course.
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 space-y-4">
-        <div>
-          <label className="text-sm font-medium">Writing Prompt</label>
-          <Textarea
-            placeholder="Describe what you want to write about..."
-            className="mt-1 h-32 resize-none"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Writing Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="essay">Essay</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Tone" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="professional">Professional</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      <CardContent className="flex-1 space-y-2 overflow-y-auto">
+        {isLoading ? (
+          <Skeleton className="h-full w-full" />
+        ) : (
+          assignments?.map((doc) => (
+            <Button
+              key={doc.id}
+              variant={activeAssignment?.id === doc.id ? 'secondary' : 'ghost'}
+              className="w-full justify-start"
+              onClick={() => setActiveAssignment(doc)}
+            >
+              {doc.title}
+            </Button>
+          ))
+        )}
       </CardContent>
       <CardFooter>
-        <Button className="w-full">
-          <Sparkles className="h-4 w-4" />
-          Generate Draft
+        <Button
+          onClick={handleNewAssignment}
+          disabled={isCreating}
+          className="w-full"
+        >
+          <Plus className="mr-2 h-4 w-4" /> New Document
         </Button>
       </CardFooter>
     </Card>
   );
 }
 
-function WritingTools() {
+function EditorPanel({
+  activeAssignment,
+}: {
+  activeAssignment: WritingAssignment | null;
+}) {
+  const [content, setContent] = useState('');
+  const [debouncedContent] = useDebounce(content, 1000);
+  const { mutate: updateAssignment } = useUpdateAssignment();
+
+  useEffect(() => {
+    setContent(activeAssignment?.content || '');
+  }, [activeAssignment]);
+
+  useEffect(() => {
+    if (activeAssignment && debouncedContent !== activeAssignment.content) {
+      updateAssignment({
+        assignmentId: activeAssignment.id,
+        content: debouncedContent,
+      });
+    }
+  }, [debouncedContent, activeAssignment, updateAssignment]);
+
+  if (!activeAssignment) {
+    return (
+      <Card className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">
+            Select a document or create a new one.
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="h-full">
+      <CardContent className="h-full p-2">
+        <Textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Start writing your assignment..."
+          className="h-full resize-none border-none shadow-none focus-visible:ring-0"
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+function FeedbackPanel({
+  activeAssignment,
+}: {
+  activeAssignment: WritingAssignment | null;
+}) {
+  const { mutate: getFeedback, isPending } = useGetFeedback();
+  const [feedback, setFeedback] = useState<any[]>([]);
+
+  const handleFeedback = (
+    feedbackType: 'Grammar' | 'Style' | 'Clarity' | 'Argument'
+  ) => {
+    if (!activeAssignment) return;
+    getFeedback(
+      { assignmentId: activeAssignment.id, feedbackType },
+      {
+        onSuccess: (res) => {
+          if (res.data) setFeedback(res.data);
+          else toast.error(res.error);
+        },
+      }
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <Wand2 className="h-5 w-5" />
-          <CardTitle>Writing Tools</CardTitle>
-        </div>
+        <CardTitle>AI Feedback</CardTitle>
         <CardDescription>
-          Grammar check, style suggestions, and improvements
+          Get suggestions to improve your writing.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          {writingToolsData.map((tool) => (
-            <Button
-              key={tool.label}
-              variant="outline"
-              className="w-full justify-start gap-2"
-            >
-              <tool.icon className="h-4 w-4" />
-              {tool.label}
-            </Button>
+      <CardContent className="space-y-2">
+        <Button
+          onClick={() => handleFeedback('Grammar')}
+          disabled={isPending || !activeAssignment}
+          className="w-full justify-start gap-2"
+        >
+          <Check className="h-4 w-4" /> Grammar & Spelling
+        </Button>
+        <Button
+          onClick={() => handleFeedback('Style')}
+          disabled={isPending || !activeAssignment}
+          className="w-full justify-start gap-2"
+        >
+          <Wand2 className="h-4 w-4" /> Style & Tone
+        </Button>
+        <div className="pt-2">
+          {isPending && <p>Getting feedback...</p>}
+          {feedback.map((item, i) => (
+            <div key={i} className="my-2 border-l-2 pl-2 text-sm">
+              <p className="text-destructive font-semibold line-through">
+                {JSON.parse(item.feedbackText).originalText}
+              </p>
+              <p className="font-semibold text-green-600">
+                {JSON.parse(item.feedbackText).suggestion}
+              </p>
+              <p className="text-muted-foreground text-xs">
+                {JSON.parse(item.feedbackText).explanation}
+              </p>
+            </div>
           ))}
         </div>
-        <Alert className="border-emerald-500/20 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300">
-          <AlertTitle className="font-semibold">
-            Writing Score: 85/100
-          </AlertTitle>
-          <AlertDescription className="mt-2 space-y-2">
-            <Skeleton className="h-2 w-5/6 bg-emerald-500/20" />
-            <Skeleton className="h-2 w-4/6 bg-emerald-500/20" />
-            <Skeleton className="h-2 w-3/6 bg-emerald-500/20" />
-          </AlertDescription>
-        </Alert>
-      </CardContent>
-    </Card>
-  );
-}
-
-function AiWritingAssistantSkeleton() {
-  return (
-    <Card className="flex h-full flex-col">
-      <CardHeader>
-        <Skeleton className="h-6 w-1/2" />
-        <Skeleton className="mt-2 h-4 w-3/4" />
-      </CardHeader>
-      <CardContent className="flex-1 space-y-4">
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-1/4" />
-          <Skeleton className="h-32 w-full" />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-      </CardContent>
-      <CardFooter>
-        <Skeleton className="h-10 w-full" />
-      </CardFooter>
-    </Card>
-  );
-}
-
-function WritingToolsSkeleton() {
-  return (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-6 w-1/2" />
-        <Skeleton className="mt-2 h-4 w-2/3" />
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-        <Skeleton className="h-24 w-full" />
       </CardContent>
     </Card>
   );
 }
 
 export function WritingAssistantTab({ courseId }: { courseId?: string }) {
+  const [activeAssignment, setActiveAssignment] =
+    useState<WritingAssignment | null>(null);
+
   if (!courseId) {
     return (
       <div className="h-[calc(100vh-12.5rem)]">
@@ -187,18 +216,30 @@ export function WritingAssistantTab({ courseId }: { courseId?: string }) {
   }
 
   return (
-    <div className="grid h-[calc(100vh-12.5rem)] grid-cols-1 gap-2 lg:grid-cols-2">
-      <AiWritingAssistant />
-      <WritingTools />
+    <div className="grid h-[calc(100vh-12.5rem)] grid-cols-1 gap-4 lg:grid-cols-4">
+      <div className="lg:col-span-1">
+        <AssignmentManager
+          activeAssignment={activeAssignment}
+          setActiveAssignment={setActiveAssignment}
+          courseId={courseId}
+        />
+      </div>
+      <div className="lg:col-span-2">
+        <EditorPanel activeAssignment={activeAssignment} />
+      </div>
+      <div className="lg:col-span-1">
+        <FeedbackPanel activeAssignment={activeAssignment} />
+      </div>
     </div>
   );
 }
 
 export function WritingAssistantTabSkeleton() {
   return (
-    <div className="grid h-[calc(100vh-12.5rem)] grid-cols-1 gap-2 lg:grid-cols-2">
-      <AiWritingAssistantSkeleton />
-      <WritingToolsSkeleton />
+    <div className="h-[calc(100vh-12.5rem)]] grid grid-cols-1 gap-4 lg:grid-cols-4">
+      <Skeleton className="h-full lg:col-span-1" />
+      <Skeleton className="h-full lg:col-span-2" />
+      <Skeleton className="h-full lg:col-span-1" />
     </div>
   );
 }
