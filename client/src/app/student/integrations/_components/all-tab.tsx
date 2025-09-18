@@ -1,157 +1,57 @@
 'use client';
 
-import { CheckCircle, ExternalLink, XCircle } from 'lucide-react';
-
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Switch } from '@/components/ui/switch';
-import { toast } from 'sonner';
-import {
-  allIntegrations,
-  categories,
-  IntegrationDetails,
-  IntegrationProvider,
-} from '../config/integrations.config';
-import {
-  useConnectGmail,
-  useConnectGoogleCalendar,
-  useConnectGoogleDrive,
-  useDeleteIntegration,
-  useGetIntegrations,
-} from '../hooks/useIntegrations';
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { categories, IntegrationDetails } from '../config/integrations.config';
+import { useGetIntegrations } from '../hooks/useIntegrations';
 import { PublicIntegration } from '../schema/integration.schema';
+import { AllTabSkeleton } from '../skeletons/all-tab-skeleton';
+import { IntegrationCard } from './integration-card';
+import { IntegrationStats } from './integration-stats';
 
-function IntegrationCard({
-  details,
-  integration,
+function CategorySection({
+  categoryTitle,
+  integrations,
+  connectedMap,
 }: {
-  details: IntegrationDetails;
-  integration: PublicIntegration | undefined;
+  categoryTitle: string;
+  integrations: IntegrationDetails[];
+  connectedMap: Map<string, PublicIntegration>;
 }) {
-  const { mutate: connectCalendar, isPending: isConnectingCalendar } =
-    useConnectGoogleCalendar();
-  const { mutate: connectDrive, isPending: isConnectingDrive } =
-    useConnectGoogleDrive();
-  const { mutate: connectGmail, isPending: isConnectingGmail } =
-    useConnectGmail();
-  const { mutate: deleteIntegration, isPending: isDeleting } =
-    useDeleteIntegration();
-
-  const handleConnect = (provider: IntegrationProvider) => {
-    const connectActions = {
-      google_calendar: connectCalendar,
-      google_drive: connectDrive,
-      gmail: connectGmail,
-    };
-
-    const action = connectActions[provider as keyof typeof connectActions];
-
-    if (action) {
-      action(undefined, {
-        onSuccess: (result) => {
-          if (result.data) {
-            window.location.href = result.data.redirectUrl;
-          } else {
-            toast.error(result.error);
-          }
-        },
-
-        onError: (err) => toast.error(err.message),
-      });
-    } else {
-      toast.info(`${details.name} integration is coming soon!`);
-    }
-  };
-
-  const handleDisconnect = () => {
-    if (!integration) return;
-
-    deleteIntegration(integration.id, {
-      onSuccess: () => toast.success(`${details.name} has been disconnected.`),
-      onError: (err) => toast.error(err.message),
-    });
-  };
-
-  const isPending =
-    isConnectingCalendar ||
-    isConnectingDrive ||
-    isConnectingGmail ||
-    isDeleting;
-
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <details.icon className="text-muted-foreground h-5 w-5" />
-          <h3 className="font-semibold">{details.name}</h3>
-          {integration?.status === 'active' && (
-            <CheckCircle className="h-4 w-4 text-emerald-500" />
-          )}
-        </div>
-
-        <CardDescription>{details.description}</CardDescription>
+    <Card className="overflow-hidden">
+      <CardHeader className="border-b">
+        <CardTitle className="flex items-center gap-2">
+          {categoryTitle}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="secondary" className="ml-auto">
+                {integrations.length}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              Total Integrations: {integrations.length}{' '}
+            </TooltipContent>
+          </Tooltip>
+        </CardTitle>
       </CardHeader>
 
-      <CardContent>
-        {integration ? (
-          <Badge
-            variant="outline"
-            className="border-emerald-500 text-emerald-500"
-          >
-            Connected
-          </Badge>
-        ) : (
-          <Badge variant="secondary">Not Connected</Badge>
-        )}
+      <CardContent className="">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {integrations.map((details) => (
+            <IntegrationCard
+              key={details.provider}
+              details={details}
+              integration={connectedMap.get(details.provider)}
+            />
+          ))}
+        </div>
       </CardContent>
-
-      <CardFooter className="mt-auto">
-        {integration ? (
-          <div className="flex w-full items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="pointer-events-none flex items-center gap-2"
-            >
-              <Switch checked={true} disabled />
-
-              <label className="text-sm">Enabled</label>
-            </Button>
-
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDisconnect}
-              disabled={isPending}
-            >
-              <XCircle className="h-4 w-4" />
-              Disconnect
-            </Button>
-          </div>
-        ) : (
-          <Button
-            variant="secondary"
-            className="w-full"
-            onClick={() => handleConnect(details.provider)}
-            disabled={isPending}
-          >
-            <ExternalLink className="h-4 w-4" />
-
-            {isConnectingCalendar || isConnectingDrive || isConnectingGmail
-              ? 'Redirecting...'
-              : 'Connect'}
-          </Button>
-        )}
-      </CardFooter>
     </Card>
   );
 }
@@ -164,127 +64,23 @@ export function AllTab() {
   }
 
   const connectedMap = new Map(
-    connectedIntegrations?.map((i) => [i.provider, i])
+    connectedIntegrations?.map((i) => [i.provider, i]) || []
   );
 
-  const stats = {
-    connected: connectedIntegrations?.length || 0,
-    active:
-      connectedIntegrations?.filter((i) => i.status === 'active').length || 0,
-  };
-
   return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-muted-foreground text-sm">Total Connected</p>
-            <p className="text-2xl font-bold">{stats.connected}</p>
-          </CardContent>
-        </Card>
+    <div className="space-y-6">
+      <IntegrationStats connectedIntegrations={connectedIntegrations || []} />
 
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-muted-foreground text-sm">Actively Synced</p>
-            <p className="text-2xl font-bold">{stats.active}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-muted-foreground text-sm">
-              Integrations Available
-            </p>
-            <p className="text-2xl font-bold">{allIntegrations.length}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="space-y-2">
+      <div className="space-y-6">
         {Object.entries(categories).map(([categoryTitle, integrations]) => (
-          <Card key={categoryTitle}>
-            <CardHeader>
-              <CardTitle>{categoryTitle}</CardTitle>
-            </CardHeader>
-
-            <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-2">
-              {integrations.map((details) => (
-                <IntegrationCard
-                  key={details.provider}
-                  details={details}
-                  integration={connectedMap.get(details.provider)}
-                />
-              ))}
-            </CardContent>
-          </Card>
+          <CategorySection
+            key={categoryTitle}
+            categoryTitle={categoryTitle}
+            integrations={integrations}
+            connectedMap={connectedMap}
+          />
         ))}
       </div>
     </div>
-  );
-}
-
-export function AllTabSkeleton() {
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i}>
-            <CardContent className="">
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-2/3" />
-                <Skeleton className="h-8 w-1/3" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="space-y-4">
-        <IntegrationCategoryCardSkeleton />
-        <IntegrationCategoryCardSkeleton />
-      </div>
-    </div>
-  );
-}
-
-function IntegrationCardSkeleton() {
-  return (
-    <Card className="">
-      <CardHeader className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-6 w-6" />
-          <Skeleton className="h-5 w-32" />
-        </div>
-        <Skeleton className="h-4 w-full" />
-      </CardHeader>
-
-      <CardContent className="flex-1 space-y-3">
-        <Skeleton className="h-6 w-24" />
-        <div className="flex gap-2">
-          <Skeleton className="h-5 w-20" />
-          <Skeleton className="h-5 w-24" />
-        </div>
-      </CardContent>
-
-      <CardFooter>
-        <Skeleton className="h-10 w-full" />
-      </CardFooter>
-    </Card>
-  );
-}
-
-function IntegrationCategoryCardSkeleton() {
-  return (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-6 w-1/3" />
-        <Skeleton className="mt-2 h-4 w-1/4" />
-      </CardHeader>
-
-      <CardContent className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-        <IntegrationCardSkeleton />
-        <IntegrationCardSkeleton />
-      </CardContent>
-    </Card>
   );
 }

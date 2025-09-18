@@ -5,9 +5,12 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { studentIntegrationsTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
-import { AllTab, AllTabSkeleton } from './all-tab';
-import { AvailableTab, AvailableTabSkeleton } from './available-tab';
-import { ConnectedTab, ConnectedTabSkeleton } from './connected-tab';
+import { AllTabSkeleton } from '../skeletons/all-tab-skeleton';
+import { AvailableTabSkeleton } from '../skeletons/available-tab-skeleton';
+import { ConnectedTabSkeleton } from '../skeletons/connected-tab-skeleton';
+import { AllTab } from './all-tab';
+import { AvailableTab } from './available-tab';
+import { ConnectedTab } from './connected-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
   all: <AllTabSkeleton />,
