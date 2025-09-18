@@ -231,7 +231,7 @@ export function IntegrationCard({
               </CardTitle>
 
               {integration?.status === 'active' && (
-                <CheckCircle className="h-4 w-4 flex-shrink-0 text-emerald-500" />
+                <CheckCircle className="mb-[2px] h-4 w-4 flex-shrink-0 text-emerald-500" />
               )}
             </div>
 

@@ -1,102 +1,54 @@
 'use client';
 
-import { ExternalLink } from 'lucide-react';
-
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 import {
   allIntegrations,
+  categories,
   IntegrationDetails,
-  IntegrationProvider,
 } from '../config/integrations.config';
-import {
-  useConnectGmail,
-  useConnectGoogleCalendar,
-  useConnectGoogleDrive,
-  useGetIntegrations,
-} from '../hooks/useIntegrations';
+import { useGetIntegrations } from '../hooks/useIntegrations';
+import { AvailableTabSkeleton } from '../skeletons/available-tab-skeleton';
+import { AllAppsConnectedState } from './empty-states';
+import { IntegrationCard } from './integration-card';
 
-function IntegrationCard({ details }: { details: IntegrationDetails }) {
-  const { mutate: connectCalendar, isPending: isConnectingCalendar } =
-    useConnectGoogleCalendar();
-  const { mutate: connectDrive, isPending: isConnectingDrive } =
-    useConnectGoogleDrive();
-  const { mutate: connectGmail, isPending: isConnectingGmail } =
-    useConnectGmail();
+function CategorySection({
+  categoryTitle,
+  integrations,
+  connectedProviders,
+}: {
+  categoryTitle: string;
+  integrations: IntegrationDetails[];
+  connectedProviders: Set<string>;
+}) {
+  const availableCount = integrations.filter(
+    (integration) => !connectedProviders.has(integration.provider)
+  ).length;
 
-  const isPending =
-    isConnectingCalendar || isConnectingDrive || isConnectingGmail;
-
-  const handleConnect = (provider: IntegrationProvider) => {
-    const actions = {
-      google_calendar: connectCalendar,
-      google_drive: connectDrive,
-      gmail: connectGmail,
-    };
-
-    const action = actions[provider as keyof typeof actions];
-
-    if (action) {
-      action(undefined, {
-        onSuccess: (result) => {
-          if (result.data) window.location.href = result.data.redirectUrl;
-          else toast.error(result.error);
-        },
-
-        onError: (err) => toast.error(err.message),
-      });
-    } else {
-      toast.info(`${details.name} integration is coming soon!`);
-    }
-  };
+  if (availableCount === 0) {
+    return null;
+  }
 
   return (
-    <Card className="">
-      <CardContent className="flex flex-1 flex-col">
-        <div className="flex flex-1 items-start gap-3">
-          <details.icon className="text-muted-foreground mt-0.5 h-5 w-5" />
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <h3 className="text-lg font-semibold">{categoryTitle}</h3>
+        <Badge variant="outline" className="text-xs">
+          {availableCount} available
+        </Badge>
+      </div>
 
-          <div>
-            <h3 className="font-semibold">{details.name}</h3>
-            <p className="text-muted-foreground text-sm">
-              {details.description}
-            </p>
-          </div>
-        </div>
-
-        <Button
-          variant="secondary"
-          className="mt-4 w-full"
-          onClick={() => handleConnect(details.provider)}
-          disabled={isPending}
-        >
-          <ExternalLink className="h-4 w-4" />
-          {isPending ? 'Redirecting...' : 'Connect'}
-        </Button>
-      </CardContent>
-    </Card>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {integrations
+          .filter(
+            (integration) => !connectedProviders.has(integration.provider)
+          )
+          .map((integration) => (
+            <IntegrationCard key={integration.provider} details={integration} />
+          ))}
+      </div>
+    </div>
   );
 }
-
-function IntegrationCardSkeleton() {
-  return (
-    <Card className="flex h-full flex-col">
-      <CardContent className="flex flex-1 flex-col">
-        <div className="flex flex-1 items-start gap-3">
-          <Skeleton className="h-6 w-6" />
-          <div className="flex-1 space-y-2">
-            <Skeleton className="h-5 w-3/4" />
-            <Skeleton className="h-4 w-full" />
-          </div>
-        </div>
-        <Skeleton className="mt-4 h-10 w-full" />
-      </CardContent>
-    </Card>
-  );
-}
-
 export function AvailableTab() {
   const { data: connectedIntegrations, isLoading } = useGetIntegrations();
 
@@ -105,37 +57,52 @@ export function AvailableTab() {
   }
 
   const connectedProviders = new Set(
-    connectedIntegrations?.map((i) => i.provider)
+    connectedIntegrations?.map((i) => i.provider) || []
   );
+
   const availableIntegrations = allIntegrations.filter(
     (details) => !connectedProviders.has(details.provider)
   );
 
   if (availableIntegrations.length === 0) {
-    return (
-      <div className="flex h-48 items-center justify-center rounded-lg border-2 border-dashed">
-        <p className="text-muted-foreground">
-          All available applications are connected.
-        </p>
-      </div>
-    );
+    return <AllAppsConnectedState />;
   }
 
-  return (
-    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-      {availableIntegrations.map((integration) => (
-        <IntegrationCard key={integration.provider} details={integration} />
-      ))}
-    </div>
-  );
-}
+  const totalAvailable = availableIntegrations.length;
+  const readyToConnect = availableIntegrations.filter((integration) =>
+    ['google_calendar', 'google_drive', 'gmail'].includes(integration.provider)
+  ).length;
 
-export function AvailableTabSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <IntegrationCardSkeleton key={i} />
-      ))}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold">Available Integrations</h2>
+
+          <p className="text-muted-foreground text-sm">
+            Connect {totalAvailable} new service
+            {totalAvailable !== 1 ? 's' : ''} to enhance your workflow
+          </p>
+        </div>
+
+        <div className="flex gap-2">
+          <Badge variant="secondary">{readyToConnect} ready now</Badge>
+          <Badge variant="outline">
+            {totalAvailable - readyToConnect} coming soon
+          </Badge>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {Object.entries(categories).map(([categoryTitle, integrations]) => (
+          <CategorySection
+            key={categoryTitle}
+            categoryTitle={categoryTitle}
+            integrations={integrations}
+            connectedProviders={connectedProviders}
+          />
+        ))}
+      </div>
     </div>
   );
 }
