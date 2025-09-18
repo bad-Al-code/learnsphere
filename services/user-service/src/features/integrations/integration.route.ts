@@ -106,4 +106,7 @@ router.get('/gmail/connect', IntegrationController.connectGmail);
  */
 router.get('/google/callback', IntegrationController.handleGoogleCallback);
 
+router.get('/notion/connect', IntegrationController.connectNotion);
+router.get('/notion/callback', IntegrationController.handleNotionCallback);
+
 export { router as integrationRouter };

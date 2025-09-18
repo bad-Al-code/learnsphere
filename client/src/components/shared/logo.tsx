@@ -1,4 +1,3 @@
-// Define the properties (props) the component will accept
 type LogoProps = {
   /**
    * Determines which version of the logo to display.

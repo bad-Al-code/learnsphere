@@ -1,3 +1,4 @@
+import { Client } from '@notionhq/client';
 import { OAuth2Client } from 'google-auth-library';
 import { env } from '../../config/env';
 import logger from '../../config/logger';
@@ -183,5 +184,43 @@ export class IntegrationService {
 
       throw error;
     }
+  }
+
+  public static generateNotionAuthUrl(userId: string): string {
+    const state = Buffer.from(
+      JSON.stringify({ userId, provider: 'notion' })
+    ).toString('base64');
+
+    return `https://api.notion.com/v1/oauth/authorize?client_id=${env.NOTION_CLIENT_ID}&response_type=code&owner=user&redirect_uri=${encodeURIComponent(env.NOTION_REDIRECT_URI)}&state=${state}`;
+  }
+
+  public static async handleNotionOAuthCallback(code: string, state: string) {
+    const { userId } = JSON.parse(
+      Buffer.from(state, 'base64').toString('utf-8')
+    );
+
+    const notion = new Client({
+      auth: env.NOTION_CLIENT_SECRET,
+    });
+
+    const response = await notion.oauth.token({
+      client_id: env.NOTION_CLIENT_ID,
+      client_secret: env.NOTION_CLIENT_SECRET,
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: env.NOTION_REDIRECT_URI,
+    });
+
+    if (!response.access_token)
+      throw new BadRequestError('Failed to retrieve Notion access token.');
+
+    await IntegrationRepository.upsertIntegration({
+      userId,
+      provider: 'notion',
+      accessToken: CryptoService.encrypt(response.access_token),
+      refreshToken: null,
+      scopes: null,
+      status: 'active',
+    });
   }
 }

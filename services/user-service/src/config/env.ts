@@ -29,6 +29,12 @@ const envSchema = z.object({
     .min(1, 'GOOGLE_CALENDAR_SCOPES is required'),
   GOOGLE_DRIVE_SCOPES: z.string().min(1, 'GOOGLE_DRIVE_SCOPES is required'),
   GOOGLE_GMAIL_SCOPES: z.string().min(1, 'GOOGLE_GMAIL_SCOPES is required'),
+
+  NOTION_CLIENT_ID: z.string().min(1, 'NOTION_CLIENT_ID is required'),
+  NOTION_CLIENT_SECRET: z.string().min(1, 'NOTION_CLIENT_SECRET is required'),
+  NOTION_REDIRECT_URI: z
+    .string()
+    .url('NOTION_REDIRECT_URI must be a valid URL'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
