@@ -1,9 +1,9 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { studentIntegrationsTabs } from '@/config/nav-items';
 import { Suspense } from 'react';
-import { PageHeader, PageHeaderSkeleton } from '../_components/page-header';
-import { AllTabSkeleton } from './_components/all-tab';
 import { IntegrationsTabs } from './_components/integrations-tabs';
+import { PageHeader, PageHeaderSkeleton } from './_components/page-header';
+import { AllTabSkeleton } from './skeletons/all-tab-skeleton';
 
 function IntegrationsPageSkeleton() {
   return (
