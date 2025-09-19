@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import {
+  AlarmClock,
   Award,
   BookOpen,
   FileText,
@@ -23,7 +24,10 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { useMyAverageGrade } from '../hooks/use-dashboard-stats';
+import {
+  useDueSoonCount,
+  useMyAverageGrade,
+} from '../hooks/use-dashboard-stats';
 import { useMyEnrolledCourses } from '../hooks/use-enrollments';
 
 interface StatCardData {
@@ -195,13 +199,15 @@ export function StatCardsRow() {
   const { data: enrolledCourses, isLoading: isLoadingCourses } =
     useMyEnrolledCourses();
   const { data: gradeData, isLoading: isLoadingGrade } = useMyAverageGrade();
+  const { data: dueSoonData, isLoading: isLoadingDueSoon } = useDueSoonCount();
 
-  const isLoading = isLoadingCourses || isLoadingGrade;
+  const isLoading = isLoadingCourses || isLoadingGrade || isLoadingDueSoon;
 
   const activeCourses = enrolledCourses?.length ?? 0;
   const avgGrade = gradeData?.averageGrade
     ? `${Math.round(gradeData.averageGrade)}%`
     : 'N/A';
+  const dueSoonCount = dueSoonData?.count ?? 0;
 
   const stats: StatCardData[] = [
     {
@@ -223,6 +229,12 @@ export function StatCardsRow() {
       icon: Award,
     },
     {
+      title: 'Due Soon',
+      value: isLoading ? '-' : dueSoonCount.toString(),
+      description: 'Assignments due soon',
+      icon: AlarmClock,
+    },
+    {
       title: 'Study Streak',
       value: '12 days', // Placeholder
       description: 'Keep it up!',
@@ -239,7 +251,7 @@ export function StatCardsRow() {
       {stats.map((stat) => (
         <StatCard key={stat.title} data={stat} />
       ))}
-      <StudyTimerCard />
+      {/* <StudyTimerCard /> */}
     </div>
   );
 }

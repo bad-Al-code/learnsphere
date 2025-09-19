@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
+import { EnrollRepository } from '../db/repositories';
 import { getEnrollmentsSchema } from '../schema/enrollment.schema';
 import { AnalyticsService } from '../services/analytics.service';
 import { EnrollmentService } from '../services/enrollment.service';
@@ -23,6 +24,24 @@ export class EnrollmentController {
     const enrollments = await EnrollmentService.getEnrollmentsByUserId(userId);
 
     res.status(StatusCodes.OK).json(enrollments);
+  }
+
+  public static async getMyCourseIds(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userId = req.currentUser!.id;
+
+      const enrollments =
+        await EnrollRepository.findActiveAndCompletedByUserId(userId);
+      const courseIds = enrollments.map((e) => e.courseId);
+
+      res.status(StatusCodes.OK).json(courseIds);
+    } catch (error) {
+      next(error);
+    }
   }
 
   public static async markProgress(req: Request, res: Response) {

@@ -1,8 +1,14 @@
-import { enrollmentService } from '@/lib/api/server';
-import { AverageGradeResponse } from '../schema/stats.schema';
+import { courseService, enrollmentService } from '@/lib/api/server';
+import { AverageGradeResponse, DueSoonResponse } from '../schema/stats.schema';
 
 export const getMyAverageGrade = (): Promise<AverageGradeResponse> => {
   return enrollmentService.getTyped<AverageGradeResponse>(
     '/api/analytics/my-average-grade'
+  );
+};
+
+export const getDueSoonCount = (): Promise<DueSoonResponse> => {
+  return courseService.getTyped<DueSoonResponse>(
+    '/api/assignments/due-soon-count'
   );
 };

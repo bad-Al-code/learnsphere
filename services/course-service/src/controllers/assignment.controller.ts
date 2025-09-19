@@ -123,4 +123,21 @@ export class AssignmentController {
       next(error);
     }
   }
+
+  public static async getDueSoonCount(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const cookie = req.headers.cookie;
+      if (!cookie) throw new NotAuthorizedError();
+
+      const result = await AssignmentService.getDueSoonCount(cookie);
+
+      res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

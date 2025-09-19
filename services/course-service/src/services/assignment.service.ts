@@ -1,3 +1,4 @@
+import { EnrollmentClient } from '../clients/enrollment.client';
 import logger from '../config/logger';
 import { AssignmentRepository, ModuleRepository } from '../db/repostiories';
 import { BadRequestError, NotFoundError } from '../errors';
@@ -171,5 +172,25 @@ export class AssignmentService {
     logger.info(`Fetching assignment status for course ${courseId}`);
 
     return AssignmentRepository.getAssignmentStatusForCourse(courseId);
+  }
+
+  /**
+   * Gets the count of assignments due soon for the current user.
+   * @param cookie The user's cookie for authenticating with the enrollment service.
+   * @returns The count of assignments due soon.
+   */
+  public static async getDueSoonCount(
+    cookie: string
+  ): Promise<{ count: number }> {
+    const enrolledCourseIds =
+      await EnrollmentClient.getEnrolledCourseIds(cookie);
+    if (enrolledCourseIds.length === 0) {
+      return { count: 0 };
+    }
+
+    const count =
+      await AssignmentRepository.countDueSoonByCourseIds(enrolledCourseIds);
+
+    return { count };
   }
 }

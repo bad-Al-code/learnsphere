@@ -1,6 +1,6 @@
 'use server';
 
-import { getMyAverageGrade } from '../api/stats.api';
+import { getDueSoonCount, getMyAverageGrade } from '../api/stats.api';
 
 export const getMyAverageGradeAction = async () => {
   try {
@@ -11,5 +11,17 @@ export const getMyAverageGradeAction = async () => {
     console.error('Failed to fetch average grade:', error);
 
     return { error: 'Could not retrieve your average grade.' };
+  }
+};
+
+export const getDueSoonCountAction = async () => {
+  try {
+    const data = await getDueSoonCount();
+
+    return { data };
+  } catch (error) {
+    console.error('Failed to fetch due soon count:', error);
+
+    return { error: 'Could not retrieve due soon count.' };
   }
 };

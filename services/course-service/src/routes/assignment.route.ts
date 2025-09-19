@@ -167,6 +167,33 @@ router.post('/assignments/reorder', AssignmentController.reorder);
 
 /**
  * @openapi
+ * /api/assignments/due-soon-count:
+ *   get:
+ *     summary: "[Student] Get a count of assignments due soon"
+ *     tags:
+ *       - Assignments
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: A count of assignments due in the next 7 days
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 count:
+ *                   type: integer
+ *                   example: 3
+ */
+router.get(
+  '/assignments/due-soon-count',
+  requireAuth,
+  AssignmentController.getDueSoonCount
+);
+
+/**
+ * @openapi
  * /api/courses/{courseId}/assignments:
  *   get:
  *     summary: Get assignments for a course with filters and pagination.

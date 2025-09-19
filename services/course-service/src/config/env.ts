@@ -13,6 +13,9 @@ const envSchema = z.object({
 
   USER_SERVICE_URL: z.string().min(1, 'USER_SERVICE_URL is requied'),
   MEDIA_SERVICE_URL: z.string().min(1, 'MEDIA_SERVICE_URL is requied'),
+  ENROLLMENT_SERVICE_URL: z
+    .string()
+    .min(1, 'ENROLLMENT_SERVICE_URL is requied'),
 
   JWT_SECRET: z
     .string()

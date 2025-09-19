@@ -70,6 +70,27 @@ router.get('/my-courses', requireAuth, EnrollmentController.getMyCourses);
 
 /**
  * @openapi
+ * /api/enrollments/my-course-ids:
+ *   get:
+ *     summary: Get IDs of all courses the current user is enrolled in
+ *     tags:
+ *       - Student Enrollments
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An array of course UUIDs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
+ */
+router.get('/my-course-ids', requireAuth, EnrollmentController.getMyCourseIds);
+
+/**
+ * @openapi
  * /api/enrollments/progress:
  *   post:
  *     summary: Mark a lesson as complete for the current user

@@ -1,4 +1,15 @@
-import { and, avg, count, desc, eq, ilike } from 'drizzle-orm';
+import {
+  and,
+  avg,
+  count,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  isNotNull,
+  lte,
+} from 'drizzle-orm';
 import { db } from '..';
 import {
   Assignment,
@@ -165,5 +176,35 @@ export class AssignmentRepository {
       .limit(5);
 
     return result;
+  }
+
+  /**
+   * Counts assignments that are due within the next 7 days for a given set of course IDs.
+   * @param courseIds An array of course IDs.
+   * @returns A promise that resolves to the count of due assignments.
+   */
+  public static async countDueSoonByCourseIds(
+    courseIds: string[]
+  ): Promise<number> {
+    if (courseIds.length === 0) {
+      return 0;
+    }
+    const now = new Date();
+    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const [result] = await db
+      .select({ value: count() })
+      .from(assignments)
+      .where(
+        and(
+          inArray(assignments.courseId, courseIds),
+          eq(assignments.status, 'published'),
+          isNotNull(assignments.dueDate),
+          gte(assignments.dueDate, now),
+          lte(assignments.dueDate, sevenDaysFromNow)
+        )
+      );
+
+    return result.value;
   }
 }

@@ -1,7 +1,10 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { getMyAverageGradeAction } from '../actions/stats.action';
+import {
+  getDueSoonCountAction,
+  getMyAverageGradeAction,
+} from '../actions/stats.action';
 
 export const useMyAverageGrade = () => {
   return useQuery({
@@ -11,6 +14,21 @@ export const useMyAverageGrade = () => {
       const result = await getMyAverageGradeAction();
       console.log(result);
 
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      return result.data;
+    },
+  });
+};
+
+export const useDueSoonCount = () => {
+  return useQuery({
+    queryKey: ['assignments-due-soon'],
+
+    queryFn: async () => {
+      const result = await getDueSoonCountAction();
       if (result.error) {
         throw new Error(result.error);
       }
