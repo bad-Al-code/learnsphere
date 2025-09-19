@@ -23,30 +23,41 @@ interface QuoteData {
 export function WeatherCard({ data }: { data: WeatherData }) {
   return (
     <Card className="h-32">
-      <CardContent className="flex h-full items-center justify-between px-6 py-4">
-        <div className="flex items-center justify-center space-x-2">
-          <CloudSun className="text-muted-foreground h-6 w-6" />{' '}
-          <div className="flex flex-col items-center justify-center space-y-2">
-            <p className="text-4xl leading-none font-bold">
+      <CardContent className="relative flex h-full items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <div className="absolute inset-0 rounded-full bg-blue-200/40 blur-lg transition-all duration-300 group-hover:bg-blue-300/60" />
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-white/80 shadow-lg backdrop-blur-sm">
+              <CloudSun className="h-8 w-8 text-blue-600" />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-4xl font-bold transition-colors">
               {data.temperature}°C
             </p>
-            <p className="text-muted-foreground text-sm">{data.condition}</p>
+
+            <p className="text-muted-foreground text-sm font-medium">
+              {data.condition}
+            </p>
           </div>
         </div>
 
-        <div className="text-muted-foreground space-y-1 text-right text-xs">
-          <p className="flex items-center justify-end gap-1.5">
-            <MapPin className="h-3 w-3" /> {data.location}
-          </p>
+        <div className="text-muted-foreground space-y-3 text-right text-sm">
+          <div className="flex items-center justify-end gap-1.5 font-medium">
+            <MapPin className="h-3.5 w-3.5" />
+            <span>{data.location}</span>
+          </div>
 
-          <div className="flex space-x-2">
-            <p className="flex items-center justify-end gap-1">
-              <Droplets className="h-3 w-3" /> {data.humidity}%
-            </p>
-
-            <p className="flex items-center justify-end gap-1">
-              <Wind className="h-3 w-3" /> {data.windSpeed} km/h
-            </p>
+          <div className="space-y-2">
+            <div className="flex items-center justify-end gap-1.5">
+              <Droplets className="text-muted-foreground h-3.5 w-3.5" />
+              <span>{data.humidity}%</span>
+            </div>
+            <div className="flex items-center justify-end gap-1.5">
+              <Wind className="text-muted-foreground h-3.5 w-3.5" />
+              <span>{data.windSpeed} km/h</span>
+            </div>
           </div>
         </div>
       </CardContent>
@@ -56,14 +67,22 @@ export function WeatherCard({ data }: { data: WeatherData }) {
 
 export function QuoteCard({ data }: { data: QuoteData }) {
   return (
-    <Card className="h-32 rounded-2xl shadow-sm">
-      <CardContent className="relative flex h-full flex-col justify-center px-6 py-4">
-        <Quote className="text-muted-foreground absolute top-4 right-4 h-5 w-5" />
+    <Card className="">
+      <CardContent className="relative flex h-full flex-col justify-center">
+        <div className="absolute top-4 right-4">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm">
+            <Quote className="text-primary h-4 w-4" />
+          </div>
+        </div>
 
-        <blockquote className="text-sm italic">"{data.text}"</blockquote>
-        <p className="text-muted-foreground mt-2 text-right text-xs">
-          — {data.author}
-        </p>
+        <div className="space-y-4">
+          <blockquote className="line-clamp-3 text-sm leading-relaxed font-medium italic">
+            "{data.text}"
+          </blockquote>
+          <p className="text-muted-foreground text-right text-xs font-medium">
+            — {data.author}
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
