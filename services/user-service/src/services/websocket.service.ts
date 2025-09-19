@@ -20,6 +20,10 @@ export class WebSocketService {
     logger.info(`WebSocketService initialized on /api/ai/voice-tutor`);
   }
 
+  /**
+   * Starts the WebSocket server and begins listening for connections.
+   * It sets up handlers for new connections, messages, and disconnections.
+   */
   public start() {
     this.wss.on('connection', async (ws: WebSocket, req: IncomingMessage) => {
       try {
@@ -34,6 +38,8 @@ export class WebSocketService {
         if (this.activeSessions.has(userId)) {
           this.activeSessions.get(userId)?.close();
           this.activeSessions.delete(userId);
+
+          logger.info(`Closed existing session for user: ${userId}`);
         }
 
         const session = await VoiceTutorSession.create(userId, courseId, ws);
@@ -75,21 +81,33 @@ export class WebSocketService {
     });
   }
 
+  /**
+   * Authenticates a user from an incoming HTTP request by verifying the JWT in cookies.
+   * @private
+   * @param {IncomingMessage} req - The incoming HTTP request from the WebSocket handshake.
+   * @returns {string} The authenticated user's ID.
+   * @throws {Error} If authentication fails at any step (missing cookies, invalid signature, etc.).
+   */
   private authenticate(req: IncomingMessage): string {
     const cookieHeader = req.headers.cookie;
-    if (!cookieHeader)
+    if (!cookieHeader) {
       throw new Error('Authentication failed: No cookie header.');
+    }
 
     const cookies = cookie.parse(cookieHeader);
     const rawToken = cookies.token;
-    if (!rawToken) throw new Error('Authentication failed: No session token.');
+    if (!rawToken) {
+      throw new Error('Authentication failed: No session token.');
+    }
 
     const unsignedToken = cookieParser.signedCookie(
       rawToken,
       env.COOKIE_PARSER_SECRET
     );
-    if (!unsignedToken)
+
+    if (!unsignedToken) {
       throw new Error('Authentication failed: Invalid cookie signature.');
+    }
 
     const payload = jwt.verify(unsignedToken, env.JWT_SECRET) as UserPayload;
 

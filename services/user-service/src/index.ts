@@ -13,7 +13,7 @@ import {
   UserRegisteredListener,
   UserSessionCreatedListener,
 } from './events/listener';
-import { WebSocketService } from './services/swebsocket.service';
+import { WebSocketService } from './services/websocket.service';
 
 const startServer = async () => {
   try {
@@ -26,7 +26,7 @@ const startServer = async () => {
     new CourseContentUpdatedListener().listen();
     new UserEnrolledListener().listen();
 
-    const PORT = env.PORT || 8001;
+    const PORT = env.PORT || 8002;
     const server = createServer(app);
     const webSocketService = new WebSocketService(server);
     webSocketService.start();
@@ -39,15 +39,15 @@ const startServer = async () => {
 
     process.on('SIGINT', async () => {
       await rabbitMQConnection.close();
-      process.exit(0);
+      process.exit(1);
     });
     process.on('SIGTERM', async () => {
       await rabbitMQConnection.close();
-      process.exit(0);
+      process.exit(1);
     });
   } catch (error) {
     logger.error(`Failed to start the server `, { error });
-    process.exit(1);
+    process.exit(2);
   }
 };
 

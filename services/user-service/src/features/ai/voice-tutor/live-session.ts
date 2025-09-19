@@ -5,6 +5,7 @@ import {
   Session,
 } from '@google/genai';
 import { WebSocket } from 'ws';
+
 import logger from '../../../config/logger';
 import { AITutorConversation } from '../../../db/schema';
 import { ForbiddenError, NotFoundError } from '../../../errors';
@@ -16,7 +17,6 @@ export class VoiceTutorSession {
   private geminiSession: Session;
   private conversationRecord: AITutorConversation;
   private clientWs: WebSocket;
-
   private static model = 'models/gemini-2.5-flash-preview-native-audio-dialog';
 
   private constructor(
@@ -29,6 +29,19 @@ export class VoiceTutorSession {
     this.clientWs = clientWs;
   }
 
+  /**
+   * Creates and initializes a new VoiceTutorSession.
+   * This static factory method handles user validation, fetching course content,
+   * creating a database record, and establishing the live connection to the AI model.
+   * @public
+   * @static
+   * @param {string} userId - The ID of the user initiating the session.
+   * @param {string} courseId - The ID of the course context for the session.
+   * @param {WebSocket} clientWs - The WebSocket connection to the client.
+   * @returns {Promise<VoiceTutorSession>} A promise that resolves to a new VoiceTutorSession instance.
+   * @throws {ForbiddenError} If the user is not enrolled in the specified course.
+   * @throws {NotFoundError} If the content for the specified course cannot be found.
+   */
   public static async create(
     userId: string,
     courseId: string,
@@ -54,8 +67,6 @@ export class VoiceTutorSession {
       `Voice Session - ${new Date().toLocaleString()}`
     );
 
-    const responseQueue: LiveServerMessage[] = [];
-
     const geminiSession = await GoogleProvider.connectLiveSession({
       model: this.model,
       config: {
@@ -77,7 +88,6 @@ export class VoiceTutorSession {
         },
 
         onmessage: (message: LiveServerMessage) => {
-          responseQueue.push(message);
           this.handleModelMessage(message, clientWs, conversationRecord).catch(
             (err) => {
               logger.error('Error handling model message', { err });
@@ -107,6 +117,16 @@ export class VoiceTutorSession {
     return new VoiceTutorSession(geminiSession, conversationRecord, clientWs);
   }
 
+  /**
+   * Processes messages received from the Gemini model.
+   * It extracts audio data to be sent to the client and text data to be saved in the database.
+   * @private
+   * @static
+   * @param {LiveServerMessage} message - The message object from the Gemini session.
+   * @param {WebSocket} clientWs - The WebSocket connection to the client.
+   * @param {AITutorConversation} conversationRecord - The database record for the conversation.
+   * @returns {Promise<void>}
+   */
   private static async handleModelMessage(
     message: LiveServerMessage,
     clientWs: WebSocket,
@@ -133,6 +153,12 @@ export class VoiceTutorSession {
     }
   }
 
+  /**
+   * Handles an incoming audio chunk from the client and forwards it to the Gemini session.
+   * @public
+   * @param {Buffer} chunk - A buffer containing the raw audio data (PCM).
+   * @returns {Promise<void>}
+   */
   public async handleAudioChunk(chunk: Buffer): Promise<void> {
     await this.geminiSession.sendClientContent({
       turns: [
@@ -151,6 +177,13 @@ export class VoiceTutorSession {
     });
   }
 
+  /**
+   * Handles a final user transcript, saves it to the database, and sends it to Gemini.
+   * This is typically used when the user finishes speaking.
+   * @public
+   * @param {string} text - The final transcript of the user's speech.
+   * @returns {Promise<void>}
+   */
   public async handleUserTranscript(text: string): Promise<void> {
     await AIRepository.addMessage({
       conversationId: this.conversationRecord.id,
@@ -168,6 +201,10 @@ export class VoiceTutorSession {
     });
   }
 
+  /**
+   * Gracefully closes the connection to the Gemini session.
+   * @public
+   */
   public close(): void {
     this.geminiSession.close();
   }
