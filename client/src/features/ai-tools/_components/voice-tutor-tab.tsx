@@ -430,7 +430,7 @@ function ConversationPanel({
             <CardDescription>Real-time conversation history</CardDescription>
           </div>
           {transcript.length > 0 && (
-            <Badge variant="secondary" className="gap-1">
+            <Badge variant="outline" className="gap-1">
               <Clock className="h-3 w-3" />
               {transcript.length} messages
             </Badge>
