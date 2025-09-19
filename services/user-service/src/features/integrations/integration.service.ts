@@ -1,9 +1,16 @@
 import { Client } from '@notionhq/client';
+import axios from 'axios';
+import { and, eq } from 'drizzle-orm';
 import { OAuth2Client } from 'google-auth-library';
+import { NotionClient } from '../../clients/notion.client';
 import { env } from '../../config/env';
 import logger from '../../config/logger';
+import { db } from '../../db';
+import { userIntegrations } from '../../db/schema';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../../errors';
 import { CryptoService } from '../../services/crypto.service';
+import { NoteRepository } from '../ai/notes/note.repository';
+import { ResearchRepository } from '../ai/research/research.repository';
 import { IntegrationRepository } from './integration.repository';
 import { PublicIntegration } from './integration.schema';
 
@@ -222,5 +229,43 @@ export class IntegrationService {
       scopes: null,
       status: 'active',
     });
+  }
+
+  public static async exportCourseToNotion(userId: string, courseId: string) {
+    const integration = await db.query.userIntegrations.findFirst({
+      where: and(
+        eq(userIntegrations.userId, userId),
+        eq(userIntegrations.provider, 'notion')
+      ),
+    });
+
+    if (!integration || !integration.accessToken) {
+      throw new ForbiddenError('Notion integration not found or is invalid.');
+    }
+
+    const accessToken = CryptoService.decrypt(integration.accessToken);
+    if (!accessToken) {
+      throw new Error('Failed to decrypt Notion access token.');
+    }
+
+    const courseResponse = await axios.get(
+      `${env.COURSE_SERVICE_URL}/api/courses/${courseId}`
+    );
+    const notes = await NoteRepository.findNotesByUserAndCourse(
+      userId,
+      courseId
+    );
+    const board = await ResearchRepository.findOrCreateBoard(userId, courseId);
+
+    const dataForHub = {
+      course: courseResponse.data,
+      notes: notes,
+      findings: board.findings,
+    };
+
+    const notionClient = new NotionClient(accessToken);
+    const pageUrl = await notionClient.createCourseHubPage(dataForHub);
+
+    return { pageUrl };
   }
 }

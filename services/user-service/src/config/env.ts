@@ -10,6 +10,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   RABBITMQ_URL: z.string().min(1, 'RABBITMQ_URL is required'),
   MEDIA_SERVICE_URL: z.string().url().default('http://localhost:8002'),
+  COURSE_SERVICE_URL: z.string().url().default('http://localhost:8003'),
 
   JWT_SECRET: z.string().min(1, 'JWT_SECRET is required'),
   COOKIE_PARSER_SECRET: z.string().min(1, 'COOKIE_PARSER_SECRET is required'),

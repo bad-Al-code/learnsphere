@@ -3,7 +3,10 @@ import { Router } from 'express';
 import { requireAuth } from '../../middlewares/require-auth';
 import { validateRequest } from '../../middlewares/validate-request';
 import { IntegrationController } from './integration.controller';
-import { integrationIdParamSchema } from './integration.schema';
+import {
+  exportToNotionSchema,
+  integrationIdParamSchema,
+} from './integration.schema';
 
 const router = Router();
 router.use(requireAuth);
@@ -108,5 +111,41 @@ router.get('/google/callback', IntegrationController.handleGoogleCallback);
 
 router.get('/notion/connect', IntegrationController.connectNotion);
 router.get('/notion/callback', IntegrationController.handleNotionCallback);
+
+/**
+ * @openapi
+ * /api/users/integrations/notion/export-course:
+ *   post:
+ *     summary: Export a full course summary to Notion
+ *     tags: [Integrations]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               courseId:
+ *                 type: string
+ *                 format: uuid
+ *     responses:
+ *       '200':
+ *         description: Successfully created the page in Notion.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 pageUrl:
+ *                   type: string
+ *                   format: uri
+ */
+router.post(
+  '/notion/export-course',
+  validateRequest(exportToNotionSchema),
+  IntegrationController.exportCourseToNotion
+);
 
 export { router as integrationRouter };

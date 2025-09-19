@@ -72,3 +72,9 @@ export const integrationIdParamSchema = z.object({
     id: z.string().uuid('A valid integration ID is required.'),
   }),
 });
+
+export const exportToNotionSchema = z.object({
+  body: z.object({
+    courseId: z.string().uuid('A valid courseId is required.'),
+  }),
+});

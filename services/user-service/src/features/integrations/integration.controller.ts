@@ -157,4 +157,24 @@ export class IntegrationController {
       );
     }
   }
+
+  public static async exportCourseToNotion(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { courseId } = req.body;
+
+      const result = await IntegrationService.exportCourseToNotion(
+        req.currentUser.id,
+        courseId
+      );
+
+      res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
