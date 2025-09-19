@@ -325,6 +325,24 @@ router.get(
 
 /**
  * @openapi
+ * /api/analytics/my-average-grade:
+ *   get:
+ *     summary: "[Student] Get the current user's overall average grade"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: The user's average grade.
+ */
+router.get(
+  '/my-average-grade',
+  requireAuth,
+  AnalyticsController.getMyAverageGrade
+);
+
+/**
+ * @openapi
  * /api/analytics/course/{courseId}/stats:
  *   get:
  *     summary: "[Internal] Get statistics for a single course"

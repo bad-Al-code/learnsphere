@@ -1018,4 +1018,24 @@ export class AnalyticsRepository {
       })
       .where(eq(reportJobs.id, jobId));
   }
+
+  /**
+   * Calculates the overall average grade for a single student across all their courses.
+   * @param studentId The ID of the student
+   * @returns The average grade as a number (0-100), or null if no grades are found.
+   */
+  public static async getOverallAverageGradeForStudent(
+    studentId: string
+  ): Promise<number | null> {
+    const [result] = await db
+      .select({
+        averageGrade: avg(studentGrades.grade),
+      })
+      .from(studentGrades)
+      .where(eq(studentGrades.studentId, studentId));
+
+    return result && result.averageGrade
+      ? parseFloat(result.averageGrade)
+      : null;
+  }
 }

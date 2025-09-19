@@ -23,6 +23,8 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useMyAverageGrade } from '../hooks/use-dashboard-stats';
+import { useMyEnrolledCourses } from '../hooks/use-enrollments';
 
 interface StatCardData {
   title: string;
@@ -189,10 +191,52 @@ function StudyTimerCard() {
   );
 }
 
-export function StatCardsRow({ data = placeholderData }: StatCardsRowProps) {
+export function StatCardsRow() {
+  const { data: enrolledCourses, isLoading: isLoadingCourses } =
+    useMyEnrolledCourses();
+  const { data: gradeData, isLoading: isLoadingGrade } = useMyAverageGrade();
+
+  const isLoading = isLoadingCourses || isLoadingGrade;
+
+  const activeCourses = enrolledCourses?.length ?? 0;
+  const avgGrade = gradeData?.averageGrade
+    ? `${Math.round(gradeData.averageGrade)}%`
+    : 'N/A';
+
+  const stats: StatCardData[] = [
+    {
+      title: 'Active Courses',
+      value: isLoading ? '-' : activeCourses.toString(),
+      description: 'Currently enrolled',
+      icon: BookOpen,
+    },
+    {
+      title: 'Assignments',
+      value: '7', // Placeholder
+      description: '3 pending submission',
+      icon: FileText,
+    },
+    {
+      title: 'Average Grade',
+      value: isLoading ? '-' : avgGrade,
+      description: '+2% from last month', // Placeholder
+      icon: Award,
+    },
+    {
+      title: 'Study Streak',
+      value: '12 days', // Placeholder
+      description: 'Keep it up!',
+      icon: Flame,
+    },
+  ];
+
+  if (isLoading) {
+    return <StatCardSkeleton />;
+  }
+
   return (
     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
-      {data.map((stat) => (
+      {stats.map((stat) => (
         <StatCard key={stat.title} data={stat} />
       ))}
       <StudyTimerCard />

@@ -765,4 +765,18 @@ export class AnalyticsService {
         'Report generation has started. You will be notified upon completion.',
     };
   }
+
+  /**
+   * Retrieves the overall average grade for a specific student.
+   * @param studentId The ID of the student.
+   * @returns An object containing the average grade.
+   */
+  public static async getOverallStudentAverageGrade(studentId: string) {
+    logger.info(`Fetching overall average grade for student ${studentId}`);
+
+    const averageGrade =
+      await AnalyticsRepository.getOverallAverageGradeForStudent(studentId);
+
+    return { averageGrade };
+  }
 }

@@ -400,4 +400,22 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getMyAverageGrade(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const stats = await AnalyticsService.getOverallStudentAverageGrade(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(stats);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
