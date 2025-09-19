@@ -1,5 +1,6 @@
 import 'dotenv/config';
 
+import { createServer } from 'node:http';
 import { app } from './app';
 import { env } from './config/env';
 import logger from './config/logger';
@@ -12,6 +13,7 @@ import {
   UserRegisteredListener,
   UserSessionCreatedListener,
 } from './events/listener';
+import { WebSocketService } from './services/swebsocket.service';
 
 const startServer = async () => {
   try {
@@ -25,7 +27,11 @@ const startServer = async () => {
     new UserEnrolledListener().listen();
 
     const PORT = env.PORT || 8001;
-    app.listen(PORT, () => {
+    const server = createServer(app);
+    const webSocketService = new WebSocketService(server);
+    webSocketService.start();
+
+    server.listen(PORT, () => {
       logger.info(
         `User service listening on port ${PORT} in ${env.NODE_ENV} mode`
       );

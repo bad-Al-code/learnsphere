@@ -27,6 +27,7 @@
     "@google/genai": "^1.19.0",
     "@notionhq/client": "^5.1.0",
     "amqplib": "^0.10.8",
+    "cookie": "^1.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
@@ -42,6 +43,7 @@
     "swagger-ui-express": "^5.0.1",
     "uuid": "^13.0.0",
     "winston": "^3.17.0",
+    "ws": "^8.18.3",
     "zod": "^3.25.56"
   },
   "devDependencies": {
@@ -57,6 +59,7 @@
     "@types/supertest": "^6.0.3",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "@types/ws": "^8.18.1",
     "axios": "^1.9.0",
     "drizzle-kit": "^0.31.1",
     "eslint": "^9.30.1",
