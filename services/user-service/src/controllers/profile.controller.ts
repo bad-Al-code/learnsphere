@@ -333,4 +333,23 @@ export class ProfileController {
       next(error);
     }
   }
+
+  public static async patchMySettings(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userId = req.currentUser!.id;
+
+      const updateSettings = await ProfileService.updateSettings(
+        userId,
+        req.body
+      );
+
+      res.status(StatusCodes.OK).json(updateSettings);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

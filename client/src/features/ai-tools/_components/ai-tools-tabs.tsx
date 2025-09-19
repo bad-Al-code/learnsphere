@@ -71,7 +71,11 @@ export function AiToolsTabs({ courseId }: { courseId: string | null }) {
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-      <AppTabs tabs={studentAiToolsTabs} basePath="/" activeTab="tab" />
+      <AppTabs
+        tabs={studentAiToolsTabs}
+        basePath="/student/ai-tools"
+        activeTab="tab"
+      />
       <div>
         {isPending ? (
           skeletonMap[activeTab] || <p>Loading...</p>

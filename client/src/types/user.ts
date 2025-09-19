@@ -14,6 +14,7 @@ export type User = {
   } | null;
   settings?: {
     language?: string;
+    theme?: 'dark' | 'light';
   };
 } | null;
 

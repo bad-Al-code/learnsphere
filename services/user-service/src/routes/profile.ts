@@ -20,6 +20,7 @@ import {
   avatarUploadUrlSchema,
   bulkUsersSchema,
   fcmTokenSchema,
+  patchSettingsSchema,
   searchProfileSchema,
   updateProfileSchema,
   updateSettingsSchema,
@@ -160,6 +161,41 @@ router.put(
   requireAuth,
   validateRequest(updateSettingsSchema),
   ProfileController.updateMySettings
+);
+/**
+ * @openapi
+ * /api/users/me/settings:
+ *   patch:
+ *     summary: Partially update the current user's application settings
+ *     tags: [My Profile]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               theme:
+ *                 type: string
+ *                 enum: [light, dark]
+ *                 description: The desired color theme for the application.
+ *     responses:
+ *       '200':
+ *         description: The complete, updated settings object.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserSettings'
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.patch(
+  '/me/settings',
+  requireAuth,
+  validateRequest(patchSettingsSchema),
+  ProfileController.patchMySettings
 );
 
 /**

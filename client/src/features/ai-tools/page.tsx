@@ -10,7 +10,7 @@ import { PageHeader, PageHeaderSkeleton } from './_components/page-header';
 
 export const dynamic = 'force-dynamic';
 
-function AiToolsPageSkeleton() {
+export function AiToolsSkeleton() {
   return (
     <div className="mb-4 space-y-2">
       <PageHeaderSkeleton />
@@ -30,7 +30,7 @@ interface Props {
   searchParams: { [key: string]: string | string[] | undefined };
 }
 
-export default function AiToolsPage() {
+export default function AiTools() {
   const searchParams = useSearchParams();
   const courseId = searchParams.get('courseId');
 
@@ -42,7 +42,7 @@ export default function AiToolsPage() {
         description="Your intelligent study companion powered by advanced AI. Get personalized help, practice problems, and study recommendations."
       />
 
-      <Suspense fallback={<AiToolsPageSkeleton />}>
+      <Suspense fallback={<AiToolsSkeleton />}>
         <AiToolsTabs courseId={courseId} />
       </Suspense>
     </div>

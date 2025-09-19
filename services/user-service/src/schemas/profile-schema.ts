@@ -345,3 +345,14 @@ export const applyForInstructorSchema = z.object({
       .min(20, 'Please tell us more about your motivation to teach.'),
   }),
 });
+
+export const patchSettingsSchema = z.object({
+  body: z
+    .object({
+      theme: z.enum(['light', 'dark']).optional(),
+      language: z.string().optional(),
+    })
+    .refine((data) => Object.keys(data).length > 0, {
+      message: 'At least one setting must be provided for an update',
+    }),
+});
