@@ -1,8 +1,9 @@
-import { GoogleGenAI } from '@google/genai';
+import type { Session } from '@google/genai';
+import { GoogleGenAI, LiveConnectParameters } from '@google/genai';
 import { env } from '../../../config/env';
 import logger from '../../../config/logger';
 
-class GoogleProvider {
+export class GoogleProvider {
   private static instance: GoogleGenAI;
 
   /**
@@ -23,8 +24,19 @@ class GoogleProvider {
         throw new Error('Could not initialize GoogleGenAI client.');
       }
     }
-
     return GoogleProvider.instance;
+  }
+
+  /**
+   * Creates and connects a new LiveSession.
+   * @param {StartLiveSessionParameters} params - The parameters for starting the session.
+   * @returns {Promise<Session>} A promise that resolves with the connected session object.
+   */
+  public static async connectLiveSession(
+    params: Omit<LiveConnectParameters, 'apiKey'>
+  ): Promise<Session> {
+    const client = this.getInstance();
+    return client.live.connect(params);
   }
 }
 

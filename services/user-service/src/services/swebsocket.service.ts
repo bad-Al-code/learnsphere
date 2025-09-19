@@ -4,12 +4,15 @@ import jwt from 'jsonwebtoken';
 import { IncomingMessage, Server } from 'node:http';
 import { WebSocket, WebSocketServer } from 'ws';
 
+import { parse } from 'node:url';
 import { env } from '../config/env';
 import logger from '../config/logger';
+import { VoiceTutorSession } from '../features/ai/voice-tutor/live-session';
 import { UserPayload } from '../middlewares/current-user';
 
 export class WebSocketService {
   private wss: WebSocketServer;
+  private activeSessions: Map<string, VoiceTutorSession> = new Map();
 
   constructor(server: Server) {
     this.wss = new WebSocketServer({ server, path: '/api/ai/voice-tutor' });
@@ -18,17 +21,46 @@ export class WebSocketService {
   }
 
   public start() {
-    this.wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
+    this.wss.on('connection', async (ws: WebSocket, req: IncomingMessage) => {
       try {
         const userId = this.authenticate(req);
+        const queryParams = parse(req.url || '', true).query;
+        const courseId = queryParams.courseId as string;
 
-        logger.info(
-          `WebSocket client connected and authenticated for user: ${userId}`
-        );
+        if (!courseId) {
+          throw new Error("Missing 'courseId' query parameter.");
+        }
 
-        ws.on('message', (message: Buffer) => {});
+        if (this.activeSessions.has(userId)) {
+          this.activeSessions.get(userId)?.close();
+          this.activeSessions.delete(userId);
+        }
+
+        const session = await VoiceTutorSession.create(userId, courseId, ws);
+        this.activeSessions.set(userId, session);
+
+        logger.info(`Voice Tutor session started for user: ${userId}`);
+
+        ws.on('message', (message: Buffer) => {
+          const currentSession = this.activeSessions.get(userId);
+          if (!currentSession) return;
+
+          if (typeof message === 'string') {
+            session.handleUserTranscript(message);
+          } else {
+            session.handleAudioChunk(message);
+          }
+        });
+
         ws.on('close', () => {
-          logger.info(`WebSocket client disconnected for user: ${userId}`);
+          const sessionToEnd = this.activeSessions.get(userId);
+
+          if (sessionToEnd) {
+            sessionToEnd.close();
+            this.activeSessions.delete(userId);
+
+            logger.info(`Voice Tutor session closed for user: ${userId}`);
+          }
         });
       } catch (error) {
         const err = error as Error;

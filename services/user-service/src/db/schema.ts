@@ -164,6 +164,7 @@ export const aiTutorConversations = pgTable('ai_tutor_conversations', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+export type AITutorConversation = typeof aiTutorConversations.$inferSelect;
 
 export const aiTutorMessages = pgTable('ai_tutor_messages', {
   id: uuid('id').primaryKey().defaultRandom(),
