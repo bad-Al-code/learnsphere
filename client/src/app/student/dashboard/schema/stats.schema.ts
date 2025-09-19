@@ -9,3 +9,8 @@ export const dueSoonResponseSchema = z.object({
   count: z.number(),
 });
 export type DueSoonResponse = z.infer<typeof dueSoonResponseSchema>;
+
+export const studyStreakResponseSchema = z.object({
+  streak: z.number(),
+});
+export type StudyStreakResponse = z.infer<typeof studyStreakResponseSchema>;

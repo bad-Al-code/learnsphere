@@ -27,6 +27,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   useDueSoonCount,
   useMyAverageGrade,
+  useMyStudyStreak,
 } from '../hooks/use-dashboard-stats';
 import { useMyEnrolledCourses } from '../hooks/use-enrollments';
 
@@ -200,14 +201,17 @@ export function StatCardsRow() {
     useMyEnrolledCourses();
   const { data: gradeData, isLoading: isLoadingGrade } = useMyAverageGrade();
   const { data: dueSoonData, isLoading: isLoadingDueSoon } = useDueSoonCount();
+  const { data: streakData, isLoading: isLoadingStreak } = useMyStudyStreak();
 
-  const isLoading = isLoadingCourses || isLoadingGrade || isLoadingDueSoon;
+  const isLoading =
+    isLoadingCourses || isLoadingGrade || isLoadingDueSoon || isLoadingStreak;
 
   const activeCourses = enrolledCourses?.length ?? 0;
   const avgGrade = gradeData?.averageGrade
     ? `${Math.round(gradeData.averageGrade)}%`
     : 'N/A';
   const dueSoonCount = dueSoonData?.count ?? 0;
+  const studyStreak = streakData?.streak ?? 0;
 
   const stats: StatCardData[] = [
     {
@@ -236,7 +240,7 @@ export function StatCardsRow() {
     },
     {
       title: 'Study Streak',
-      value: '12 days', // Placeholder
+      value: isLoading ? '-' : `${studyStreak} days`,
       description: 'Keep it up!',
       icon: Flame,
     },

@@ -779,4 +779,17 @@ export class AnalyticsService {
 
     return { averageGrade };
   }
+
+  /**
+   * Gets the study streak for a specific student.
+   * @param studentId The ID of the student.
+   * @returns An object containing the streak count.
+   */
+  public static async getStudentStudyStreak(studentId: string) {
+    logger.info(`Fetching study streak for student ${studentId}`);
+
+    const streak = await AnalyticsRepository.calculateStudyStreak(studentId);
+
+    return { streak };
+  }
 }

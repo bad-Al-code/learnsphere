@@ -418,4 +418,22 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getMyStudyStreak(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const stats = await AnalyticsService.getStudentStudyStreak(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(stats);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

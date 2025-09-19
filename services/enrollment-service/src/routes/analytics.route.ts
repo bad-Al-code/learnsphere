@@ -343,6 +343,24 @@ router.get(
 
 /**
  * @openapi
+ * /api/analytics/my-study-streak:
+ *   get:
+ *     summary: "[Student] Get the current user's study streak"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: The user's current study streak.
+ */
+router.get(
+  '/my-study-streak',
+  requireAuth,
+  AnalyticsController.getMyStudyStreak
+);
+
+/**
+ * @openapi
  * /api/analytics/course/{courseId}/stats:
  *   get:
  *     summary: "[Internal] Get statistics for a single course"

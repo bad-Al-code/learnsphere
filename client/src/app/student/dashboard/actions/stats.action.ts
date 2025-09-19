@@ -1,6 +1,10 @@
 'use server';
 
-import { getDueSoonCount, getMyAverageGrade } from '../api/stats.api';
+import {
+  getDueSoonCount,
+  getMyAverageGrade,
+  getMyStudyStreak,
+} from '../api/stats.api';
 
 export const getMyAverageGradeAction = async () => {
   try {
@@ -23,5 +27,15 @@ export const getDueSoonCountAction = async () => {
     console.error('Failed to fetch due soon count:', error);
 
     return { error: 'Could not retrieve due soon count.' };
+  }
+};
+
+export const getMyStudyStreakAction = async () => {
+  try {
+    return { data: await getMyStudyStreak() };
+  } catch (error) {
+    console.error('Failed to fetch study streak:', error);
+
+    return { error: 'Could not retrieve your study streak.' };
   }
 };
