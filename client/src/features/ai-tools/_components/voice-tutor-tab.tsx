@@ -1,6 +1,6 @@
 'use client';
 
-import { Mic, Play } from 'lucide-react';
+import { Mic, Play, Square } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +12,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
+import { useVoiceTutor } from '../hooks/useAiVoiceTutor';
 import { CourseSelectionScreen } from './common/CourseSelectionScrren';
 
 const voiceFeatures: string[] = [
@@ -28,7 +30,10 @@ const trySayingPrompts: string[] = [
   '"Create a study plan"',
 ];
 
-function VoiceAiTutor() {
+function VoiceAiTutor({ courseId }: { courseId?: string }) {
+  const { status, transcript, isSpeaking, startSession, stopSession } =
+    useVoiceTutor();
+
   return (
     <Card className="">
       <CardHeader className="flex items-center justify-start gap-2">
@@ -97,6 +102,99 @@ function TrySaying() {
   );
 }
 
+export function VoiceTutorTab({ courseId }: { courseId?: string }) {
+  const { status, transcript, isSpeaking, startSession, stopSession } =
+    useVoiceTutor();
+
+  if (!courseId) {
+    return (
+      <div className="h-[calc(100vh-12.5rem)]">
+        <CourseSelectionScreen />
+      </div>
+    );
+  }
+
+  const handleToggleSession = () => {
+    if (status === 'connected') {
+      stopSession();
+    } else {
+      startSession(courseId);
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <Card>
+        <CardHeader className="items-center text-center">
+          <div
+            className={cn(
+              'bg-muted flex h-16 w-16 items-center justify-center rounded-full transition-colors',
+              {
+                'bg-blue-500/20 text-blue-500': status === 'connecting',
+                'bg-emerald-500/20 text-emerald-500': status === 'connected',
+                'bg-destructive/20 text-destructive': status === 'error',
+              }
+            )}
+          >
+            <Mic className="h-8 w-8" />
+          </div>
+          <CardTitle>Voice AI Tutor</CardTitle>
+          <CardDescription>
+            {status === 'disconnected' &&
+              'Start a voice conversation with your AI assistant.'}
+            {status === 'connecting' && 'Connecting to the voice service...'}
+            {status === 'connected' && 'You are now connected. Start speaking.'}
+            {status === 'error' && 'Connection failed. Please try again.'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center">
+          <Button onClick={handleToggleSession}>
+            {status === 'connected' ? (
+              <Square className="mr-2 h-4 w-4" />
+            ) : (
+              <Play className="mr-2 h-4 w-4" />
+            )}
+            {status === 'connected' ? 'Stop Session' : 'Start Voice Chat'}
+          </Button>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Live Transcript</CardTitle>
+          <CardDescription>
+            A real-time transcript of your conversation.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="h-48 space-y-2 overflow-y-auto">
+          {transcript.map((msg) => (
+            <div key={msg.id}>
+              <span className="font-bold">
+                {msg.role === 'user' ? 'You: ' : 'AI: '}
+              </span>
+              <span>{msg.content}</span>
+            </div>
+          ))}
+          {isSpeaking && (
+            <p className="text-primary animate-pulse">AI is speaking...</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export function VoiceTutorTabSkeleton() {
+  return (
+    <div className="h-[calc(100vh-12.5rem)] space-y-4">
+      <VoiceAiTutorSkeleton />
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+        <FeatureCardSkeleton />
+        <FeatureCardSkeleton />
+      </div>
+    </div>
+  );
+}
+
 function VoiceAiTutorSkeleton() {
   return (
     <Card className="flex flex-col items-start justify-center">
@@ -130,37 +228,5 @@ function FeatureCardSkeleton() {
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-export function VoiceTutorTab({ courseId }: { courseId?: string }) {
-  if (!courseId) {
-    return (
-      <div className="h-[calc(100vh-12.5rem)]">
-        <CourseSelectionScreen />
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-[calc(100vh-12.5rem)] space-y-4">
-      <VoiceAiTutor />
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-        <VoiceFeatures />
-        <TrySaying />
-      </div>
-    </div>
-  );
-}
-
-export function VoiceTutorTabSkeleton() {
-  return (
-    <div className="h-[calc(100vh-12.5rem)] space-y-4">
-      <VoiceAiTutorSkeleton />
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-        <FeatureCardSkeleton />
-        <FeatureCardSkeleton />
-      </div>
-    </div>
   );
 }
