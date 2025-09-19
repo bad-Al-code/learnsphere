@@ -18,6 +18,9 @@ export class VoiceTutorSession {
   private conversationRecord: AITutorConversation;
   private clientWs: WebSocket;
   private static model = 'models/gemini-2.5-flash-preview-native-audio-dialog';
+  private isProcessing = false;
+  private audioQueue: Buffer[] = [];
+  private isPlaying = false;
 
   private constructor(
     geminiSession: Session,
@@ -29,19 +32,6 @@ export class VoiceTutorSession {
     this.clientWs = clientWs;
   }
 
-  /**
-   * Creates and initializes a new VoiceTutorSession.
-   * This static factory method handles user validation, fetching course content,
-   * creating a database record, and establishing the live connection to the AI model.
-   * @public
-   * @static
-   * @param {string} userId - The ID of the user initiating the session.
-   * @param {string} courseId - The ID of the course context for the session.
-   * @param {WebSocket} clientWs - The WebSocket connection to the client.
-   * @returns {Promise<VoiceTutorSession>} A promise that resolves to a new VoiceTutorSession instance.
-   * @throws {ForbiddenError} If the user is not enrolled in the specified course.
-   * @throws {NotFoundError} If the content for the specified course cannot be found.
-   */
   public static async create(
     userId: string,
     courseId: string,
@@ -67,6 +57,9 @@ export class VoiceTutorSession {
       `Voice Session - ${new Date().toLocaleString()}`
     );
 
+    // eslint-disable-next-line prefer-const
+    let sessionInstance: VoiceTutorSession;
+
     const geminiSession = await GoogleProvider.connectLiveSession({
       model: this.model,
       config: {
@@ -85,14 +78,24 @@ export class VoiceTutorSession {
           logger.info(
             `Gemini Live session opened for conversation ${conversationRecord.id}`
           );
+
+          if (clientWs.readyState === WebSocket.OPEN) {
+            const greeting = JSON.stringify({
+              type: 'transcript',
+              role: 'assistant',
+              text: "Hello! I'm your AI voice tutor. How can I help you with your learning today?",
+              timestamp: new Date().toISOString(),
+            });
+            clientWs.send(greeting);
+          }
         },
 
         onmessage: (message: LiveServerMessage) => {
-          this.handleModelMessage(message, clientWs, conversationRecord).catch(
-            (err) => {
+          if (sessionInstance) {
+            sessionInstance.handleModelMessage(message).catch((err) => {
               logger.error('Error handling model message', { err });
-            }
-          );
+            });
+          }
         },
 
         onerror: (e: ErrorEvent) => {
@@ -102,6 +105,12 @@ export class VoiceTutorSession {
           );
 
           if (clientWs.readyState === WebSocket.OPEN) {
+            const errorMsg = JSON.stringify({
+              type: 'error',
+              message: 'AI session encountered an error',
+              timestamp: new Date().toISOString(),
+            });
+            clientWs.send(errorMsg);
             clientWs.close(1011, 'AI session error');
           }
         },
@@ -114,98 +123,178 @@ export class VoiceTutorSession {
       },
     });
 
-    return new VoiceTutorSession(geminiSession, conversationRecord, clientWs);
+    sessionInstance = new VoiceTutorSession(
+      geminiSession,
+      conversationRecord,
+      clientWs
+    );
+    return sessionInstance;
   }
 
-  /**
-   * Processes messages received from the Gemini model.
-   * It extracts audio data to be sent to the client and text data to be saved in the database.
-   * @private
-   * @static
-   * @param {LiveServerMessage} message - The message object from the Gemini session.
-   * @param {WebSocket} clientWs - The WebSocket connection to the client.
-   * @param {AITutorConversation} conversationRecord - The database record for the conversation.
-   * @returns {Promise<void>}
-   */
-  private static async handleModelMessage(
-    message: LiveServerMessage,
-    clientWs: WebSocket,
-    conversationRecord: AITutorConversation
-  ) {
-    const parts = message.serverContent?.modelTurn?.parts ?? [];
+  private async handleModelMessage(message: LiveServerMessage): Promise<void> {
+    try {
+      const parts = message.serverContent?.modelTurn?.parts ?? [];
 
-    for (const part of parts) {
-      if (part.inlineData?.data) {
-        const audioBuffer = Buffer.from(part.inlineData.data, 'base64');
+      for (const part of parts) {
+        if (
+          part.inlineData?.data &&
+          part.inlineData?.mimeType?.includes('audio')
+        ) {
+          const audioBuffer = Buffer.from(part.inlineData.data, 'base64');
 
-        if (clientWs.readyState === WebSocket.OPEN) {
-          clientWs.send(audioBuffer);
+          if (this.clientWs.readyState === WebSocket.OPEN) {
+            this.audioQueue.push(audioBuffer);
+            this.processAudioQueue();
+          }
+        }
+
+        if (part.text) {
+          await AIRepository.addMessage({
+            conversationId: this.conversationRecord.id,
+            role: 'model',
+            content: part.text,
+          });
+
+          if (this.clientWs.readyState === WebSocket.OPEN) {
+            const transcriptData = JSON.stringify({
+              type: 'transcript',
+              role: 'assistant',
+              text: part.text,
+              timestamp: new Date().toISOString(),
+            });
+            this.clientWs.send(transcriptData);
+          }
         }
       }
+    } catch (error) {
+      logger.error('Error handling model message', { error });
+    }
+  }
 
-      if (part.text) {
-        await AIRepository.addMessage({
-          conversationId: conversationRecord.id,
-          role: 'model',
-          content: part.text,
+  private processAudioQueue(): void {
+    if (this.audioQueue.length === 0 || this.isPlaying) return;
+
+    const audioBuffer = this.audioQueue.shift();
+    if (!audioBuffer) return;
+
+    this.isPlaying = true;
+
+    if (this.clientWs.readyState === WebSocket.OPEN) {
+      this.clientWs.send(audioBuffer);
+    }
+
+    setTimeout(() => {
+      this.isPlaying = false;
+      this.processAudioQueue();
+    }, 100);
+  }
+
+  public async handleAudioChunk(chunk: Buffer): Promise<void> {
+    if (this.isProcessing) return;
+
+    try {
+      this.isProcessing = true;
+
+      if (chunk.length === 0) {
+        logger.warn('Received empty audio chunk');
+        return;
+      }
+
+      await this.geminiSession.sendClientContent({
+        turns: [
+          {
+            role: 'user',
+            parts: [
+              {
+                inlineData: {
+                  mimeType: 'audio/pcm;rate=16000',
+                  data: chunk.toString('base64'),
+                },
+              },
+            ],
+          },
+        ],
+      });
+    } catch (error) {
+      logger.error('Error sending audio chunk to Gemini', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        chunkSize: chunk.length,
+      });
+
+      if (this.clientWs.readyState === WebSocket.OPEN) {
+        const errorMsg = JSON.stringify({
+          type: 'error',
+          message: 'Failed to process audio',
+          timestamp: new Date().toISOString(),
         });
+        this.clientWs.send(errorMsg);
+      }
+    } finally {
+      setTimeout(() => {
+        this.isProcessing = false;
+      }, 50);
+    }
+  }
+
+  public async handleUserTranscript(text: string): Promise<void> {
+    try {
+      if (!text.trim()) {
+        logger.warn('Received empty transcript text');
+        return;
+      }
+
+      await AIRepository.addMessage({
+        conversationId: this.conversationRecord.id,
+        role: 'user',
+        content: text.trim(),
+      });
+
+      await this.geminiSession.sendClientContent({
+        turns: [
+          {
+            role: 'user',
+            parts: [{ text: text.trim() }],
+          },
+        ],
+      });
+
+      if (this.clientWs.readyState === WebSocket.OPEN) {
+        const transcriptData = JSON.stringify({
+          type: 'transcript',
+          role: 'user',
+          text: text.trim(),
+          timestamp: new Date().toISOString(),
+        });
+        this.clientWs.send(transcriptData);
+      }
+    } catch (error) {
+      logger.error('Error handling user transcript', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        textLength: text.length,
+      });
+
+      if (this.clientWs.readyState === WebSocket.OPEN) {
+        const errorMsg = JSON.stringify({
+          type: 'error',
+          message: 'Failed to process text message',
+          timestamp: new Date().toISOString(),
+        });
+        this.clientWs.send(errorMsg);
       }
     }
   }
 
-  /**
-   * Handles an incoming audio chunk from the client and forwards it to the Gemini session.
-   * @public
-   * @param {Buffer} chunk - A buffer containing the raw audio data (PCM).
-   * @returns {Promise<void>}
-   */
-  public async handleAudioChunk(chunk: Buffer): Promise<void> {
-    await this.geminiSession.sendClientContent({
-      turns: [
-        {
-          role: 'user',
-          parts: [
-            {
-              inlineData: {
-                mimeType: 'audio/pcm;rate=16000',
-                data: chunk.toString('base64'),
-              },
-            },
-          ],
-        },
-      ],
-    });
-  }
-
-  /**
-   * Handles a final user transcript, saves it to the database, and sends it to Gemini.
-   * This is typically used when the user finishes speaking.
-   * @public
-   * @param {string} text - The final transcript of the user's speech.
-   * @returns {Promise<void>}
-   */
-  public async handleUserTranscript(text: string): Promise<void> {
-    await AIRepository.addMessage({
-      conversationId: this.conversationRecord.id,
-      role: 'user',
-      content: text,
-    });
-
-    await this.geminiSession.sendClientContent({
-      turns: [
-        {
-          role: 'user',
-          parts: [{ text }],
-        },
-      ],
-    });
-  }
-
-  /**
-   * Gracefully closes the connection to the Gemini session.
-   * @public
-   */
   public close(): void {
-    this.geminiSession.close();
+    try {
+      this.isProcessing = false;
+      this.audioQueue = [];
+      this.isPlaying = false;
+
+      if (this.geminiSession) {
+        this.geminiSession.close();
+      }
+    } catch (error) {
+      logger.error('Error closing Gemini session', { error });
+    }
   }
 }
