@@ -113,6 +113,7 @@ export class VoiceTutorSession {
     conversationRecord: AITutorConversation
   ) {
     const parts = message.serverContent?.modelTurn?.parts ?? [];
+
     for (const part of parts) {
       if (part.inlineData?.data) {
         const audioBuffer = Buffer.from(part.inlineData.data, 'base64');

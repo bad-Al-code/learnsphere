@@ -8,7 +8,7 @@ import {
 import { toast } from 'sonner';
 import { askAiTutor } from '../actions/chat';
 import { TutorChatRequest } from '../schemas/chat.schema';
-import { ChatMessage } from '../types/inedx';
+import { ChatMessage } from '../types';
 
 type TutorChatActionResult = {
   data?: {
