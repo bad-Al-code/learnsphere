@@ -131,3 +131,49 @@ export const formatDate = (dateString: string) => {
     return 'Unknown';
   }
 };
+
+export const motivationalQuotes = [
+  {
+    text: 'The only way to do great work is to love what you do.',
+    author: 'Steve Jobs',
+  },
+  {
+    text: 'The expert in anything was once a beginner.',
+    author: 'Helen Hayes',
+  },
+  {
+    text: 'Believe you can and you’re halfway there.',
+    author: 'Theodore Roosevelt',
+  },
+  {
+    text: 'The secret to getting ahead is getting started.',
+    author: 'Mark Twain',
+  },
+  {
+    text: 'It’s not whether you get knocked down, it’s whether you get up.',
+    author: 'Vince Lombardi',
+  },
+  {
+    text: 'The beautiful thing about learning is that no one can take it away from you.',
+    author: 'B.B. King',
+  },
+  { text: 'Strive for progress, not perfection.', author: 'Unknown' },
+  {
+    text: 'Success is the sum of small efforts, repeated day in and day out.',
+    author: 'Robert Collier',
+  },
+  {
+    text: 'Learning is a treasure that will follow its owner everywhere.',
+    author: 'Chinese Proverb',
+  },
+  {
+    text: 'Don’t watch the clock; do what it does. Keep going.',
+    author: 'Sam Levenson',
+  },
+];
+
+export const getRandomQuote = () => {
+  return motivationalQuotes[
+    Math.floor(Math.random() * motivationalQuotes.length)
+  ];
+};

@@ -14,8 +14,6 @@ export const useMyAverageGrade = () => {
 
     queryFn: async () => {
       const result = await getMyAverageGradeAction();
-      console.log(result);
-
       if (result.error) {
         throw new Error(result.error);
       }
