@@ -21,6 +21,7 @@ import {
   useConnectGmail,
   useConnectGoogleCalendar,
   useConnectGoogleDrive,
+  useConnectNotion,
   useDeleteIntegration,
 } from '../hooks/useIntegrations';
 import { PublicIntegration } from '../schema/integration.schema';
@@ -100,9 +101,12 @@ function DisconnectedActions({
   isPending,
   variant = 'default',
 }: DisconnectedActionsProps) {
-  const isAvailable = ['google_calendar', 'google_drive', 'gmail'].includes(
-    provider
-  );
+  const isAvailable = [
+    'google_calendar',
+    'google_drive',
+    'gmail',
+    'notion',
+  ].includes(provider);
 
   return (
     <Button
@@ -131,18 +135,22 @@ export function IntegrationCard({
     useConnectGmail();
   const { mutate: deleteIntegration, isPending: isDeleting } =
     useDeleteIntegration();
+  const { mutate: connectNotion, isPending: isConnectingNotion } =
+    useConnectNotion();
 
   const isPending =
     isConnectingCalendar ||
     isConnectingDrive ||
     isConnectingGmail ||
-    isDeleting;
+    isDeleting ||
+    isConnectingNotion;
 
   const handleConnect = (provider: IntegrationProvider) => {
     const connectActions = {
       google_calendar: connectCalendar,
       google_drive: connectDrive,
       gmail: connectGmail,
+      notion: connectNotion,
     };
 
     const action = connectActions[provider as keyof typeof connectActions];

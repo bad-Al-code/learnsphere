@@ -4,11 +4,14 @@ import { revalidatePath } from 'next/cache';
 
 import {
   deleteIntegration,
+  exportCourseToNotion,
   getGmailConnectUrl,
   getGoogleCalendarConnectUrl,
   getGoogleDriveConnectUrl,
   getIntegrations,
+  getNotionConnectUrl,
 } from '../api/integration.api';
+import { ExportToNotionInput } from '../schema/notion.schema';
 
 export const getIntegrationsAction = async () => {
   try {
@@ -51,5 +54,25 @@ export const getGmailConnectUrlAction = async () => {
     return { data: await getGmailConnectUrl() };
   } catch (error) {
     return { error: 'Failed to initiate connection.' };
+  }
+};
+
+export const getNotionConnectUrlAction = async () => {
+  try {
+    return { data: await getNotionConnectUrl() };
+  } catch (error) {
+    return { error: 'Failed to initiate Notion connection.' };
+  }
+};
+
+export const exportCourseToNotionAction = async (data: ExportToNotionInput) => {
+  try {
+    const result = await exportCourseToNotion(data);
+
+    revalidatePath('/students/integrations');
+
+    return { data: result };
+  } catch (error) {
+    return { error: 'Failed to export course to Notion.' };
   }
 };

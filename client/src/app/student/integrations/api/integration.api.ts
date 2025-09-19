@@ -3,6 +3,10 @@ import {
   ConnectGoogleResponse,
   PublicIntegration,
 } from '../schema/integration.schema';
+import {
+  ExportToNotionInput,
+  ExportToNotionResponse,
+} from '../schema/notion.schema';
 
 /**
  * Fetches the current user's connected integrations.
@@ -55,5 +59,20 @@ export const getGoogleDriveConnectUrl = (): Promise<ConnectGoogleResponse> => {
 export const getGmailConnectUrl = (): Promise<ConnectGoogleResponse> => {
   return userService.getTyped<ConnectGoogleResponse>(
     '/api/users/integrations/gmail/connect'
+  );
+};
+
+export const getNotionConnectUrl = (): Promise<ConnectGoogleResponse> => {
+  return userService.getTyped<ConnectGoogleResponse>(
+    '/api/users/integrations/notion/connect'
+  );
+};
+
+export const exportCourseToNotion = (
+  data: ExportToNotionInput
+): Promise<ExportToNotionResponse> => {
+  return userService.postTyped<ExportToNotionResponse>(
+    '/integrations/notion/export-course',
+    data
   );
 };

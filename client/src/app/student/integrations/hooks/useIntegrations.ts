@@ -4,10 +4,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   deleteIntegrationAction,
+  exportCourseToNotionAction,
   getGmailConnectUrlAction,
   getGoogleCalendarConnectUrlAction,
   getGoogleDriveConnectUrlAction,
   getIntegrationsAction,
+  getNotionConnectUrlAction,
 } from '../actions/integrations';
 
 export const useGetIntegrations = () => {
@@ -50,5 +52,17 @@ export const useConnectGoogleDrive = () => {
 export const useConnectGmail = () => {
   return useMutation({
     mutationFn: getGmailConnectUrlAction,
+  });
+};
+
+export const useConnectNotion = () => {
+  return useMutation({
+    mutationFn: getNotionConnectUrlAction,
+  });
+};
+
+export const useExportCourseToNotion = () => {
+  return useMutation({
+    mutationFn: exportCourseToNotionAction,
   });
 };
