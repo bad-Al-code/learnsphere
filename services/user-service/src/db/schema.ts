@@ -17,6 +17,7 @@ import {
 export type UserSettings = {
   theme: 'light' | 'dark';
   language: 'en' | 'es' | 'fr' | string;
+  city?: string;
   notifications: {
     newCourseAlerts: boolean;
     weeklyNewsletter: boolean;

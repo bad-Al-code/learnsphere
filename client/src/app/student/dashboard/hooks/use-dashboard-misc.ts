@@ -1,9 +1,10 @@
 'use client';
+
 import { useQuery } from '@tanstack/react-query';
 import {
   getTodaysQuoteAction,
   getWeatherDataAction,
-} from '../actions/mics.action';
+} from '../actions/misc.action';
 
 export const useTodaysQuote = () => {
   return useQuery({
@@ -14,7 +15,8 @@ export const useTodaysQuote = () => {
 
       return result.data;
     },
-    staleTime: Infinity,
+
+    staleTime: 1000 * 60 * 60 * 24,
   });
 };
 
@@ -28,6 +30,7 @@ export const useWeatherData = () => {
 
       return result.data;
     },
+
     staleTime: 1000 * 60 * 15,
   });
 };
