@@ -25,6 +25,7 @@ import {
   useDeleteIntegration,
 } from '../hooks/useIntegrations';
 import { PublicIntegration } from '../schema/integration.schema';
+import { ExportToNotionDialog } from './export-to-notion-dialog';
 
 export interface IntegrationCardProps {
   details: IntegrationDetails;
@@ -49,9 +50,10 @@ interface DisconnectedActionsProps {
 function ConnectedActions({
   integration,
   onDisconnect,
+  details,
   isPending,
   variant = 'default',
-}: ConnectedActionsProps) {
+}: ConnectedActionsProps & { details: IntegrationDetails }) {
   if (variant === 'compact') {
     return (
       <Button
@@ -81,16 +83,20 @@ function ConnectedActions({
         </span>
       </div>
 
-      <Button
-        variant="destructive"
-        size="sm"
-        onClick={onDisconnect}
-        disabled={isPending}
-        className="flex items-center gap-1"
-      >
-        <XCircle className="h-4 w-4" />
-        {isPending ? 'Disconnecting...' : 'Disconnect'}
-      </Button>
+      <div className="flex items-center gap-2">
+        {details.provider === 'notion' && <ExportToNotionDialog />}
+
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={onDisconnect}
+          disabled={isPending}
+          className="flex items-center gap-1"
+        >
+          <XCircle className="h-4 w-4" />
+          Disconnect
+        </Button>
+      </div>
     </div>
   );
 }
@@ -205,6 +211,7 @@ export function IntegrationCard({
               {integration ? (
                 <ConnectedActions
                   integration={integration}
+                  details={details}
                   onDisconnect={handleDisconnect}
                   isPending={isPending}
                   variant="compact"
@@ -277,6 +284,7 @@ export function IntegrationCard({
             integration={integration}
             onDisconnect={handleDisconnect}
             isPending={isPending}
+            details={details}
           />
         ) : (
           <DisconnectedActions

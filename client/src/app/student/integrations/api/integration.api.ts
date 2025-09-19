@@ -72,7 +72,7 @@ export const exportCourseToNotion = (
   data: ExportToNotionInput
 ): Promise<ExportToNotionResponse> => {
   return userService.postTyped<ExportToNotionResponse>(
-    '/integrations/notion/export-course',
+    '/api/users/integrations/notion/export-course',
     data
   );
 };
