@@ -11,51 +11,9 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Target } from 'lucide-react';
+import { useMyStudyGoals } from '../hooks/use-study-goals';
 
 type Priority = 'high' | 'medium' | 'low';
-
-interface Goal {
-  title: string;
-  priority: Priority;
-  currentValue: number;
-  targetValue: number;
-  dueDate: string;
-}
-
-interface StudyGoalsProps {
-  data?: Goal[];
-}
-
-const placeholderData: Goal[] = [
-  {
-    title: 'Complete React Course',
-    priority: 'high',
-    currentValue: 75,
-    targetValue: 100,
-    dueDate: '2024-01-20',
-  },
-  {
-    title: 'Database Certification',
-    priority: 'medium',
-    currentValue: 45,
-    targetValue: 100,
-    dueDate: '2024-02-15',
-  },
-  {
-    title: 'Weekly Study Hours',
-    priority: 'high',
-    currentValue: 18,
-    targetValue: 25,
-    dueDate: '2024-01-14',
-  },
-  {
-    title: 'Assignment Submissions',
-    priority: 'low',
-    currentValue: 8,
-    targetValue: 10,
-    dueDate: '2024-01-31',
-  },
-];
 
 const getPriorityVariant = (priority: Priority) => {
   switch (priority) {
@@ -68,7 +26,29 @@ const getPriorityVariant = (priority: Priority) => {
   }
 };
 
-export function StudyGoals({ data = placeholderData }: StudyGoalsProps) {
+export function StudyGoals() {
+  const { data: goals, isLoading, isError } = useMyStudyGoals();
+
+  if (isLoading) return <StudyGoalsSkeleton />;
+
+  if (isError || !goals || goals.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            <CardTitle>Study Goals</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground py-8 text-center">
+            {isError ? 'Could not load goals.' : 'No study goals set yet.'}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -80,9 +60,10 @@ export function StudyGoals({ data = placeholderData }: StudyGoalsProps) {
           Track your learning objectives and milestones
         </CardDescription>
       </CardHeader>
+
       <CardContent className="space-y-6">
-        {data.map((goal) => (
-          <div key={goal.title}>
+        {goals.map((goal) => (
+          <div key={goal.id}>
             <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
               <div className="flex items-center gap-2">
                 <p className="font-semibold">{goal.title}</p>
@@ -92,9 +73,11 @@ export function StudyGoals({ data = placeholderData }: StudyGoalsProps) {
               </div>
 
               <p className="text-muted-foreground text-sm">
-                {goal.currentValue}/{goal.targetValue} • Due {goal.dueDate}
+                {goal.currentValue}/{goal.targetValue} • Due{' '}
+                {new Date(goal.targetDate).toLocaleDateString()}
               </p>
             </div>
+
             <Progress value={(goal.currentValue / goal.targetValue) * 100} />
           </div>
         ))}

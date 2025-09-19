@@ -17,7 +17,7 @@ import { currentUser } from './middlewares/current-user';
 import { errorHandler } from './middlewares/error-handler';
 import { httpLogger } from './middlewares/http-logger';
 import { metricsMiddleware } from './middlewares/metrics.middleware';
-import { healthRouter, profileRouter } from './routes';
+import { healthRouter, profileRouter, studyGoalRouter } from './routes';
 import { metricsService } from './services/metrics.service';
 
 const app = express();
@@ -54,6 +54,7 @@ app.use('/api/users/integrations', integrationRouter);
 
 app.use('/api/users', healthRouter);
 app.use('/api/users', profileRouter);
+app.use('/api/users', studyGoalRouter);
 
 app.use(errorHandler);
 

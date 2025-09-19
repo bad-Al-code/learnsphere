@@ -117,7 +117,7 @@ function CourseProgressCard({ enrollment }: { enrollment: MyCourse }) {
 
         <div className="absolute right-3 bottom-3 left-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+            <div className="bg-muted/20 flex h-7 w-7 items-center justify-center rounded-full backdrop-blur-md">
               <BookOpen className="h-3 w-3 text-white" />
             </div>
             <span className="text-xs font-medium text-white/90">

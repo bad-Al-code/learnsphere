@@ -481,6 +481,37 @@ export const aiWritingFeedbackRelations = relations(
   })
 );
 
+/** STUDY GOAL */
+export const studyGoalTypeEnum = pgEnum('study_goal_type', [
+  'course_completion',
+  'assignment_completion',
+  'weekly_study_hours',
+]);
+
+export const studyGoalPriorityEnum = pgEnum('study_goal_priority', [
+  'low',
+  'medium',
+  'high',
+]);
+
+export const studyGoals = pgTable('study_goals', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => profiles.userId, { onDelete: 'cascade' }),
+  title: varchar('title', { length: 255 }).notNull(),
+  type: studyGoalTypeEnum('type').notNull(),
+  priority: studyGoalPriorityEnum('priority').default('medium').notNull(),
+  targetValue: integer('target_value').notNull(),
+  currentValue: integer('current_value').default(0).notNull(),
+  startDate: date('start_date').defaultNow().notNull(),
+  targetDate: date('target_date').notNull(),
+  isCompleted: boolean('is_completed').default(false).notNull(),
+  relatedCourseId: uuid('related_course_id'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 /**
  * @table replicated_course_content
  * @description Stores a local, denormalized copy of course content.
