@@ -16,6 +16,7 @@ import {
   useDueSoonCount,
   useMyAverageGrade,
   useMyStudyStreak,
+  usePendingAssignmentsCount,
 } from '../hooks/use-dashboard-stats';
 import { useMyEnrolledCourses } from '../hooks/use-enrollments';
 
@@ -70,9 +71,15 @@ export function StatCardsRow() {
   const { data: gradeData, isLoading: isLoadingGrade } = useMyAverageGrade();
   const { data: dueSoonData, isLoading: isLoadingDueSoon } = useDueSoonCount();
   const { data: streakData, isLoading: isLoadingStreak } = useMyStudyStreak();
+  const { data: assignmentsData, isLoading: isLoadingAssignments } =
+    usePendingAssignmentsCount();
 
   const isLoading =
-    isLoadingCourses || isLoadingGrade || isLoadingDueSoon || isLoadingStreak;
+    isLoadingCourses ||
+    isLoadingGrade ||
+    isLoadingDueSoon ||
+    isLoadingStreak ||
+    isLoadingAssignments;
 
   const activeCourses = enrolledCourses?.length ?? 0;
   const avgGrade = gradeData?.averageGrade
@@ -80,6 +87,8 @@ export function StatCardsRow() {
     : 'N/A';
   const dueSoonCount = dueSoonData?.count ?? 0;
   const studyStreak = streakData?.streak ?? 0;
+  const pendingAssignments = assignmentsData?.count ?? 0;
+  const gradeChange = gradeData?.change ?? 0;
 
   const stats: StatCardData[] = [
     {
@@ -90,14 +99,15 @@ export function StatCardsRow() {
     },
     {
       title: 'Assignments',
-      value: '7', // Placeholder
-      description: '3 pending submission',
+      value: isLoading ? '-' : pendingAssignments.toString(),
+      description: 'pending submission',
       icon: FileText,
     },
     {
       title: 'Average Grade',
       value: isLoading ? '-' : avgGrade,
-      description: '+2% from last month', // Placeholder
+      description: `${gradeChange >= 0 ? '+' : ''}${gradeChange}% from last month`,
+      change: { value: gradeChange, description: '' },
       icon: Award,
     },
     {

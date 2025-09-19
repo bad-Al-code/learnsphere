@@ -167,6 +167,38 @@ router.post('/assignments/reorder', AssignmentController.reorder);
 
 /**
  * @openapi
+ * /assignments/pending-count:
+ *   get:
+ *     summary: Get the count of pending assignments for the current user
+ *     description: Returns the total number of assignments that the authenticated user still has pending across their enrolled courses.
+ *     tags:
+ *       - Assignments
+ *     security:
+ *       - cookieAuth: []   # assuming you use cookie-based auth
+ *     responses:
+ *       '200':
+ *         description: Successfully retrieved the count of pending assignments
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 count:
+ *                   type: integer
+ *                   example: 3
+ *       '401':
+ *         description: Unauthorized - missing or invalid authentication
+ *       '500':
+ *         description: Internal server error
+ */
+router.get(
+  '/assignments/pending-count',
+  requireAuth,
+  AssignmentController.getPendingCount
+);
+
+/**
+ * @openapi
  * /api/assignments/due-soon-count:
  *   get:
  *     summary: "[Student] Get a count of assignments due soon"

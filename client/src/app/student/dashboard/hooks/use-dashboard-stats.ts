@@ -5,6 +5,7 @@ import {
   getDueSoonCountAction,
   getMyAverageGradeAction,
   getMyStudyStreakAction,
+  getPendingAssignmentsCountAction,
 } from '../actions/stats.action';
 
 export const useMyAverageGrade = () => {
@@ -45,6 +46,19 @@ export const useMyStudyStreak = () => {
 
     queryFn: async () => {
       const result = await getMyStudyStreakAction();
+      if (result.error) throw new Error(result.error);
+
+      return result.data;
+    },
+  });
+};
+
+export const usePendingAssignmentsCount = () => {
+  return useQuery({
+    queryKey: ['pending-assignments'],
+
+    queryFn: async () => {
+      const result = await getPendingAssignmentsCountAction();
       if (result.error) throw new Error(result.error);
 
       return result.data;

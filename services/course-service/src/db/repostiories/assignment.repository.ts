@@ -9,6 +9,7 @@ import {
   inArray,
   isNotNull,
   lte,
+  sql,
 } from 'drizzle-orm';
 import { db } from '..';
 import {
@@ -202,6 +203,42 @@ export class AssignmentRepository {
           isNotNull(assignments.dueDate),
           gte(assignments.dueDate, now),
           lte(assignments.dueDate, sevenDaysFromNow)
+        )
+      );
+
+    return result.value;
+  }
+
+  /**
+   * Counts all published assignments for a user's enrolled courses that they have not yet submitted.
+   * @param courseIds The user's enrolled course IDs.
+   * @param userId The user's ID.
+   * @returns The count of pending assignments.
+   */
+  public static async countPendingForUser(
+    courseIds: string[],
+    userId: string
+  ): Promise<number> {
+    if (courseIds.length === 0) return 0;
+
+    const submittedAssignmentsSubquery = db
+      .select({ assignmentId: assignmentSubmissions.assignmentId })
+      .from(assignmentSubmissions)
+      .where(
+        and(
+          eq(assignmentSubmissions.studentId, userId),
+          inArray(assignmentSubmissions.courseId, courseIds)
+        )
+      );
+
+    const [result] = await db
+      .select({ value: count() })
+      .from(assignments)
+      .where(
+        and(
+          inArray(assignments.courseId, courseIds),
+          eq(assignments.status, 'published'),
+          sql`${assignments.id} NOT IN ${submittedAssignmentsSubquery}`
         )
       );
 

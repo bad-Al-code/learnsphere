@@ -1020,23 +1020,58 @@ export class AnalyticsRepository {
   }
 
   /**
-   * Calculates the overall average grade for a single student across all their courses.
-   * @param studentId The ID of the student
-   * @returns The average grade as a number (0-100), or null if no grades are found.
+   * Calculates the overall average grade for a student in the current and previous periods.
+   * - Current period: last 30 days.
+   * - Previous period: 30–60 days ago.
+   * @param studentId - The unique identifier of the student.
+   * @returns An object with the average grade for the current and previous periods.
+   * - `current`: Average grade over the last 30 days, or `null` if no grades exist.
+   * - `previous`: Average grade from 30–60 days ago, or `null` if no grades exist.
    */
   public static async getOverallAverageGradeForStudent(
     studentId: string
-  ): Promise<number | null> {
-    const [result] = await db
-      .select({
-        averageGrade: avg(studentGrades.grade),
-      })
-      .from(studentGrades)
-      .where(eq(studentGrades.studentId, studentId));
+  ): Promise<{ current: number | null; previous: number | null }> {
+    const thirtyDaysAgo = new Date(
+      new Date().setDate(new Date().getDate() - 30)
+    );
+    const sixtyDaysAgo = new Date(
+      new Date().setDate(new Date().getDate() - 60)
+    );
 
-    return result && result.averageGrade
-      ? parseFloat(result.averageGrade)
-      : null;
+    const currentPeriodQuery = db
+      .select({ averageGrade: avg(studentGrades.grade) })
+      .from(studentGrades)
+      .where(
+        and(
+          eq(studentGrades.studentId, studentId),
+          gte(studentGrades.gradedAt, thirtyDaysAgo)
+        )
+      );
+
+    const previousPeriodQuery = db
+      .select({ averageGrade: avg(studentGrades.grade) })
+      .from(studentGrades)
+      .where(
+        and(
+          eq(studentGrades.studentId, studentId),
+          lt(studentGrades.gradedAt, thirtyDaysAgo),
+          gte(studentGrades.gradedAt, sixtyDaysAgo)
+        )
+      );
+
+    const [[currentResult], [previousResult]] = await Promise.all([
+      currentPeriodQuery,
+      previousPeriodQuery,
+    ]);
+
+    return {
+      current: currentResult?.averageGrade
+        ? parseFloat(currentResult.averageGrade)
+        : null,
+      previous: previousResult?.averageGrade
+        ? parseFloat(previousResult.averageGrade)
+        : null,
+    };
   }
 
   /**

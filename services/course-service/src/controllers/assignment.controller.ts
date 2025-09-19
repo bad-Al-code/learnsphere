@@ -140,4 +140,22 @@ export class AssignmentController {
       next(error);
     }
   }
+
+  public static async getPendingCount(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const cookie = req.headers.cookie;
+      const user = req.currentUser;
+      if (!cookie || !user) throw new NotAuthorizedError();
+
+      const result = await AssignmentService.getPendingCount(cookie, user.id);
+
+      res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

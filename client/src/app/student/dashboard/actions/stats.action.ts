@@ -4,6 +4,7 @@ import {
   getDueSoonCount,
   getMyAverageGrade,
   getMyStudyStreak,
+  getPendingAssignmentsCount,
 } from '../api/stats.api';
 
 export const getMyAverageGradeAction = async () => {
@@ -37,5 +38,13 @@ export const getMyStudyStreakAction = async () => {
     console.error('Failed to fetch study streak:', error);
 
     return { error: 'Could not retrieve your study streak.' };
+  }
+};
+
+export const getPendingAssignmentsCountAction = async () => {
+  try {
+    return { data: await getPendingAssignmentsCount() };
+  } catch (error) {
+    return { error: 'Could not retrieve pending assignments count.' };
   }
 };

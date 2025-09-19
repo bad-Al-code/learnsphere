@@ -193,4 +193,28 @@ export class AssignmentService {
 
     return { count };
   }
+
+  /**
+   * Gets the count of pending assignments for the current user.
+   * @param cookie The user's cookie for authenticating with the enrollment service.
+   * @param userId The ID of the user.
+   * @returns The count of pending assignments.
+   */
+  public static async getPendingCount(
+    cookie: string,
+    userId: string
+  ): Promise<{ count: number }> {
+    const enrolledCourseIds =
+      await EnrollmentClient.getEnrolledCourseIds(cookie);
+    if (enrolledCourseIds.length === 0) {
+      return { count: 0 };
+    }
+
+    const count = await AssignmentRepository.countPendingForUser(
+      enrolledCourseIds,
+      userId
+    );
+
+    return { count };
+  }
 }

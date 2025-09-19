@@ -767,17 +767,22 @@ export class AnalyticsService {
   }
 
   /**
-   * Retrieves the overall average grade for a specific student.
-   * @param studentId The ID of the student.
-   * @returns An object containing the average grade.
+   * Retrieves the overall average grade and percentage change for a specific student.
+   * - Calculates the percentage change between the two periods.
+   * @param studentId - The unique identifier of the student.
+   * @returns An object containing:
+   * - `averageGrade`: The student's average grade for the last 30 days, or `null` if unavailable.
+   * - `change`: The percentage change compared to the previous 30-day period.
    */
   public static async getOverallStudentAverageGrade(studentId: string) {
     logger.info(`Fetching overall average grade for student ${studentId}`);
 
-    const averageGrade =
+    const { current, previous } =
       await AnalyticsRepository.getOverallAverageGradeForStudent(studentId);
 
-    return { averageGrade };
+    const change = this.calculatePercentageChange(current || 0, previous || 0);
+
+    return { averageGrade: current, change };
   }
 
   /**

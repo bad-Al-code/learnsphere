@@ -2,6 +2,7 @@ import { courseService, enrollmentService } from '@/lib/api/server';
 import {
   AverageGradeResponse,
   DueSoonResponse,
+  PendingAssignmentsResponse,
   StudyStreakResponse,
 } from '../schema/stats.schema';
 
@@ -22,3 +23,10 @@ export const getMyStudyStreak = (): Promise<StudyStreakResponse> => {
     '/api/analytics/my-study-streak'
   );
 };
+
+export const getPendingAssignmentsCount =
+  (): Promise<PendingAssignmentsResponse> => {
+    return courseService.getTyped<PendingAssignmentsResponse>(
+      '/api/assignments/pending-count'
+    );
+  };
