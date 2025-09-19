@@ -193,6 +193,13 @@ export class IntegrationService {
     }
   }
 
+  /**
+   * Constructs the Notion OAuth authorization URL.
+   * The state parameter is a base64 encoded JSON string containing the userId and provider
+   * to identify the user upon callback.
+   * @param {string} userId - The ID of the user initiating the connection.
+   * @returns {string} The full Notion authorization URL.
+   */
   public static generateNotionAuthUrl(userId: string): string {
     const state = Buffer.from(
       JSON.stringify({ userId, provider: 'notion' })
@@ -201,6 +208,14 @@ export class IntegrationService {
     return `https://api.notion.com/v1/oauth/authorize?client_id=${env.NOTION_CLIENT_ID}&response_type=code&owner=user&redirect_uri=${encodeURIComponent(env.NOTION_REDIRECT_URI)}&state=${state}`;
   }
 
+  /**
+   * Handles the server-side logic for the Notion OAuth callback. It exchanges the
+   * authorization code for an access token and saves the integration details to the database.
+   * @param {string} code - The authorization code from Notion's callback.
+   * @param {string} state - The base64 encoded state string for verification.
+   * @throws {BadRequestError} If the access token cannot be retrieved.
+   * @returns {Promise<void>}
+   */
   public static async handleNotionOAuthCallback(code: string, state: string) {
     const { userId } = JSON.parse(
       Buffer.from(state, 'base64').toString('utf-8')
@@ -221,16 +236,26 @@ export class IntegrationService {
     if (!response.access_token)
       throw new BadRequestError('Failed to retrieve Notion access token.');
 
+    const encryptedAccessToken = CryptoService.encrypt(response.access_token);
+
     await IntegrationRepository.upsertIntegration({
       userId,
       provider: 'notion',
-      accessToken: CryptoService.encrypt(response.access_token),
+      accessToken: encryptedAccessToken,
       refreshToken: null,
       scopes: null,
       status: 'active',
     });
   }
 
+  /**
+   * Gathers all data for a given course and user, then creates a new summary page in Notion.
+   * @param {string} userId - The ID of the user performing the export.
+   * @param {string} courseId - The ID of the course to export.
+   * @throws {ForbiddenError} If a valid Notion integration is not found for the user.
+   * @throws {Error} If the access token fails to decrypt.
+   * @returns {Promise<{pageUrl: string}>} An object containing the URL of the newly created Notion page.
+   */
   public static async exportCourseToNotion(userId: string, courseId: string) {
     const integration = await db.query.userIntegrations.findFirst({
       where: and(

@@ -73,6 +73,25 @@ export const integrationIdParamSchema = z.object({
   }),
 });
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ExportToNotionRequest:
+ *       type: object
+ *       required:
+ *         - body
+ *       properties:
+ *         body:
+ *           type: object
+ *           required:
+ *             - courseId
+ *           properties:
+ *             courseId:
+ *               type: string
+ *               format: uuid
+ *               description: The UUID of the course to be exported.
+ */
 export const exportToNotionSchema = z.object({
   body: z.object({
     courseId: z.string().uuid('A valid courseId is required.'),

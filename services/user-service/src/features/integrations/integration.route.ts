@@ -109,7 +109,56 @@ router.get('/gmail/connect', IntegrationController.connectGmail);
  */
 router.get('/google/callback', IntegrationController.handleGoogleCallback);
 
+/**
+ * @openapi
+ * /api/users/integrations/notion/connect:
+ *   get:
+ *     summary: Initiate connection to Notion
+ *     description: Generates a Notion authorization URL and returns it to the client to start the OAuth2 flow.
+ *     tags: [Integrations]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: Successfully generated the authorization URL.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 redirectUrl:
+ *                   type: string
+ *                   format: uri
+ *                   description: The URL to redirect the user to for Notion authorization.
+ *       '401':
+ *         description: Not authorized. User is not logged in.
+ */
 router.get('/notion/connect', IntegrationController.connectNotion);
+
+/**
+ * @openapi
+ * /api/users/integrations/notion/callback:
+ *   get:
+ *     summary: Handle Notion OAuth callback
+ *     description: This endpoint is the redirect URI for the Notion OAuth2 flow. It handles the authorization code and state to create an integration.
+ *     tags: [Integrations]
+ *     parameters:
+ *       - in: query
+ *         name: code
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The authorization code provided by Notion.
+ *       - in: query
+ *         name: state
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The state parameter originally sent to Notion for verification.
+ *     responses:
+ *       '302':
+ *         description: Redirects the user back to the client application's integration page with a status query parameter (e.g., ?status=success or ?status=error).
+ */
 router.get('/notion/callback', IntegrationController.handleNotionCallback);
 
 /**
@@ -117,6 +166,7 @@ router.get('/notion/callback', IntegrationController.handleNotionCallback);
  * /api/users/integrations/notion/export-course:
  *   post:
  *     summary: Export a full course summary to Notion
+ *     description: Gathers all course data, user notes, and research findings, and compiles them into a new page in the user's Notion workspace.
  *     tags: [Integrations]
  *     security:
  *       - cookieAuth: []
@@ -130,6 +180,7 @@ router.get('/notion/callback', IntegrationController.handleNotionCallback);
  *               courseId:
  *                 type: string
  *                 format: uuid
+ *                 description: The UUID of the course to export.
  *     responses:
  *       '200':
  *         description: Successfully created the page in Notion.
@@ -141,6 +192,11 @@ router.get('/notion/callback', IntegrationController.handleNotionCallback);
  *                 pageUrl:
  *                   type: string
  *                   format: uri
+ *                   description: The URL of the newly created Notion page.
+ *       '401':
+ *         description: Not authorized. User is not logged in.
+ *       '403':
+ *         description: Forbidden. Notion integration not found or is invalid.
  */
 router.post(
   '/notion/export-course',
