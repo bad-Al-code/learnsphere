@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
-import { SummaryTabSkeleton } from './_components/student-summary-tab';
-import { StudentDashboardTabs } from './_components/students-dashboard-tabs';
+import { SummaryTabSkeleton } from './dashboard/_components/student-summary-tab';
+import { StudentDashboardTabs } from './dashboard/_components/students-dashboard-tabs';
 
 export default function StudentDashboardPage() {
   return (
