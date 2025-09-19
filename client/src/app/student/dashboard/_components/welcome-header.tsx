@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSessionStore } from '@/stores/session-store';
 import { CloudSun, Droplets, MapPin, Quote, Wind } from 'lucide-react';
 
 interface WeatherData {
@@ -92,12 +93,21 @@ export function QuoteCard({ data }: { data: QuoteData }) {
   );
 }
 
-export function WelcomeHeader({ data = placeholderData }: WelcomeHeaderProps) {
+export async function WelcomeHeader() {
+  const { user } = useSessionStore();
+  if (!user) {
+    return <WelcomeHeaderSkeleton />;
+  }
+
+  const data = placeholderData;
+
   return (
     <div className="space-y-2">
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-3xl font-bold">Welcome back, {data.name}! 👋</h1>
+          <h1 className="text-3xl font-bold">
+            Welcome back, {user.firstName || 'Student'}! 👋
+          </h1>
           <Badge variant="secondary">
             🔥
             {data.streak}-day streak
