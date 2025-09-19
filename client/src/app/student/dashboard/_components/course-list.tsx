@@ -13,78 +13,10 @@ import {
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  AlarmClock,
-  Award,
-  BookOpen,
-  LucideIcon,
-  Play,
-  Zap,
-} from 'lucide-react';
+import { BookOpen, Play } from 'lucide-react';
 import Image from 'next/image';
 import { useMyEnrolledCourses } from '../hooks/use-enrollments';
 import { MyCourse } from '../schema/enrollment.schema';
-
-interface CourseProgress {
-  title: string;
-  instructor: string;
-  imageUrl: string;
-  progress: number;
-  isDueSoon?: boolean;
-}
-interface MiniStat {
-  title: string;
-  value: string;
-  icon: LucideIcon;
-}
-interface MyCoursesData {
-  courses: CourseProgress[];
-  stats: MiniStat[];
-}
-
-const placeholderStats: MiniStat[] = [
-  { title: 'Avg Grade', value: '87%', icon: Award },
-  { title: 'Active Streak', value: '12 days', icon: Zap },
-  { title: 'Due Soon', value: '3', icon: AlarmClock },
-];
-const placeholderData: MyCoursesData = {
-  courses: [
-    {
-      title: 'React Fundamentals',
-      instructor: 'Sarah Chen',
-      imageUrl:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg',
-      progress: 75,
-    },
-    {
-      title: 'Database Design',
-      instructor: 'Mike Johnson',
-      imageUrl:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/azuresqldatabase/azuresqldatabase-original.svg',
-      progress: 45,
-      isDueSoon: true,
-    },
-    {
-      title: 'UI/UX Principles',
-      instructor: 'Emma Wilson',
-      imageUrl:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/figma/figma-original.svg',
-      progress: 90,
-    },
-    {
-      title: 'Python Programming',
-      instructor: 'David Lee',
-      imageUrl:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg',
-      progress: 30,
-    },
-  ],
-  stats: [
-    { title: 'Avg Grade', value: '87%', icon: Award },
-    { title: 'Active Streak', value: '12 days', icon: Zap },
-    { title: 'Due Soon', value: '3', icon: AlarmClock },
-  ],
-};
 
 function CourseProgressCard({ enrollment }: { enrollment: MyCourse }) {
   const { course, progressPercentage } = enrollment;
@@ -156,23 +88,8 @@ function CourseProgressCard({ enrollment }: { enrollment: MyCourse }) {
   );
 }
 
-function MiniStatCard({ stat }: { stat: MiniStat }) {
-  return (
-    <Card>
-      <CardContent className="p-4">
-        <p className="text-muted-foreground text-xs">{stat.title}</p>
-        <div className="mt-2 flex items-center gap-2">
-          <stat.icon className="h-5 w-5" />
-          <p className="text-2xl font-bold">{stat.value}</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 export function MyCoursesTab() {
   const { data: myCourses, isLoading, isError } = useMyEnrolledCourses();
-  const stats = placeholderStats;
 
   if (isLoading) {
     return <MyCoursesTabSkeleton />;
@@ -207,12 +124,6 @@ export function MyCoursesTab() {
             />
           ))}
         </div>
-
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          {stats.map((stat) => (
-            <MiniStatCard key={stat.title} stat={stat} />
-          ))}
-        </div>
       </CardContent>
     </Card>
   );
@@ -244,20 +155,6 @@ function CourseProgressCardSkeleton() {
   );
 }
 
-function MiniStatCardSkeleton() {
-  return (
-    <Card>
-      <CardContent className="p-4">
-        <Skeleton className="h-4 w-24" />
-        <div className="mt-2 flex items-center gap-2">
-          <Skeleton className="h-5 w-5" />
-          <Skeleton className="h-7 w-20" />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 export function MyCoursesTabSkeleton() {
   return (
     <div className="space-y-2">
@@ -269,11 +166,6 @@ export function MyCoursesTabSkeleton() {
         <CourseProgressCardSkeleton />
         <CourseProgressCardSkeleton />
         <CourseProgressCardSkeleton />
-      </div>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <MiniStatCardSkeleton />
-        <MiniStatCardSkeleton />
-        <MiniStatCardSkeleton />
       </div>
     </div>
   );

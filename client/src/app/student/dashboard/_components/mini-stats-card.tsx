@@ -1,14 +1,7 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import {
   AlarmClock,
@@ -17,13 +10,8 @@ import {
   FileText,
   Flame,
   LucideIcon,
-  Pause,
-  Play,
-  RefreshCw,
-  Timer,
   TrendingUp,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 import {
   useDueSoonCount,
   useMyAverageGrade,
@@ -41,38 +29,6 @@ interface StatCardData {
   };
   icon: LucideIcon;
 }
-
-interface StatCardsRowProps {
-  data?: StatCardData[];
-}
-
-const placeholderData: StatCardData[] = [
-  {
-    title: 'Active Courses',
-    value: '4',
-    description: '2 due this week',
-    icon: BookOpen,
-  },
-  {
-    title: 'Assignments',
-    value: '7',
-    description: '3 pending submission',
-    icon: FileText,
-  },
-  {
-    title: 'Average Grade',
-    value: '87%',
-    description: '+2% from last month',
-    change: { value: 2, description: '' },
-    icon: Award,
-  },
-  {
-    title: 'Study Streak',
-    value: '12 days',
-    description: 'Keep it up!',
-    icon: Flame,
-  },
-];
 
 function StatCard({ data }: { data: StatCardData }) {
   const isPositive = data.change ? data.change.value >= 0 : true;
@@ -101,94 +57,6 @@ function StatCard({ data }: { data: StatCardData }) {
                 {data.change.value}%
               </span>
             )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function StudyTimerCard() {
-  const [isActive, setIsActive] = useState(false);
-  const [time, setTime] = useState(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    if (isActive) {
-      timerRef.current = setInterval(() => {
-        setTime((prevTime) => prevTime + 1);
-      }, 1000);
-    } else if (!isActive && time !== 0) {
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isActive, time]);
-
-  const formatTime = (totalSeconds: number) => {
-    const hours = Math.floor(totalSeconds / 3600)
-      .toString()
-      .padStart(2, '0');
-    const minutes = Math.floor((totalSeconds % 3600) / 60)
-      .toString()
-      .padStart(2, '0');
-    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
-    return `${hours}:${minutes}:${seconds}`.slice(3);
-  };
-
-  const handleReset = () => {
-    setIsActive(false);
-    setTime(0);
-  };
-
-  return (
-    <Card>
-      <CardContent className="space-y-2">
-        <div className="flex items-center justify-between">
-          <p className="text-muted-foreground text-xs">Study Timer</p>
-          <Timer className="text-muted-foreground h-4 w-4" />
-        </div>
-        <div className="flex flex-col items-center justify-between space-y-2">
-          <div className="text-3xl font-bold">{formatTime(time)}</div>
-          <div className="flex gap-1">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => setIsActive(!isActive)}
-                  >
-                    {isActive ? (
-                      <Pause className="h-4 w-4" />
-                    ) : (
-                      <Play className="h-4 w-4" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{isActive ? 'Pause Timer' : 'Start Timer'}</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={handleReset}
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Reset Timer</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </div>
         </div>
       </CardContent>
@@ -255,7 +123,6 @@ export function StatCardsRow() {
       {stats.map((stat) => (
         <StatCard key={stat.title} data={stat} />
       ))}
-      {/* <StudyTimerCard /> */}
     </div>
   );
 }

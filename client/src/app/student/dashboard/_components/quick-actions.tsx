@@ -27,26 +27,16 @@ interface Action {
   href: string;
 }
 
-interface QuickActionsProps {
-  actions?: Action[];
-}
-
-const placeholderActions: Action[] = [
-  {
-    label: 'Start Study Session',
-    icon: PlayCircle,
-    href: '/student/study-session',
-  },
+const actions: Action[] = [
+  { label: 'Start Study Session', icon: PlayCircle, href: '/student/courses' },
   { label: 'Join Study Group', icon: Users, href: '/student/community' },
-  { label: 'Ask AI Tutor', icon: Bot, href: '/student/ai-tutor' },
-  { label: 'View Calendar', icon: Calendar, href: '/student/schedule' },
+  { label: 'Ask AI Tutor', icon: Bot, href: '/student/ai-tools' },
+  { label: 'View Calendar', icon: Calendar, href: '/student/assignments' },
   { label: 'Browse Courses', icon: BookOpen, href: '/courses' },
   { label: 'Check Messages', icon: MessageSquare, href: '/student/messages' },
 ];
 
-export function QuickActions({
-  actions = placeholderActions,
-}: QuickActionsProps) {
+export function QuickActions() {
   return (
     <Card>
       <CardHeader>
@@ -56,6 +46,7 @@ export function QuickActions({
         </div>
         <CardDescription>Jump to your most used features</CardDescription>
       </CardHeader>
+
       <CardContent>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
           {actions.map((action) => (
