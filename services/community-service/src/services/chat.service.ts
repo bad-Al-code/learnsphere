@@ -384,15 +384,19 @@ export class ChatService {
     return groups.map((group) => ({
       id: group.id,
       title: group.name,
-      description: `A study group for ${group.name}`, // Placeholder
-      isLive: Math.random() > 0.5, // Placeholder
-      category: 'Community', // Placeholder
+      description: group.description,
+      isLive: group.isLive,
+      category: group.category,
+      duration: `${group.durationMinutes || 0}m`,
+      startTime: group.startTime
+        ? group.startTime.toISOString()
+        : 'Not scheduled',
       participants: group.participants.map((p) => ({
         name: p.user?.name || 'Unknown',
         avatarUrl: p.user?.avatarUrl || null,
       })),
       participantCount: group.participants.length,
-      maxParticipants: 10, // Placeholder
+      maxParticipants: group.maxParticipants,
     }));
   }
 }

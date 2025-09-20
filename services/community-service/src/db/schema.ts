@@ -1,5 +1,7 @@
 import { relations } from 'drizzle-orm';
 import {
+  boolean,
+  integer,
   jsonb,
   pgEnum,
   pgTable,
@@ -33,6 +35,13 @@ export const conversations = pgTable(
     createdById: uuid('created_by_id').references(() => users.id, {
       onDelete: 'set null',
     }),
+    description: text('description'),
+    category: varchar('category', { length: 100 }),
+    maxParticipants: integer('max_participants').default(10),
+    isLive: boolean('is_live').default(false),
+    startTime: timestamp('start_time'),
+    durationMinutes: integer('duration_minutes'),
+
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },

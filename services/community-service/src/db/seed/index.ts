@@ -32,7 +32,17 @@ async function seed() {
 
   const [conversation] = await db
     .insert(conversations)
-    .values({ type: 'direct' })
+    .values({
+      type: 'direct',
+      name: 'React Deep Dive Study Group',
+      createdById: specificUsers[0].id,
+      description: "Let's master React Hooks and advanced patterns together!",
+      category: 'Web Development',
+      maxParticipants: 15,
+      isLive: true,
+      startTime: faker.date.recent({ days: 1 }),
+      durationMinutes: 90,
+    })
     .returning();
 
   await db.insert(conversationParticipants).values([

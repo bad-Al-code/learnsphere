@@ -50,6 +50,13 @@
       "when": 1757612644471,
       "tag": "0006_rare_raza",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1758398209369,
+      "tag": "0007_wakeful_romulus",
+      "breakpoints": true
     }
   ]
 }

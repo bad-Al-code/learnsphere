@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getInitials } from '@/lib/utils';
+import { format } from 'date-fns';
 import {
   BookOpen,
   Clock,
@@ -96,6 +97,10 @@ export function LiveActivity() {
 }
 
 export function LiveStudySessionCard({ session }: { session: StudyGroup }) {
+  const formattedStartTime = session.startTime
+    ? format(new Date(session.startTime), 'MMM d, yyyy h:mm a')
+    : 'Not scheduled';
+
   return (
     <Card className="bg-muted/10">
       <CardContent className="space-y-2">
@@ -118,7 +123,7 @@ export function LiveStudySessionCard({ session }: { session: StudyGroup }) {
             <Clock className="h-3 w-3" /> {session.duration}
           </span>
 
-          <span>{session.startTime}</span>
+          <span>{formattedStartTime}</span>
 
           <Badge variant="outline">{session.category}</Badge>
         </div>
@@ -190,7 +195,7 @@ export function ActivityTabSkeleton() {
 
 export function LiveStudySessionCardSkeleton() {
   return (
-    <Card className="bg-muted/20">
+    <Card className="bg-muted/10">
       <CardContent className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
