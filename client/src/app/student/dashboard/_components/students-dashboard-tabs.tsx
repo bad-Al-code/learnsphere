@@ -8,13 +8,13 @@ import React, { useState, useTransition } from 'react';
 
 import { ActivityTab, ActivityTabSkeleton } from './activity-tab';
 import { InsightsTabSkeleton, InsightTab } from './insight-tab';
-import { ClassLeaderboard, ClassLeaderboardSkeleton } from './leaderboard-tab';
+import { ClassLeaderboard, LeaderboardTabSkeleton } from './leaderboard-tab';
 import { NotificationTab, NotificationTabSkeleton } from './notification-tab';
 import { SummaryTab, SummaryTabSkeleton } from './student-summary-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
   summary: <SummaryTabSkeleton />,
-  leaderboard: <ClassLeaderboardSkeleton />,
+  leaderboard: <LeaderboardTabSkeleton />,
   insights: <InsightsTabSkeleton />,
   notifications: <NotificationTabSkeleton />,
   activity: <ActivityTabSkeleton />,
