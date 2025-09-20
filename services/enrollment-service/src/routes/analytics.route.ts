@@ -412,6 +412,25 @@ router.get(
 
 /**
  * @openapi
+ * /api/analytics/my-study-recommendations:
+ *   get:
+ *     summary: "[Student] Get AI-powered study recommendations"
+ *     tags:
+ *       - Analytics
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An array of personalized study recommendations.
+ */
+router.get(
+  '/my-study-recommendations',
+  requireAuth,
+  AnalyticsController.getMyStudyRecommendations
+);
+
+/**
+ * @openapi
  * /api/analytics/my-insights:
  *   get:
  *     summary: "[Student] Get personalized AI-generated learning insights"

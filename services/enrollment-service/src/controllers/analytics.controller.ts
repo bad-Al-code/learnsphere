@@ -506,4 +506,22 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getMyStudyRecommendations(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const cookie = req.headers.cookie;
+      if (!req.currentUser || !cookie) throw new NotAuthorizedError();
+
+      const recommendations =
+        await AnalyticsService.getAIStudyRecommendations(cookie);
+
+      res.status(StatusCodes.OK).json(recommendations);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

@@ -10,7 +10,13 @@ import { AnalyticsRepository } from '../db/repositories/analytics.repository';
 import { BadRequestError } from '../errors';
 import { ReportGenerationRequestedPublisher } from '../events/publisher';
 import { GeminiClient } from '../features/ai/client/gemini.client';
+import { buildRecommendationSystemPrompt } from '../features/ai/prompts/assignmentRecommendation.prompt';
 import { buildInsightSystemPrompt } from '../features/ai/prompts/insight.prompt';
+import {
+  AssignmentResponse,
+  assignmentResponse,
+  assignmentResponseSchema,
+} from '../features/ai/responseSchema/assignmentRecommendationResponse.schema';
 import { feedbackResponseSchema } from '../features/ai/responseSchema/feedbackResponse.schema';
 import {
   FeedbackResponseSchema,
@@ -1041,5 +1047,66 @@ export class AnalyticsService {
         type: activity.activityType,
       };
     });
+  }
+
+  /**
+   * Get AI-powered study recommendations for the user.
+   * @param {string} cookie - User authentication cookie.
+   * @returns {Promise<AssignmentResponse[]>} Array of study recommendations.
+   * @throws {Error} If AI response is missing or invalid.
+   */
+  public static async getAIStudyRecommendations(cookie: string) {
+    logger.info(`Generating AI study recommendations for user`);
+
+    const pendingAssignments = await CourseClient.getPendingAssignments(cookie);
+
+    if (pendingAssignments.length === 0) {
+      return [
+        {
+          priority: 'low',
+          title: 'All Caught Up!',
+          description:
+            'You have no pending assignments. Great job! Consider starting a new course to keep learning.',
+          hours: 0,
+          dueDate: new Date().toISOString(),
+        },
+      ];
+    }
+
+    const context = {
+      pendingAssignments: pendingAssignments.map((a) => ({
+        title: a.title,
+        course: 'Course Name',
+        dueDate: a.dueDate,
+      })),
+    };
+    const systemInstruction = buildRecommendationSystemPrompt(context);
+
+    const ai = GeminiClient.getInstance();
+
+    const response = await ai.models.generateContent({
+      model: this.model,
+      contents: 'Generate the study recommendations now.',
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: assignmentResponse,
+        systemInstruction,
+      },
+    });
+
+    if (!response.text) {
+      throw new Error('No response text received from AI.');
+    }
+
+    let parsedResponse: AssignmentResponse;
+    try {
+      const data = JSON.parse(response.text);
+      parsedResponse = assignmentResponseSchema.parse(data);
+    } catch (err) {
+      logger.error('Failed to parse or validate AI response:', err);
+      throw err;
+    }
+
+    return parsedResponse;
   }
 }

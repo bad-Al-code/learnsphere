@@ -54,4 +54,27 @@ export class CourseClient {
       return 0;
     }
   }
+
+  /**
+   * Get the user's pending assignments.
+   * @param {string} cookie - User authentication cookie.
+   * @returns {Promise<{ title: string; course: string; dueDate: string | null }[]>} Array of pending assignments.
+   */
+  public static async getPendingAssignments(
+    cookie: string
+  ): Promise<{ title: string; course: string; dueDate: string | null }[]> {
+    try {
+      const response = await axios.get<
+        { title: string; course: string; dueDate: string | null }[]
+      >(`${this.courseServiceUrl}/api/assignments/my-pending`, {
+        headers: { Cookie: cookie },
+      });
+      return response.data;
+    } catch (error) {
+      logger.error('Failed to fetch pending assignments from course-service', {
+        error,
+      });
+      return [];
+    }
+  }
 }
