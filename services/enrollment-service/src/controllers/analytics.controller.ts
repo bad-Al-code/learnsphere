@@ -492,4 +492,18 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getLiveActivityFeed(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const feed = await AnalyticsService.getLiveActivityFeed();
+
+      res.status(StatusCodes.OK).json(feed);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

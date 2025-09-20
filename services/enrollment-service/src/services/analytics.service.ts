@@ -976,4 +976,52 @@ export class AnalyticsService {
 
     return validated;
   }
+
+  /**
+   * Gets a feed of recent, enriched activity from across the platform.
+   * @returns A promise that resolves to an array of formatted activity feed items.
+   */
+  public static async getLiveActivityFeed() {
+    const recentActivities = await AnalyticsRepository.getRecentActivityLogs(5);
+    if (recentActivities.length === 0) return [];
+
+    const userIds = [...new Set(recentActivities.map((a) => a.userId))];
+    const courseIds = [...new Set(recentActivities.map((a) => a.courseId))];
+
+    const [userMap, courseMap] = await Promise.all([
+      UserClient.getPublicProfiles(userIds),
+      CourseRepository.findManyByIds(courseIds).then(
+        (courses) => new Map(courses.map((c) => [c.id, c]))
+      ),
+    ]);
+
+    return recentActivities.map((activity) => {
+      const user = userMap.get(activity.userId);
+      const course = courseMap.get(activity.courseId);
+      let actionText = 'did something in';
+
+      switch (activity.activityType) {
+        case 'enrollment':
+          actionText = 'just enrolled in';
+          break;
+        case 'lesson_completion':
+          actionText = 'completed a lesson in';
+          break;
+        case 'resource_download':
+          actionText = 'downloaded a resource from';
+          break;
+      }
+
+      return {
+        id: activity.id,
+        userName:
+          `${user?.firstName || 'Someone'} ${user?.lastName || ''}`.trim(),
+        userAvatar: user?.avatarUrls?.small || null,
+        actionText,
+        subject: course?.title || 'a course',
+        timestamp: activity.createdAt.toISOString(),
+        type: activity.activityType,
+      };
+    });
+  }
 }

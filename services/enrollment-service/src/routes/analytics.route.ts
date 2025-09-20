@@ -395,6 +395,19 @@ router.get('/my-study-trend', requireAuth, AnalyticsController.getMyStudyTrend);
 
 /**
  * @openapi
+ * /api/analytics/live-activity-feed:
+ *   get:
+ *     summary: Get a feed of recent platform-wide student activities
+ *     tags:
+ *       - Analytics
+ *     responses:
+ *       '200':
+ *         description: An array of recent activity events.
+ */
+router.get('/live-activity-feed', AnalyticsController.getLiveActivityFeed);
+
+/**
+ * @openapi
  * /api/analytics/my-insights:
  *   get:
  *     summary: "[Student] Get personalized AI-generated learning insights"

@@ -1207,4 +1207,16 @@ export class AnalyticsRepository {
 
     return result;
   }
+
+  /**
+   * Fetches the most recent activity logs across all courses.
+   * @param limit The maximum number of activities to return.
+   * @returns An array of the latest activity log entries.
+   */
+  public static async getRecentActivityLogs(limit: number = 5) {
+    return db.query.courseActivityLogs.findMany({
+      orderBy: [desc(courseActivityLogs.createdAt)],
+      limit,
+    });
+  }
 }

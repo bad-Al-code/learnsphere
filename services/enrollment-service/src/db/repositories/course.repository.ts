@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { db } from '..';
 import { Course, courses, NewCourse, UpdatedCourse } from '../schema';
 
@@ -73,6 +73,19 @@ export class CourseRepository {
   public static async findById(courseId: string): Promise<Course | undefined> {
     return db.query.courses.findFirst({
       where: eq(courses.id, courseId),
+    });
+  }
+
+  /**
+   * Finds multiple courses by their IDs from the local replica.
+   * @param courseIds An array of course IDs.
+   * @returns A promise resolving to an array of course objects.
+   */
+  public static async findManyByIds(courseIds: string[]): Promise<Course[]> {
+    if (courseIds.length === 0) return [];
+
+    return db.query.courses.findMany({
+      where: inArray(courses.id, courseIds),
     });
   }
 
