@@ -88,7 +88,7 @@ export function QuoteCard({ data }: { data: QuoteData }) {
   );
 }
 
-export async function WelcomeHeader() {
+export function WelcomeHeader() {
   const { user } = useSessionStore();
   const { data: quoteData, isLoading: isLoadingQuote } = useTodaysQuote();
   const { data: weatherApiData, isLoading: isLoadingWeather } =

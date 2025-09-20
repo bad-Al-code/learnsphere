@@ -27,6 +27,6 @@ export const getMyStudyStreak = (): Promise<StudyStreakResponse> => {
 export const getPendingAssignmentsCount =
   (): Promise<PendingAssignmentsResponse> => {
     return courseService.getTyped<PendingAssignmentsResponse>(
-      '/api/assignments/pending-count'
+      '/api/assignments/my-pending-count'
     );
   };
