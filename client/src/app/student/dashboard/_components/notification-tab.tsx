@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useWebSocket } from '@/hooks/use-web-socket';
 import { cn } from '@/lib/utils';
 import {
   Bell,
@@ -21,125 +22,65 @@ import {
   MessageSquare,
   type LucideIcon,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
-
-type TNotificationCategory = 'assignments' | 'courses' | 'platform' | 'message';
-
-type TNotification = {
-  id: string;
-  title: string;
-  description: string;
-  category: TNotificationCategory;
-  timestamp: string;
-  isRead: boolean;
-  actionButtonText?: string;
-};
+import {
+  useMarkAllAsRead,
+  useMarkAsRead,
+  useNotifications,
+} from '../hooks/use-notification';
+import { Notification } from '../schema/notification.schema';
 
 type TNotificationItemProps = {
-  notification: TNotification;
-  onMarkAsRead: (id: string) => void;
+  notification: Notification;
 };
 
-const initialNotifications: TNotification[] = [
-  {
-    id: '1',
-    title: 'New assignment posted: Database Optimization',
-    description: 'Due in 5 days - Database Design course',
-    category: 'assignments',
-    timestamp: '2h ago',
-    isRead: false,
-    actionButtonText: 'View Assignment',
-  },
-  {
-    id: '2',
-    title: 'New module available: Advanced React Patterns',
-    description: 'React Fundamentals course has been updated',
-    category: 'courses',
-    timestamp: '1d ago',
-    isRead: false,
-    actionButtonText: 'Start Module',
-  },
-  {
-    id: '3',
-    title: 'System maintenance scheduled',
-    description: 'Platform will be unavailable on Jan 15, 2-4 AM',
-    category: 'platform',
-    timestamp: '2d ago',
-    isRead: true,
-  },
-  {
-    id: '4',
-    title: 'Grade released: React Component Project',
-    description: 'You scored 94% - Great work!',
-    category: 'assignments',
-    timestamp: '3d ago',
-    isRead: true,
-    actionButtonText: 'View Feedback',
-  },
-  {
-    id: '5',
-    title: 'Instructor message: Office hours reminder',
-    description: 'Sarah Chen - Available Tuesdays 2-4 PM',
-    category: 'message',
-    timestamp: '1w ago',
-    isRead: true,
-  },
-];
+const categoryIcons: Record<string, LucideIcon> = {
+  assignments: FileText,
+  courses: BookOpen,
+  platform: Clock,
+  message: MessageSquare,
+  default: Bell,
+};
 
-export function NotificationItem({
-  notification,
-  onMarkAsRead,
-}: TNotificationItemProps) {
-  const categoryIcons: Record<TNotificationCategory, LucideIcon> = {
-    assignments: FileText,
-    courses: BookOpen,
-    platform: Clock,
-    message: MessageSquare,
-  };
-  const Icon = categoryIcons[notification.category];
+export function NotificationItem({ notification }: TNotificationItemProps) {
+  const { mutate: markAsRead, isPending } = useMarkAsRead();
+  const Icon =
+    categoryIcons[notification.type.toLowerCase()] || categoryIcons.default;
 
   return (
     <div
       className={cn(
         'relative flex items-center justify-between rounded-lg border p-4 transition-colors',
-        !notification.isRead
-          ? 'border-red-500/20 bg-red-900/10'
-          : 'border-transparent'
+        !notification.isRead && 'border-primary/20 bg-primary/10'
       )}
     >
       {!notification.isRead && (
-        <div className="absolute top-0 left-0 h-full w-1 rounded-l-md bg-red-500" />
+        <div className="bg-primary absolute top-0 left-0 h-full w-1 rounded-l-md" />
       )}
       <div className="flex items-start gap-4">
         <div className="text-muted-foreground mt-1">
           <Icon className="h-5 w-5" />
         </div>
         <div className="flex flex-col">
-          <p className="font-semibold">{notification.title}</p>
-          <p className="text-muted-foreground text-sm">
-            {notification.description}
-          </p>
-
+          <p className="font-semibold">{notification.content}</p>
           <div className="text-muted-foreground mt-2 flex items-center gap-2 text-xs">
             <Badge variant="outline" className="capitalize">
-              {notification.category}
+              {notification.type.replace(/_/g, ' ')}
             </Badge>
-            <span>{notification.timestamp}</span>
+            <span>{new Date(notification.createdAt).toLocaleString()}</span>
           </div>
         </div>
       </div>
-
       <div className="flex items-center pl-4">
-        {notification.actionButtonText && (
-          <Button variant="outline" size="sm">
-            {notification.actionButtonText}
+        {notification.linkUrl && (
+          <Button variant="outline" size="sm" asChild>
+            <a href={notification.linkUrl}>View</a>
           </Button>
         )}
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => onMarkAsRead(notification.id)}
-          disabled={notification.isRead}
+          onClick={() => markAsRead(notification.id)}
+          disabled={notification.isRead || isPending}
         >
           <CheckCircle2
             className={cn(
@@ -156,72 +97,45 @@ export function NotificationItem({
 }
 
 export function NotificationTab() {
-  const [notifications, setNotifications] = useState(initialNotifications);
-  const [activeFilter, setActiveFilter] = useState<
-    TNotificationCategory | 'all'
-  >('all');
+  useWebSocket(true);
+  const { data: notifications, isLoading, isError } = useNotifications();
+  const { mutate: markAllRead } = useMarkAllAsRead();
 
-  function handleMarkAsRead(id: string) {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+  if (isLoading) return <NotificationTabSkeleton />;
+
+  if (isError)
+    return (
+      <Card>
+        <CardContent className="text-destructive py-8 text-center">
+          Failed to load notifications.
+        </CardContent>
+      </Card>
     );
-  }
-
-  function handleMarkAllRead() {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-  }
-
-  const filteredNotifications = useMemo(() => {
-    if (activeFilter === 'all') return notifications;
-    return notifications.filter((n) => n.category === activeFilter);
-  }, [notifications, activeFilter]);
-
-  const FILTERS: (TNotificationCategory | 'all')[] = [
-    'all',
-    'assignments',
-    'courses',
-    'platform',
-  ];
 
   return (
-    <Card className="">
+    <Card>
       <CardHeader className="flex-row items-center justify-between">
         <CardTitle className="text-2xl font-bold">Notifications</CardTitle>
         <CardAction>
-          <Button variant="outline" size="sm" onClick={handleMarkAllRead}>
+          <Button variant="outline" size="sm" onClick={() => markAllRead()}>
             <CheckCircle className="h-4 w-4" />
             Mark All Read
           </Button>
         </CardAction>
       </CardHeader>
       <CardContent className="space-y-2">
-        <div className="flex items-center space-x-2">
-          {FILTERS.map((filter) => (
-            <Button
-              key={filter}
-              size="sm"
-              variant={activeFilter === filter ? 'secondary' : 'outline'}
-              onClick={() => setActiveFilter(filter)}
-              className="capitalize"
-            >
-              {filter}
-            </Button>
-          ))}
-        </div>
-
         <div className="space-y-2">
-          {filteredNotifications.length > 0 ? (
-            filteredNotifications.map((notification) => (
+          {notifications && notifications.length > 0 ? (
+            notifications.map((notification: Notification) => (
               <NotificationItem
                 key={notification.id}
                 notification={notification}
-                onMarkAsRead={handleMarkAsRead}
               />
             ))
           ) : (
             <div className="text-muted-foreground py-16 text-center">
               <Bell className="mx-auto mb-4 h-12 w-12" />
-              <p>No notifications for this category.</p>
+              <p>You're all caught up!</p>
             </div>
           )}
         </div>

@@ -35,13 +35,12 @@ export function useWebSocket(enabled: boolean) {
     const socket = new WebSocket(NOTIFICATION_SERVICE_WS_URL);
 
     socket.onopen = () => {
-      console.log('WebSocket connection established.');
+      // console.log('WebSocket connection established.');
     };
 
     socket.onmessage = (event) => {
       try {
         const notification: Notification = JSON.parse(event.data);
-        console.log('Received notification via WebSocket:', notification);
 
         toast.info(notification.content, {
           action: notification.linkUrl

@@ -133,3 +133,6 @@ export const enrollmentService = new ApiClient(
 );
 export const paymentService = new ApiClient(process.env.PAYMENT_SERVICE_URL!);
 export const mediaService = new ApiClient(process.env.MEDIA_SERVICE_URL!);
+export const notificationService = new ApiClient(
+  process.env.NOTIFICATION_SERVICE_URL!
+);

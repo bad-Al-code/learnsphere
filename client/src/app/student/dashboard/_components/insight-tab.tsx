@@ -7,7 +7,6 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDuration } from 'date-fns';
 import { FC } from 'react';
@@ -63,34 +62,6 @@ export const InsightCard: FC<TInsightCardProps> = ({
     <CardContent>
       <p className="text-muted-foreground text-sm">{description}</p>
       <div className="mt-4">{actionButton}</div>
-    </CardContent>
-  </Card>
-);
-
-export const AIStudyAssistant: FC<TAIStudyAssistantProps> = ({ onAsk }) => (
-  <Card>
-    <CardHeader>
-      <CardTitle>AI Study Assistant</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <Input placeholder="Ask for help with your course..." />
-      <Button
-        className="mt-4 w-full"
-        onClick={() => onAsk('Summarize my progress')}
-      >
-        Ask AI
-      </Button>
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Button variant="outline" size="sm">
-          Summarize Progress
-        </Button>
-        <Button variant="outline" size="sm">
-          Practice Exercises
-        </Button>
-        <Button variant="outline" size="sm">
-          Study Plan
-        </Button>
-      </div>
     </CardContent>
   </Card>
 );
@@ -223,23 +194,6 @@ export const InsightCardSkeleton: FC = () => (
   </Card>
 );
 
-export const AIStudyAssistantSkeleton: FC = () => (
-  <Card>
-    <CardHeader>
-      <Skeleton className="h-6 w-40" />
-    </CardHeader>
-    <CardContent>
-      <Skeleton className="h-10 w-full" />
-      <Skeleton className="mt-4 h-10 w-full" />
-      <div className="mt-4 flex gap-2">
-        <Skeleton className="h-8 w-24" />
-        <Skeleton className="h-8 w-28" />
-        <Skeleton className="h-8 w-20" />
-      </div>
-    </CardContent>
-  </Card>
-);
-
 export const StudyTimeTrendSkeleton: FC = () => (
   <Card>
     <CardHeader>
@@ -303,7 +257,6 @@ export function InsightTab() {
           </div>
 
           <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
-            <AIStudyAssistant onAsk={(query) => console.log(query)} />
             {isLoadingTrend ? (
               <StudyTimeTrendSkeleton />
             ) : (
@@ -322,7 +275,6 @@ export function InsightsTabSkeleton() {
       <CardContent className="space-y-2">
         <InsightCardSkeleton />
         <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
-          <AIStudyAssistantSkeleton />
           <StudyTimeTrendSkeleton />
         </div>
       </CardContent>
