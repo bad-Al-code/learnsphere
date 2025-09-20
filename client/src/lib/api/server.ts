@@ -136,3 +136,6 @@ export const mediaService = new ApiClient(process.env.MEDIA_SERVICE_URL!);
 export const notificationService = new ApiClient(
   process.env.NOTIFICATION_SERVICE_URL!
 );
+export const communityService = new ApiClient(
+  process.env.COMMUNITY_SERVICE_URL!
+);

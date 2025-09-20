@@ -404,7 +404,11 @@ router.get('/my-study-trend', requireAuth, AnalyticsController.getMyStudyTrend);
  *       '200':
  *         description: An array of recent activity events.
  */
-router.get('/live-activity-feed', AnalyticsController.getLiveActivityFeed);
+router.get(
+  '/live-activity-feed',
+  requireAuth,
+  AnalyticsController.getLiveActivityFeed
+);
 
 /**
  * @openapi

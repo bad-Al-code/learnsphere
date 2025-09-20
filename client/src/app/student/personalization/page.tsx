@@ -1,9 +1,12 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { studentPersonalizationTabs } from '@/config/nav-items';
 import { Suspense } from 'react';
-import { PageHeader, PageHeaderSkeleton } from '../_components/page-header';
 import { PersonalizationTabs } from './_components/customize-tabs';
 import { ThemesTabSkeleton } from './_components/themes-tab';
+import {
+  PageHeader,
+  PageHeaderSkeleton,
+} from '../dashboard/_components/page-header';
 
 function PersonalizationPageSkeleton() {
   return (

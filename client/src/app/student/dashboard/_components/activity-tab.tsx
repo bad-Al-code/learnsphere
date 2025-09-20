@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getInitials } from '@/lib/utils';
 import {
   BookOpen,
   Clock,
@@ -20,99 +21,20 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
-
-type TActivityType = 'study_session' | 'assignment_submit' | 'achievement';
-
-type TLiveActivityItem = {
-  id: string;
-  userName: string;
-  userAvatar: string;
-  actionText: string;
-  subject: string;
-  timestamp: string;
-  type: TActivityType;
-};
-
-type TStudySession = {
-  id: string;
-  title: string;
-  description: string;
-  isLive: boolean;
-  duration: string;
-  startTime: string;
-  category: string;
-  participants: { name: string; avatarUrl: string }[];
-  maxParticipants: number;
-};
-
-const liveActivityData: TLiveActivityItem[] = [
-  {
-    id: '1',
-    userName: 'Alex Johnson',
-    userAvatar: 'https://i.pravatar.cc/150?u=ajohnson',
-    actionText: 'started a study session',
-    subject: 'React Fundamentals',
-    timestamp: '2m ago',
-    type: 'study_session',
-  },
-  {
-    id: '2',
-    userName: 'Sarah Chen',
-    userAvatar: 'https://i.pravatar.cc/150?u=schen',
-    actionText: 'submitted assignment',
-    subject: 'Database Design Project',
-    timestamp: '5m ago',
-    type: 'assignment_submit',
-  },
-  {
-    id: '3',
-    userName: 'Mike Rodriguez',
-    userAvatar: 'https://i.pravatar.cc/150?u=mrodriguez',
-    actionText: 'earned achievement',
-    subject: 'Study Streak Master',
-    timestamp: '10m ago',
-    type: 'achievement',
-  },
-];
-
-const studySessionsData: TStudySession[] = [
-  {
-    id: '1',
-    title: 'React Hooks Deep Dive',
-    description: 'Exploring advanced React hooks patterns and best practices.',
-    isLive: true,
-    duration: '1h 30m',
-    startTime: 'Started 30m ago',
-    category: 'Web Development',
-    participants: [
-      { name: 'S', avatarUrl: 'https://i.pravatar.cc/150?u=s' },
-      { name: 'C', avatarUrl: 'https://i.pravatar.cc/150?u=c' },
-      { name: 'A', avatarUrl: 'https://i.pravatar.cc/150?u=a' },
-    ],
-    maxParticipants: 8,
-  },
-  {
-    id: '2',
-    title: 'Database Design Workshop',
-    description: 'Collaborative database schema design and optimization.',
-    isLive: false,
-    duration: '2h',
-    startTime: 'Starts tomorrow at 2 PM',
-    category: 'Databases',
-    participants: [
-      { name: 'M', avatarUrl: 'https://i.pravatar.cc/150?u=m' },
-      { name: 'E', avatarUrl: 'https://i.pravatar.cc/150?u=e' },
-    ],
-    maxParticipants: 10,
-  },
-];
+import { useLiveActivity, useStudyGroups } from '../hooks/use-activity';
+import { StudyGroup } from '../schema/activity.schema';
 
 export function LiveActivity() {
-  const activityIcons: Record<TActivityType, LucideIcon> = {
+  const { data: liveActivityData, isLoading } = useLiveActivity();
+
+  const activityIcons: Record<string, LucideIcon> = {
     study_session: BookOpen,
-    assignment_submit: TrendingUp,
+    enrollment: BookOpen,
+    lesson_completion: TrendingUp,
     achievement: Trophy,
   };
+
+  if (isLoading) return <LiveActivitySkeleton />;
 
   return (
     <Card>
@@ -129,13 +51,17 @@ export function LiveActivity() {
 
       <CardContent>
         <ul className="space-y-6">
-          {liveActivityData.map((item) => {
+          {liveActivityData?.map((item) => {
             const Icon = activityIcons[item.type];
+
             return (
               <li key={item.id} className="flex items-start gap-4">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src={item.userAvatar} alt={item.userName} />
-                  <AvatarFallback>{item.userName.charAt(0)}</AvatarFallback>
+                  <AvatarImage
+                    src={item.userAvatar ?? undefined}
+                    alt={item.userName}
+                  />
+                  <AvatarFallback>{getInitials(item.userName)}</AvatarFallback>
                 </Avatar>
 
                 <div className="text-sm">
@@ -149,13 +75,14 @@ export function LiveActivity() {
                       {item.subject}
                     </span>
                   </p>
+
                   <div className="mt-1 flex items-center gap-2">
                     <Clock className="text-muted-foreground h-3 w-3" />
                     <span className="text-muted-foreground text-xs">
-                      {item.timestamp}
+                      {new Date(item.timestamp).toLocaleTimeString()}
                     </span>
                     <Badge variant="outline" className="capitalize">
-                      {item.type.replace('_', ' ')}
+                      {item.type.replace(/_/g, ' ')}
                     </Badge>
                   </div>
                 </div>
@@ -168,9 +95,9 @@ export function LiveActivity() {
   );
 }
 
-export function LiveStudySessionCard({ session }: { session: TStudySession }) {
+export function LiveStudySessionCard({ session }: { session: StudyGroup }) {
   return (
-    <Card className="bg-muted/20">
+    <Card className="bg-muted/10">
       <CardContent className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -203,7 +130,7 @@ export function LiveStudySessionCard({ session }: { session: TStudySession }) {
                 key={index}
                 className="border-background -ml-2 h-6 w-6 border-2 first:ml-0"
               >
-                <AvatarImage src={p.avatarUrl} />
+                <AvatarImage src={p.avatarUrl ?? undefined} />
                 <AvatarFallback>{p.name}</AvatarFallback>
               </Avatar>
             ))}
@@ -219,6 +146,10 @@ export function LiveStudySessionCard({ session }: { session: TStudySession }) {
 }
 
 export function LiveStudySessions() {
+  const { data: studySessionsData, isLoading } = useStudyGroups();
+
+  if (isLoading) return <LiveStudySessionsSkeleton />;
+
   return (
     <Card>
       <CardHeader>
@@ -231,7 +162,7 @@ export function LiveStudySessions() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
-        {studySessionsData.map((session) => (
+        {studySessionsData?.map((session) => (
           <LiveStudySessionCard key={session.id} session={session} />
         ))}
       </CardContent>
@@ -244,6 +175,15 @@ export function ActivityTab() {
     <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
       <LiveActivity />
       <LiveStudySessions />
+    </div>
+  );
+}
+
+export function ActivityTabSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+      <LiveActivitySkeleton />
+      <LiveStudySessionsSkeleton />
     </div>
   );
 }
@@ -317,14 +257,5 @@ export function LiveActivitySkeleton() {
         </ul>
       </CardContent>
     </Card>
-  );
-}
-
-export function ActivityTabSkeleton() {
-  return (
-    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-      <LiveActivitySkeleton />
-      <LiveStudySessionsSkeleton />
-    </div>
   );
 }

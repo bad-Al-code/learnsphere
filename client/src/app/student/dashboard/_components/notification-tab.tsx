@@ -419,7 +419,7 @@ export function NotificationTab() {
 
 export function NotificationItemSkeleton() {
   return (
-    <div className="bg-card animate-pulse rounded-xl border p-6">
+    <div className="animate-pulse rounded-xl border p-6">
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-start gap-4">
           <Skeleton className="h-10 w-10 rounded-xl" />
