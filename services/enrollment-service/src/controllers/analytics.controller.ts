@@ -479,9 +479,13 @@ export class AnalyticsController {
     next: NextFunction
   ) {
     try {
-      if (!req.currentUser) throw new NotAuthorizedError();
+      const cookie = req.headers.cookie;
+      if (!req.currentUser || !cookie) throw new NotAuthorizedError();
 
-      const insights = await AnalyticsService.getAIInsights(req.currentUser.id);
+      const insights = await AnalyticsService.getAIInsights(
+        req.currentUser.id,
+        cookie
+      );
 
       res.status(StatusCodes.OK).json(insights);
     } catch (error) {

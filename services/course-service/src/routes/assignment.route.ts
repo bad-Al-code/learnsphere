@@ -194,7 +194,7 @@ router.post('/assignments/reorder', AssignmentController.reorder);
 router.get(
   '/assignments/pending-count',
   requireAuth,
-  AssignmentController.getPendingCount
+  AssignmentController.getMyPendingCount
 );
 
 /**

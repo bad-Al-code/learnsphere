@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { format, subDays } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
+import { CourseClient } from '../clients/course.client';
 import { UserClient } from '../clients/user.client';
 import { env } from '../config/env';
 import logger from '../config/logger';
@@ -913,7 +914,8 @@ export class AnalyticsService {
    * @returns {Promise<FeedbackResponseSchema>} - The validated AI-generated insights.
    */
   public static async getAIInsights(
-    userId: string
+    userId: string,
+    cookie: string
   ): Promise<FeedbackResponseSchema> {
     logger.info(`Generating AI insights for user ${userId}`);
 
@@ -923,22 +925,29 @@ export class AnalyticsService {
       return [];
     }
 
-    const topCourse = performanceData[0];
-    const weakestCourse = performanceData[performanceData.length - 1];
-    const streak = await AnalyticsRepository.calculateStudyStreak(userId);
+    const topCourseData = performanceData[0];
+    const weakestCourseData = performanceData[performanceData.length - 1];
 
-    const courseIds = performanceData.map((p) => p.courseId);
-    const pendingAssignments = 3; // Placeholder
+    const courseIds = [topCourseData.courseId, weakestCourseData.courseId];
+    const courseDetailsMap = await CourseClient.getCoursesByIds(courseIds);
+
+    const streak = await AnalyticsRepository.calculateStudyStreak(userId);
+    const pendingAssignments =
+      await CourseClient.getPendingAssignmentsCount(cookie);
+
     const context = {
       topCourse: {
-        title: 'Top Course Title', // Placeholder
-        progress: parseFloat(topCourse.progressPercentage),
-        grade: topCourse.averageGrade ?? null,
+        title:
+          courseDetailsMap.get(topCourseData.courseId)?.title || 'Top Course',
+        progress: parseFloat(topCourseData.progressPercentage),
+        grade: topCourseData.averageGrade ?? null,
       },
       weakestCourse: {
-        title: 'Weakest Course Title', // Placeholder
-        progress: parseFloat(weakestCourse.progressPercentage),
-        grade: weakestCourse.averageGrade ?? null,
+        title:
+          courseDetailsMap.get(weakestCourseData.courseId)?.title ||
+          'Course to Review',
+        progress: parseFloat(weakestCourseData.progressPercentage),
+        grade: topCourseData.averageGrade ?? null,
       },
       studyStreak: streak,
       pendingAssignments,

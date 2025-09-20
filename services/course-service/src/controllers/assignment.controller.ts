@@ -141,7 +141,7 @@ export class AssignmentController {
     }
   }
 
-  public static async getPendingCount(
+  public static async getMyPendingCount(
     req: Request,
     res: Response,
     next: NextFunction
