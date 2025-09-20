@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { format, subDays } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { UserClient } from '../clients/user.client';
 import { env } from '../config/env';
@@ -867,5 +868,32 @@ export class AnalyticsService {
         achievements,
       },
     };
+  }
+
+  /**
+   * Retrieves and formats the study time trend for a user for the last 7 days.
+   * @param userId The ID of the user.
+   * @returns An array of objects formatted for the chart, including days with zero hours.
+   */
+  public static async getStudyTimeTrend(userId: string) {
+    const trendData = await AnalyticsRepository.getStudyTrendForUser(userId);
+    const trendMap = new Map(
+      trendData.map((d) => [d.day, parseFloat(d.totalMinutes || '0') / 60])
+    );
+
+    const last7Days = Array.from({ length: 7 })
+      .map((_, i) => {
+        const date = subDays(new Date(), i);
+        return {
+          date: format(date, 'yyyy-MM-dd'),
+          day: format(date, 'E'),
+        };
+      })
+      .reverse();
+
+    return last7Days.map((dayInfo) => ({
+      day: dayInfo.day,
+      hourse: trendMap.get(dayInfo.date) || 0,
+    }));
   }
 }

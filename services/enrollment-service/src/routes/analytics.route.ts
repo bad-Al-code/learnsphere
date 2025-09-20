@@ -380,6 +380,21 @@ router.get(
 
 /**
  * @openapi
+ * /api/analytics/my-study-trend:
+ *   get:
+ *     summary: "[Student] Get the current user's study time trend for the last 7 days"
+ *     tags:
+ *       - Analytics
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An array of objects with day and hours studied.
+ */
+router.get('/my-study-trend', requireAuth, AnalyticsController.getMyStudyTrend);
+
+/**
+ * @openapi
  * /api/analytics/course/{courseId}/stats:
  *   get:
  *     summary: "[Internal] Get statistics for a single course"

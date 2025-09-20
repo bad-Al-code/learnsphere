@@ -454,4 +454,22 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getMyStudyTrend(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const trend = await AnalyticsService.getStudyTimeTrend(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(trend);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

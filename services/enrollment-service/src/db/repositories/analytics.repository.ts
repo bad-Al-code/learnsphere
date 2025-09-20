@@ -1168,4 +1168,31 @@ export class AnalyticsRepository {
       assignments_done: number;
     }[];
   }
+
+  /**
+   * Fetches the total study duration in minutes for a user, grouped by day for the last 7 days.
+   * @param userId The ID of the user
+   * @returns An array of object, each containing a date and total minutes studied.
+   */
+  public static async getStudyTrendForUser(userId: string) {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const result = await db
+      .select({
+        day: sql<string>`TO_CHAR(${lessonSessions.startedAt}, 'YYYY-MM-DD')`,
+        totalMinutes: sum(lessonSessions.durationMinutes),
+      })
+      .from(lessonSessions)
+      .where(
+        and(
+          eq(lessonSessions.userId, userId),
+          gte(lessonSessions.startedAt, sevenDaysAgo)
+        )
+      )
+      .groupBy(sql`TO_CHAR(${lessonSessions.startedAt}, 'YYYY-MM-DD')`)
+      .orderBy(sql`TO_CHAR(${lessonSessions.startedAt}, 'YYYY-MM-DD')`);
+
+    return result;
+  }
 }
