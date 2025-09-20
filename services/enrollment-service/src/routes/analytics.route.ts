@@ -343,6 +343,25 @@ router.get(
 
 /**
  * @openapi
+ * /api/analytics/my-leaderboard-stats:
+ *   get:
+ *     summary: "[Student] Get leaderboard and personal stats"
+ *     tags:
+ *       - Analytics
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: The user's leaderboard and detailed personal stats.
+ */
+router.get(
+  '/my-leaderboard-stats',
+  requireAuth,
+  AnalyticsController.getMyLeaderboardStats
+);
+
+/**
+ * @openapi
  * /api/analytics/my-study-streak:
  *   get:
  *     summary: "[Student] Get the current user's study streak"

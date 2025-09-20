@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+import { UserClient } from '../clients/user.client';
 import { env } from '../config/env';
 import logger from '../config/logger';
 import { CourseRepository, StudentGradeRepository } from '../db/repositories';
@@ -796,5 +797,75 @@ export class AnalyticsService {
     const streak = await AnalyticsRepository.calculateStudyStreak(studentId);
 
     return { streak };
+  }
+
+  /**
+   * Gets the complete leaderboard and stats for the current user.
+   * @param userId The ID of the user making the request.
+   */
+  public static async getLeaderboardStats(userId: string) {
+    const rawStats =
+      await AnalyticsRepository.getLeaderboardAndUserStats(userId);
+    const streak = await AnalyticsRepository.calculateStudyStreak(userId);
+
+    const currentUserStats = rawStats.find((u) => u.user_id === userId) || {
+      rank: 0,
+      points: 0,
+      courses_completed: 0,
+      assignments_done: 0,
+    };
+
+    const top5 = rawStats.filter((u) => u.rank <= 5);
+    const userIdsToFetch = top5.map((u) => u.user_id);
+    const userProfiles = await UserClient.getPublicProfiles(userIdsToFetch);
+
+    const leaderboard = top5.map((u) => {
+      const profile = userProfiles.get(u.user_id);
+      const name = profile
+        ? `${profile.lastName || ''} ${profile.lastName || ''}`.trim()
+        : 'Anonymous';
+
+      return {
+        rank: u.rank,
+        name: name,
+        initials: name
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase(),
+        streak: 0,
+        points: Math.round(u.points * 10),
+      };
+    });
+
+    const achievements = [];
+    if (streak > 10)
+      achievements.push({ title: '10+ day streak', icon: 'Flame' });
+    if (currentUserStats.assignments_done > 15)
+      achievements.push({ title: 'Helped 15+ students', icon: 'Users' }); // Placeholder
+    if (currentUserStats.courses_completed >= 3)
+      achievements.push({ title: 'Finished 3 courses', icon: 'CheckCircle' });
+
+    return {
+      leaderboard,
+      userStats: {
+        rank: currentUserStats.rank,
+        points: Math.round(currentUserStats.points * 10),
+        stats: [
+          { label: 'Study Streak', value: `${streak} days` },
+          {
+            label: 'Courses Completed',
+            value: currentUserStats.courses_completed.toString(),
+          },
+          {
+            label: 'Assignments Done',
+            value: currentUserStats.assignments_done.toString(),
+          },
+          { label: 'Community Help', value: '18 answers' }, // Static placeholder
+        ],
+
+        achievements,
+      },
+    };
   }
 }

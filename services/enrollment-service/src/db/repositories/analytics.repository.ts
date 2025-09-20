@@ -1104,4 +1104,68 @@ export class AnalyticsRepository {
 
     return (result.rows[0]?.streak as number) || 0;
   }
+
+  /**
+   * Fetches comprehensive leaderboard and stats data for a given user.
+   * @param userId The ID of the user requesting the data.
+   * @returns A promise that resolves to the raw leaderboard and stats data.
+   */
+  public static async getLeaderboardAndUserStats(userId: string) {
+    const query = sql`
+    WITH UserScores AS (
+      SELECT 
+        e.user_id,
+        (AVG(progress_percentage) * 0.6) 
+          + (COALESCE(AVG(sg.avg_grade), 70) * 0.4) AS points
+      FROM enrollments e
+      LEFT JOIN (
+        SELECT 
+          student_id, 
+          course_id, 
+          AVG(grade) AS avg_grade
+        FROM student_grades
+        GROUP BY student_id, course_id
+      ) sg 
+        ON e.user_id = sg.student_id 
+       AND e.course_id = sg.course_id
+      WHERE e.status = 'active' OR e.status = 'completed'
+      GROUP BY e.user_id
+    ),
+
+    RankedUsers AS (
+      SELECT 
+        user_id,
+        points,
+        RANK() OVER (ORDER BY points DESC) AS "rank"
+      FROM UserScores
+    )
+    SELECT 
+      ru.user_id,
+      ru.rank::int,
+      ru.points::float,
+      (
+        SELECT COUNT(*) 
+        FROM enrollments 
+        WHERE user_id = ru.user_id 
+          AND status = 'completed'
+      ) AS courses_completed,
+      (
+        SELECT COUNT(*) 
+        FROM student_grades 
+        WHERE student_id = ru.user_id
+      ) AS assignments_done
+    FROM RankedUsers ru
+    WHERE ru.rank <= 5 OR ru.user_id = ${userId};
+  `;
+
+    const result = await db.execute(query);
+
+    return result.rows as {
+      user_id: string;
+      rank: number;
+      points: number;
+      courses_completed: number;
+      assignments_done: number;
+    }[];
+  }
 }

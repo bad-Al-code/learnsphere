@@ -436,4 +436,22 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getMyLeaderboardStats(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const data = await AnalyticsService.getLeaderboardStats(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(data);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
