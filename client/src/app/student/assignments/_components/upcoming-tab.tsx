@@ -30,7 +30,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
@@ -43,109 +42,33 @@ import {
   Search,
   Sparkles,
 } from 'lucide-react';
+import { useState } from 'react';
+import { useDebounce } from 'use-debounce';
+import {
+  useAIRecommendations,
+  usePendingAssignments,
+} from '../hooks/use-assignment';
+import {
+  AIRecommendation,
+  EnrichedPendingAssignment,
+} from '../schemas/assignment.schema';
 
-type TAIRecommendation = {
-  id: string;
-  priority: 'high' | 'medium' | 'low';
-  title: string;
-  description: string;
-  hours: number;
-  dueDate: string;
-};
-type TPendingAssignment = {
-  id: string;
-  title: string;
-  description: string;
-  course: string;
-  dueDate: string;
-  isOverdue: boolean;
-  type: 'individual' | 'collaborative';
-  status: 'Not Started' | 'In Progress';
-  points: number;
-};
-
-const recommendationsData: TAIRecommendation[] = [
-  {
-    id: '1',
-    priority: 'high',
-    title: 'Database Schema Design',
-    description: 'Focus on normalization concepts today. Review 3NF examples.',
-    hours: 2,
-    dueDate: '2024-01-12',
-  },
-  {
-    id: '2',
-    priority: 'medium',
-    title: 'React Component Library',
-    description: 'Complete TypeScript interfaces. Test component props.',
-    hours: 3,
-    dueDate: '2024-01-15',
-  },
-  {
-    id: '3',
-    priority: 'low',
-    title: 'Python Data Analysis',
-    description: 'Start with data cleaning. Review pandas documentation.',
-    hours: 1.5,
-    dueDate: '2024-01-20',
-  },
-];
-const pendingAssignmentsData: TPendingAssignment[] = [
-  {
-    id: '1',
-    title: 'Database Schema Design',
-    description:
-      'Design a normalized database schema for an e-commerce platform',
-    course: 'Database Design',
-    dueDate: '2024-01-12 at 11:59 PM',
-    isOverdue: true,
-    type: 'individual',
-    status: 'Not Started',
-    points: 100,
-  },
-  {
-    id: '2',
-    title: 'React Component Library',
-    description: 'Create a reusable component library with TypeScript',
-    course: 'React Fundamentals',
-    dueDate: '2024-01-15 at 11:59 PM',
-    isOverdue: true,
-    type: 'collaborative',
-    status: 'In Progress',
-    points: 150,
-  },
-  {
-    id: '3',
-    title: 'User Research Report',
-    description: 'Conduct user interviews and compile findings',
-    course: 'UI/UX Principles',
-    dueDate: '2024-01-18 at 11:59 PM',
-    isOverdue: true,
-    type: 'individual',
-    status: 'Not Started',
-    points: 80,
-  },
-  {
-    id: '4',
-    title: 'Python Data Analysis',
-    description: 'Analyze sales data using pandas and matplotlib',
-    course: 'Python Programming',
-    dueDate: '2024-01-20 at 11:59 PM',
-    isOverdue: false,
-    type: 'individual',
-    status: 'Not Started',
-    points: 120,
-  },
-];
-
-export function UpcomingHeader() {
+export function UpcomingHeader({
+  onSearchChange,
+}: {
+  onSearchChange: (value: string) => void;
+}) {
   return (
     <header>
       {/* Desktop View */}
       <div className="hidden items-center gap-2 md:flex">
         <div className="relative flex-grow">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-          <Input placeholder="Search assignments..." className="pl-9" />
+          <Input
+            placeholder="Search assignments..."
+            className="pl-9"
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
         </div>
         <Select defaultValue="all">
           <SelectTrigger className="">
@@ -175,58 +98,60 @@ export function UpcomingHeader() {
       <div className="flex items-center gap-2 md:hidden">
         <div className="relative flex-grow">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-          <Input placeholder="Search..." className="pl-9" />
+          <Input
+            placeholder="Search..."
+            className="pl-9"
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
         </div>
 
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <Select defaultValue="all">
-              <TooltipTrigger asChild>
-                <SelectTrigger>
-                  <Filter className="h-4 w-4" />
-                </SelectTrigger>
-              </TooltipTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Assignments</SelectItem>
-                <SelectItem value="not-started">Not Started</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="high-priority">High Priority</SelectItem>
-                <SelectItem value="collaborative">Collaborative</SelectItem>
-              </SelectContent>
-            </Select>
-            <TooltipContent>
-              <p>Filter</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
+        <Tooltip>
+          <Select defaultValue="all">
             <TooltipTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Calendar className="h-4 w-4" />
-              </Button>
+              <SelectTrigger>
+                <Filter className="h-4 w-4" />
+              </SelectTrigger>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>Calendar</p>
-            </TooltipContent>
-          </Tooltip>
+            <SelectContent>
+              <SelectItem value="all">All Assignments</SelectItem>
+              <SelectItem value="not-started">Not Started</SelectItem>
+              <SelectItem value="in-progress">In Progress</SelectItem>
+              <SelectItem value="high-priority">High Priority</SelectItem>
+              <SelectItem value="collaborative">Collaborative</SelectItem>
+            </SelectContent>
+          </Select>
+          <TooltipContent>
+            <p>Filter</p>
+          </TooltipContent>
+        </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="icon">
-                <BarChart2 className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Analytics</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Calendar className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Calendar</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="icon">
+              <BarChart2 className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Analytics</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
     </header>
   );
 }
 
-export function AIRecommendationItem({ item }: { item: TAIRecommendation }) {
+export function AIRecommendationItem({ item }: { item: AIRecommendation }) {
   const priorityClasses = {
     high: 'bg-red-500/10 text-red-500',
     medium: 'bg-yellow-500/10 text-yellow-500',
@@ -268,7 +193,7 @@ export function AIRecommendationItem({ item }: { item: TAIRecommendation }) {
   );
 }
 
-function AIStudyPlanner() {
+function AIStudyPlanner({ data }: { data: AIRecommendation[] }) {
   return (
     <Card>
       <CardHeader>
@@ -281,7 +206,7 @@ function AIStudyPlanner() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
-        {recommendationsData.map((item) => (
+        {data.map((item) => (
           <AIRecommendationItem key={item.id} item={item} />
         ))}
       </CardContent>
@@ -289,7 +214,7 @@ function AIStudyPlanner() {
   );
 }
 
-function PendingAssignments() {
+function PendingAssignments({ data }: { data: EnrichedPendingAssignment[] }) {
   return (
     <Card>
       <CardHeader>
@@ -316,7 +241,7 @@ function PendingAssignments() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pendingAssignmentsData.map((item) => (
+              {data.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>
                     <Checkbox />
@@ -458,11 +383,27 @@ function PendingAssignmentsSkeleton() {
 }
 
 export function UpcomingTab() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
+  const { data: recommendations, isLoading: isLoadingRecs } =
+    useAIRecommendations();
+  const { data: assignments, isLoading: isLoadingAssignments } =
+    usePendingAssignments(debouncedSearchTerm);
+
   return (
     <div className="space-y-2">
-      <UpcomingHeader />
-      <AIStudyPlanner />
-      <PendingAssignments />
+      <UpcomingHeader onSearchChange={setSearchTerm} />
+
+      {isLoadingRecs ? (
+        <AIStudyPlannerSkeleton />
+      ) : (
+        <AIStudyPlanner data={recommendations || []} />
+      )}
+      {isLoadingAssignments ? (
+        <PendingAssignmentsSkeleton />
+      ) : (
+        <PendingAssignments data={assignments || []} />
+      )}
     </div>
   );
 }
