@@ -395,6 +395,20 @@ router.get('/my-study-trend', requireAuth, AnalyticsController.getMyStudyTrend);
 
 /**
  * @openapi
+ * /api/analytics/my-insights:
+ *   get:
+ *     summary: "[Student] Get personalized AI-generated learning insights"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: An array of personalized insight objects.
+ */
+router.get('/my-insights', requireAuth, AnalyticsController.getMyInsights);
+
+/**
+ * @openapi
  * /api/analytics/course/{courseId}/stats:
  *   get:
  *     summary: "[Internal] Get statistics for a single course"

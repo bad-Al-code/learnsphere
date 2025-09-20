@@ -472,4 +472,20 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getMyInsights(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const insights = await AnalyticsService.getAIInsights(req.currentUser.id);
+
+      res.status(StatusCodes.OK).json(insights);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

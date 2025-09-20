@@ -19,6 +19,8 @@ const envSchema = z.object({
   COOKIE_PARSER_SECRET: z
     .string()
     .min(32, 'COOKIE_PARSER_SECRET must be at least 32 characters long'),
+
+  GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -32,4 +34,3 @@ if (!parsedEnv.success) {
 }
 
 export const env = parsedEnv.data;
-

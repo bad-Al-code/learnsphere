@@ -8,6 +8,13 @@ import { CourseRepository, StudentGradeRepository } from '../db/repositories';
 import { AnalyticsRepository } from '../db/repositories/analytics.repository';
 import { BadRequestError } from '../errors';
 import { ReportGenerationRequestedPublisher } from '../events/publisher';
+import { GeminiClient } from '../features/ai/client/gemini.client';
+import { buildInsightSystemPrompt } from '../features/ai/prompts/insight.prompt';
+import { feedbackResponseSchema } from '../features/ai/responseSchema/feedbackResponse.schema';
+import {
+  FeedbackResponseSchema,
+  feedbackResponseSchemaZod,
+} from '../features/ai/schema/feedback.schema';
 import { StudentPerformance, UserProfileData } from '../types';
 
 interface ModuleDetails {
@@ -21,6 +28,9 @@ interface CourseDetails {
 }
 
 export class AnalyticsService {
+  private static ai = GeminiClient.getInstance();
+  private static model: string = 'gemini-2.5-flash-lite';
+
   /**
    * @private
    * @static
@@ -893,7 +903,68 @@ export class AnalyticsService {
 
     return last7Days.map((dayInfo) => ({
       day: dayInfo.day,
-      hourse: trendMap.get(dayInfo.date) || 0,
+      hours: trendMap.get(dayInfo.date) || 0,
     }));
+  }
+
+  /**
+   * Generates AI insights for a user based on their course performance and study streak.
+   * @param {string} userId - The ID of the user to generate insights for.
+   * @returns {Promise<FeedbackResponseSchema>} - The validated AI-generated insights.
+   */
+  public static async getAIInsights(
+    userId: string
+  ): Promise<FeedbackResponseSchema> {
+    logger.info(`Generating AI insights for user ${userId}`);
+
+    const performanceData =
+      await AnalyticsRepository.getStudentPerformanceOverview(userId);
+    if (performanceData.length === 0) {
+      return [];
+    }
+
+    const topCourse = performanceData[0];
+    const weakestCourse = performanceData[performanceData.length - 1];
+    const streak = await AnalyticsRepository.calculateStudyStreak(userId);
+
+    const courseIds = performanceData.map((p) => p.courseId);
+    const pendingAssignments = 3; // Placeholder
+    const context = {
+      topCourse: {
+        title: 'Top Course Title', // Placeholder
+        progress: parseFloat(topCourse.progressPercentage),
+        grade: topCourse.averageGrade ?? null,
+      },
+      weakestCourse: {
+        title: 'Weakest Course Title', // Placeholder
+        progress: parseFloat(weakestCourse.progressPercentage),
+        grade: weakestCourse.averageGrade ?? null,
+      },
+      studyStreak: streak,
+      pendingAssignments,
+    };
+
+    const systemInstruction = buildInsightSystemPrompt(context);
+
+    const response = await this.ai.models.generateContent({
+      model: this.model,
+      contents: 'Generate the insights now.',
+      config: {
+        responseMimeType: 'application/json',
+        systemInstruction,
+        responseSchema: feedbackResponseSchema,
+      },
+    });
+
+    const text = response.text;
+    if (!text) {
+      throw new Error('No response text from AI provider.');
+    }
+
+    const parsed = JSON.parse(response.text);
+    const validated: FeedbackResponseSchema =
+      feedbackResponseSchemaZod.parse(parsed);
+
+    return validated;
   }
 }
