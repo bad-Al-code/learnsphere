@@ -119,64 +119,81 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export const StudyTimeTrend: FC<TStudyTimeTrendProps> = ({ data }) => (
-  <Card>
-    <CardHeader>
-      <CardTitle>Study Time Trend</CardTitle>
-      <p className="text-muted-foreground text-sm">
-        Your daily study hours this week
-      </p>
-    </CardHeader>
-    <CardContent>
-      <ChartContainer config={chartConfig} className="h-40 w-full">
-        <LineChart
-          accessibilityLayer
-          data={data}
-          margin={{
-            top: 5,
-            right: 10,
-            left: 10,
-            bottom: 5,
-          }}
-        >
-          <CartesianGrid vertical={false} strokeDasharray="3 3" />
-          <XAxis
-            dataKey="day"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            tickFormatter={(value) => value.slice(0, 3)}
-          />
-          <YAxis
-            domain={[0, 8]}
-            ticks={[0, 4, 8]}
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-          />
-          <Tooltip
-            cursor={false}
-            content={<ChartTooltipContent indicator="dot" />}
-          />
-          <Line
-            dataKey="hours"
-            type="monotone"
-            stroke="var(--primary)"
-            strokeWidth={2}
-            strokeDasharray="2 8"
-            dot={{
-              fill: 'bg-muted',
-              r: 4,
+export const StudyTimeTrend: FC<TStudyTimeTrendProps> = ({ data }) => {
+  const totalHours = data.reduce((acc, curr) => acc + curr.hours, 0);
+  const avgHours = (totalHours / data.length).toFixed(1);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Study Time Trend</CardTitle>
+        <p className="text-muted-foreground text-sm">
+          Your daily study hours this week
+        </p>
+        <div className="flex gap-4 text-sm">
+          <div className="flex items-center gap-1">
+            <div className="bg-primary h-2 w-2 animate-pulse rounded-full"></div>
+            <span className="text-muted-foreground">Total: </span>
+            <span className="text-foreground font-semibold">{totalHours}h</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="bg-muted h-2 w-2 rounded-full"></div>
+            <span className="text-muted-foreground">Avg: </span>
+            <span className="text-foreground font-semibold">{avgHours}h</span>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={chartConfig} className="h-40 w-full">
+          <LineChart
+            accessibilityLayer
+            data={data}
+            margin={{
+              top: 5,
+              right: 10,
+              left: 10,
+              bottom: 5,
             }}
-            activeDot={{
-              r: 4,
-            }}
-          />
-        </LineChart>
-      </ChartContainer>
-    </CardContent>
-  </Card>
-);
+          >
+            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+            <XAxis
+              dataKey="day"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) => value.slice(0, 3)}
+            />
+            <YAxis
+              domain={[0, 8]}
+              ticks={[0, 4, 8]}
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+            />
+            <Tooltip
+              cursor={false}
+              content={<ChartTooltipContent indicator="dot" />}
+            />
+            <Line
+              dataKey="hours"
+              type="monotone"
+              stroke="var(--primary)"
+              strokeWidth={2}
+              strokeDasharray="2 8"
+              dot={{
+                fill: 'bg-muted',
+                r: 4,
+              }}
+              activeDot={{
+                r: 4,
+              }}
+            />
+          </LineChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  );
+};
 
 export const InsightCardSkeleton: FC = () => (
   <Card>
@@ -219,6 +236,16 @@ export const StudyTimeTrendSkeleton: FC = () => (
     <CardHeader>
       <Skeleton className="h-6 w-32" />
       <Skeleton className="mt-2 h-4 w-48" />
+      <div className="flex gap-4">
+        <div className="flex items-center gap-2">
+          <Skeleton className="bg-muted h-2 w-2 animate-pulse rounded-full" />
+          <Skeleton className="bg-muted h-4 w-16 animate-pulse" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="bg-muted h-2 w-2 animate-pulse rounded-full" />
+          <Skeleton className="bg-muted h-4 w-16 animate-pulse" />
+        </div>
+      </div>
     </CardHeader>
     <CardContent>
       <Skeleton className="h-40 w-full" />
