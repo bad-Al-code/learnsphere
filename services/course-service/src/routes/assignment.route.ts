@@ -167,7 +167,7 @@ router.post('/assignments/reorder', AssignmentController.reorder);
 
 /**
  * @openapi
- * /assignments/pending-count:
+ * /assignments/my-pending-count:
  *   get:
  *     summary: Get the count of pending assignments for the current user
  *     description: Returns the total number of assignments that the authenticated user still has pending across their enrolled courses.
@@ -192,7 +192,7 @@ router.post('/assignments/reorder', AssignmentController.reorder);
  *         description: Internal server error
  */
 router.get(
-  '/assignments/pending-count',
+  '/assignments/my-pending-count',
   requireAuth,
   AssignmentController.getMyPendingCount
 );

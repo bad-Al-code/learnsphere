@@ -1081,26 +1081,38 @@ export class AnalyticsRepository {
    */
   public static async calculateStudyStreak(userId: string): Promise<number> {
     const result = await db.execute(sql`
-    WITH UserActivityDates AS (
-      SELECT DISTINCT created_at::date AS activity_date
-      FROM course_activity_logs
-      WHERE user_id = ${userId}
-    ),
-    DateSeries AS (
+      WITH UserActivityDates AS (
+        SELECT DISTINCT created_at::date AS activity_date
+        FROM course_activity_logs
+        WHERE user_id = ${userId}
+      ),
+      DateGroups AS (
+        SELECT
+          activity_date,
+          activity_date - (ROW_NUMBER() OVER (ORDER BY activity_date ASC))::int AS date_group
+        FROM UserActivityDates
+      ),
+      Streaks AS (
+        SELECT
+          date_group,
+          COUNT(*) AS streak_length,
+          MAX(activity_date) AS last_activity_date
+        FROM DateGroups
+        GROUP BY date_group
+        ORDER BY last_activity_date DESC
+        LIMIT 1
+      )
       SELECT
-        activity_date,
-        activity_date - (ROW_NUMBER() OVER (ORDER BY activity_date DESC))::int AS date_group
-      FROM UserActivityDates
-    ),
-    StreakCalculation AS (
-      SELECT date_group, COUNT(*) AS streak_length
-      FROM DateSeries
-      WHERE activity_date >= CURRENT_DATE - INTERVAL '1 day'
-      GROUP BY date_group
-    )
-    SELECT COALESCE(MAX(streak_length), 0) AS streak
-    FROM StreakCalculation;
-  `);
+        CASE
+          WHEN last_activity_date >= CURRENT_DATE - INTERVAL '1 day' THEN streak_length::int
+          ELSE 0
+        END AS streak
+      FROM Streaks;
+    `);
+
+    if (result.rows.length === 0) {
+      return 0;
+    }
 
     return (result.rows[0]?.streak as number) || 0;
   }
