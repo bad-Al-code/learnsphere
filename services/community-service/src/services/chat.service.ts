@@ -373,4 +373,26 @@ export class ChatService {
       logger.error('Failed to publish group update event', err);
     }
   }
+
+  /**
+   * Retrieves a list of public study groups.
+   * @returns A formatted list of study groups with participant info.
+   */
+  public static async getPublicStudyGroups() {
+    const groups = await ConversationRepository.findPublicGroups(5);
+
+    return groups.map((group) => ({
+      id: group.id,
+      title: group.name,
+      description: `A study group for ${group.name}`, // Placeholder
+      isLive: Math.random() > 0.5, // Placeholder
+      category: 'Community', // Placeholder
+      participants: group.participants.map((p) => ({
+        name: p.user?.name || 'Unknown',
+        avatarUrl: p.user?.avatarUrl || null,
+      })),
+      participantCount: group.participants.length,
+      maxParticipants: 10, // Placeholder
+    }));
+  }
 }

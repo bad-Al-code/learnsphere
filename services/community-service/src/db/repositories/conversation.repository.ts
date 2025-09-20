@@ -117,7 +117,7 @@ export class ConversationRepository {
         id: conversations.id,
         type: conversations.type,
         name: conversations.name,
- createdById: conversations.createdById,
+        createdById: conversations.createdById,
         lastMessage: lastMessageSubquery.content,
         lastMessageTimestamp: lastMessageSubquery.createdAt,
         otherParticipant: {
@@ -287,5 +287,31 @@ export class ConversationRepository {
           eq(conversationParticipants.userId, userId)
         )
       );
+  }
+
+  /**
+   * Finds public group conversations, enriched with participant details.
+   * @param limit The maximum number of groups to return.
+   * @returns An array of group conversations with their participants.
+   */
+  public static async findPublicGroups(limit: number = 5) {
+    return db.query.conversations.findMany({
+      where: eq(conversations.type, 'group'),
+      orderBy: [desc(conversations.createdAt)],
+      limit,
+      with: {
+        participants: {
+          with: {
+            user: {
+              columns: {
+                id: true,
+                name: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 }

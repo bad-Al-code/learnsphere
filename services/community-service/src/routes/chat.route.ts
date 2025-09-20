@@ -28,6 +28,18 @@ router.get('/conversations', ChatController.getConversations);
 
 /**
  * @openapi
+ * /api/community/study-groups:
+ *   get:
+ *     summary: Get a list of public study groups
+ *     tags: [Chat]
+ *     responses:
+ *       '200':
+ *         description: A list of public study groups with participant info.
+ */
+router.get('/study-groups', ChatController.getPublicStudyGroups);
+
+/**
+ * @openapi
  * /api/community/conversations/{id}/messages:
  *   get:
  *     summary: Get message history for a specific conversation

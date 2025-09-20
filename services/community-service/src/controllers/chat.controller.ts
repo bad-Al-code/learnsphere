@@ -174,4 +174,18 @@ export class ChatController {
       next(error);
     }
   }
+
+  public static async getPublicStudyGroups(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const groups = await ChatService.getPublicStudyGroups();
+
+      res.status(StatusCodes.OK).json(groups);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
