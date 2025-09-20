@@ -917,6 +917,21 @@ export class AnalyticsService {
     userId: string,
     cookie: string
   ): Promise<FeedbackResponseSchema> {
+    logger.info(`Fetching AI insights for user ${userId}`);
+
+    const cachedInsights = await AnalyticsRepository.getLatestInsights(userId);
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+
+    if (
+      cachedInsights &&
+      new Date().getTime() - cachedInsights.generatedAt.getTime() <
+        twentyFourHours
+    ) {
+      logger.info(`Returning cached AI insights for user ${userId}`);
+
+      return cachedInsights.insights;
+    }
+
     logger.info(`Generating AI insights for user ${userId}`);
 
     const performanceData =
@@ -973,6 +988,9 @@ export class AnalyticsService {
     const parsed = JSON.parse(response.text);
     const validated: FeedbackResponseSchema =
       feedbackResponseSchemaZod.parse(parsed);
+
+    await AnalyticsRepository.upsertInsights(userId, validated);
+    logger.info(`Saved new AI insights to cache for user ${userId}`);
 
     return validated;
   }

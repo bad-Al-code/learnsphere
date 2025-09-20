@@ -13,6 +13,7 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
+import { FeedbackResponseSchema } from '../features/ai/schema/feedback.schema';
 
 type ModuleSnapshot = {
   id: string;
@@ -211,3 +212,11 @@ export const reportJobs = pgTable('report_jobs', {
 });
 
 export type NewReportJob = typeof reportJobs.$inferInsert;
+
+export const aiInsights = pgTable('ai_insights', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().unique(),
+  insights: jsonb('insights').$type<FeedbackResponseSchema>().notNull(),
+  generatedAt: timestamp('generated_at').defaultNow().notNull(),
+});
+export type AIInsight = typeof aiInsights.$inferSelect;

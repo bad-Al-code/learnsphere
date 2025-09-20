@@ -12,8 +12,11 @@ import {
   sum,
 } from 'drizzle-orm';
 import { db } from '..';
+import { FeedbackResponseSchema } from '../../features/ai/schema/feedback.schema';
 import { GradeRow } from '../../types';
 import {
+  AIInsight,
+  aiInsights,
   courseActivityLogs,
   courses,
   dailyActivity,
@@ -1218,5 +1221,36 @@ export class AnalyticsRepository {
       orderBy: [desc(courseActivityLogs.createdAt)],
       limit,
     });
+  }
+
+  /**
+Fetches the most recent AI-generated insights for a user.
+@param userId The ID of the user.
+@returns The latest insight record, or undefined if none exists.
+*/
+  public static async getLatestInsights(
+    userId: string
+  ): Promise<AIInsight | undefined> {
+    return db.query.aiInsights.findFirst({
+      where: eq(aiInsights.userId, userId),
+      orderBy: [desc(aiInsights.generatedAt)],
+    });
+  }
+  /**
+Saves or updates the AI-generated insights for a user.
+@param userId The ID of the user.
+@param insights The array of insight objects to save.
+*/
+  public static async upsertInsights(
+    userId: string,
+    insights: FeedbackResponseSchema
+  ): Promise<void> {
+    await db
+      .insert(aiInsights)
+      .values({ userId, insights, generatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: aiInsights.userId,
+        set: { insights, generatedAt: new Date() },
+      });
   }
 }
