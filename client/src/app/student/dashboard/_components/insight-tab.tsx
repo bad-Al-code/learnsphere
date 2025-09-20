@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/chart';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatDuration } from 'date-fns';
 import { FC } from 'react';
 import {
   CartesianGrid,
@@ -18,6 +19,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { useAIInsights, useStudyTimeTrend } from '../hooks/use-insights';
 
 type TInsightCardProps = {
   title: string;
@@ -102,16 +104,6 @@ type TStudyTimeTrendProps = {
   data: TStudyData[];
 };
 
-const chartData: TStudyData[] = [
-  { day: 'Mon', hours: 3 },
-  { day: 'Tue', hours: 3.5 },
-  { day: 'Wed', hours: 2 },
-  { day: 'Thu', hours: 4 },
-  { day: 'Fri', hours: 3 },
-  { day: 'Sat', hours: 3.5 },
-  { day: 'Sun', hours: 2.5 },
-];
-
 const chartConfig = {
   hours: {
     label: 'Hours',
@@ -119,9 +111,20 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const formatHours = (decimalHours: number) => {
+  const hours = Math.floor(decimalHours);
+  const minutes = Math.round((decimalHours - hours) * 60);
+
+  const duration = { hours, minutes };
+  return formatDuration(duration, { format: ['hours', 'minutes'] });
+};
+
 export const StudyTimeTrend: FC<TStudyTimeTrendProps> = ({ data }) => {
   const totalHours = data.reduce((acc, curr) => acc + curr.hours, 0);
-  const avgHours = (totalHours / data.length).toFixed(1);
+  const avgHours = totalHours / data.length;
+
+  const totalHoursFormatted = formatHours(totalHours);
+  const avgHoursFormatted = formatHours(avgHours);
 
   return (
     <Card>
@@ -134,15 +137,20 @@ export const StudyTimeTrend: FC<TStudyTimeTrendProps> = ({ data }) => {
           <div className="flex items-center gap-1">
             <div className="bg-primary h-2 w-2 animate-pulse rounded-full"></div>
             <span className="text-muted-foreground">Total: </span>
-            <span className="text-foreground font-semibold">{totalHours}h</span>
+            <span className="text-foreground font-semibold">
+              {totalHoursFormatted}
+            </span>
           </div>
           <div className="flex items-center gap-1">
             <div className="bg-muted h-2 w-2 rounded-full"></div>
             <span className="text-muted-foreground">Avg: </span>
-            <span className="text-foreground font-semibold">{avgHours}h</span>
+            <span className="text-foreground font-semibold">
+              {avgHoursFormatted}
+            </span>
           </div>
         </div>
       </CardHeader>
+
       <CardContent>
         <ChartContainer config={chartConfig} className="h-40 w-full">
           <LineChart
@@ -174,6 +182,7 @@ export const StudyTimeTrend: FC<TStudyTimeTrendProps> = ({ data }) => {
               cursor={false}
               content={<ChartTooltipContent indicator="dot" />}
             />
+
             <Line
               dataKey="hours"
               type="monotone"
@@ -254,15 +263,15 @@ export const StudyTimeTrendSkeleton: FC = () => (
 );
 
 export function InsightTab() {
-  const studyTimeData = [
-    { day: 'Mon', hours: 4 },
-    { day: 'Tue', hours: 3 },
-    { day: 'Wed', hours: 5 },
-    { day: 'Thu', hours: 4.5 },
-    { day: 'Fri', hours: 6 },
-    { day: 'Sat', hours: 2 },
-    { day: 'Sun', hours: 3.5 },
-  ];
+  const { data: insights, isLoading: isLoadingInsights } = useAIInsights();
+  const { data: studyTimeData, isLoading: isLoadingTrend } =
+    useStudyTimeTrend();
+
+  const insightIcons: Record<string, React.ReactNode> = {
+    high: <span>🚀</span>,
+    medium: <span>🕒</span>,
+    low: <span>👥</span>,
+  };
 
   return (
     <div className="">
@@ -274,32 +283,32 @@ export function InsightTab() {
           </p>
 
           <div className="space-y-2">
-            <InsightCard
-              title="Strong Progress in React"
-              level="high"
-              description="You've completed 75% of React Fundamentals with a 94% average. Consider advancing to React Advanced Patterns."
-              actionButton={<Button>View Next Course</Button>}
-              icon={<span>🚀</span>}
-            />
-            <InsightCard
-              title="Study Time Optimization"
-              level="medium"
-              description="This week you spent 40% less time than peers on SQL tuning. Consider scheduling 2 extra hours."
-              actionButton={<Button>Create Study Plan</Button>}
-              icon={<span>🕒</span>}
-            />
-            <InsightCard
-              title="Peer Learning Opportunity"
-              level="low"
-              description="3 classmates are working on similar assignments. Join a study group to boost understanding."
-              actionButton={<Button>Find Study Group</Button>}
-              icon={<span>👥</span>}
-            />
+            {isLoadingInsights ? (
+              <>
+                <InsightCardSkeleton />
+                <InsightCardSkeleton />
+              </>
+            ) : (
+              insights?.map((insight) => (
+                <InsightCard
+                  key={insight.title}
+                  title={insight.title}
+                  level={insight.level}
+                  description={insight.description}
+                  actionButton={<Button>{insight.actionButtonText}</Button>}
+                  icon={insightIcons[insight.level]}
+                />
+              ))
+            )}
           </div>
 
-          <div className="zl:grid-cols-2 grid grid-cols-1 gap-2">
+          <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
             <AIStudyAssistant onAsk={(query) => console.log(query)} />
-            <StudyTimeTrend data={studyTimeData} />
+            {isLoadingTrend ? (
+              <StudyTimeTrendSkeleton />
+            ) : (
+              <StudyTimeTrend data={studyTimeData || []} />
+            )}
           </div>
         </CardContent>
       </Card>
