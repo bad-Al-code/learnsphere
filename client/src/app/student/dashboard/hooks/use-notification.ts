@@ -7,14 +7,14 @@ import { markAllAsRead, markNotificationAsRead } from '../api/notification.api';
 import { Notification } from '../schema/notification.schema';
 
 export const useNotifications = () => {
-  return useQuery({
+  return useQuery<Notification[], Error>({
     queryKey: ['notifications'],
 
     queryFn: async () => {
       const result = await getMyNotificationsAction();
       if (result.error) throw new Error(result.error);
 
-      return result.data;
+      return result.data as Notification[];
     },
   });
 };
