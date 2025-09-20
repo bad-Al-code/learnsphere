@@ -13,6 +13,7 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
+import { AssignmentResponse } from '../features/ai/responseSchema/assignmentRecommendationResponse.schema';
 import { FeedbackResponseSchema } from '../features/ai/schema/feedback.schema';
 
 type ModuleSnapshot = {
@@ -220,3 +221,13 @@ export const aiInsights = pgTable('ai_insights', {
   generatedAt: timestamp('generated_at').defaultNow().notNull(),
 });
 export type AIInsight = typeof aiInsights.$inferSelect;
+
+export const aiStudyRecommendations = pgTable('ai_study_recommendations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().unique(),
+  recommendations: jsonb('recommendations')
+    .$type<AssignmentResponse>()
+    .notNull(),
+  generatedAt: timestamp('generated_at').defaultNow().notNull(),
+});
+export type AIStudyRecommendation = typeof aiStudyRecommendations.$inferSelect;

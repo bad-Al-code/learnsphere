@@ -69,6 +69,7 @@ export class CourseClient {
       >(`${this.courseServiceUrl}/api/assignments/my-pending`, {
         headers: { Cookie: cookie },
       });
+
       return response.data;
     } catch (error) {
       logger.error('Failed to fetch pending assignments from course-service', {

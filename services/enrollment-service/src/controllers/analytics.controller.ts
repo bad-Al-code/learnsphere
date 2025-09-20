@@ -516,8 +516,10 @@ export class AnalyticsController {
       const cookie = req.headers.cookie;
       if (!req.currentUser || !cookie) throw new NotAuthorizedError();
 
-      const recommendations =
-        await AnalyticsService.getAIStudyRecommendations(cookie);
+      const recommendations = await AnalyticsService.getAIStudyRecommendations(
+        cookie,
+        req.currentUser.id
+      );
 
       res.status(StatusCodes.OK).json(recommendations);
     } catch (error) {

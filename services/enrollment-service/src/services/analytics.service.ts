@@ -1052,10 +1052,27 @@ export class AnalyticsService {
   /**
    * Get AI-powered study recommendations for the user.
    * @param {string} cookie - User authentication cookie.
-   * @returns {Promise<AssignmentResponse[]>} Array of study recommendations.
+   * @param {string} userId - The ID of the user.
    * @throws {Error} If AI response is missing or invalid.
    */
-  public static async getAIStudyRecommendations(cookie: string) {
+  public static async getAIStudyRecommendations(
+    cookie: string,
+    userId: string
+  ) {
+    logger.info(`Fetching AI study recommendations for user ${userId}`);
+
+    const cachedRecs =
+      await AnalyticsRepository.getLatestRecommendations(userId);
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+
+    if (
+      cachedRecs &&
+      new Date().getTime() - cachedRecs.generatedAt.getTime() < twentyFourHours
+    ) {
+      logger.info(`Returning cached AI recommendations for user ${userId}`);
+      return cachedRecs.recommendations;
+    }
+
     logger.info(`Generating AI study recommendations for user`);
 
     const pendingAssignments = await CourseClient.getPendingAssignments(cookie);
@@ -1098,15 +1115,17 @@ export class AnalyticsService {
       throw new Error('No response text received from AI.');
     }
 
-    let parsedResponse: AssignmentResponse;
+    let validated: AssignmentResponse;
     try {
       const data = JSON.parse(response.text);
-      parsedResponse = assignmentResponseSchema.parse(data);
+      validated = assignmentResponseSchema.parse(data);
     } catch (err) {
       logger.error('Failed to parse or validate AI response:', err);
       throw err;
     }
 
-    return parsedResponse;
+    await AnalyticsRepository.upsertRecommendations(userId, validated);
+
+    return validated;
   }
 }

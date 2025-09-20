@@ -12,11 +12,14 @@ import {
   sum,
 } from 'drizzle-orm';
 import { db } from '..';
+import { AssignmentResponse } from '../../features/ai/responseSchema/assignmentRecommendationResponse.schema';
 import { FeedbackResponseSchema } from '../../features/ai/schema/feedback.schema';
 import { GradeRow } from '../../types';
 import {
   AIInsight,
   aiInsights,
+  AIStudyRecommendation,
+  aiStudyRecommendations,
   courseActivityLogs,
   courses,
   dailyActivity,
@@ -1251,6 +1254,37 @@ Saves or updates the AI-generated insights for a user.
       .onConflictDoUpdate({
         target: aiInsights.userId,
         set: { insights, generatedAt: new Date() },
+      });
+  }
+
+  /**
+   * Fetches the most recent AI-generated study recommendations for a user.
+   * @param userId The ID of the user.
+   * @returns The latest recommendation record, or undefined if none exists.
+   */
+  public static async getLatestRecommendations(
+    userId: string
+  ): Promise<AIStudyRecommendation | undefined> {
+    return db.query.aiStudyRecommendations.findFirst({
+      where: eq(aiStudyRecommendations.userId, userId),
+      orderBy: [desc(aiStudyRecommendations.generatedAt)],
+    });
+  }
+  /**
+   * Saves or updates the AI-generated study recommendations for a user.
+   * @param userId The ID of the user.
+   * @param recommendations The array of recommendation objects to save.
+   */
+  public static async upsertRecommendations(
+    userId: string,
+    recommendations: AssignmentResponse
+  ): Promise<void> {
+    await db
+      .insert(aiStudyRecommendations)
+      .values({ userId, recommendations, generatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: aiStudyRecommendations.userId,
+        set: { recommendations, generatedAt: new Date() },
       });
   }
 }
