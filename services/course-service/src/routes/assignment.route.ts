@@ -199,6 +199,33 @@ router.get(
 
 /**
  * @openapi
+ * /api/assignments/my-pending:
+ *   get:
+ *     summary: "[Student] Get a list of pending assignments with filters"
+ *     tags: [Assignments]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema: { type: string }
+ *         description: Search term for assignment title.
+ *       - in: query
+ *         name: status
+ *         schema: { type: string, enum: [not-started, in-progress] }
+ *         description: Filter by submission status.
+ *     responses:
+ *       '200':
+ *         description: A list of the student's pending assignments.
+ */
+router.get(
+  '/assignments/my-pending',
+  requireAuth,
+  AssignmentController.getMyPending
+);
+
+/**
+ * @openapi
  * /api/assignments/due-soon-count:
  *   get:
  *     summary: "[Student] Get a count of assignments due soon"

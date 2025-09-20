@@ -217,4 +217,31 @@ export class AssignmentService {
 
     return { count };
   }
+
+  /**
+   * Get all pending assignments for a user across their enrolled courses.
+   * @param {string} cookie - Authentication cookie to identify the user session.
+   * @param {string} userId - ID of the user.
+   * @param {Object} options - Optional query filters.
+   * @param {string} [options.query] - Optional search query to filter assignment titles.
+   * @param {'not-started'|'in-progress'} [options.status] - Optional status filter (client-side concept).
+   * @returns {Promise<Array>} - A promise that resolves to an array of pending assignments for the user.
+   */
+  public static async getPendingAssignments(
+    cookie: string,
+    userId: string,
+    options: { query?: string; status?: 'not-started' | 'in-progress' }
+  ) {
+    const enrolledCourseIds =
+      await EnrollmentClient.getEnrolledCourseIds(cookie);
+    if (enrolledCourseIds.length === 0) {
+      return [];
+    }
+
+    return AssignmentRepository.findPendingForUser(
+      enrolledCourseIds,
+      userId,
+      options
+    );
+  }
 }

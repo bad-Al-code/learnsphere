@@ -244,4 +244,41 @@ export class AssignmentRepository {
 
     return result.value;
   }
+
+  /**
+   * Find assignments that are pending for a specific user.
+   * @param {string[]} courseIds - Array of course IDs to filter assignments by.
+   * @param {string} userId - ID of the user for whom to find pending assignments.
+   * @param {Object} options - Optional query filters.
+   * @param {string} [options.query] - Optional search query to filter assignment titles.
+   * @param {'not-started'|'in-progress'} [options.status] - Optional status filter (client-side concept; not enforced by backend).
+   * @returns {Promise<Array>} - A promise that resolves to an array of pending assignments.
+   */
+  public static async findPendingForUser(
+    courseIds: string[],
+    userId: string,
+    options: { query?: string; status?: 'not-started' | 'in-progress' }
+  ) {
+    if (courseIds.length === 0) return [];
+
+    const submittedAssignmentsSubquery = db
+      .select({ assignmentId: assignmentSubmissions.assignmentId })
+      .from(assignmentSubmissions)
+      .where(and(eq(assignmentSubmissions.studentId, userId)));
+
+    const conditions = [
+      inArray(assignments.courseId, courseIds),
+      eq(assignments.status, 'published'),
+      sql`${assignments.id} NOT IN ${submittedAssignmentsSubquery}`,
+    ];
+
+    if (options.query) {
+      conditions.push(ilike(assignments.title, `%${options.query}%`));
+    }
+
+    return db.query.assignments.findMany({
+      where: and(...conditions),
+      orderBy: [desc(assignments.dueDate)],
+    });
+  }
 }

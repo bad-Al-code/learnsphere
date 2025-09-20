@@ -158,4 +158,30 @@ export class AssignmentController {
       next(error);
     }
   }
+
+  public static async getMyPending(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const cookie = req.headers.cookie;
+      const user = req.currentUser;
+      if (!cookie || !user) throw new NotAuthorizedError();
+      const { q, status } = req.query;
+
+      const results = await AssignmentService.getPendingAssignments(
+        cookie,
+        user.id,
+        {
+          query: q as string | undefined,
+          status: status as 'not-started' | 'in-progress' | undefined,
+        }
+      );
+
+      res.status(StatusCodes.OK).json(results);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
