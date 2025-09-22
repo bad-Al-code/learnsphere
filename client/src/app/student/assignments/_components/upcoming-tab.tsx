@@ -14,6 +14,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -56,23 +57,32 @@ import {
   X,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
 import { useDebounce } from 'use-debounce';
 import {
   useAIRecommendations,
   usePendingAssignments,
+  useStartAssignment,
 } from '../hooks/use-assignment';
 import {
   AIRecommendation,
   EnrichedPendingAssignment,
 } from '../schemas/assignment.schema';
-import { useAssignmentStore } from '../stores/assignment.store';
+import {
+  AssignmentStatusFilter,
+  useAssignmentStore,
+} from '../stores/assignment.store';
+
+interface UpcomingHeaderProps {
+  onSearchChange: (value: string) => void;
+  onFilterChange: (status: AssignmentStatusFilter) => void;
+  currentFilter: AssignmentStatusFilter;
+}
 
 export function UpcomingHeader({
   onSearchChange,
-}: {
-  onSearchChange: (value: string) => void;
-}) {
+  onFilterChange,
+  currentFilter,
+}: UpcomingHeaderProps) {
   return (
     <header>
       {/* Desktop View */}
@@ -85,7 +95,7 @@ export function UpcomingHeader({
             onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
-        <Select defaultValue="all">
+        <Select value={currentFilter} onValueChange={onFilterChange}>
           <SelectTrigger className="">
             <SelectValue placeholder="All Assignments" />
           </SelectTrigger>
@@ -93,8 +103,6 @@ export function UpcomingHeader({
             <SelectItem value="all">All Assignments</SelectItem>
             <SelectItem value="not-started">Not Started</SelectItem>
             <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="high-priority">High Priority</SelectItem>
-            <SelectItem value="collaborative">Collaborative</SelectItem>
           </SelectContent>
         </Select>
         <div className="ml-auto flex items-center gap-2">
@@ -286,6 +294,7 @@ function BulkActionHeader() {
 
 function PendingAssignments({ data }: { data: EnrichedPendingAssignment[] }) {
   const { selectedIds, actions } = useAssignmentStore();
+  const { mutate: startAssignment } = useStartAssignment();
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -387,7 +396,12 @@ function PendingAssignments({ data }: { data: EnrichedPendingAssignment[] }) {
                         <TooltipContent>View</TooltipContent>
                       </Tooltip>
 
-                      <Button variant="outline" size="sm" asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        asChild
+                        onClick={() => startAssignment(item.id)}
+                      >
                         <Link href={`/student/assignments/${item.id}`}>
                           <Play className="h-4 w-4" />
                           Start
@@ -402,6 +416,46 @@ function PendingAssignments({ data }: { data: EnrichedPendingAssignment[] }) {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+export function ScheduleModal() {
+  const { isScheduleModalOpen, schedulingRecommendation, actions } =
+    useAssignmentStore();
+
+  if (!schedulingRecommendation) return null;
+
+  return (
+    <Dialog
+      open={isScheduleModalOpen}
+      onOpenChange={actions.closeScheduleModal}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Schedule Study Time</DialogTitle>
+          <DialogDescription>
+            Add "{schedulingRecommendation.title}" to your calendar.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          {/* Placeholder */}
+          <p>Scheduling form will be here.</p>
+          <p>Duration: {schedulingRecommendation.hours} hours</p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={actions.closeScheduleModal}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              /* TODO: Call action to save to calendar */ actions.closeScheduleModal();
+            }}
+          >
+            Confirm
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -422,7 +476,7 @@ export function AssignmentDetails() {
         <DialogDescription>{selectedAssignment.course}</DialogDescription>
       </DialogHeader>
 
-      <div className="space-y-4 p-2">
+      <div className="space-y-4">
         <p className="text-muted-foreground text-sm">
           {selectedAssignment.description}
         </p>
@@ -458,16 +512,20 @@ export function AssignmentDetails() {
 }
 
 export function UpcomingTab() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const { searchTerm, statusFilter, actions } = useAssignmentStore();
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
   const { data: recommendations, isLoading: isLoadingRecs } =
     useAIRecommendations();
   const { data: assignments, isLoading: isLoadingAssignments } =
-    usePendingAssignments(debouncedSearchTerm);
+    usePendingAssignments(debouncedSearchTerm, statusFilter);
 
   return (
     <div className="space-y-2">
-      <UpcomingHeader onSearchChange={setSearchTerm} />
+      <UpcomingHeader
+        onSearchChange={actions.setSearchTerm}
+        onFilterChange={actions.setStatusFilter}
+        currentFilter={statusFilter}
+      />
 
       {isLoadingRecs ? (
         <AIStudyPlannerSkeleton />
@@ -480,6 +538,7 @@ export function UpcomingTab() {
         <PendingAssignments data={assignments || []} />
       )}
       <AssignmentDetails />
+      <ScheduleModal />
     </div>
   );
 }

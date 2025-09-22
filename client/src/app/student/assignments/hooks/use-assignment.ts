@@ -2,33 +2,44 @@
 
 import { courseService } from '@/lib/api/client';
 import { BulkCourse } from '@/types/course';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React from 'react';
 import {
   getMyAIRecommendationsAction,
   getMyPendingAssignmentsAction,
+  startAssignmentAction,
 } from '../actions/assignment.action';
-import { EnrichedPendingAssignment } from '../schemas/assignment.schema';
+import {
+  EnrichedPendingAssignment,
+  PendingAssignment,
+} from '../schemas/assignment.schema';
+import { AssignmentStatusFilter } from '../stores/assignment.store';
 
-export const usePendingAssignments = (query?: string) => {
+export const usePendingAssignments = (
+  query?: string,
+  status?: AssignmentStatusFilter
+) => {
   const {
     data: rawAssignments,
     isLoading: isLoadingAssignments,
     isError: isErrorAssignments,
   } = useQuery({
-    queryKey: ['pending-assignments', query],
+    queryKey: ['pending-assignments', query, status],
 
     queryFn: async () => {
-      const result = await getMyPendingAssignmentsAction(query);
+      const result = await getMyPendingAssignmentsAction({ query, status });
       if (result.error) throw new Error(result.error);
 
       return result.data;
     },
   });
-
-  const courseIds = rawAssignments
-    ? [...new Set(rawAssignments.map((a) => a.courseId))]
-    : [];
+  const courseIds = React.useMemo(
+    () =>
+      rawAssignments
+        ? [...new Set(rawAssignments.map((a: PendingAssignment) => a.courseId))]
+        : [],
+    [rawAssignments]
+  );
 
   const {
     data: courseDetails,
@@ -52,19 +63,16 @@ export const usePendingAssignments = (query?: string) => {
 
     const courseMap = new Map(courseDetails.map((c) => [c.id, c.title]));
 
-    return rawAssignments.map(
-      (assignment) =>
-        ({
-          ...assignment,
-          course: courseMap.get(assignment.courseId) || 'Unknown Course',
-          isOverdue: assignment.dueDate
-            ? new Date(assignment.dueDate) < new Date()
-            : false,
-          type: 'individual', // Placeholder
-          status: 'Not Started', // Placeholder
-          points: 100, // Placeholder
-        }) as EnrichedPendingAssignment
-    );
+    return rawAssignments.map((assignment: PendingAssignment) => ({
+      ...assignment,
+      course: courseMap.get(assignment.courseId) || 'Unknown Course',
+      isOverdue: assignment.dueDate
+        ? new Date(assignment.dueDate) < new Date()
+        : false,
+      type: 'individual', // Placeholder
+      status: 'Not Started', // Placeholder
+      points: 100, // Placeholder
+    })) as EnrichedPendingAssignment[];
   }, [rawAssignments, courseDetails]);
 
   return {
@@ -83,6 +91,21 @@ export const useAIRecommendations = () => {
       if (result.error) throw new Error(result.error);
 
       return result.data?.map((rec) => ({ ...rec, id: crypto.randomUUID() }));
+    },
+  });
+};
+
+export const useStartAssignment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: startAssignmentAction,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pending-assignments'] });
+    },
+
+    onError: (error) => {
+      console.error(error);
     },
   });
 };
