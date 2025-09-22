@@ -86,6 +86,8 @@ export class AIFeedbackService {
         submissionId: submission.id,
         studentId: submission.studentId,
         courseId: submission.courseId,
+        assignmentTitle: submission.assignment.title,
+        courseTitle: submission.assignment.course.title,
       },
       { expiration: delayMilliseconds }
     );

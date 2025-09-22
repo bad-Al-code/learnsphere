@@ -3,6 +3,7 @@ import { generateApplicationSubmittedUserEmail } from '../templates/appliaction-
 import { generateApplicationApprovedEmail } from '../templates/application-approved.template';
 import { generateApplicationDeclinedEmail } from '../templates/application-declined.template';
 import { generateApplicationSubmittedAdminEmail } from '../templates/application-submitted.template';
+import { generateFeedbackReadyEmail } from '../templates/feedback-ready.template';
 import { generatePasswordChangeNotice } from '../templates/password-change-notice.template';
 import { generatePasswordResetEmail } from '../templates/password-reset.template';
 import { generateReportFailedEmail } from '../templates/report-failed.template';
@@ -209,6 +210,27 @@ export class EmailService {
       subject: `There was an issue with your LearnSphere Report`,
       html: htmlBody,
       text: `We're sorry, there was an issue generating your "${data.reportType}" report. Reason: ${data.reason}`,
+      type: 'user_notification',
+    });
+  }
+
+  public async sendFeedbackReadyEmail(data: {
+    email: string;
+    userName: string | null;
+    assignmentTitle: string;
+    linkUrl: string;
+  }): Promise<void> {
+    const htmlBody = generateFeedbackReadyEmail(
+      data.userName,
+      data.assignmentTitle,
+      data.linkUrl
+    );
+
+    await this.emailClient.send({
+      to: data.email,
+      subject: `Your AI Feedback for "${data.assignmentTitle}" is Ready!`,
+      html: htmlBody,
+      text: `Your AI feedback is ready. View it here: ${data.linkUrl}`,
       type: 'user_notification',
     });
   }

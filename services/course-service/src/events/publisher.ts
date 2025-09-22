@@ -133,6 +133,8 @@ interface AIFeedbackReadyEvent {
     submissionId: string;
     studentId: string;
     courseId: string;
+    assignmentTitle: string;
+    courseTitle: string;
   };
 }
 

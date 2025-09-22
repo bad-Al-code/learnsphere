@@ -5,6 +5,7 @@ import { UserRepository } from '../db/user.respository';
 import { EmailService } from '../services/email-service';
 import { NotificationService } from '../services/notification.service';
 import { rabbitMQConnection } from './connection';
+import { AIFeedbackDeliveredPublisher } from './publisher';
 
 interface Event {
   topic: string;
@@ -691,6 +692,8 @@ interface AIFeedbackReadyEvent {
     submissionId: string;
     studentId: string;
     courseId: string;
+    assignmentTitle: string;
+    courseTitle: string;
   };
 }
 export class AIFeedbackReadyListener extends Listener<AIFeedbackReadyEvent> {
@@ -710,7 +713,30 @@ export class AIFeedbackReadyListener extends Listener<AIFeedbackReadyEvent> {
       logger.info(
         `Processing delayed AI feedback notification for submission ${data.submissionId}`
       );
-      // TODO: Send Notification
+      const user = await UserRepository.findById(data.studentId);
+      if (!user)
+        throw new Error(
+          `User ${data.studentId} not found for feedback notification.`
+        );
+
+      const linkUrl = `/student/assignments?tab=submitted&highlight=${data.submissionId}`;
+
+      await NotificationService.createNotification({
+        recipientId: data.studentId,
+        type: 'AI_FEEDBACK_READY',
+        content: `Your AI feedback for an assignment is ready to view.`,
+        linkUrl: linkUrl,
+      });
+
+      await this.emailService.sendFeedbackReadyEmail({
+        email: user.email,
+        userName: null,
+        assignmentTitle: data.assignmentTitle,
+        linkUrl: linkUrl,
+      });
+
+      const publisher = new AIFeedbackDeliveredPublisher();
+      await publisher.publish({ submissionId: data.submissionId });
     } catch (error) {
       logger.error('Failed to process AI feedback ready event', {
         data,
