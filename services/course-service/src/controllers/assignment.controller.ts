@@ -260,4 +260,22 @@ export class AssignmentController {
       next(error);
     }
   }
+
+  public static async getMySubmitted(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const assignments = await AssignmentService.getSubmittedAssignments(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(assignments);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

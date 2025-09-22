@@ -267,4 +267,23 @@ export class AssignmentService {
     await AssignmentRepository.createDraft(assignmentId, requester.id);
     await CourseCacheService.invalidateCacheDetails(assignment.courseId);
   }
+
+  /**
+   * Retrieves all submitted assignments for a user, enriching them with placeholder data.
+   * @param userId The ID of the user.
+   * @returns A list of submitted assignments formatted for the client.
+   */
+  public static async getSubmittedAssignments(userId: string) {
+    const submitted = await AssignmentRepository.findSubmittedForUser(userId);
+
+    return submitted.map((sub) => ({
+      ...sub,
+      status: 'Graded', // Placeholder
+      score: Math.floor(Math.random() * (98 - 80 + 1) + 80), // Placeholder score
+      points: `${Math.floor(Math.random() * (100 - 80 + 1) + 80)}/100 pts`, // Placeholder
+      peerReviews: Math.floor(Math.random() * 5), // Placeholder
+      peerAvg: Math.floor(Math.random() * (95 - 85 + 1) + 85), // Placeholder
+      similarity: Math.floor(Math.random() * 5), // Placeholder
+    }));
+  }
 }

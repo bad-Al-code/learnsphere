@@ -226,6 +226,24 @@ router.get(
 
 /**
  * @openapi
+ * /api/assignments/my-submitted:
+ *   get:
+ *     summary: "[Student] Get a list of all submitted assignments"
+ *     tags: [Assignments]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       '200':
+ *         description: A list of the student's submitted assignments.
+ */
+router.get(
+  '/assignments/my-submitted',
+  requireAuth,
+  AssignmentController.getMySubmitted
+);
+
+/**
+ * @openapi
  * /assignments/{assignmentId}/start:
  *   post:
  *     summary: Mark an assignment as in-progress

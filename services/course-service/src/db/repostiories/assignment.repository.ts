@@ -360,4 +360,30 @@ export class AssignmentRepository {
 
     return new Set(drafts.map((d) => d.assignmentId));
   }
+
+  /**
+   * Finds all submitted assignments for a given user.
+   * @param userId The ID of the student
+   * @returns A promise that resolves to a list of submitted assignments with course title.
+   */
+  public static async findSubmittedForUser(userId: string) {
+    const results = await db
+      .select({
+        id: assignments.id,
+        title: assignments.title,
+        courseTitle: courses.title,
+        submittedAt: assignmentSubmissions.submittedAt,
+        status: assignments.status,
+      })
+      .from(assignmentSubmissions)
+      .innerJoin(
+        assignments,
+        eq(assignmentSubmissions.assignmentId, assignments.id)
+      )
+      .innerJoin(courses, eq(assignments.courseId, courses.id))
+      .where(eq(assignmentSubmissions.studentId, userId))
+      .orderBy(desc(assignmentSubmissions.submittedAt));
+
+    return results;
+  }
 }
