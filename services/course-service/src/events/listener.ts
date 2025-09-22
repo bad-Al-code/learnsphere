@@ -3,7 +3,6 @@ import { eq } from 'drizzle-orm';
 import logger from '../config/logger';
 import { db } from '../db';
 import { courses, lessons } from '../db/schema';
-import { AIRepository } from '../features/ai/ai.repository';
 import { CourseCacheService } from '../services';
 import { rabbitMQConnection } from './connection';
 
@@ -128,34 +127,6 @@ export class CourseThumbnailProcessedListener extends Listener<CourseThumbnailPr
         data,
         error,
       });
-    }
-  }
-}
-
-interface AIFeedbackDeliveredEvent {
-  topic: 'notification.feedback.delivered';
-  data: { submissionId: string };
-}
-
-export class AIFeedbackDeliveredListener extends Listener<AIFeedbackDeliveredEvent> {
-  readonly topic = 'notification.feedback.delivered' as const;
-  queueGroupName = 'course-service-feedback-delivered';
-
-  async onMessage(
-    data: AIFeedbackDeliveredEvent['data'],
-    _msg: ConsumeMessage
-  ) {
-    try {
-      logger.info(
-        `Received confirmation for feedback delivery on submission ${data.submissionId}. Updating status.`
-      );
-
-      await AIRepository.updateFeedbackStatus(data.submissionId, 'reviewed');
-    } catch (error) {
-      logger.error(
-        `Failed to update feedback status for submission ${data.submissionId}`,
-        { error }
-      );
     }
   }
 }

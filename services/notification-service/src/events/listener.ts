@@ -6,7 +6,6 @@ import { UserRepository } from '../db/user.respository';
 import { EmailService } from '../services/email-service';
 import { NotificationService } from '../services/notification.service';
 import { rabbitMQConnection } from './connection';
-import { AIFeedbackDeliveredPublisher } from './publisher';
 
 interface Event {
   topic: string;
@@ -699,8 +698,8 @@ interface AIFeedbackReadyEvent {
 export class AIFeedbackReadyListener extends Listener<AIFeedbackReadyEvent> {
   readonly topic: 'ai.feedback.ready' = 'ai.feedback.ready' as const;
   queueGroupName = 'ai-feedback.processing.queue';
-  protected exchange = 'notification-processing.exchange';
-  protected exchangeType = 'direct';
+  // protected exchange = 'notification-processing.exchange';
+  // protected exchangeType = 'direct';
   private emailService: EmailService;
 
   constructor(emailService: EmailService) {
@@ -734,9 +733,6 @@ export class AIFeedbackReadyListener extends Listener<AIFeedbackReadyEvent> {
         assignmentTitle: data.assignmentTitle,
         linkUrl: linkUrl,
       });
-
-      const publisher = new AIFeedbackDeliveredPublisher();
-      await publisher.publish({ submissionId: data.submissionId });
     } catch (error) {
       logger.error('Failed to process AI feedback ready event', {
         data,

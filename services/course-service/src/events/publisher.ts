@@ -140,6 +140,4 @@ interface AIFeedbackReadyEvent {
 
 export class AIFeedbackReadyPublisher extends Publisher<AIFeedbackReadyEvent> {
   readonly topic: 'ai.feedback.ready' = 'ai.feedback.ready' as const;
-  protected exchange = 'delay.exchange';
-  protected exchangeType = 'direct';
 }

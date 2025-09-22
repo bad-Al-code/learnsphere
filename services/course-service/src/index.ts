@@ -7,7 +7,6 @@ import { redisConnection } from './config/redis';
 import { checkDatabaseConnection } from './db';
 import { rabbitMQConnection } from './events/connection';
 import {
-  AIFeedbackDeliveredListener,
   CourseThumbnailProcessedListener,
   VideoProcessedListener,
 } from './events/listener';
@@ -20,7 +19,6 @@ const startServer = async () => {
 
     new VideoProcessedListener().listen();
     new CourseThumbnailProcessedListener().listen();
-    new AIFeedbackDeliveredListener().listen();
 
     const PORT = env.PORT || 8001;
 

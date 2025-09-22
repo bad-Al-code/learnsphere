@@ -78,22 +78,16 @@ export class AIFeedbackService {
     await AIRepository.upsertFeedback(submissionId, userId, parsed.data);
 
     const publisher = new AIFeedbackReadyPublisher();
-    const delaySeconds = Math.floor(Math.random() * (60 - 30 + 1)) + 30;
-    const delayMilliseconds = delaySeconds * 1000;
-
-    await publisher.publish(
-      {
-        submissionId: submission.id,
-        studentId: submission.studentId,
-        courseId: submission.courseId,
-        assignmentTitle: submission.assignment.title,
-        courseTitle: submission.assignment.course.title,
-      },
-      { expiration: delayMilliseconds }
-    );
+    await publisher.publish({
+      submissionId: submission.id,
+      studentId: submission.studentId,
+      courseId: submission.courseId,
+      assignmentTitle: submission.assignment.title,
+      courseTitle: submission.assignment.course.title,
+    });
 
     logger.info(
-      `Dispatched AI feedback for submission ${submissionId} with a ${delaySeconds}s delay.`
+      `Feedback saved and notification event dispatched for submission ${submissionId}.`
     );
   }
 }
