@@ -230,7 +230,7 @@ export class AssignmentService {
   public static async getPendingAssignments(
     cookie: string,
     userId: string,
-    options: { query?: string; status?: 'not-started' | 'in-progress' }
+    options: { query?: string; status?: 'draft' | 'published' }
   ) {
     const enrolledCourseIds =
       await EnrollmentClient.getEnrolledCourseIds(cookie);

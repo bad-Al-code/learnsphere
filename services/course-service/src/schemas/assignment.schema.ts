@@ -150,3 +150,25 @@ export const findPendingAssignmentsSchema = z.object({
   }),
 });
 export type FindPendingAssignmentsQuery = z.infer<typeof findAssignmentsSchema>;
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     AssignmentQuery:
+ *       type: object
+ *       properties:
+ *         q:
+ *           type: string
+ *           description: Search query string
+ *           minLength: 1
+ *         status:
+ *           type: string
+ *           enum: [draft, published]
+ *           description: Filter assignments by status
+ *       additionalProperties: false
+ */
+export const querySchema = z.object({
+  q: z.string().trim().min(1).optional(),
+  status: z.enum(['draft', 'published']).optional(),
+});

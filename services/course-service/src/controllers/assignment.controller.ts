@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { NotAuthorizedError } from '../errors';
-import { findAssignmentsSchema } from '../schemas';
+import { findAssignmentsSchema, querySchema } from '../schemas';
 import { AssignmentService } from '../services';
 
 export class AssignmentController {
@@ -168,14 +168,22 @@ export class AssignmentController {
       const cookie = req.headers.cookie;
       const user = req.currentUser;
       if (!cookie || !user) throw new NotAuthorizedError();
-      const { q, status } = req.query;
+      const parseResult = querySchema.safeParse(req.query);
+      if (!parseResult.success) {
+        res.status(400).json({
+          error: 'Invalid query parameters',
+          details: parseResult.error.format(),
+        });
+        return;
+      }
+      const { q, status } = parseResult.data;
 
       const results = await AssignmentService.getPendingAssignments(
         cookie,
         user.id,
         {
-          query: q as string | undefined,
-          status: status as 'not-started' | 'in-progress' | undefined,
+          query: q,
+          status,
         }
       );
 

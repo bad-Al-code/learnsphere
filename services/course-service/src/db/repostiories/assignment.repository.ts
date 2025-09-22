@@ -257,7 +257,7 @@ export class AssignmentRepository {
   public static async findPendingForUser(
     courseIds: string[],
     userId: string,
-    options: { query?: string; status?: 'not-started' | 'in-progress' }
+    options: { query?: string; status?: 'draft' | 'published' }
   ) {
     if (courseIds.length === 0) return [];
 
@@ -268,12 +268,16 @@ export class AssignmentRepository {
 
     const conditions = [
       inArray(assignments.courseId, courseIds),
-      eq(assignments.status, 'published'),
+      // eq(assignments.status, 'published'),
       sql`${assignments.id} NOT IN ${submittedAssignmentsSubquery}`,
     ];
 
     if (options.query) {
       conditions.push(ilike(assignments.title, `%${options.query}%`));
+    }
+
+    if (options.status) {
+      conditions.push(eq(assignments.status, options.status));
     }
 
     return db.query.assignments.findMany({
