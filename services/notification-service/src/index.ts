@@ -6,6 +6,7 @@ import { env } from './config/env';
 import logger from './config/logger';
 import { rabbitMQConnection } from './events/connection';
 import {
+  AIFeedbackReadyListener,
   InstructorApplicationApprovedListener,
   InstructorApplicationDeclinedListener,
   InstructorApplicationSubmittedListener,
@@ -41,6 +42,7 @@ const start = async () => {
     new ReportGenerationSuccessListener(emailService).listen();
     new ReportGenerationFailedListener(emailService).listen();
     new MessageSentListener().listen();
+    new AIFeedbackReadyListener(emailService).listen();
 
     const server = http.createServer(app);
 

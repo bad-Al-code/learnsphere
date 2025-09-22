@@ -65,7 +65,7 @@ export abstract class Listener<T extends Event> {
 
     setup().catch((err) => {
       let error = err as Error;
-      logger.error(`Error setting up listener`, {
+      logger.error(`Error setting up listener %o`, {
         queue: this.queueGroupName,
         topic: this.topic,
         error: error.message,
@@ -681,6 +681,40 @@ export class MessageSentListener extends Listener<MessageSentEvent> {
       );
     } catch (error) {
       logger.error('Failed to process message.sent event', { data, error });
+    }
+  }
+}
+
+interface AIFeedbackReadyEvent {
+  topic: 'ai.feedback.ready';
+  data: {
+    submissionId: string;
+    studentId: string;
+    courseId: string;
+  };
+}
+export class AIFeedbackReadyListener extends Listener<AIFeedbackReadyEvent> {
+  readonly topic: 'ai.feedback.ready' = 'ai.feedback.ready' as const;
+  queueGroupName = 'ai-feedback.processing.queue';
+  protected exchange = 'notification-processing.exchange';
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
+
+  async onMessage(data: AIFeedbackReadyEvent['data'], _msg: ConsumeMessage) {
+    try {
+      logger.info(
+        `Processing delayed AI feedback notification for submission ${data.submissionId}`
+      );
+      // TODO: Send Notification
+    } catch (error) {
+      logger.error('Failed to process AI feedback ready event', {
+        data,
+        error,
+      });
     }
   }
 }

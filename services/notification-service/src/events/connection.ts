@@ -1,10 +1,15 @@
 import amqp, { Channel, ChannelModel } from 'amqplib';
-import logger from '../config/logger';
-import { healthState } from '../config/health-state';
 import { env } from '../config/env';
+import { healthState } from '../config/health-state';
+import logger from '../config/logger';
 
 const MAX_RETRIES = 10;
 const RETRY_DELAY_MS = 5000;
+const NOTIFICATION_PROCESSING_EXCHANGE = 'notification-processing.exchange';
+const DELAY_EXCHANGE = 'delay.exchange';
+const AI_FEEDBACK_DELAY_QUEUE = 'ai-feedback.delay.queue';
+const AI_FEEDBACK_PROCESSING_QUEUE = 'ai-feedback.processing.queue';
+const AI_FEEDBACK_ROUTING_KEY = 'ai.feedback.ready';
 
 class RabbitMQConnection {
   private connection: ChannelModel | null = null;
@@ -43,6 +48,38 @@ class RabbitMQConnection {
         this.channel.on('error', (err) => {
           logger.error('RabbitMQ channel error', { error: err.message });
         });
+
+        await this.channel.assertExchange(
+          NOTIFICATION_PROCESSING_EXCHANGE,
+          'direct',
+          { durable: true }
+        );
+        await this.channel.assertExchange(DELAY_EXCHANGE, 'direct', {
+          durable: true,
+        });
+        await this.channel.assertQueue(AI_FEEDBACK_DELAY_QUEUE, {
+          durable: true,
+          deadLetterExchange: NOTIFICATION_PROCESSING_EXCHANGE,
+          deadLetterRoutingKey: AI_FEEDBACK_ROUTING_KEY,
+        });
+
+        await this.channel.bindQueue(
+          AI_FEEDBACK_DELAY_QUEUE,
+          DELAY_EXCHANGE,
+          AI_FEEDBACK_ROUTING_KEY
+        );
+        await this.channel.assertQueue(AI_FEEDBACK_PROCESSING_QUEUE, {
+          durable: true,
+        });
+        await this.channel.bindQueue(
+          AI_FEEDBACK_PROCESSING_QUEUE,
+          NOTIFICATION_PROCESSING_EXCHANGE,
+          AI_FEEDBACK_ROUTING_KEY
+        );
+
+        logger.info(
+          'RabbitMQ DLX and delay queues for AI feedback configured successfully.'
+        );
 
         return;
       } catch (err) {
