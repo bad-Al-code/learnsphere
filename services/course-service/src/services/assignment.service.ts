@@ -223,14 +223,18 @@ export class AssignmentService {
    * @param {string} cookie - Authentication cookie to identify the user session.
    * @param {string} userId - ID of the user.
    * @param {Object} options - Optional query filters.
-   * @param {string} [options.query] - Optional search query to filter assignment titles.
-   * @param {'not-started'|'in-progress'} [options.status] - Optional status filter (client-side concept).
-   * @returns {Promise<Array>} - A promise that resolves to an array of pending assignments for the user.
+   * @param {string} [options.query] - Search query to filter assignment titles.
+   * @param {'not-started'|'in-progress'} [options.status] - Status filter (client-side concept).
+   * @returns {Promise<Array>} - Array of pending assignments for the user.
    */
   public static async getPendingAssignments(
     cookie: string,
     userId: string,
-    options: { query?: string; status?: 'draft' | 'published' }
+    options: {
+      query?: string;
+      type?: 'individual' | 'collaborative';
+      status?: 'not-started' | 'in-progress';
+    }
   ) {
     const enrolledCourseIds =
       await EnrollmentClient.getEnrolledCourseIds(cookie);
@@ -243,5 +247,24 @@ export class AssignmentService {
       userId,
       options
     );
+  }
+
+  /**
+   * Mark an assignment as in-progress for a user by creating a draft.
+   * @param {string} assignmentId - Assignment ID to start.
+   * @param {Requester} requester - The user requesting the start.
+   * @returns {Promise<void>} - Resolves when the draft is created and cache is invalidated.
+   */
+  public static async startAssignment(
+    assignmentId: string,
+    requester: Requester
+  ) {
+    const assignment = await AssignmentRepository.findById(assignmentId);
+    if (!assignment) throw new NotFoundError('Assignment');
+
+    // NOTE: CHECK for user enrollment as well
+
+    await AssignmentRepository.createDraft(assignmentId, requester.id);
+    await CourseCacheService.invalidateCacheDetails(assignment.courseId);
   }
 }

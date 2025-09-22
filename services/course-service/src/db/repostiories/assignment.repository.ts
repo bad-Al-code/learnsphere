@@ -18,7 +18,12 @@ import {
   NewAssignment,
   UpdateAssignmentDto,
 } from '../../schemas';
-import { assignments, assignmentSubmissions } from '../schema';
+import {
+  assignmentDrafts,
+  assignments,
+  assignmentSubmissions,
+  courses,
+} from '../schema';
 
 export class AssignmentRepository {
   /**
@@ -246,43 +251,88 @@ export class AssignmentRepository {
   }
 
   /**
-   * Find assignments that are pending for a specific user.
-   * @param {string[]} courseIds - Array of course IDs to filter assignments by.
-   * @param {string} userId - ID of the user for whom to find pending assignments.
+   * Find pending assignments for a user with optional filters.
+   * @param {string[]} courseIds - Course IDs to filter by.
+   * @param {string} userId - User ID.
    * @param {Object} options - Optional query filters.
-   * @param {string} [options.query] - Optional search query to filter assignment titles.
-   * @param {'not-started'|'in-progress'} [options.status] - Optional status filter (client-side concept; not enforced by backend).
-   * @returns {Promise<Array>} - A promise that resolves to an array of pending assignments.
+   * @param {string} [options.query] - Search query for assignment titles.
+   * @param {'individual'|'collaborative'} [options.type] - Assignment type filter.
+   * @param {'not-started'|'in-progress'} [options.status] - Status filter.
+   * @returns {Promise<Array>} - Array of pending assignments with course title and status.
    */
   public static async findPendingForUser(
     courseIds: string[],
     userId: string,
-    options: { query?: string; status?: 'draft' | 'published' }
+    options: {
+      query?: string;
+      type?: 'individual' | 'collaborative';
+      status?: 'not-started' | 'in-progress';
+    }
   ) {
     if (courseIds.length === 0) return [];
 
-    const submittedAssignmentsSubquery = db
-      .select({ assignmentId: assignmentSubmissions.assignmentId })
+    const submittedQuery = db
+      .select({ id: assignmentSubmissions.assignmentId })
       .from(assignmentSubmissions)
-      .where(and(eq(assignmentSubmissions.studentId, userId)));
+      .where(eq(assignmentSubmissions.studentId, userId));
+    const draftsQuery = db
+      .select({ id: assignmentDrafts.assignmentId })
+      .from(assignmentDrafts)
+      .where(eq(assignmentDrafts.studentId, userId));
 
     const conditions = [
       inArray(assignments.courseId, courseIds),
-      // eq(assignments.status, 'published'),
-      sql`${assignments.id} NOT IN ${submittedAssignmentsSubquery}`,
+      sql`${assignments.id} NOT IN ${submittedQuery}`,
     ];
 
-    if (options.query) {
+    if (options.query)
       conditions.push(ilike(assignments.title, `%${options.query}%`));
+    if (options.type) conditions.push(eq(assignments.type, options.type));
+
+    if (options.status === 'not-started') {
+      conditions.push(sql`${assignments.id} NOT IN ${draftsQuery}`);
+    } else if (options.status === 'in-progress') {
+      conditions.push(sql`${assignments.id} IN ${draftsQuery}`);
     }
 
-    if (options.status) {
-      conditions.push(eq(assignments.status, options.status));
-    }
-
-    return db.query.assignments.findMany({
+    const results = await db.query.assignments.findMany({
       where: and(...conditions),
       orderBy: [desc(assignments.dueDate)],
     });
+
+    const finalResults = [];
+    for (const assignment of results) {
+      const course = await db.query.courses.findFirst({
+        where: eq(courses.id, assignment.courseId),
+        columns: { title: true },
+      });
+      const draft = await db.query.assignmentDrafts.findFirst({
+        where: and(
+          eq(assignmentDrafts.assignmentId, assignment.id),
+          eq(assignmentDrafts.studentId, userId)
+        ),
+      });
+
+      finalResults.push({
+        ...assignment,
+        course: course?.title || 'Unknown Course',
+        status: draft ? 'In Progress' : 'Not Started',
+      });
+    }
+
+    return finalResults;
+  }
+
+  /**
+   * Create a draft record for a given assignment and student.
+   * @param {string} assignmentId - Assignment ID.
+   * @param {string} studentId - Student ID.
+   * @returns {Promise<void>} - Resolves when draft is created (or ignored if already exists).
+   */
+  public static async createDraft(assignmentId: string, studentId: string) {
+    await db
+      .insert(assignmentDrafts)
+      .values({ assignmentId, studentId })
+      .onConflictDoNothing();
   }
 }

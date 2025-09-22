@@ -1,7 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { NotAuthorizedError } from '../errors';
-import { findAssignmentsSchema, querySchema } from '../schemas';
+import {
+  assignmentParamsSchema,
+  findAssignmentsSchema,
+  querySchema,
+} from '../schemas';
 import { AssignmentService } from '../services';
 
 export class AssignmentController {
@@ -176,7 +180,7 @@ export class AssignmentController {
         });
         return;
       }
-      const { q, status } = parseResult.data;
+      const { q, status, type } = parseResult.data;
 
       const results = await AssignmentService.getPendingAssignments(
         cookie,
@@ -184,10 +188,41 @@ export class AssignmentController {
         {
           query: q,
           status,
+          type,
         }
       );
 
       res.status(StatusCodes.OK).json(results);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async startAssignment(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const parseResult = assignmentParamsSchema.safeParse(req.params);
+      if (!parseResult.success) {
+        res.status(400).json({
+          error: 'Invalid path parameters',
+          details: parseResult.error.format(),
+        });
+        return;
+      }
+
+      const { assignmentId } = parseResult.data;
+
+      const requester = req.currentUser;
+      if (!requester) throw new NotAuthorizedError();
+
+      await AssignmentService.startAssignment(assignmentId, requester);
+
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'Assignment marked as in-progress.' });
     } catch (error) {
       next(error);
     }

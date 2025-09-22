@@ -164,11 +164,34 @@ export type FindPendingAssignmentsQuery = z.infer<typeof findAssignmentsSchema>;
  *           minLength: 1
  *         status:
  *           type: string
- *           enum: [draft, published]
- *           description: Filter assignments by status
+ *           enum: [not-started, in-progress]
+ *           description: Filter assignments by progress status
+ *         type:
+ *           type: string
+ *           enum: [individual, collaborative]
+ *           description: Filter assignments by type
  *       additionalProperties: false
  */
 export const querySchema = z.object({
   q: z.string().trim().min(1).optional(),
-  status: z.enum(['draft', 'published']).optional(),
+  status: z.enum(['not-started', 'in-progress']).optional(),
+  type: z.enum(['individual', 'collaborative']).optional(),
+});
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     AssignmentParams:
+ *       type: object
+ *       properties:
+ *         assignmentId:
+ *           type: string
+ *           description: The unique identifier of the assignment
+ *       required:
+ *         - assignmentId
+ *       additionalProperties: false
+ */
+export const assignmentParamsSchema = z.object({
+  assignmentId: z.string().min(1, 'assignmentId is required'),
 });

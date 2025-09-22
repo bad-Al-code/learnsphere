@@ -226,6 +226,46 @@ router.get(
 
 /**
  * @openapi
+ * /assignments/{assignmentId}/start:
+ *   post:
+ *     summary: Mark an assignment as in-progress
+ *     tags:
+ *       - Assignments
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: assignmentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The unique ID of the assignment to start
+ *     responses:
+ *       200:
+ *         description: Assignment marked as in-progress
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Assignment marked as in-progress.
+ *       400:
+ *         description: Invalid path parameters
+ *       401:
+ *         description: Not authorized
+ *       500:
+ *         description: Internal server error
+ */
+router.post(
+  '/assignments/:assignmentId/start',
+  requireAuth,
+  AssignmentController.startAssignment
+);
+
+/**
+ * @openapi
  * /api/assignments/due-soon-count:
  *   get:
  *     summary: "[Student] Get a count of assignments due soon"

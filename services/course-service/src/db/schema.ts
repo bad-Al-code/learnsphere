@@ -8,6 +8,7 @@ import {
   real,
   text,
   timestamp,
+  unique,
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
@@ -92,7 +93,13 @@ export const assignmentStatusEnum = pgEnum('assignment_status', [
   'draft',
   'published',
 ]);
+export const assignmentTypeEnum = pgEnum('assignment_type', [
+  'individual',
+  'collaborative',
+]);
+
 export type AssignmentStatus = (typeof assignmentStatusEnum.enumValues)[number];
+export type AssignmentType = (typeof assignmentTypeEnum.enumValues)[number];
 
 export const assignments = pgTable('assignments', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -110,12 +117,26 @@ export const assignments = pgTable('assignments', {
   dueDate: timestamp('due_date'),
 
   status: assignmentStatusEnum('status').default('draft').notNull(),
+  type: assignmentTypeEnum('type').default('individual').notNull(),
 
   order: integer('order').default(0).notNull(),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+export const assignmentDrafts = pgTable(
+  'assignment_drafts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    assignmentId: uuid('assignment_id')
+      .references(() => assignments.id, { onDelete: 'cascade' })
+      .notNull(),
+    studentId: uuid('student_id').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [unique().on(table.assignmentId, table.studentId)]
+);
 
 export const resources = pgTable('resources', {
   id: uuid('id').primaryKey().defaultRandom(),
