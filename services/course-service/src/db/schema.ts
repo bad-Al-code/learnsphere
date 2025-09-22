@@ -255,6 +255,10 @@ export const assignmentRelations = relations(assignments, ({ one, many }) => ({
     references: [modules.id],
   }),
   submissions: many(assignmentSubmissions),
+  course: one(courses, {
+    fields: [assignments.courseId],
+    references: [courses.id],
+  }),
 }));
 
 export const assignmentSubmissionsRelations = relations(
