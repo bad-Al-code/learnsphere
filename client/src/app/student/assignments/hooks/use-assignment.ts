@@ -1,6 +1,9 @@
 'use client';
 
-import { courseService } from '@/lib/api/client';
+import {
+  courseService as clientCourseService,
+  courseService,
+} from '@/lib/api/client';
 import { BulkCourse } from '@/types/course';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React from 'react';
@@ -13,26 +16,49 @@ import {
   EnrichedPendingAssignment,
   PendingAssignment,
 } from '../schemas/assignment.schema';
-import { AssignmentStatusFilter } from '../stores/assignment.store';
+import {
+  AssignmentStatusFilter,
+  AssignmentTypeFilter,
+} from '../stores/assignment.store';
 
 export const usePendingAssignments = (
   query?: string,
-  status?: AssignmentStatusFilter
+  status?: AssignmentStatusFilter,
+  type?: AssignmentTypeFilter
 ) => {
-  const {
-    data: rawAssignments,
-    isLoading: isLoadingAssignments,
-    isError: isErrorAssignments,
-  } = useQuery({
-    queryKey: ['pending-assignments', query, status],
+  const { data: rawAssignments, ...queryInfo } = useQuery({
+    queryKey: ['pending-assignments', query, status, type],
 
     queryFn: async () => {
-      const result = await getMyPendingAssignmentsAction({ query, status });
+      const result = await getMyPendingAssignmentsAction({
+        query,
+        status,
+        type,
+      });
       if (result.error) throw new Error(result.error);
 
       return result.data;
     },
   });
+
+  const assignmentIds = React.useMemo(
+    () => rawAssignments?.map((a) => a.id) || [],
+    [rawAssignments]
+  );
+  const { data: draftStatuses, isLoading: isLoadingDrafts } = useQuery({
+    queryKey: ['assignment-draft-statuses', assignmentIds],
+    queryFn: async () => {
+      const res = await clientCourseService.post(
+        '/api/assignments/draft-statuses',
+        { assignmentIds }
+      );
+
+      return new Set(res.data as string[]);
+    },
+
+    enabled: assignmentIds.length > 0,
+  });
+
   const courseIds = React.useMemo(
     () =>
       rawAssignments
@@ -59,7 +85,7 @@ export const usePendingAssignments = (
   });
 
   const enrichedData = React.useMemo(() => {
-    if (!rawAssignments || !courseDetails) return [];
+    if (!rawAssignments || !courseDetails || !draftStatuses) return [];
 
     const courseMap = new Map(courseDetails.map((c) => [c.id, c.title]));
 
@@ -69,16 +95,16 @@ export const usePendingAssignments = (
       isOverdue: assignment.dueDate
         ? new Date(assignment.dueDate) < new Date()
         : false,
-      type: 'individual', // Placeholder
-      status: 'Not Started', // Placeholder
-      points: 100, // Placeholder
+      type: assignment.type,
+      status: draftStatuses.has(assignment.id) ? 'In Progress' : 'Not Started',
+      points: assignment.points,
     })) as EnrichedPendingAssignment[];
-  }, [rawAssignments, courseDetails]);
+  }, [rawAssignments, courseDetails, draftStatuses]);
 
   return {
     data: enrichedData,
-    isLoading: isLoadingAssignments || isLoadingCourses,
-    isError: isErrorAssignments || isErrorCourses,
+    isLoading: queryInfo.isLoading || isLoadingCourses || isLoadingDrafts,
+    isError: queryInfo.isError || isErrorCourses,
   };
 };
 

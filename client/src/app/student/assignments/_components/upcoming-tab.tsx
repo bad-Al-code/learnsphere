@@ -69,19 +69,24 @@ import {
 } from '../schemas/assignment.schema';
 import {
   AssignmentStatusFilter,
+  AssignmentTypeFilter,
   useAssignmentStore,
 } from '../stores/assignment.store';
 
 interface UpcomingHeaderProps {
   onSearchChange: (value: string) => void;
-  onFilterChange: (status: AssignmentStatusFilter) => void;
-  currentFilter: AssignmentStatusFilter;
+  onStatusFilterChange: (status: AssignmentStatusFilter) => void;
+  onTypeFilterChange: (type: AssignmentTypeFilter) => void;
+  currentStatusFilter: AssignmentStatusFilter;
+  currentTypeFilter: AssignmentTypeFilter;
 }
 
 export function UpcomingHeader({
   onSearchChange,
-  onFilterChange,
-  currentFilter,
+  onStatusFilterChange,
+  onTypeFilterChange,
+  currentStatusFilter,
+  currentTypeFilter,
 }: UpcomingHeaderProps) {
   return (
     <header>
@@ -95,7 +100,10 @@ export function UpcomingHeader({
             onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
-        <Select value={currentFilter} onValueChange={onFilterChange}>
+        <Select
+          value={currentStatusFilter}
+          onValueChange={onStatusFilterChange}
+        >
           <SelectTrigger className="">
             <SelectValue placeholder="All Assignments" />
           </SelectTrigger>
@@ -103,6 +111,17 @@ export function UpcomingHeader({
             <SelectItem value="all">All Assignments</SelectItem>
             <SelectItem value="not-started">Not Started</SelectItem>
             <SelectItem value="in-progress">In Progress</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={currentTypeFilter} onValueChange={onTypeFilterChange}>
+          <SelectTrigger className="">
+            <SelectValue placeholder="All Types" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="individual">Individual</SelectItem>
+            <SelectItem value="collaborative">Collaborative</SelectItem>
           </SelectContent>
         </Select>
         <div className="ml-auto flex items-center gap-2">
@@ -512,19 +531,22 @@ export function AssignmentDetails() {
 }
 
 export function UpcomingTab() {
-  const { searchTerm, statusFilter, actions } = useAssignmentStore();
+  const { searchTerm, statusFilter, typeFilter, actions } =
+    useAssignmentStore();
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
   const { data: recommendations, isLoading: isLoadingRecs } =
     useAIRecommendations();
   const { data: assignments, isLoading: isLoadingAssignments } =
-    usePendingAssignments(debouncedSearchTerm, statusFilter);
+    usePendingAssignments(debouncedSearchTerm, statusFilter, typeFilter);
 
   return (
     <div className="space-y-2">
       <UpcomingHeader
         onSearchChange={actions.setSearchTerm}
-        onFilterChange={actions.setStatusFilter}
-        currentFilter={statusFilter}
+        onStatusFilterChange={actions.setStatusFilter}
+        onTypeFilterChange={actions.setTypeFilter}
+        currentStatusFilter={statusFilter}
+        currentTypeFilter={typeFilter}
       />
 
       {isLoadingRecs ? (

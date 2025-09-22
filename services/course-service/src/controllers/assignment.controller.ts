@@ -1,8 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { AssignmentRepository } from '../db/repostiories';
 import { NotAuthorizedError } from '../errors';
 import {
   assignmentParamsSchema,
+  draftStatusesSchema,
   findAssignmentsSchema,
   querySchema,
 } from '../schemas';
@@ -223,6 +225,37 @@ export class AssignmentController {
       res
         .status(StatusCodes.OK)
         .json({ message: 'Assignment marked as in-progress.' });
+    } catch (error) {
+      next(error);
+    }
+  }
+  public static async getMyDraftStatuses(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const user = req.currentUser;
+      if (!user) throw new NotAuthorizedError();
+
+      const parseResult = draftStatusesSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        res.status(400).json({
+          error: 'Invalid request body',
+          details: parseResult.error.format(),
+        });
+
+        return;
+      }
+
+      const { assignmentIds } = parseResult.data;
+
+      const statuses = await AssignmentRepository.getDraftStatuses(
+        user.id,
+        assignmentIds
+      );
+
+      res.status(StatusCodes.OK).json(Array.from(statuses));
     } catch (error) {
       next(error);
     }

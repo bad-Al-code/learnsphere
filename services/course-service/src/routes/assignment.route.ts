@@ -266,6 +266,43 @@ router.post(
 
 /**
  * @openapi
+ * /assignments/draft-statuses:
+ *   post:
+ *     summary: Get draft statuses for multiple assignments for the current user
+ *     tags:
+ *       - Assignments
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/DraftStatusesRequest'
+ *     responses:
+ *       200:
+ *         description: Array of assignment IDs that have drafts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
+ *       400:
+ *         description: Invalid request body
+ *       401:
+ *         description: Not authorized
+ *       500:
+ *         description: Internal server error
+ */
+router.post(
+  '/assignments/draft-statuses',
+  requireAuth,
+  AssignmentController.getMyDraftStatuses
+);
+
+/**
+ * @openapi
  * /api/assignments/due-soon-count:
  *   get:
  *     summary: "[Student] Get a count of assignments due soon"

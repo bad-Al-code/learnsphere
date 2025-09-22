@@ -16,6 +16,8 @@ export const pendingAssignmentSchema = z.object({
   description: z.string().nullable(),
   courseId: z.uuid(),
   dueDate: z.iso.datetime().nullable(),
+  type: z.enum(['individual', 'collaborative']).optional(),
+  points: z.number(),
 });
 export type PendingAssignment = z.infer<typeof pendingAssignmentSchema>;
 

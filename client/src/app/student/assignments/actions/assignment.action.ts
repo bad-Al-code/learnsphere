@@ -6,11 +6,15 @@ import {
   getMyAIRecommendations,
   getMyPendingAssignments,
 } from '../api/assignment.api';
-import { AssignmentStatusFilter } from '../stores/assignment.store';
+import {
+  AssignmentStatusFilter,
+  AssignmentTypeFilter,
+} from '../stores/assignment.store';
 
 export const getMyPendingAssignmentsAction = async (params: {
   query?: string;
   status?: AssignmentStatusFilter;
+  type?: AssignmentTypeFilter;
 }) => {
   try {
     return { data: await getMyPendingAssignments(params) };

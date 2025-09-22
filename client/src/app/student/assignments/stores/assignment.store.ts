@@ -6,6 +6,7 @@ import {
 } from '../schemas/assignment.schema';
 
 export type AssignmentStatusFilter = 'all' | 'not-started' | 'in-progress';
+export type AssignmentTypeFilter = 'individual' | 'collaborative' | 'all';
 
 type AssignmentState = {
   selectedAssignment: EnrichedPendingAssignment | null;
@@ -13,6 +14,7 @@ type AssignmentState = {
   isDrawerOpen: boolean;
   searchTerm: string;
   statusFilter: AssignmentStatusFilter;
+  typeFilter: AssignmentTypeFilter;
   isScheduleModalOpen: boolean;
   schedulingRecommendation: AIRecommendation | null;
   actions: {
@@ -22,6 +24,7 @@ type AssignmentState = {
     clearSelection: () => void;
     setSearchTerm: (term: string) => void;
     setStatusFilter: (status: AssignmentStatusFilter) => void;
+    setTypeFilter: (status: AssignmentTypeFilter) => void;
     openScheduleModal: (recommendation: AIRecommendation) => void;
     closeScheduleModal: () => void;
   };
@@ -33,6 +36,7 @@ export const useAssignmentStore = create<AssignmentState>((set) => ({
   selectedIds: new Set(),
   searchTerm: '',
   statusFilter: 'all',
+  typeFilter: 'all',
   isScheduleModalOpen: false,
   schedulingRecommendation: null,
   actions: {
@@ -56,6 +60,7 @@ export const useAssignmentStore = create<AssignmentState>((set) => ({
     clearSelection: () => set({ selectedIds: new Set() }),
     setSearchTerm: (term) => set({ searchTerm: term }),
     setStatusFilter: (status) => set({ statusFilter: status }),
+    setTypeFilter: (type) => set({ typeFilter: type }),
     openScheduleModal: (recommendation) =>
       set({
         isScheduleModalOpen: true,

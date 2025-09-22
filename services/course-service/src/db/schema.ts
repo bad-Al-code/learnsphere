@@ -115,10 +115,9 @@ export const assignments = pgTable('assignments', {
     .notNull(),
 
   dueDate: timestamp('due_date'),
-
   status: assignmentStatusEnum('status').default('draft').notNull(),
   type: assignmentTypeEnum('type').default('individual').notNull(),
-
+  points: integer('points').default(0).notNull(),
   order: integer('order').default(0).notNull(),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),

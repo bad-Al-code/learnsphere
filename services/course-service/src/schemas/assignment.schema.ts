@@ -195,3 +195,25 @@ export const querySchema = z.object({
 export const assignmentParamsSchema = z.object({
   assignmentId: z.string().min(1, 'assignmentId is required'),
 });
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     DraftStatusesRequest:
+ *       type: object
+ *       properties:
+ *         assignmentIds:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Array of assignment IDs to get draft statuses for
+ *       required:
+ *         - assignmentIds
+ *       additionalProperties: false
+ */
+export const draftStatusesSchema = z.object({
+  assignmentIds: z
+    .array(z.string().min(1))
+    .nonempty('assignmentIds cannot be empty'),
+});

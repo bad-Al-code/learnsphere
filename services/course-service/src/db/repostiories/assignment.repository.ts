@@ -335,4 +335,29 @@ export class AssignmentRepository {
       .values({ assignmentId, studentId })
       .onConflictDoNothing();
   }
+
+  /**
+   * Get the draft statuses for a list of assignments for a specific user.
+   * @param {string} userId - ID of the user.
+   * @param {string[]} assignmentIds - Array of assignment IDs to check.
+   * @returns {Promise<Set<string>>} - Set of assignment IDs that have a draft for the user.
+   */
+  public static async getDraftStatuses(
+    userId: string,
+    assignmentIds: string[]
+  ): Promise<Set<string>> {
+    if (assignmentIds.length === 0) return new Set();
+
+    const drafts = await db
+      .select({ assignmentId: assignmentDrafts.assignmentId })
+      .from(assignmentDrafts)
+      .where(
+        and(
+          eq(assignmentDrafts.studentId, userId),
+          inArray(assignmentDrafts.assignmentId, assignmentIds)
+        )
+      );
+
+    return new Set(drafts.map((d) => d.assignmentId));
+  }
 }
