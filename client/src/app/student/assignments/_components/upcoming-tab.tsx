@@ -10,6 +10,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -18,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -32,15 +41,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useDevice } from '@/hooks/use-mobile';
 import {
   BarChart2,
   Calendar,
+  CalendarPlus,
+  Check,
   Clock,
   Eye,
   Filter,
   Play,
   Search,
   Sparkles,
+  X,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -54,7 +67,6 @@ import {
   EnrichedPendingAssignment,
 } from '../schemas/assignment.schema';
 import { useAssignmentStore } from '../stores/assignment.store';
-import { AssignmentDetails } from './assignment-details-drawer';
 
 export function UpcomingHeader({
   onSearchChange,
@@ -231,8 +243,59 @@ function AIStudyPlanner({ data }: { data: AIRecommendation[] }) {
   );
 }
 
+function BulkActionHeader() {
+  const { selectedIds, actions } = useAssignmentStore();
+  if (selectedIds.size === 0) return null;
+
+  return (
+    <div className="bg-muted/50 animate-in fade-in-0 slide-in-from-top-4 sticky top-0 z-10 mb-2 rounded-lg border p-1 shadow-sm backdrop-blur-sm">
+      <div className="flex items-center justify-between">
+        <div className="flex h-5 items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={actions.clearSelection}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Clear selection</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Separator orientation="vertical" className="" />
+
+          <p className="text-sm font-semibold">{selectedIds.size} selected</p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm">
+            <Check className="h-4 w-4" /> Mark as In Progress
+          </Button>
+          <Button variant="outline" size="sm">
+            <CalendarPlus className="h-4 w-4" /> Add to Calendar
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PendingAssignments({ data }: { data: EnrichedPendingAssignment[] }) {
-  const { actions } = useAssignmentStore();
+  const { selectedIds, actions } = useAssignmentStore();
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      data.forEach(
+        (item) => !selectedIds.has(item.id) && actions.toggleSelection(item.id)
+      );
+    } else {
+      actions.clearSelection();
+    }
+  };
 
   return (
     <Card>
@@ -244,13 +307,21 @@ function PendingAssignments({ data }: { data: EnrichedPendingAssignment[] }) {
       </CardHeader>
 
       <CardContent>
+        <BulkActionHeader />
+
         <div className="overflow-x-auto rounded-lg border">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="">
-                  <Checkbox />
+                  <Checkbox
+                    checked={
+                      selectedIds.size > 0 && selectedIds.size === data.length
+                    }
+                    onCheckedChange={handleSelectAll}
+                  />
                 </TableHead>
+
                 <TableHead className="">Assignment</TableHead>
                 <TableHead>Course</TableHead>
                 <TableHead>Due Date</TableHead>
@@ -265,7 +336,10 @@ function PendingAssignments({ data }: { data: EnrichedPendingAssignment[] }) {
               {data.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>
-                    <Checkbox />
+                    <Checkbox
+                      checked={selectedIds.has(item.id)}
+                      onCheckedChange={() => actions.toggleSelection(item.id)}
+                    />
                   </TableCell>
 
                   <TableCell>
@@ -283,7 +357,7 @@ function PendingAssignments({ data }: { data: EnrichedPendingAssignment[] }) {
                         <Badge variant="destructive">Overdue</Badge>
                       )}
                     </div>
-                    <div className="text-xs">{item.dueDate}</div>
+                    <div className="text-xs"> {item.dueDate ?? 'N/A'}</div>
                   </TableCell>
 
                   <TableCell>
@@ -328,6 +402,95 @@ function PendingAssignments({ data }: { data: EnrichedPendingAssignment[] }) {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+export function AssignmentDetails() {
+  const { isDrawerOpen, selectedAssignment, actions } = useAssignmentStore();
+  const device = useDevice();
+
+  const onOpenChange = (open: boolean) => {
+    if (!open) actions.closeDrawer();
+  };
+
+  if (!selectedAssignment) return null;
+
+  const content = (
+    <>
+      <DialogHeader>
+        <DialogTitle>{selectedAssignment.title}</DialogTitle>
+        <DialogDescription>{selectedAssignment.course}</DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-4 p-2">
+        <p className="text-muted-foreground text-sm">
+          {selectedAssignment.description}
+        </p>
+        <div>
+          <strong>Due:</strong>{' '}
+          {new Date(selectedAssignment.dueDate!).toLocaleString()}
+        </div>
+        <div>
+          <strong>Points:</strong> {selectedAssignment.points}
+        </div>
+        <Button asChild className="w-full">
+          <Link href={`/student/assignments/${selectedAssignment.id}`}>
+            Start Assignment
+          </Link>
+        </Button>
+      </div>
+    </>
+  );
+
+  if (device === 'desktop') {
+    return (
+      <Dialog open={isDrawerOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="">{content}</DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Drawer open={isDrawerOpen} onOpenChange={onOpenChange}>
+      <DrawerContent>{content} </DrawerContent>
+    </Drawer>
+  );
+}
+
+export function UpcomingTab() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
+  const { data: recommendations, isLoading: isLoadingRecs } =
+    useAIRecommendations();
+  const { data: assignments, isLoading: isLoadingAssignments } =
+    usePendingAssignments(debouncedSearchTerm);
+
+  return (
+    <div className="space-y-2">
+      <UpcomingHeader onSearchChange={setSearchTerm} />
+
+      {isLoadingRecs ? (
+        <AIStudyPlannerSkeleton />
+      ) : (
+        <AIStudyPlanner data={recommendations || []} />
+      )}
+      {isLoadingAssignments ? (
+        <PendingAssignmentsSkeleton />
+      ) : (
+        <PendingAssignments data={assignments || []} />
+      )}
+      <AssignmentDetails />
+    </div>
+  );
+}
+
+export function UpcomingTabSkeleton() {
+  return (
+    <div className="space-y-2">
+      <UpcomingHeaderSkeleton />
+      <AIStudyPlannerSkeleton />
+      <PendingAssignmentsSkeleton />
+    </div>
   );
 }
 
@@ -419,42 +582,5 @@ function PendingAssignmentsSkeleton() {
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-export function UpcomingTab() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
-  const { data: recommendations, isLoading: isLoadingRecs } =
-    useAIRecommendations();
-  const { data: assignments, isLoading: isLoadingAssignments } =
-    usePendingAssignments(debouncedSearchTerm);
-
-  return (
-    <div className="space-y-2">
-      <UpcomingHeader onSearchChange={setSearchTerm} />
-
-      {isLoadingRecs ? (
-        <AIStudyPlannerSkeleton />
-      ) : (
-        <AIStudyPlanner data={recommendations || []} />
-      )}
-      {isLoadingAssignments ? (
-        <PendingAssignmentsSkeleton />
-      ) : (
-        <PendingAssignments data={assignments || []} />
-      )}
-      <AssignmentDetails />
-    </div>
-  );
-}
-
-export function UpcomingTabSkeleton() {
-  return (
-    <div className="space-y-2">
-      <UpcomingHeaderSkeleton />
-      <AIStudyPlannerSkeleton />
-      <PendingAssignmentsSkeleton />
-    </div>
   );
 }
