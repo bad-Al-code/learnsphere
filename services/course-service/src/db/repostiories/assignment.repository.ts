@@ -371,9 +371,17 @@ export class AssignmentRepository {
       .select({
         id: assignments.id,
         title: assignments.title,
-        courseTitle: courses.title,
-        submittedAt: assignmentSubmissions.submittedAt,
-        status: assignments.status,
+        course: courses.title,
+        submittedDate: assignmentSubmissions.submittedAt,
+        status: sql<
+          'Graded' | 'Pending Review'
+        >`CASE WHEN ${assignmentSubmissions.grade} IS NOT NULL THEN 'Graded' ELSE 'Pending Review' END`,
+        score: assignmentSubmissions.grade,
+        points: sql<string>`CONCAT(${assignmentSubmissions.grade}, '/', ${assignments.points}, ' pts')`,
+        // Placeholders
+        similarity: sql<number>`FLOOR(random() * 5) + 1`,
+        peerReviews: sql<number>`FLOOR(random() * 4)`,
+        peerAvg: sql<number>`FLOOR(random() * (95-85+1) + 85)`,
       })
       .from(assignmentSubmissions)
       .innerJoin(
