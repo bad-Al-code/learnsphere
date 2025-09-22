@@ -697,6 +697,7 @@ export class AIFeedbackReadyListener extends Listener<AIFeedbackReadyEvent> {
   readonly topic: 'ai.feedback.ready' = 'ai.feedback.ready' as const;
   queueGroupName = 'ai-feedback.processing.queue';
   protected exchange = 'notification-processing.exchange';
+  protected exchangeType = 'direct';
   private emailService: EmailService;
 
   constructor(emailService: EmailService) {
