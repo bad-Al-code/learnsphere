@@ -42,6 +42,7 @@ import {
   Search,
   Sparkles,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
 import { useDebounce } from 'use-debounce';
 import {
@@ -52,6 +53,8 @@ import {
   AIRecommendation,
   EnrichedPendingAssignment,
 } from '../schemas/assignment.schema';
+import { useAssignmentStore } from '../stores/assignment.store';
+import { AssignmentDetails } from './assignment-details-drawer';
 
 export function UpcomingHeader({
   onSearchChange,
@@ -170,14 +173,28 @@ export function AIRecommendationItem({ item }: { item: AIRecommendation }) {
         <p className="text-muted-foreground mt-1 text-sm">{item.description}</p>
 
         <div className="text-muted-foreground mt-2 flex items-center gap-4 text-xs">
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            {item.hours} hours
-          </span>
-          <span className="flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            Due {item.dueDate}
-          </span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="flex cursor-default items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {item.hours} hours
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Total estimated time</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="flex cursor-default items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                Due {item.dueDate}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Task deadline</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
@@ -215,6 +232,8 @@ function AIStudyPlanner({ data }: { data: AIRecommendation[] }) {
 }
 
 function PendingAssignments({ data }: { data: EnrichedPendingAssignment[] }) {
+  const { actions } = useAssignmentStore();
+
   return (
     <Card>
       <CardHeader>
@@ -223,6 +242,7 @@ function PendingAssignments({ data }: { data: EnrichedPendingAssignment[] }) {
           Complete these assignments before their due dates
         </CardDescription>
       </CardHeader>
+
       <CardContent>
         <div className="overflow-x-auto rounded-lg border">
           <Table>
@@ -240,19 +260,23 @@ function PendingAssignments({ data }: { data: EnrichedPendingAssignment[] }) {
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
               {data.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>
                     <Checkbox />
                   </TableCell>
+
                   <TableCell>
                     <div className="font-medium">{item.title}</div>
                     <div className="text-muted-foreground text-xs">
                       {item.description}
                     </div>
                   </TableCell>
+
                   <TableCell>{item.course}</TableCell>
+
                   <TableCell>
                     <div>
                       {item.isOverdue && (
@@ -261,23 +285,39 @@ function PendingAssignments({ data }: { data: EnrichedPendingAssignment[] }) {
                     </div>
                     <div className="text-xs">{item.dueDate}</div>
                   </TableCell>
+
                   <TableCell>
                     <Badge variant="outline" className="capitalize">
                       {item.type}
                     </Badge>
                   </TableCell>
+
                   <TableCell>
                     <Badge variant="secondary">{item.status}</Badge>
                   </TableCell>
+
                   <TableCell>{item.points} pts</TableCell>
+
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="icon">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Play className="h-4 w-4" />
-                        Start
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => actions.viewAssignment(item)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>View</TooltipContent>
+                      </Tooltip>
+
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/student/assignments/${item.id}`}>
+                          <Play className="h-4 w-4" />
+                          Start
+                        </Link>
                       </Button>
                     </div>
                   </TableCell>
@@ -404,6 +444,7 @@ export function UpcomingTab() {
       ) : (
         <PendingAssignments data={assignments || []} />
       )}
+      <AssignmentDetails />
     </div>
   );
 }

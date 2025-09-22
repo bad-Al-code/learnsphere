@@ -1,5 +1,4 @@
 import { HomepageClient } from '@/components/shared/homepage-client';
-import AiTools from '../features/ai-tools/page';
 import { getCurrentUser } from './(auth)/actions';
 
 export default async function Home() {
@@ -8,7 +7,7 @@ export default async function Home() {
   return (
     <>
       <main className="container mx-auto space-y-4">
-        <AiTools />
+        <h1> WelCome To LearnSphere</h1>
       </main>
 
       <HomepageClient user={user} />
