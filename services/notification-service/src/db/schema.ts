@@ -7,6 +7,7 @@ import {
   text,
   timestamp,
   uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
 
 export const notifications = pgTable('notifications', {
@@ -48,6 +49,7 @@ export const users = pgTable('users', {
   id: uuid('id').primaryKey(),
   role: userRoleEnum('role').default('student').notNull(),
   email: text('email').notNull().unique(),
+  name: varchar('name', { length: 255 }),
 });
 
 export type User = typeof users.$inferSelect;

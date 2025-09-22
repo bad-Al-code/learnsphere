@@ -1,6 +1,7 @@
 import { ConsumeMessage } from 'amqplib';
 
 import logger from '../config/logger';
+import { UserRole } from '../db/schema';
 import { UserRepository } from '../db/user.respository';
 import { EmailService } from '../services/email-service';
 import { NotificationService } from '../services/notification.service';
@@ -160,8 +161,9 @@ interface UserRegisteredEvent extends Event {
   data: {
     id: string;
     email: string;
-    firstName?: string;
-    lastName?: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    role: UserRole;
     avatarUrl?: string;
   };
 }
@@ -208,10 +210,8 @@ export class UserSyncRegisteredListener extends Listener<UserRegisteredEvent> {
       await UserRepository.upsert({
         id: data.id,
         email: data.email,
-        // The 'user.registered' event contract does not specify a role.
-        // We assume 'student' as the default, which will be corrected
-        // by the UserSyncRoleUpdatedListener if the role changes.
-        role: 'student',
+        role: data.role || 'student',
+        name: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
       });
     } catch (error) {
       logger.error('Failed to sync registered user', { data, error });

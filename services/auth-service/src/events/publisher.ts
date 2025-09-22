@@ -29,8 +29,8 @@ interface UserRegisteredEvent {
     id: string;
     email: string;
     role?: string;
-    firstName?: string;
-    lastName?: string;
+    firstName?: string | null;
+    lastName?: string | null;
     avatarUrl?: string;
   };
 }

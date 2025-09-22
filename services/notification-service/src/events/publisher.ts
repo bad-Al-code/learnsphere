@@ -25,7 +25,7 @@ export abstract class Publisher<T extends { topic: string; data: unknown }> {
 
     logger.info(
       `Event published to exchange '${this.exchange}' with topic '${this.topic}': %o`,
-      { data, options }
+      { data }
     );
   }
 }
