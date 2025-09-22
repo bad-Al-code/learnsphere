@@ -6,6 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 
 import { env } from './config/env';
 import { swaggerSpec } from './config/swagger';
+import { aiRouter } from './features/ai/route/ai.route';
 import { currentUser } from './middlewares/current-user';
 import { errorHandler } from './middlewares/error-handler';
 import { httpLogger } from './middlewares/http-logger';
@@ -46,6 +47,7 @@ app.use('/api/categories', categoryRouter);
 app.use('/api', assignmentRouter);
 app.use('/api', resourceRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/ai-feedback', aiRouter);
 
 app.use(errorHandler);
 

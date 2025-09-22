@@ -3,6 +3,7 @@ import {
   boolean,
   decimal,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   real,
@@ -164,6 +165,27 @@ export const assignmentSubmissions = pgTable('assignment_submissions', {
   courseId: uuid('course_id').notNull(),
   submittedAt: timestamp('submitted_at').defaultNow().notNull(),
   grade: integer('grade'),
+  content: text('content'),
+});
+
+export const feedbackStatus = pgEnum('feedback_status', [
+  'reviewed',
+  'pending',
+]);
+
+export const aiAssignmentFeedback = pgTable('ai_assignment_feedback', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  submissionId: uuid('submission_id')
+    .references(() => assignmentSubmissions.id, { onDelete: 'cascade' })
+    .notNull()
+    .unique(),
+  studentId: uuid('student_id').notNull(),
+  score: integer('score').notNull(),
+  summary: text('summary').notNull(),
+  suggestions: jsonb('suggestions').$type<string[]>().notNull(),
+  detailedFeedback: text('detailed_feedback'),
+  status: feedbackStatus('status').default('reviewed').notNull(),
+  reviewedAt: timestamp('reviewed_at').defaultNow().notNull(),
 });
 
 export const resourceDownloads = pgTable('resource_downloads', {
