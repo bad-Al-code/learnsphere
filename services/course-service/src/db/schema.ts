@@ -172,6 +172,7 @@ export const feedbackStatus = pgEnum('feedback_status', [
   'reviewed',
   'pending',
 ]);
+export type FeedbackStatus = (typeof feedbackStatus.enumValues)[number];
 
 export const aiAssignmentFeedback = pgTable('ai_assignment_feedback', {
   id: uuid('id').primaryKey().defaultRandom(),

@@ -1,5 +1,6 @@
 import logger from '../../config/logger';
 import { BadRequestError } from '../../errors';
+import { AIFeedbackReadyPublisher } from '../../events/publisher';
 import { buildAIAssignmentFeedbackPrompt } from './ai.prompt';
 import { AIRepository } from './ai.repository';
 import {
@@ -28,7 +29,6 @@ export class AIFeedbackService {
    * Generates new AI feedback for a submission by calling the Gemini API and saving the result.
    * @param submissionId The ID of the submission to recheck.
    * @param userId The ID of the user requesting the recheck.
-   * @returns The newly generated and saved feedback.
    */
   public static async generateFeedback(submissionId: string, userId: string) {
     logger.info(`Generating NEW AI feedback for submission ${submissionId}`);
@@ -37,6 +37,8 @@ export class AIFeedbackService {
     if (!submission || submission.studentId !== userId) {
       throw new BadRequestError('Submission not found or access denied.');
     }
+
+    await AIRepository.updateFeedbackStatus(submissionId, 'pending');
 
     const submissionContent = submission.content;
     if (!submissionContent) {
@@ -73,11 +75,23 @@ export class AIFeedbackService {
       throw new Error('AI returned invalid data structure.');
     }
 
-    const [newFeedback] = await AIRepository.upsertFeedback(
-      submissionId,
-      userId,
-      parsed.data
+    await AIRepository.upsertFeedback(submissionId, userId, parsed.data);
+
+    const publisher = new AIFeedbackReadyPublisher();
+    const delaySeconds = Math.floor(Math.random() * (60 - 30 + 1)) + 30;
+    const delayMilliseconds = delaySeconds * 1000;
+
+    await publisher.publish(
+      {
+        submissionId: submission.id,
+        studentId: submission.studentId,
+        courseId: submission.courseId,
+      },
+      { expiration: delayMilliseconds }
     );
-    return newFeedback;
+
+    logger.info(
+      `Dispatched AI feedback for submission ${submissionId} with a ${delaySeconds}s delay.`
+    );
   }
 }

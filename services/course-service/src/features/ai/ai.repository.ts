@@ -1,7 +1,11 @@
 import { eq } from 'drizzle-orm';
 
 import { db } from '../../db';
-import { aiAssignmentFeedback, assignmentSubmissions } from '../../db/schema';
+import {
+  aiAssignmentFeedback,
+  assignmentSubmissions,
+  FeedbackStatus,
+} from '../../db/schema';
 import { AssignmentFeedback } from './aiResponse.schema';
 
 export class AIRepository {
@@ -15,6 +19,24 @@ export class AIRepository {
       where: eq(aiAssignmentFeedback.studentId, userId),
       orderBy: (feedback, { desc }) => [desc(feedback.reviewedAt)],
     });
+  }
+
+  /**
+   * Update the status of AI feedback for a given submission.
+   * @param submissionId - The ID of the assignment submission
+   * @param status - The new status to set (e.g., 'pending', 'reviewed')
+   * @returns Promise<number> - Number of rows updated
+   */
+  public static async updateFeedbackStatus(
+    submissionId: string,
+    status: FeedbackStatus
+  ): Promise<number> {
+    const result = await db
+      .update(aiAssignmentFeedback)
+      .set({ status })
+      .where(eq(aiAssignmentFeedback.submissionId, submissionId));
+
+    return result.rowCount || 0;
   }
 
   public static async findBySubmissionId(submissionId: string) {

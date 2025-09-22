@@ -34,12 +34,14 @@ export class AIController {
       if (!req.currentUser) throw new NotAuthorizedError();
       const { submissionId } = requestRecheckParamsSchema.parse(req.params);
 
-      const feedback = await AIFeedbackService.generateFeedback(
-        submissionId,
-        req.currentUser.id
-      );
+      AIFeedbackService.generateFeedback(submissionId, req.currentUser.id);
 
-      res.status(StatusCodes.CREATED).json(feedback);
+      res
+        .status(StatusCodes.ACCEPTED)
+        .json({
+          message:
+            'Your recheck request has been submitted. You will be notified when it is complete.',
+        });
     } catch (error) {
       if (error instanceof z.ZodError) {
         res.status(StatusCodes.BAD_REQUEST).json({ errors: error.errors });
