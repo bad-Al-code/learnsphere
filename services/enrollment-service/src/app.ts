@@ -5,12 +5,15 @@ import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 
 import { swaggerSpec } from './config/swagger';
+import { correlationIdMiddleware } from './middlewares/correlation-id.middleware';
 import { currentUser } from './middlewares/current-user';
 import { errorHandler } from './middlewares/error-handler';
 import { httpLogger } from './middlewares/http-logger';
+import { metricsMiddleware } from './middlewares/metrics.middleware';
 import { analyticsRouter } from './routes/analytics.route';
 import { enrollmentRouter } from './routes/enrollment.routes';
 import { healthRouter } from './routes/health';
+import { metricsService } from './services/metrics.service';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -22,11 +25,17 @@ app.use(
 );
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/api/courses/metrics', async (req, res) => {
+  res.set('Content-Type', metricsService.register.contentType);
+  res.end(await metricsService.register.metrics());
+});
 
 app.use(json());
 app.use(helmet());
-app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
+app.use(correlationIdMiddleware);
 app.use(httpLogger);
+app.use(metricsMiddleware);
+app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
 app.use(currentUser);
 
 app.use('/api/enrollments', healthRouter);

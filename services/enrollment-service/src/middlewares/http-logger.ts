@@ -8,7 +8,7 @@ export const httpLogger = (req: Request, res: Response, next: NextFunction) => {
     const duration = Date.now() - startTime;
 
     if (
-      req.originalUrl.startsWith('/api/courses/health') &&
+      req.originalUrl.startsWith('/api/enrollments/health') &&
       res.statusCode === 200
     )
       return;

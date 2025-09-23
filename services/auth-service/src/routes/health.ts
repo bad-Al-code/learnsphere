@@ -1,21 +1,31 @@
-import { Router, Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+
 import { healthState } from '../config/health-state';
 
-const router = Router();
+const router = express.Router();
 
+/**
+ * @openapi
+ * /api/auth/health:
+ *   get:
+ *     tags: [Health]
+ *     summary: Check the detailed health of the service
+ *     description: Returns the operational status of the user service and its critical dependencies.
+ *     responses:
+ *       '200':
+ *         description: Service is healthy and all critical dependencies are connected.
+ *       '503':
+ *         description: Service is unhealthy because one or more of its critical dependencies is down.
+ */
 router.get('/health', (req: Request, res: Response) => {
-  if (healthState.isReady()) {
-    res.status(StatusCodes.OK).json({
-      status: 'UP',
-      message: 'Auth service is up and running',
-    });
-  } else {
-    res.status(StatusCodes.SERVICE_UNAVAILABLE).json({
-      status: 'DOWN',
-      message: 'Auth service is up and running',
-    });
-  }
+  const report = healthState.getReport();
+
+  const statusCode = healthState.isReady()
+    ? StatusCodes.OK
+    : StatusCodes.SERVICE_UNAVAILABLE;
+
+  res.status(statusCode).json(report);
 });
 
 export { router as healthRouter };

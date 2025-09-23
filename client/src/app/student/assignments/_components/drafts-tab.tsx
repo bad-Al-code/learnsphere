@@ -1261,7 +1261,7 @@ export function DraftsTab() {
 
   const EditDialog = () => (
     <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-      <DialogContent className="max-h-[90vh] max-w-4xl">
+      <DialogContent className="max-h-[90vh] w-5xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Pencil className="h-5 w-5" />
@@ -1416,7 +1416,7 @@ export function DraftsTab() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <DraftAssignmentsSection />
       <AssignmentDiscussionsSection />
 
@@ -1429,7 +1429,7 @@ export function DraftsTab() {
 
 export function DraftsTabSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">

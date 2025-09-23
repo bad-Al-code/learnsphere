@@ -11,7 +11,6 @@ import { useMutation } from '@tanstack/react-query';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { updateThemeAction } from './actions/theme';
 
 const useUpdateTheme = () => {
@@ -28,7 +27,7 @@ const useUpdateTheme = () => {
       setUser(optimisticUser);
     },
     onError: (error) => {
-      toast.error(error.message || 'Could not save your theme preference.');
+      // toast.error(error.message || 'Could not save your theme preference.');
     },
   });
 };

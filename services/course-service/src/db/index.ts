@@ -31,11 +31,13 @@ export const checkDatabaseConnection = async () => {
   try {
     await db.query.courses.findFirst();
     logger.info(`Database connection verified successfully,`);
+
     healthState.set('db', true);
   } catch (error) {
-    logger.info(`Failed to verify Database connection`);
-    healthState.set('db', false);
+    const err = error as Error;
+    logger.info(`Failed to verify Database connection`, { error: err.message });
 
+    healthState.set('db', false, err.message);
     throw error;
   }
 };

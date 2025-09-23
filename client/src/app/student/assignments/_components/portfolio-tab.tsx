@@ -63,7 +63,7 @@ const portfolioData: TPortfolioItem[] = [
 
 function PortfolioItemCard({ item }: { item: TPortfolioItem }) {
   return (
-    <Card className="flex h-full flex-col overflow-hidden pt-0">
+    <Card className="group hover:border-primary/30 border-border/50 cursor-pointer overflow-hidden pt-0 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl">
       <CardHeader className="p-0">
         <div className="bg-muted flex aspect-video w-full items-center justify-center transition-all hover:scale-105">
           <img
@@ -173,7 +173,7 @@ export function PortfolioTabSkeleton() {
         <Skeleton className="h-8 w-64" />
         <Skeleton className="mt-2 h-4 w-72" />
       </header>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
         <PortfolioItemCardSkeleton />
         <PortfolioItemCardSkeleton />
         <PortfolioItemCardSkeleton />

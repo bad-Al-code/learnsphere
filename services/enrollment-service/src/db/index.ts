@@ -37,7 +37,7 @@ export const checkDatabaseConnection = async () => {
     healthState.set('db', true);
   } catch (error) {
     logger.info(`Failed to verify Database connection`);
-    healthState.set('db', false);
+    healthState.set('db', false, (error as Error).message);
 
     throw error;
   }

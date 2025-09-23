@@ -1,6 +1,6 @@
 import { createClient, RedisClientType } from 'redis';
-import logger from './logger';
 import { healthState } from './health-state';
+import logger from './logger';
 
 class RedisConnection {
   private client!: RedisClientType;
@@ -26,9 +26,10 @@ class RedisConnection {
     try {
       await this.client.connect();
     } catch (err) {
+      const error = err as Error;
       logger.error('Failed to connect to Redis', { error: err });
 
-      healthState.set('redis', false);
+      healthState.set('redis', false, error.message);
       throw err;
     }
   }

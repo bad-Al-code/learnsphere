@@ -8,6 +8,7 @@ import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env';
 import { swaggerSpec } from './config/swagger';
 import { metricsService } from './controllers/metrics-service';
+import { correlationIdMiddleware } from './middlewares/correlation-id.middleware';
 import { currentUser } from './middlewares/current-user';
 import { errorHandler } from './middlewares/error-handler';
 import { httpLogger } from './middlewares/http-logger';
@@ -34,6 +35,7 @@ app.get('/metrics', async (req: Request, res: Response) => {
 app.use(json());
 app.use(passport.initialize());
 app.use(helmet());
+app.use(correlationIdMiddleware);
 app.use(httpLogger);
 app.use(cookieParser(env.COOKIE_PARSER_SECRET));
 app.use(metricsRecorder);
