@@ -6,7 +6,6 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { studentAssignmentsTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
-import { AIReviewTab, AIReviewTabSkeleton } from './ai-review-tab';
 import { AnalyticsTab, AnalyticsTabSkeleton } from './analytics-tab';
 import {
   CollaborativeTab,
@@ -23,7 +22,6 @@ const skeletonMap: Record<string, React.ReactNode> = {
   upcoming: <UpcomingTabSkeleton />,
   submitted: <SubmittedTabSkeleton />,
   drafts: <DraftsTabSkeleton />,
-  'ai-review': <AIReviewTabSkeleton />,
   'peer-review': <PeerReviewTabSkeleton />,
   templates: <TemplatesTabSkeleton />,
   collaborative: <CollaborativeTabSkeleton />,
@@ -68,7 +66,6 @@ export function AssignmentsTabs() {
             {currentTabFromUrl === 'upcoming' && <UpcomingTab />}
             {currentTabFromUrl === 'submitted' && <SubmittedTab />}
             {currentTabFromUrl === 'drafts' && <DraftsTab />}
-            {currentTabFromUrl === 'ai-review' && <AIReviewTab />}
             {currentTabFromUrl === 'peer-review' && <PeerReviewTab />}
             {currentTabFromUrl === 'templates' && <TemplatesTab />}
             {currentTabFromUrl === 'collaborative' && <CollaborativeTab />}

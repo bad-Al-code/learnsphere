@@ -375,7 +375,7 @@ export const studentAssignmentsTabs: NavItem[] = [
   { href: '#', label: 'Upcoming', value: 'upcoming', icon: 'CalendarClock' },
   { href: '#', label: 'Submitted', value: 'submitted', icon: 'UploadCloud' },
   { href: '#', label: 'Drafts', value: 'drafts', icon: 'Save' },
-  { href: '#', label: 'AI Review', value: 'ai-review', icon: 'Bot' },
+  // { href: '#', label: 'AI Review', value: 'ai-review', icon: 'Bot' },
   { href: '#', label: 'Peer Review', value: 'peer-review', icon: 'Users' },
   { href: '#', label: 'Templates', value: 'templates', icon: 'ClipboardList' },
   {
