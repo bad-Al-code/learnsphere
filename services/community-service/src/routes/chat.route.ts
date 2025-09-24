@@ -5,6 +5,8 @@ import { validateRequest } from '../middlewares/validate-request';
 import {
   courseDiscussionsParamsSchema,
   createDiscussionSchema,
+  discussionsParamsSchema,
+  postReplySchema,
 } from '../schemas';
 import {
   createConversationSchema,
@@ -357,6 +359,129 @@ router.post(
   requireAuth,
   validateRequest(createDiscussionSchema),
   ChatController.createDiscussion
+);
+/**
+ * @openapi
+ * /api/community/discussions/{id}/replies:
+ *   get:
+ *     summary: Get all replies for a discussion
+ *     tags:
+ *       - Community
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the discussion
+ *     responses:
+ *       200:
+ *         description: List of replies for the discussion
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/PostReplyBody'
+ *       403:
+ *         description: User is not authorized to view these replies
+ */
+router.get(
+  '/discussions/:id/replies',
+  requireAuth,
+  validateRequest(discussionsParamsSchema),
+  ChatController.getReplies
+);
+
+/**
+ * @openapi
+ * /api/community/discussions/{id}/reply:
+ *   post:
+ *     summary: Post a reply to a discussion
+ *     tags:
+ *       - Community
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the discussion
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/PostReplyBody'
+ *     responses:
+ *       201:
+ *         description: Reply posted successfully
+ *       403:
+ *         description: User is not a participant in the discussion
+ */
+router.post(
+  '/discussions/:id/reply',
+  requireAuth,
+  validateRequest(postReplySchema),
+  ChatController.postReply
+);
+
+/**
+ * @openapi
+ * /api/community/discussions/{id}/bookmark:
+ *   post:
+ *     summary: Toggle bookmark for a discussion
+ *     tags:
+ *       - Community
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the discussion
+ *     responses:
+ *       200:
+ *         description: Bookmark toggled successfully
+ *       403:
+ *         description: User is not a participant in the discussion
+ */
+router.post(
+  '/discussions/:id/bookmark',
+  requireAuth,
+  validateRequest(discussionsParamsSchema),
+  ChatController.bookmark
+);
+
+/**
+ * @openapi
+ * /api/community/discussions/{id}/resolve:
+ *   post:
+ *     summary: Toggle the resolved status of a discussion
+ *     tags:
+ *       - Community
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the discussion
+ *     responses:
+ *       200:
+ *         description: Discussion resolved/unresolved successfully
+ *       403:
+ *         description: Only the original author can resolve this discussion
+ */
+router.post(
+  '/discussions/:id/resolve',
+  requireAuth,
+  validateRequest(discussionsParamsSchema),
+  ChatController.resolve
 );
 
 export { router as chatRouter };

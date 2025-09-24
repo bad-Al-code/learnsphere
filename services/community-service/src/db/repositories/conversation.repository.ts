@@ -372,4 +372,32 @@ export class ConversationRepository {
       with: { sender: true },
     });
   }
+
+  /**
+   * Toggles the bookmark status for a user in a conversation.
+   * @param conversationId - The ID of the conversation
+   * @param userId - The ID of the user toggling the bookmark
+   */
+  public static async toggleBookmark(conversationId: string, userId: string) {
+    await db
+      .update(conversationParticipants)
+      .set({ isBookmarked: sql`NOT ${conversationParticipants.isBookmarked}` })
+      .where(
+        and(
+          eq(conversationParticipants.conversationId, conversationId),
+          eq(conversationParticipants.userId, userId)
+        )
+      );
+  }
+
+  /**
+   * Toggles the resolved status of a conversation.
+   * @param conversationId - The ID of the conversation to toggle
+   */
+  public static async toggleResolved(conversationId: string) {
+    await db
+      .update(conversations)
+      .set({ isResolved: sql`NOT ${conversations.isResolved}` })
+      .where(eq(conversations.id, conversationId));
+  }
 }

@@ -473,4 +473,89 @@ export class ChatService {
       tags: d.tags,
     }));
   }
+
+  /**
+   * Retrieves all replies for a discussion if the requester is a participant.
+   *
+   * @param discussionId - The ID of the discussion to fetch replies for
+   * @param requester - The user making the request
+   * @returns An array of replies for the discussion
+   */
+  public static async getRepliesForDiscussion(
+    discussionId: string,
+    requester: Requester
+  ) {
+    const isParticipant = await ConversationRepository.isUserParticipant(
+      discussionId,
+      requester.id
+    );
+    if (!isParticipant) throw new ForbiddenError();
+
+    return ConversationRepository.findReplies(discussionId);
+  }
+
+  /**
+   * Posts a reply to a discussion if the requester is a participant.
+   *
+   * @param discussionId - The ID of the discussion to reply to
+   * @param content - The content of the reply
+   * @param requester - The user making the request
+   * @returns The newly created message
+   */
+  public static async postReply(
+    discussionId: string,
+    content: string,
+    requester: Requester
+  ) {
+    const isParticipant = await ConversationRepository.isUserParticipant(
+      discussionId,
+      requester.id
+    );
+    if (!isParticipant) throw new ForbiddenError();
+
+    return MessageRepository.create({
+      conversationId: discussionId,
+      senderId: requester.id,
+      content: content,
+    });
+  }
+
+  /**
+   * Toggles the bookmark status for a discussion for the requester.
+   *
+   * @param discussionId - The ID of the discussion
+   * @param requester - The user making the request
+   */
+  public static async toggleBookmark(
+    discussionId: string,
+    requester: Requester
+  ) {
+    const isParticipant = await ConversationRepository.isUserParticipant(
+      discussionId,
+      requester.id
+    );
+    if (!isParticipant) throw new ForbiddenError();
+
+    await ConversationRepository.toggleBookmark(discussionId, requester.id);
+  }
+
+  /**
+   * Toggles the resolved status of a discussion.
+   *
+   * @param discussionId - The ID of the discussion
+   * @param requester - The user making the request
+   */
+  public static async toggleResolved(
+    discussionId: string,
+    requester: Requester
+  ) {
+    const discussion = await ConversationRepository.findById(discussionId);
+    if (!discussion || discussion.createdById !== requester.id) {
+      throw new ForbiddenError(
+        'Only the original author can resolve this discussion.'
+      );
+    }
+
+    await ConversationRepository.toggleResolved(discussionId);
+  }
 }

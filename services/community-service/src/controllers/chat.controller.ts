@@ -201,6 +201,7 @@ export class ChatController {
         req.body,
         req.currentUser
       );
+
       res.status(StatusCodes.CREATED).json(newDiscussion);
     } catch (error) {
       next(error);
@@ -214,8 +215,82 @@ export class ChatController {
   ) {
     try {
       const { courseId } = courseDiscussionsParamsSchema.parse(req).params;
+
       const discussions = await ChatService.getDiscussionsForCourse(courseId);
+
       res.status(StatusCodes.OK).json(discussions);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getReplies(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { id } = req.params;
+
+      const replies = await ChatService.getRepliesForDiscussion(
+        id,
+        req.currentUser
+      );
+
+      res.status(StatusCodes.OK).json(replies);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async postReply(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { id } = req.params;
+      const { content } = req.body;
+
+      const newReply = await ChatService.postReply(
+        id,
+        content,
+        req.currentUser
+      );
+
+      res.status(StatusCodes.CREATED).json(newReply);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async bookmark(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { id } = req.params;
+
+      await ChatService.toggleBookmark(id, req.currentUser);
+
+      res.status(StatusCodes.OK).json({ message: 'Bookmark toggled.' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async resolve(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { id } = req.params;
+
+      await ChatService.toggleResolved(id, req.currentUser);
+
+      res.status(StatusCodes.OK).json({ message: 'Resolved status toggled.' });
     } catch (error) {
       next(error);
     }

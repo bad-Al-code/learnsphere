@@ -65,3 +65,52 @@ export const courseDiscussionsParamsSchema = z.object({
     courseId: z.uuid(),
   }),
 });
+
+/**
+ * @openapi
+ * components:
+ *   parameters:
+ *     DiscussionIdParam:
+ *       in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *         type: string
+ *         format: uuid
+ *       description: The ID of the discussion
+ */
+export const discussionsParamsSchema = z.object({
+  params: z.object({
+    id: z.uuid(),
+  }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     PostReplyBody:
+ *       type: object
+ *       required:
+ *         - content
+ *       properties:
+ *         content:
+ *           type: string
+ *           description: The content of the reply
+ *           minLength: 1
+ *     PostReplyParams:
+ *       type: object
+ *       required:
+ *         - id
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           description: The ID of the conversation to reply to
+ */
+export const postReplySchema = z.object({
+  body: z.object({
+    content: z.string().min(1, 'Reply content cannot be empty.'),
+  }),
+  params: z.object({ id: z.uuid() }),
+});
