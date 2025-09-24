@@ -356,3 +356,23 @@ export const patchSettingsSchema = z.object({
       message: 'At least one setting must be provided for an update',
     }),
 });
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     GetProfileByEmailParams:
+ *       type: object
+ *       required:
+ *         - email
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: The email address of the profile to fetch
+ */
+export const getProfileByEmailSchema = z.object({
+  params: z.object({
+    email: z.string().email('Please provide a valid email'),
+  }),
+});

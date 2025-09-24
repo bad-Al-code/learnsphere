@@ -20,6 +20,7 @@ import {
   avatarUploadUrlSchema,
   bulkUsersSchema,
   fcmTokenSchema,
+  getProfileByEmailSchema,
   patchSettingsSchema,
   searchProfileSchema,
   updateProfileSchema,
@@ -524,6 +525,43 @@ router.post(
   requireAuth,
   requireRole(['admin']),
   ProfileController.reinstateUser
+);
+
+/**
+ * @openapi
+ * /by-email/{email}:
+ *   get:
+ *     summary: Get a profile ID by email
+ *     tags:
+ *       - Profiles
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: email
+ *         description: The email address of the profile to fetch
+ *     responses:
+ *       200:
+ *         description: Profile ID retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   description: The ID of the profile
+ *       400:
+ *         description: Invalid email format
+ *       404:
+ *         description: Profile not found
+ */
+router.get(
+  '/by-email/:email',
+  validateRequest(getProfileByEmailSchema),
+  ProfileController.getProfileIdByEmail
 );
 
 router.get('/:id/fcm-tokens', ProfileController.getFcmTokens);

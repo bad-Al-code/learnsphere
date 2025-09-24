@@ -127,3 +127,61 @@ export const draftIdParamSchema = z.object({
 
   query: z.object({}).optional(),
 });
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     AddCollaboratorBody:
+ *       type: object
+ *       required:
+ *         - email
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: The email address of the collaborator to add.
+ *
+ *     AddCollaboratorParams:
+ *       type: object
+ *       required:
+ *         - id
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           description: The ID of the resource to which the collaborator will be added.
+ */
+
+/**
+ * @openapi
+ * /collaborators/{id}:
+ *   post:
+ *     summary: Add a collaborator to a resource
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           $ref: '#/components/schemas/AddCollaboratorParams'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AddCollaboratorBody'
+ *     responses:
+ *       200:
+ *         description: Collaborator added successfully
+ *       400:
+ *         description: Invalid email or ID
+ */
+
+export const addCollaboratorSchema = z.object({
+  body: z.object({
+    email: z
+      .string()
+      .email('Please provide a valid email for the collaborator.'),
+  }),
+  params: z.object({ id: z.string().uuid() }),
+});

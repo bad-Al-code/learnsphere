@@ -47,7 +47,7 @@ router.get('/my-feedback', AIController.getMyFeedback);
 
 /**
  * @openapi
- * /api/ai-feedback/{submissionId}/recheck:
+ * /api/ai/{submissionId}/recheck:
  *   post:
  *     summary: Request AI feedback recheck for a specific submission
  *     tags:
@@ -98,7 +98,7 @@ router.post('/:submissionId/recheck', AIController.requestRecheck);
 
 /**
  * @openapi
- * /api/ai-feedback/{id}/suggestions:
+ * /api/ai/{id}/suggestions:
  *   post:
  *     summary: Generate AI draft suggestions
  *     description: Returns AI-generated suggestions (content, structure, grammar, research, etc.) for a given draft.

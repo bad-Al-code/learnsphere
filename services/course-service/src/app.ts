@@ -58,7 +58,7 @@ app.use('/api', assignmentRouter);
 app.use('/api', resourceRouter);
 app.use('/api/assignments/drafts', draftRouter);
 app.use('/api/analytics', analyticsRouter);
-app.use('/api/ai-feedback', aiRouter);
+app.use('/api/ai', aiRouter);
 
 app.use(errorHandler);
 

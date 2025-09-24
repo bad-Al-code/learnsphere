@@ -235,4 +235,21 @@ export class ProfileRepository {
       pendingApplications: pendingApplicationsResult[0].value,
     };
   }
+
+  /**
+Finds a single user by their email address, returning only public essentials.
+@param email The user's email address.
+@returns A simplified user object or undefined if not found.
+*/
+  public static async findPublicByEmail(
+    email: string
+  ): Promise<{ id: string } | undefined> {
+    const [user] = await db
+      .select({ id: profiles.userId })
+      .from(profiles)
+      .where(eq(profiles.email, email.toLowerCase()))
+      .limit(1);
+
+    return user;
+  }
 }

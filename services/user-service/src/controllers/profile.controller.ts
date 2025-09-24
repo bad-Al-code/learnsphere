@@ -67,6 +67,22 @@ export class ProfileController {
     }
   }
 
+  public static async getProfileIdByEmail(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { email } = req.params;
+
+      const profile = await ProfileService.getProfileIdByEmail(email);
+
+      res.status(StatusCodes.OK).json(profile);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public static async updateUserProfileById(
     req: Request,
     res: Response,

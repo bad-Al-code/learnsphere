@@ -1,7 +1,8 @@
 import { EnrollmentClient } from '../clients/enrollment.client';
+import { UserClient } from '../clients/user.client';
 import { AssignmentRepository, DraftRepository } from '../db/repostiories';
 import { Assignment, AssignmentDraft, NewAssignmentDraft } from '../db/schema';
-import { ForbiddenError, NotFoundError } from '../errors';
+import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
 import { Requester } from '../types';
 
 export class DraftService {
@@ -109,5 +110,59 @@ export class DraftService {
   ): Promise<void> {
     await this.verifyOwnership(draftId, requester);
     await DraftRepository.delete(draftId);
+  }
+
+  /**
+   * Adds a collaborator to a draft by email.
+   * @param draftId - The ID of the draft.
+   * @param collaboratorEmail - The email of the collaborator to add.
+   * @param requester - The user making the request.
+   */
+  public static async addCollaborator(
+    draftId: string,
+    collaboratorEmail: string,
+    requester: Requester
+  ) {
+    await this.verifyOwnership(draftId, requester);
+
+    const userToAdd = await UserClient.findUserByEmail(collaboratorEmail);
+    if (!userToAdd) {
+      throw new NotFoundError('User with that email not found.');
+    }
+
+    if (userToAdd.id === requester.id) {
+      throw new BadRequestError('You cannot add yourself as a collaborator.');
+    }
+
+    const isAlreadyCollaborator = await DraftRepository.isUserCollaborator(
+      draftId,
+      userToAdd.id
+    );
+    if (isAlreadyCollaborator) {
+      throw new BadRequestError(
+        'User is already a collaborator on this draft.'
+      );
+    }
+
+    await DraftRepository.addCollaborator(draftId, userToAdd.id);
+  }
+
+  /**
+   *
+   * @param draftId - The ID of the draft.
+   * @param requester - The user making the request.
+   * @returns An object containing the shareable link.
+   */
+  public static async generateShareLink(
+    draftId: string,
+    requester: Requester
+  ): Promise<{
+    shareLink: string;
+  }> {
+    await this.verifyOwnership(draftId, requester);
+
+    const shareLink = `http://localhost:3000/student/assignments/drafts/${draftId}?shared=true`; // Placeholder
+
+    return { shareLink };
   }
 }

@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
+import { NotAuthorizedError } from '../errors';
 import { DraftService } from '../services/draft.service';
 
 export class DraftController {
@@ -76,6 +77,39 @@ export class DraftController {
       res.status(StatusCodes.NO_CONTENT).send();
     } catch (e) {
       next(e);
+    }
+  }
+
+  public static async addCollaborator(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { id } = req.params;
+      const { email } = req.body;
+
+      await DraftService.addCollaborator(id, email, req.currentUser);
+
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'Collaborator added successfully.' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async share(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { id } = req.params;
+
+      const result = await DraftService.generateShareLink(id, req.currentUser);
+
+      res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+      next(error);
     }
   }
 }

@@ -1,6 +1,6 @@
 import axios from 'axios';
-import logger from '../config/logger';
 import { env } from '../config/env';
+import logger from '../config/logger';
 
 interface PublicProfile {
   userId: string;
@@ -44,6 +44,31 @@ export class UserClient {
       });
 
       return new Map();
+    }
+  }
+
+  /**
+   * Finds a user by their email address.
+   * @param email - The email of the user to look up.
+   * @returns A promise that resolves to an object containing the user's ID if found, or null if no user exists with that email.
+   */
+  public static async findUserByEmail(
+    email: string
+  ): Promise<{ id: string } | null> {
+    try {
+      const response = await axios.get<{ id: string }>(
+        `${this.userServiceUrl}/api/users/by-email/${email}`
+      );
+
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
+
+      logger.error('Failed to fetch user by email', { error });
+
+      throw error;
     }
   }
 }

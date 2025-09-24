@@ -93,4 +93,62 @@ export class DraftRepository {
       where: eq(assignmentDrafts.id, draftId),
     });
   }
+
+  /**
+   * Adds a collaborator to the specified draft.
+   * @param draftId - The ID of the draft to update.
+   * @param collaboratorId - The ID of the collaborator to add.
+   * @returns A promise that resolves when the collaborator has been added.
+   */
+  public static async addCollaborator(
+    draftId: string,
+    collaboratorId: string
+  ): Promise<void> {
+    const draft = await db
+      .select({ collaborators: assignmentDrafts.collaborators })
+      .from(assignmentDrafts)
+      .where(eq(assignmentDrafts.id, draftId))
+      .limit(1);
+
+    if (!draft.length) {
+      throw new Error('Draft not found');
+    }
+
+    const currentCollaborators = draft[0].collaborators || [];
+    const updatedCollaborators = [
+      ...new Set([...currentCollaborators, collaboratorId]),
+    ];
+
+    await db
+      .update(assignmentDrafts)
+      .set({
+        collaborators: updatedCollaborators,
+        lastSaved: new Date(),
+      })
+      .where(eq(assignmentDrafts.id, draftId));
+  }
+
+  /**
+   * Checks if a given user is a collaborator on a specific draft.
+   * @param draftId - The ID of the draft to check
+   * @param userId - The ID of the user to verify
+   * @returns A promise that resolves to `true` if the user is a collaborator, or `false` otherwise
+   */
+  public static async isUserCollaborator(
+    draftId: string,
+    userId: string
+  ): Promise<boolean> {
+    const draft = await db
+      .select({ collaborators: assignmentDrafts.collaborators })
+      .from(assignmentDrafts)
+      .where(eq(assignmentDrafts.id, draftId))
+      .limit(1);
+
+    if (!draft.length) {
+      return false;
+    }
+
+    const collaborators = draft[0].collaborators || [];
+    return collaborators.includes(userId);
+  }
 }

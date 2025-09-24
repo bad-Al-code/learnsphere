@@ -47,6 +47,21 @@ export class ProfileService {
   }
 
   /**
+   * Retrieves a user's public ID by their email address.
+   * @param email The user's email.
+   * @returns An object containing the user's ID.
+   * @throws {NotFoundError} If the profile is not found.
+   */
+  public static async getProfileIdByEmail(email: string) {
+    const profile = await ProfileRepository.findPublicByEmail(email);
+    if (!profile) {
+      throw new NotFoundError('User Profile');
+    }
+
+    return profile;
+  }
+
+  /**
    * Retrieves the public-safe profile for a user.
    * @param userId The ID of the user.
    * @returns A public profile object.

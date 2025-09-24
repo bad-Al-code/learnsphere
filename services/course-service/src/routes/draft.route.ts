@@ -4,6 +4,7 @@ import { DraftController } from '../controllers/draft.controller';
 import { requireAuth } from '../middlewares/require-auth';
 import { validateRequest } from '../middlewares/validate-request';
 import {
+  addCollaboratorSchema,
   createDraftSchema,
   draftIdParamSchema,
   updateDraftSchema,
@@ -132,6 +133,84 @@ router.delete(
   '/:id',
   validateRequest(draftIdParamSchema),
   DraftController.delete
+);
+
+/**
+ * @openapi
+ * /api/assignments/{id}/collaborators:
+ *   post:
+ *     summary: Add a collaborator to a draft
+ *     tags:
+ *       - Drafts
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID of the draft
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email of the collaborator to add
+ *     responses:
+ *       200:
+ *         description: Collaborator added successfully
+ *       400:
+ *         description: Bad request (invalid email or trying to add self)
+ *       404:
+ *         description: User not found
+ */
+router.post(
+  '/:id/collaborators',
+  validateRequest(addCollaboratorSchema),
+  DraftController.addCollaborator
+);
+
+/**
+ * @openapi
+ * /api/assignments/{id}/share:
+ *   post:
+ *     summary: Generate a shareable link for a draft
+ *     tags:
+ *       - Drafts
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID of the draft
+ *     responses:
+ *       200:
+ *         description: Share link generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 shareLink:
+ *                   type: string
+ *                   format: uri
+ *                   description: The generated shareable link
+ *       403:
+ *         description: Unauthorized or not owner of the draft
+ */
+router.post(
+  '/:id/share',
+  validateRequest(draftIdParamSchema),
+  DraftController.share
 );
 
 export { router as draftRouter };
