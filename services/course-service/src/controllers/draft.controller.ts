@@ -108,6 +108,22 @@ export class DraftController {
       const result = await DraftService.generateShareLink(id, req.currentUser);
 
       res.status(StatusCodes.OK).json(result);
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  public static async getShared(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { token } = req.params;
+
+      const draft = await DraftService.getSharedDraft(token);
+
+      res.status(StatusCodes.OK).json(draft);
     } catch (error) {
       next(error);
     }

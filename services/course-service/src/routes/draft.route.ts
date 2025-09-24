@@ -7,10 +7,44 @@ import {
   addCollaboratorSchema,
   createDraftSchema,
   draftIdParamSchema,
+  shareTokenParamsSchema,
   updateDraftSchema,
 } from '../schemas';
 
 const router = Router();
+
+/**
+ * @openapi
+ * /api/community/shared/{token}:
+ *   get:
+ *     summary: Retrieve a shared draft by token
+ *     tags:
+ *       - Community
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The JWT token for accessing the shared draft
+ *     responses:
+ *       200:
+ *         description: Shared draft retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AssignmentDraft'
+ *       403:
+ *         description: Invalid or expired token
+ *       404:
+ *         description: Shared draft not found
+ */
+router.get(
+  '/shared/:token',
+  validateRequest(shareTokenParamsSchema),
+  DraftController.getShared
+);
+
 router.use(requireAuth);
 
 /**

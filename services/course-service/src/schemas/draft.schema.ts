@@ -185,3 +185,20 @@ export const addCollaboratorSchema = z.object({
   }),
   params: z.object({ id: z.string().uuid() }),
 });
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ShareTokenParams:
+ *       type: object
+ *       required:
+ *         - token
+ *       properties:
+ *         token:
+ *           type: string
+ *           description: The JWT token for accessing the shared draft
+ */
+export const shareTokenParamsSchema = z.object({
+  params: z.object({ token: z.string() }),
+});

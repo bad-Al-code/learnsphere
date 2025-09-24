@@ -32,6 +32,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -1087,43 +1088,45 @@ export function DraftsTab({ courseId }: { courseId?: string }) {
             </Button>
           </div>
 
-          <div className="max-h-64 space-y-3 overflow-y-auto">
-            {isGeneratingAI
-              ? Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="rounded-lg border p-3">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Skeleton className="h-4 w-20" />
-                      <Skeleton className="h-4 w-16" />
-                    </div>
-                    <Skeleton className="mb-1 h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                  </div>
-                ))
-              : aiSuggestions.map((suggestion, index) => (
-                  <div
-                    key={index}
-                    className="hover:bg-muted/50 rounded-lg border p-3"
-                  >
-                    <div className="mb-2 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="capitalize">
-                          {suggestion.type}
-                        </Badge>
-                        <div className="flex items-center gap-1">
-                          <TrendingUp className="h-3 w-3 text-green-500" />
-                          <span className="text-muted-foreground text-xs">
-                            {suggestion.confidence}% confidence
-                          </span>
-                        </div>
+          <ScrollArea className="h-72">
+            <div className="space-y-3 p-4">
+              {isGeneratingAI
+                ? Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="rounded-lg border p-3">
+                      <div className="mb-2 flex items-center gap-2">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-4 w-16" />
                       </div>
-                      <Button variant="ghost" size="sm">
-                        <Copy className="h-4 w-4" />
-                      </Button>
+                      <Skeleton className="mb-1 h-4 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
                     </div>
-                    <p className="text-sm">{suggestion.suggestion}</p>
-                  </div>
-                ))}
-          </div>
+                  ))
+                : aiSuggestions.map((suggestion, index) => (
+                    <div
+                      key={index}
+                      className="hover:bg-muted/50 rounded-lg border p-3"
+                    >
+                      <div className="mb-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="capitalize">
+                            {suggestion.type}
+                          </Badge>
+                          <div className="flex items-center gap-1">
+                            <TrendingUp className="h-3 w-3 text-green-500" />
+                            <span className="text-muted-foreground text-xs">
+                              {suggestion.confidence}% confidence
+                            </span>
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="sm">
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-sm">{suggestion.suggestion}</p>
+                    </div>
+                  ))}
+            </div>
+          </ScrollArea>
 
           <Separator />
 

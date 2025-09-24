@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -20,8 +21,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import {
   AlertCircle,
@@ -423,9 +426,9 @@ function PeerReviewInterface() {
   const isStepComplete = (stepId: TReviewStep) => {
     switch (stepId) {
       case 'overview':
-        return true; // Always complete after viewing
+        return true;
       case 'content':
-        return true; // Complete after viewing content
+        return true;
       case 'scoring':
         return assignment.criteria.every(
           (c) => reviewForm.scores[c.id] !== undefined
@@ -447,8 +450,8 @@ function PeerReviewInterface() {
     switch (currentStep) {
       case 'overview':
         return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="space-y-2">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -562,7 +565,7 @@ function PeerReviewInterface() {
                     {assignment.attachments.map((attachment, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between rounded bg-gray-50 p-2"
+                        className="bg-wp-2 flex items-center justify-between rounded"
                       >
                         <span className="text-sm">{attachment}</span>
                         <Button size="sm" variant="outline">
@@ -580,7 +583,7 @@ function PeerReviewInterface() {
 
       case 'content':
         return (
-          <div className="space-y-4">
+          <div className="space-y-2">
             <Card>
               <CardHeader>
                 <CardTitle>Assignment Content</CardTitle>
@@ -589,389 +592,395 @@ function PeerReviewInterface() {
                   needed.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="max-h-[600px] overflow-y-auto rounded-lg border bg-gray-50 p-4">
-                  <div className="prose prose-sm max-w-none">
-                    <pre className="font-sans text-sm leading-relaxed whitespace-pre-wrap">
-                      {assignment.assignmentContent}
-                    </pre>
-                  </div>
-                </div>
-              </CardContent>
+
+              <ScrollArea className="h-32 border border-red-500 pr-3">
+                {assignment.assignmentContent}
+              </ScrollArea>
             </Card>
           </div>
         );
 
       case 'scoring':
         return (
-          <div className="space-y-6">
-            {assignment.criteria.map((criterion) => (
-              <Card key={criterion.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
+          <ScrollArea className="h-96 pr-3">
+            <div className="space-y-2">
+              {assignment.criteria.map((criterion) => (
+                <Card key={criterion.id}>
+                  <CardHeader>
+                    <CardTitle className="text-lg">{criterion.name}</CardTitle>
+                    <CardDescription className="mt-1">
+                      {criterion.description}
+                    </CardDescription>
+                    <CardAction>
+                      {reviewForm.scores[criterion.id] || 0}
+                      out of {criterion.maxPoints}
+                    </CardAction>
+                  </CardHeader>
+
+                  <CardContent className="space-y-2">
                     <div>
-                      <CardTitle className="text-lg">
-                        {criterion.name}
-                      </CardTitle>
-                      <CardDescription className="mt-1">
-                        {criterion.description}
-                      </CardDescription>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {reviewForm.scores[criterion.id] || 0}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        out of {criterion.maxPoints}
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label className="mb-2 block text-sm font-medium">
-                      Score (0 - {criterion.maxPoints} points)
-                    </Label>
-                    <div className="space-y-2">
-                      <Input
-                        type="range"
-                        min="0"
-                        max={criterion.maxPoints}
-                        value={reviewForm.scores[criterion.id] || 0}
-                        onChange={(e) =>
-                          handleScoreChange(
-                            criterion.id,
-                            parseInt(e.target.value)
-                          )
-                        }
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-xs text-gray-500">
-                        <span>Poor (0)</span>
-                        <span>
-                          Fair ({Math.floor(criterion.maxPoints * 0.25)})
-                        </span>
-                        <span>
-                          Good ({Math.floor(criterion.maxPoints * 0.75)})
-                        </span>
-                        <span>Excellent ({criterion.maxPoints})</span>
-                      </div>
-                    </div>
-                  </div>
+                      <Label className="mb-2 block text-sm font-medium">
+                        Score (0 - {criterion.maxPoints} points)
+                      </Label>
+                      <div className="space-y-2">
+                        <Slider
+                          min={0}
+                          max={criterion.maxPoints}
+                          step={1}
+                          value={[reviewForm.scores[criterion.id] || 0]}
+                          onValueChange={(val) =>
+                            handleScoreChange(criterion.id, val[0])
+                          }
+                          className="w-full"
+                        />
 
-                  <div>
-                    <Label
-                      htmlFor={`feedback-${criterion.id}`}
-                      className="text-sm font-medium"
-                    >
-                      Specific Feedback for {criterion.name}
-                    </Label>
-                    <Textarea
-                      id={`feedback-${criterion.id}`}
-                      placeholder={`Provide specific feedback on ${criterion.name.toLowerCase()}...`}
-                      value={reviewForm.feedback[criterion.id] || ''}
-                      onChange={(e) =>
-                        handleFeedbackChange(criterion.id, e.target.value)
-                      }
-                      className="mt-2 min-h-[100px]"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            <Card className="border-blue-200 bg-blue-50">
-              <CardContent className="p-4">
-                <div className="text-center">
-                  <div className="mb-1 text-3xl font-bold text-blue-600">
-                    {calculateOverallScore()}/100
-                  </div>
-                  <div className="text-sm text-blue-800">
-                    Calculated Overall Score
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-
-      case 'feedback':
-        return (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-700">
-                  <ThumbsUp className="h-5 w-5" />
-                  Strengths & Positive Aspects
-                </CardTitle>
-                <CardDescription>
-                  Highlight what the student did well. Be specific and
-                  encouraging.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Add a strength or positive aspect..."
-                    value={tempStrength}
-                    onChange={(e) => setTempStrength(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addStrength()}
-                  />
-                  <Button onClick={addStrength} disabled={!tempStrength.trim()}>
-                    Add
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  {reviewForm.strengths.map((strength, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between rounded-lg border-green-200 bg-green-50 p-3"
-                    >
-                      <span className="text-sm">{strength}</span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => removeStrength(index)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                  {reviewForm.strengths.length === 0 && (
-                    <p className="text-sm text-gray-500 italic">
-                      No strengths added yet. Add at least one positive aspect.
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-blue-700">
-                  <Lightbulb className="h-5 w-5" />
-                  Areas for Improvement
-                </CardTitle>
-                <CardDescription>
-                  Provide constructive suggestions for improvement. Be specific
-                  and actionable.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Add an area for improvement..."
-                    value={tempImprovement}
-                    onChange={(e) => setTempImprovement(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addImprovement()}
-                  />
-                  <Button
-                    onClick={addImprovement}
-                    disabled={!tempImprovement.trim()}
-                  >
-                    Add
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  {reviewForm.improvements.map((improvement, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between rounded-lg border-blue-200 bg-blue-50 p-3"
-                    >
-                      <span className="text-sm">{improvement}</span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => removeImprovement(index)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                  {reviewForm.improvements.length === 0 && (
-                    <p className="text-sm text-gray-500 italic">
-                      No improvements added yet. Add at least one suggestion.
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Overall Comments</CardTitle>
-                <CardDescription>
-                  Provide comprehensive feedback summarizing your review.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  placeholder="Write your overall feedback, summary, and any additional comments..."
-                  value={reviewForm.overallFeedback}
-                  onChange={(e) =>
-                    setReviewForm((prev) => ({
-                      ...prev,
-                      overallFeedback: e.target.value,
-                    }))
-                  }
-                  className="min-h-[150px]"
-                />
-                <div className="mt-2 text-xs text-gray-500">
-                  {reviewForm.overallFeedback.length}/500 characters (minimum 10
-                  required)
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-
-      case 'summary':
-        return (
-          <div className="space-y-6">
-            <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-green-50">
-              <CardHeader>
-                <CardTitle className="text-center">Review Summary</CardTitle>
-                <CardDescription className="text-center">
-                  Final review before submission
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4 text-center">
-                  <div className="text-6xl font-bold text-blue-600">
-                    {calculateOverallScore()}
-                  </div>
-                  <div className="text-lg text-gray-700">
-                    Overall Score out of 100
-                  </div>
-                  <div className="flex justify-center gap-4 text-sm text-gray-600">
-                    <span>Time Spent: {getTimeSpent()} minutes</span>
-                    <span>•</span>
-                    <span>{reviewForm.strengths.length} strengths noted</span>
-                    <span>•</span>
-                    <span>
-                      {reviewForm.improvements.length} improvements suggested
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Criterion Scores</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {assignment.criteria.map((criterion) => (
-                      <div
-                        key={criterion.id}
-                        className="flex items-center justify-between"
-                      >
-                        <div>
-                          <p className="text-sm font-medium">
-                            {criterion.name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Weight: {Math.round(criterion.weight * 100)}%
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <span className="font-bold">
-                            {reviewForm.scores[criterion.id] || 0}
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>Poor (0)</span>
+                          <span>
+                            Fair ({Math.floor(criterion.maxPoints * 0.25)})
                           </span>
-                          <span className="text-gray-500">
-                            /{criterion.maxPoints}
+                          <span>
+                            Good ({Math.floor(criterion.maxPoints * 0.75)})
                           </span>
+                          <span>Excellent ({criterion.maxPoints})</span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                    </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Review Completeness</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {steps.map((step) => (
-                      <div key={step.id} className="flex items-center gap-2">
-                        {isStepComplete(step.id) ? (
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <AlertCircle className="h-4 w-4 text-gray-400" />
-                        )}
-                        <span
-                          className={`text-sm ${isStepComplete(step.id) ? 'text-green-700' : 'text-gray-500'}`}
-                        >
-                          {step.title}
-                        </span>
-                      </div>
-                    ))}
+                    <div>
+                      <Label
+                        htmlFor={`feedback-${criterion.id}`}
+                        className="text-sm font-medium"
+                      >
+                        Specific Feedback for {criterion.name}
+                      </Label>
+                      <ScrollArea className="mt-2 max-h-48 rounded-md border">
+                        <Textarea
+                          id={`feedback-${criterion.id}`}
+                          placeholder={`Provide specific feedback on ${criterion.name.toLowerCase()}...`}
+                          value={reviewForm.feedback[criterion.id] || ''}
+                          onChange={(e) =>
+                            handleFeedbackChange(criterion.id, e.target.value)
+                          }
+                          className="min-h-[100px] border-0 focus-visible:ring-0"
+                        />
+                      </ScrollArea>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              <Card className="">
+                <CardContent className="">
+                  <div className="text-center">
+                    <div className="mb-1 text-3xl font-bold">
+                      {calculateOverallScore()}/100
+                    </div>
+                    <div className="text-sm">Calculated Overall Score</div>
                   </div>
                 </CardContent>
               </Card>
             </div>
+          </ScrollArea>
+        );
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Final Review Preview</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="mb-2 font-medium text-green-700">
-                    Strengths:
-                  </h4>
-                  <ul className="space-y-1">
+      case 'feedback':
+        return (
+          <ScrollArea className="h-96 pr-3">
+            <div className="space-y-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ThumbsUp className="h-5 w-5" />
+                    Strengths & Positive Aspects
+                  </CardTitle>
+
+                  <CardDescription>
+                    Highlight what the student did well. Be specific and
+                    encouraging.
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add a strength or positive aspect..."
+                      value={tempStrength}
+                      onChange={(e) => setTempStrength(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addStrength()}
+                    />
+                    <Button
+                      onClick={addStrength}
+                      disabled={!tempStrength.trim()}
+                    >
+                      Add
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
                     {reviewForm.strengths.map((strength, index) => (
-                      <li
+                      <div
                         key={index}
-                        className="flex items-start gap-2 text-sm"
+                        className="flex items-center justify-between rounded-lg p-3"
                       >
-                        <span className="mt-1 text-green-500">•</span>
-                        {strength}
-                      </li>
+                        <span className="text-sm">{strength}</span>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => removeStrength(index)}
+                          className=""
+                        >
+                          Remove
+                        </Button>
+                      </div>
                     ))}
-                  </ul>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <h4 className="mb-2 font-medium text-blue-700">
-                    Areas for Improvement:
-                  </h4>
-                  <ul className="space-y-1">
-                    {reviewForm.improvements.map((improvement, index) => (
-                      <li
-                        key={index}
-                        className="flex items-start gap-2 text-sm"
-                      >
-                        <span className="mt-1 text-blue-500">•</span>
-                        {improvement}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {reviewForm.overallFeedback && (
-                  <>
-                    <Separator />
-                    <div>
-                      <h4 className="mb-2 font-medium">Overall Comments:</h4>
-                      <p className="rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
-                        {reviewForm.overallFeedback}
+                    {reviewForm.strengths.length !== 0 && (
+                      <p className="text-muted-foreground text-sm italic">
+                        No strengths added yet. Add at least one positive
+                        aspect.
                       </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5" />
+                    Areas for Improvement
+                  </CardTitle>
+                  <CardDescription>
+                    Provide constructive suggestions for improvement. Be
+                    specific and actionable.
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add an area for improvement..."
+                      value={tempImprovement}
+                      onChange={(e) => setTempImprovement(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addImprovement()}
+                    />
+                    <Button
+                      onClick={addImprovement}
+                      disabled={!tempImprovement.trim()}
+                    >
+                      Add
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {reviewForm.improvements.map((improvement, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded-lg p-3"
+                      >
+                        <span className="text-sm">{improvement}</span>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => removeImprovement(index)}
+                          className=""
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                    {reviewForm.improvements.length === 0 && (
+                      <p className="text-muted-foreground text-sm italic">
+                        No improvements added yet. Add at least one suggestion.
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Overall Comments</CardTitle>
+                  <CardDescription>
+                    Provide comprehensive feedback summarizing your review.
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent>
+                  <ScrollArea className="h-48 pr-3">
+                    <Textarea
+                      placeholder="Write your overall feedback, summary, and any additional comments..."
+                      value={reviewForm.overallFeedback}
+                      onChange={(e) =>
+                        setReviewForm((prev) => ({
+                          ...prev,
+                          overallFeedback: e.target.value,
+                        }))
+                      }
+                      className="min-h-[150px]"
+                    />
+                  </ScrollArea>
+                  <div className="text-muted-foreground mt-2 text-xs">
+                    {reviewForm.overallFeedback.length}/500 characters (minimum
+                    10 required)
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </ScrollArea>
+        );
+
+      case 'summary':
+        return (
+          <ScrollArea className="h-96 pr-3">
+            <div className="space-y-2">
+              <Card className="">
+                <CardHeader>
+                  <CardTitle className="text-center">Review Summary</CardTitle>
+                  <CardDescription className="text-center">
+                    Final review before submission
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent>
+                  <div className="space-y-2 text-center">
+                    <div className="text-6xl font-bold">
+                      {calculateOverallScore()}
                     </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                    <div className="text-muted-foreground text-lg">
+                      Overall Score out of 100
+                    </div>
+
+                    <div className="text-muted-foreground flex justify-center gap-4 text-sm">
+                      <span>Time Spent: {getTimeSpent()} minutes</span>
+                      <span>•</span>
+                      <span>{reviewForm.strengths.length} strengths noted</span>
+                      <span>•</span>
+                      <span>
+                        {reviewForm.improvements.length} improvements suggested
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Criterion Scores</CardTitle>
+                  </CardHeader>
+
+                  <CardContent>
+                    <div className="space-y-3">
+                      {assignment.criteria.map((criterion) => (
+                        <div
+                          key={criterion.id}
+                          className="flex items-center justify-between"
+                        >
+                          <div>
+                            <p className="text-sm font-medium">
+                              {criterion.name}
+                            </p>
+                            <p className="text-muted-foreground text-xs">
+                              Weight: {Math.round(criterion.weight * 100)}%
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <span className="font-bold">
+                              {reviewForm.scores[criterion.id] || 0}
+                            </span>
+                            <span className="text-muted-foreground">
+                              /{criterion.maxPoints}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      Review Completeness
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {steps.map((step) => (
+                        <div key={step.id} className="flex items-center gap-2">
+                          {isStepComplete(step.id) ? (
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <AlertCircle className="h-4 w-4 text-gray-400" />
+                          )}
+                          <span
+                            className={`text-sm ${isStepComplete(step.id) ? 'text-green-700' : 'text-gray-500'}`}
+                          >
+                            {step.title}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Final Review Preview</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div>
+                    <h4 className="mb-2 font-medium text-green-700">
+                      Strengths:
+                    </h4>
+                    <ul className="space-y-1">
+                      {reviewForm.strengths.map((strength, index) => (
+                        <li
+                          key={index}
+                          className="flex items-start gap-2 text-sm"
+                        >
+                          <span className="mt-1 text-green-500">•</span>
+                          {strength}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <h4 className="mb-2 font-medium">Areas for Improvement:</h4>
+
+                    <ul className="space-y-1">
+                      {reviewForm.improvements.map((improvement, index) => (
+                        <li
+                          key={index}
+                          className="flex items-start gap-2 text-sm"
+                        >
+                          <span className="mt-1 text-blue-500">•</span>
+                          {improvement}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {reviewForm.overallFeedback && (
+                    <>
+                      <Separator />
+                      <div>
+                        <h4 className="mb-2 font-medium">Overall Comments:</h4>
+                        <p className="rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
+                          {reviewForm.overallFeedback}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </ScrollArea>
         );
 
       default:
@@ -980,17 +989,18 @@ function PeerReviewInterface() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <Card className="transition-all hover:shadow-md">
-        <CardContent className="p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <CardContent className="">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex-1">
               <div className="mb-2 flex flex-wrap items-center gap-2">
                 <h3 className="text-lg font-semibold">{assignment.title}</h3>
-                <Badge className="bg-gray-100 text-gray-800 capitalize">
+                <Badge className="capitalize">
                   {assignment.status.replace('-', ' ')}
                 </Badge>
               </div>
+
               <p className="text-muted-foreground text-sm">
                 by {assignment.author} • {assignment.course}
               </p>
@@ -1034,7 +1044,7 @@ function PeerReviewInterface() {
       </Card>
 
       <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
-        <DialogContent className="flex max-h-[95vh] max-w-6xl flex-col overflow-hidden">
+        <DialogContent className="flex flex-col overflow-hidden">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
@@ -1099,7 +1109,7 @@ function PeerReviewInterface() {
             {renderStepContent()}
           </div>
 
-          <div className="flex flex-shrink-0 items-center justify-between border-t bg-gray-50 px-2 py-4">
+          <div className="flex flex-shrink-0 items-center justify-between border-t px-2 py-4">
             <div className="flex items-center gap-4">
               <div className="text-sm text-gray-600">
                 Step {getCurrentStepIndex() + 1} of {steps.length}
@@ -1137,7 +1147,6 @@ function PeerReviewInterface() {
               ) : (
                 <Button
                   onClick={() => {
-                    // Submit review
                     console.log('Submitting review:', {
                       assignmentId: assignment.id,
                       scores: reviewForm.scores,
@@ -1316,7 +1325,7 @@ export function PeerReviewTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -1327,38 +1336,35 @@ export function PeerReviewTab() {
             Review your classmates' work and provide constructive feedback
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
-            <div className="rounded-lg bg-blue-50 p-3 text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {stats.total}
-              </div>
-              <div className="text-xs text-blue-800">Total</div>
-            </div>
-            <div className="rounded-lg bg-green-50 p-3 text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {stats.completed}
-              </div>
-              <div className="text-xs text-green-800">Completed</div>
-            </div>
-            <div className="rounded-lg bg-yellow-50 p-3 text-center">
-              <div className="text-2xl font-bold text-yellow-600">
-                {stats.pending}
-              </div>
-              <div className="text-xs text-yellow-800">In Progress</div>
-            </div>
-            <div className="rounded-lg bg-gray-50 p-3 text-center">
-              <div className="text-2xl font-bold text-gray-600">
-                {stats.notStarted}
-              </div>
-              <div className="text-xs text-gray-800">Not Started</div>
-            </div>
-            <div className="rounded-lg bg-red-50 p-3 text-center">
-              <div className="text-2xl font-bold text-red-600">
+
+        <CardContent className="space-y-2">
+          <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
+            <Card className="text-center">
+              <div className="text-2xl font-bold">{stats.total}</div>
+              <div className="text-xs">Total</div>
+            </Card>
+
+            <Card className="text-center">
+              <div className="text-2xl font-bold">{stats.completed}</div>
+              <div className="text-xs">Completed</div>
+            </Card>
+
+            <Card className="text-center">
+              <div className="text-2xl font-bold">{stats.pending}</div>
+              <div className="text-xs">In Progress</div>
+            </Card>
+
+            <Card className="text-center">
+              <div className="text-2xl font-bold">{stats.notStarted}</div>
+              <div className="text-xs">Not Started</div>
+            </Card>
+
+            <Card className="text-center">
+              <div className="text-destructive text-2xl font-bold">
                 {stats.overdue}
               </div>
-              <div className="text-xs text-red-800">Overdue</div>
-            </div>
+              <div className="text-destructive/80 text-xs">Overdue</div>
+            </Card>
           </div>
 
           <div className="mb-4 flex flex-wrap gap-2">
@@ -1368,6 +1374,7 @@ export function PeerReviewTab() {
                   key={status}
                   variant={filter === status ? 'default' : 'outline'}
                   size="sm"
+                  className="transition-none"
                   onClick={() => setFilter(status)}
                 >
                   {status === 'all'
@@ -1381,17 +1388,17 @@ export function PeerReviewTab() {
           </div>
 
           {stats.overdue > 0 && (
-            <Alert className="mb-4 border-red-200 bg-red-50">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <AlertTitle className="text-red-800">Overdue Reviews</AlertTitle>
-              <AlertDescription className="text-red-700">
+            <Alert className="" variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle className="">Overdue Reviews</AlertTitle>
+              <AlertDescription className="">
                 You have {stats.overdue} overdue review
                 {stats.overdue > 1 ? 's' : ''} that need immediate attention.
               </AlertDescription>
             </Alert>
           )}
 
-          <div className="space-y-4">
+          <div className="space-y-2">
             {filteredReviews.map((review) => (
               <ReviewCard
                 key={review.id}
@@ -1438,15 +1445,13 @@ function ReviewCard({
   const getStatusColor = (status: TReviewStatus) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return '';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return '';
       case 'not-started':
-        return assignment.isOverdue
-          ? 'bg-red-100 text-red-800'
-          : 'bg-gray-100 text-gray-800';
+        return assignment.isOverdue ? '' : '';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return '';
     }
   };
 
@@ -1627,135 +1632,139 @@ function ReviewCard({
     switch (currentStep) {
       case 'overview':
         return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Assignment Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">
-                      Author
-                    </Label>
-                    <p className="font-medium">{assignment.author}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">
-                      Course
-                    </Label>
-                    <p className="font-medium">{assignment.course}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">
-                      Assignment Type
-                    </Label>
-                    <p className="font-medium">{assignment.assignmentType}</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">
-                        Submitted
-                      </Label>
-                      <p className="flex items-center gap-1 text-sm">
-                        <Calendar className="h-3 w-3" />
-                        {assignment.submittedDate}
-                      </p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">
-                        Review Due
-                      </Label>
-                      <p className="flex items-center gap-1 text-sm">
-                        <Timer className="h-3 w-3" />
-                        {assignment.reviewDueDate}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+          <ScrollArea className="h-96 pr-3">
+            <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Assignment Details
+                    </CardTitle>
+                  </CardHeader>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-4 w-4" />
-                    Evaluation Criteria
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {assignment.criteria.map((criterion) => (
-                      <div
-                        key={criterion.id}
-                        className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
-                      >
-                        <div>
-                          <p className="text-sm font-medium">
-                            {criterion.name}
-                          </p>
-                          <p className="text-xs text-gray-600">
-                            {criterion.maxPoints} points
-                          </p>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600">
+                        Author
+                      </Label>
+                      <p className="font-medium">{assignment.author}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600">
+                        Course
+                      </Label>
+                      <p className="font-medium">{assignment.course}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600">
+                        Assignment Type
+                      </Label>
+                      <p className="font-medium">{assignment.assignmentType}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Submitted
+                        </Label>
+                        <p className="flex items-center gap-1 text-sm">
+                          <Calendar className="h-3 w-3" />
+                          {assignment.submittedDate}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Review Due
+                        </Label>
+                        <p className="flex items-center gap-1 text-sm">
+                          <Timer className="h-3 w-3" />
+                          {assignment.reviewDueDate}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-4 w-4" />
+                      Evaluation Criteria
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {assignment.criteria.map((criterion) => (
+                        <div
+                          key={criterion.id}
+                          className="flex items-center justify-between rounded-lg border p-3"
+                        >
+                          <div>
+                            <p className="text-sm font-medium">
+                              {criterion.name}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {criterion.maxPoints} points
+                            </p>
+                          </div>
+                          <Badge variant="outline">
+                            {Math.round(criterion.weight * 100)}%
+                          </Badge>
                         </div>
-                        <Badge variant="outline">
-                          {Math.round(criterion.weight * 100)}%
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4" />
-                  Assignment Requirements
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {assignment.requirements.map((req, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-500" />
-                      <span className="text-sm">{req}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {assignment.attachments && assignment.attachments.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Attachments
+                    <GraduationCap className="h-4 w-4" />
+                    Assignment Requirements
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    {assignment.attachments.map((attachment, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between rounded bg-gray-50 p-2"
-                      >
-                        <span className="text-sm">{attachment}</span>
-                        <Button size="sm" variant="outline">
-                          <Download className="mr-1 h-3 w-3" />
-                          Download
-                        </Button>
-                      </div>
+                  <ul className="space-y-2">
+                    {assignment.requirements.map((req, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-500" />
+                        <span className="text-sm">{req}</span>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </CardContent>
               </Card>
-            )}
-          </div>
+
+              {assignment.attachments && assignment.attachments.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Attachments
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {assignment.attachments.map((attachment, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between rounded p-2"
+                        >
+                          <span className="text-sm">{attachment}</span>
+                          <Button size="sm" variant="outline">
+                            <Download className="h-3 w-3" />
+                            Download
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </ScrollArea>
         );
 
       case 'content':
@@ -2009,8 +2018,8 @@ function ReviewCard({
 
       case 'summary':
         return (
-          <div className="space-y-6">
-            <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-green-50">
+          <div className="space-y-2">
+            <Card className="">
               <CardHeader>
                 <CardTitle className="text-center">Review Summary</CardTitle>
                 <CardDescription className="text-center">
@@ -2019,10 +2028,10 @@ function ReviewCard({
               </CardHeader>
               <CardContent>
                 <div className="space-y-4 text-center">
-                  <div className="text-6xl font-bold text-blue-600">
+                  <div className="text-6xl font-bold">
                     {calculateOverallScore()}
                   </div>
-                  <div className="text-lg text-gray-700">
+                  <div className="text-muted-foreground text-lg">
                     Overall Score out of 100
                   </div>
                   <div className="flex justify-center gap-4 text-sm text-gray-600">
@@ -2270,8 +2279,8 @@ function ReviewCard({
       </Card>
 
       <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
-        <DialogContent className="flex max-h-[95vh] max-w-6xl flex-col overflow-hidden">
-          <DialogHeader className="flex-shrink-0">
+        <DialogContent className="container flex max-h-[95vh] max-w-[80vw] flex-col overflow-hidden">
+          <DialogHeader className="">
             <DialogTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
               Peer Review: {assignment.title}
@@ -2335,7 +2344,7 @@ function ReviewCard({
             {renderStepContent()}
           </div>
 
-          <div className="flex flex-shrink-0 items-center justify-between border-t bg-gray-50 px-2 py-4">
+          <div className="flex flex-shrink-0 items-center justify-between border-t px-2 py-4">
             <div className="flex items-center gap-4">
               <div className="text-sm text-gray-600">
                 Step {getCurrentStepIndex() + 1} of {steps.length}
@@ -2378,9 +2387,9 @@ function ReviewCard({
                     setIsReviewOpen(false);
                   }}
                   disabled={!allStepsComplete}
-                  className="bg-green-600 hover:bg-green-700"
+                  className=""
                 >
-                  <Send className="mr-1 h-4 w-4" />
+                  <Send className="h-4 w-4" />
                   Submit Review
                 </Button>
               )}

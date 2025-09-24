@@ -1,5 +1,8 @@
+import jwt from 'jsonwebtoken';
+
 import { EnrollmentClient } from '../clients/enrollment.client';
 import { UserClient } from '../clients/user.client';
+import { env } from '../config/env';
 import { AssignmentRepository, DraftRepository } from '../db/repostiories';
 import { Assignment, AssignmentDraft, NewAssignmentDraft } from '../db/schema';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
@@ -153,16 +156,31 @@ export class DraftService {
    * @param requester - The user making the request.
    * @returns An object containing the shareable link.
    */
-  public static async generateShareLink(
-    draftId: string,
-    requester: Requester
-  ): Promise<{
-    shareLink: string;
-  }> {
+  public static async generateShareLink(draftId: string, requester: Requester) {
     await this.verifyOwnership(draftId, requester);
 
-    const shareLink = `http://localhost:3000/student/assignments/drafts/${draftId}?shared=true`; // Placeholder
+    const payload = { draftId, ownerId: requester.id };
+    const token = jwt.sign(payload, env.JWT_SECRET, { expiresIn: '1h' });
 
-    return { shareLink };
+    return { shareToken: token };
+  }
+
+  /**
+   * Retrieves a shared draft using a JWT token.
+   * @param token - The JWT token containing the draft ID
+   * @returns The draft associated with the token
+   */
+  public static async getSharedDraft(token: string) {
+    try {
+      const payload = jwt.verify(token, env.JWT_SECRET) as { draftId: string };
+      const draft = await DraftRepository.findById(payload.draftId);
+      if (!draft) {
+        throw new NotFoundError('Shared draft not found.');
+      }
+
+      return draft;
+    } catch (_error) {
+      throw new ForbiddenError();
+    }
   }
 }
