@@ -332,4 +332,28 @@ router.get(
   EnrollmentController.getEnrollmentsForCourse
 );
 
+/**
+ * @openapi
+ * /api/enrollments/status/{courseId}/{userId}:
+ *   get:
+ *     summary: "[Internal] Check enrollment status for a user in a course"
+ *     tags:
+ *       - Admin & Instructor & Student
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Returns the enrollment status.
+ */
+router.get('/status/:courseId/:userId', EnrollmentController.checkEnrollment);
+
 export { router as enrollmentRouter };

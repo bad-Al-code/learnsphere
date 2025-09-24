@@ -17,6 +17,7 @@ import {
   assignmentRouter,
   categoryRouter,
   courseRouter,
+  draftRouter,
   healthRouter,
   lessonRouter,
   moduleRouter,
@@ -55,6 +56,7 @@ app.use('/api/lessons', lessonRouter);
 app.use('/api/categories', categoryRouter);
 app.use('/api', assignmentRouter);
 app.use('/api', resourceRouter);
+app.use('/api/assignments/drafts', draftRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/ai-feedback', aiRouter);
 

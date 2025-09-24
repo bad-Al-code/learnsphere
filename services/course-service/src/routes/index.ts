@@ -2,6 +2,7 @@ export * from './analytic.route';
 export * from './assignment.route';
 export * from './category.route';
 export * from './course.route';
+export * from './draft.route';
 export * from './health.route';
 export * from './lesson.route';
 export * from './module.route';

@@ -124,6 +124,21 @@ export const assignments = pgTable('assignments', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+export type Assignment = typeof assignments.$inferSelect;
+
+export const draftStatusEnum = pgEnum('draft_status', [
+  'draft',
+  'reviewing',
+  'completed',
+]);
+export const draftPriorityEnum = pgEnum('draft_priority', [
+  'low',
+  'medium',
+  'high',
+]);
+
+export type DraftStatus = (typeof draftStatusEnum)['enumValues'][number];
+export type DraftPriority = (typeof draftPriorityEnum)['enumValues'][number];
 
 export const assignmentDrafts = pgTable(
   'assignment_drafts',
@@ -133,10 +148,19 @@ export const assignmentDrafts = pgTable(
       .references(() => assignments.id, { onDelete: 'cascade' })
       .notNull(),
     studentId: uuid('student_id').notNull(),
+    title: varchar('title', { length: 255 }).notNull(),
+    content: text('content'),
+    status: draftStatusEnum('status').default('draft').notNull(),
+    priority: draftPriorityEnum('priority').default('medium').notNull(),
+    category: varchar('category', { length: 100 }),
+    wordCount: integer('word_count').default(0).notNull(),
+    lastSaved: timestamp('last_saved').defaultNow().notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [unique().on(table.assignmentId, table.studentId)]
 );
+export type AssignmentDraft = typeof assignmentDrafts.$inferSelect;
+export type NewAssignmentDraft = typeof assignmentDrafts.$inferInsert;
 
 export const resources = pgTable('resources', {
   id: uuid('id').primaryKey().defaultRandom(),

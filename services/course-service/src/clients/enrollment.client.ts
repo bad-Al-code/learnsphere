@@ -27,4 +27,30 @@ export class EnrollmentClient {
       return [];
     }
   }
+
+  /**
+   * Checks if a user is enrolled in a course via a direct server-to-server call.
+   * @param userId The ID of the user.
+   * @param courseId The ID of the course.
+   * @returns A boolean indicating enrollment status.
+   */
+  public static async isEnrolled(
+    userId: string,
+    courseId: string
+  ): Promise<boolean> {
+    try {
+      const response = await axios.get(
+        `${this.enrollmentServiceUrl}/api/enrollments/status/${courseId}/${userId}`
+      );
+
+      return response.status === 200;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return false;
+      }
+
+      logger.error('Failed to check enrollment status', { error });
+      return false;
+    }
+  }
 }

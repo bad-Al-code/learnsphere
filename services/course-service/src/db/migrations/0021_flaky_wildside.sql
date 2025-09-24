@@ -1,0 +1,1 @@
+ALTER TABLE "assignment_drafts" ALTER COLUMN "title" DROP DEFAULT;
