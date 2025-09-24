@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { BadRequestError, NotAuthorizedError } from '../errors';
+import { courseDiscussionsParamsSchema } from '../schemas';
 import { conversationIdSchema } from '../schemas/chat.schema';
 import { ChatService } from '../services/chat.service';
 
@@ -184,6 +185,37 @@ export class ChatController {
       const groups = await ChatService.getPublicStudyGroups();
 
       res.status(StatusCodes.OK).json(groups);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async createDiscussion(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const newDiscussion = await ChatService.createDiscussion(
+        req.body,
+        req.currentUser
+      );
+      res.status(StatusCodes.CREATED).json(newDiscussion);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getCourseDiscussions(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseId } = courseDiscussionsParamsSchema.parse(req).params;
+      const discussions = await ChatService.getDiscussionsForCourse(courseId);
+      res.status(StatusCodes.OK).json(discussions);
     } catch (error) {
       next(error);
     }

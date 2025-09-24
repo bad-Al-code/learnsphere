@@ -1,7 +1,8 @@
-import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { db } from '..';
 import {
+  Conversation,
   conversationParticipants,
   conversations,
   messages,
@@ -312,6 +313,63 @@ export class ConversationRepository {
           },
         },
       },
+    });
+  }
+
+  /**
+   * Finds a conversation by its name and the creator's ID.
+   * @param name - The name of the conversation.
+   * @param creatorId - The ID of the user who created the conversation.
+   * @returns The first conversation matching the name and creator, or null if none exists.
+   */
+  public static async findByNameAndCreator(
+    name: string,
+    creatorId: string
+  ): Promise<Conversation | undefined> {
+    return db.query.conversations.findFirst({
+      where: (table, { eq, and }) =>
+        and(eq(table.name, name), eq(table.createdById, creatorId)),
+    });
+  }
+
+  /**
+   * Retrieves all group discussions for a specific course.
+   * Includes participant information and orders results by creation date (newest first).
+   * @param courseId - The ID of the course to fetch discussions for.
+   * @returns An array of group discussions with participants and author information.
+   */
+  public static async findDiscussionsByCourse(courseId: string) {
+    return db.query.conversations.findMany({
+      where: and(
+        eq(conversations.type, 'group'),
+        eq(conversations.courseId, courseId)
+      ),
+      with: {
+        participants: {
+          with: {
+            user: {
+              columns: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: [desc(conversations.createdAt)],
+    });
+  }
+
+  /**
+   * Retrieves all messages (replies) for a given conversation.
+   * Orders messages by creation date (oldest first) and includes sender information.
+   * @param conversationId - The ID of the conversation to fetch replies for.
+   * @returns An array of messages with sender information.
+   */
+  public static async findReplies(conversationId: string) {
+    return db.query.messages.findMany({
+      where: eq(messages.conversationId, conversationId),
+      orderBy: [asc(messages.createdAt)],
+      with: { sender: true },
     });
   }
 }

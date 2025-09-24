@@ -3,6 +3,10 @@ import { ChatController } from '../controllers/chat.controller';
 import { requireAuth } from '../middlewares/require-auth';
 import { validateRequest } from '../middlewares/validate-request';
 import {
+  courseDiscussionsParamsSchema,
+  createDiscussionSchema,
+} from '../schemas';
+import {
   createConversationSchema,
   createGroupConversationSchema,
   getMessagesSchema,
@@ -247,6 +251,112 @@ router.post('/conversations/:id/participants', ChatController.addParticipant);
 router.delete(
   '/conversations/:id/participants/:userId',
   ChatController.removeParticipant
+);
+
+/**
+ * @openapi
+ * /api/community/discussions/course/{courseId}:
+ *   get:
+ *     tags:
+ *       - Chat
+ *     summary: Get all discussions for a course
+ *     description: Retrieves all group discussions for a given course, including participants and metadata.
+ *     parameters:
+ *       - $ref: '#/components/parameters/CourseIdParam'
+ *     responses:
+ *       200:
+ *         description: List of discussions for the course
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     format: uuid
+ *                   title:
+ *                     type: string
+ *                   course:
+ *                     type: string
+ *                     format: uuid
+ *                   author:
+ *                     type: string
+ *                   replies:
+ *                     type: integer
+ *                   lastReply:
+ *                     type: string
+ *                   isResolved:
+ *                     type: boolean
+ *                   isBookmarked:
+ *                     type: boolean
+ *                   views:
+ *                     type: integer
+ *                   tags:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ */
+router.get(
+  '/discussions/course/:courseId',
+  requireAuth,
+  validateRequest(courseDiscussionsParamsSchema),
+  ChatController.getCourseDiscussions
+);
+
+/**
+ * @openapi
+ * /api/community/discussions:
+ *   post:
+ *     tags:
+ *       - Chat
+ *     summary: Create a new discussion
+ *     description: Creates a new discussion for a course or assignment. Throws a 409 Conflict if the discussion name already exists for the creator.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateDiscussionBody'
+ *     responses:
+ *       201:
+ *         description: Discussion successfully created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   format: uuid
+ *                 name:
+ *                   type: string
+ *                 courseId:
+ *                   type: string
+ *                   format: uuid
+ *                 assignmentId:
+ *                   type: string
+ *                   format: uuid
+ *                   nullable: true
+ *                 content:
+ *                   type: string
+ *                 tags:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 createdById:
+ *                   type: string
+ *                   format: uuid
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ */
+router.post(
+  '/discussions',
+  requireAuth,
+  validateRequest(createDiscussionSchema),
+  ChatController.createDiscussion
 );
 
 export { router as chatRouter };

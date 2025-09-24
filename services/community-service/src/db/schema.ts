@@ -41,6 +41,11 @@ export const conversations = pgTable(
     isLive: boolean('is_live').default(false),
     startTime: timestamp('start_time'),
     durationMinutes: integer('duration_minutes'),
+    courseId: uuid('course_id'),
+    assignmentId: uuid('assignment_id'),
+    tags: text('tags').array(),
+    views: integer('views').default(0),
+    isResolved: boolean('is_resolved').default(false),
 
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -59,6 +64,7 @@ export const conversationParticipants = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     joinedAt: timestamp('joined_at').defaultNow().notNull(),
     lastReadTimestamp: timestamp('last_read_timestamp'),
+    isBookmarked: boolean('is_bookmarked').default(false),
   },
   (table) => [primaryKey({ columns: [table.conversationId, table.userId] })]
 );

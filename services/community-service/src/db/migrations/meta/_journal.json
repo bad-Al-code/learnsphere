@@ -57,6 +57,13 @@
       "when": 1758398209369,
       "tag": "0007_wakeful_romulus",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1758704636057,
+      "tag": "0008_soft_stick",
+      "breakpoints": true
     }
   ]
 }

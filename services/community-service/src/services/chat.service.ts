@@ -4,7 +4,10 @@ import { redisConnection } from '../config/redis';
 import { ConversationRepository, MessageRepository } from '../db/repositories';
 import { NewConversation } from '../db/schema';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
+import { ConflictError } from '../errors/conflic-error';
 import { GroupUpdatedPublisher } from '../events/publisher';
+import { CreateDiscussionDto } from '../schemas';
+import { Requester } from '../types';
 import { ChatCacheService } from './cache.service';
 import { ONLINE_USERS_KEY } from './presence.service';
 import { UserService } from './user.service';
@@ -397,6 +400,77 @@ export class ChatService {
       })),
       participantCount: group.participants.length,
       maxParticipants: group.maxParticipants,
+    }));
+  }
+
+  /**
+   * Creates a new discussion for a course or assignment.
+   * Checks for uniqueness of the discussion name per creator and throws a ConflictError if it already exists.
+   * @param data - The discussion data including name, courseId, assignmentId, content, and optional tags.
+   * @param requester - The user creating the discussion.
+   * @returns The newly created discussion object.
+   */
+  public static async createDiscussion(
+    data: CreateDiscussionDto,
+    requester: Requester
+  ) {
+    const existing = await ConversationRepository.findByNameAndCreator(
+      data.name,
+      requester.id
+    );
+
+    if (existing) {
+      throw new ConflictError(
+        `You already have a discussion with name "${data.name}"`
+      );
+    }
+
+    const newDiscussion = await ConversationRepository.create(
+      {
+        type: 'group',
+        name: data.name,
+        createdById: requester.id,
+        courseId: data.courseId,
+        assignmentId: data.assignmentId,
+        tags: data.tags,
+        description: data.content,
+      },
+      [requester.id]
+    );
+
+    await MessageRepository.create({
+      conversationId: newDiscussion.id,
+      senderId: requester.id,
+      content: data.content,
+    });
+
+    return newDiscussion;
+  }
+
+  /**
+   * Retrieves all discussions for a given course.
+   * Maps the discussions to a simplified structure including author name, replies, and metadata.
+   *
+   * @param courseId - The ID of the course to fetch discussions for.
+   * @returns An array of mapped discussion objects for the course.
+   */
+  public static async getDiscussionsForCourse(courseId: string) {
+    const discussions =
+      await ConversationRepository.findDiscussionsByCourse(courseId);
+
+    return discussions.map((d) => ({
+      id: d.id,
+      title: d.name,
+      course: d.courseId,
+      author:
+        d.participants.find((p) => p.userId === d.createdById)?.user.name ||
+        'Anonymous',
+      replies: 0,
+      lastReply: 'N/A',
+      isResolved: d.isResolved,
+      isBookmarked: false,
+      views: d.views,
+      tags: d.tags,
     }));
   }
 }
