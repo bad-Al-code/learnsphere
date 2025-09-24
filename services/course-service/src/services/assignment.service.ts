@@ -1,7 +1,11 @@
 import { EnrollmentClient } from '../clients/enrollment.client';
 import logger from '../config/logger';
-import { AssignmentRepository, ModuleRepository } from '../db/repostiories';
-import { BadRequestError, NotFoundError } from '../errors';
+import {
+  AssignmentRepository,
+  DraftRepository,
+  ModuleRepository,
+} from '../db/repostiories';
+import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
 import {
   assignmentSchema,
   CreateAssignmentDto,
@@ -262,9 +266,32 @@ export class AssignmentService {
     const assignment = await AssignmentRepository.findById(assignmentId);
     if (!assignment) throw new NotFoundError('Assignment');
 
-    // NOTE: CHECK for user enrollment as well
+    const isEnrolled = await EnrollmentClient.isEnrolled(
+      requester.id,
+      assignment.courseId
+    );
+    if (!isEnrolled) throw new ForbiddenError();
 
-    await AssignmentRepository.createDraft(assignmentId, requester.id);
+    const existingDraft = await DraftRepository.findByAssignmentAndStudent(
+      assignmentId,
+      requester.id
+    );
+
+    if (existingDraft) {
+      logger.warn(
+        `User ${requester.id} already started assignment ${assignmentId}. No action needed.`
+      );
+      return;
+    }
+
+    await DraftRepository.create({
+      assignmentId: assignment.id,
+      studentId: requester.id,
+      title: assignment.title,
+      status: 'draft',
+      priority: 'medium',
+    });
+
     await CourseCacheService.invalidateCacheDetails(assignment.courseId);
   }
 

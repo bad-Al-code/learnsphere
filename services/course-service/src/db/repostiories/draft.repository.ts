@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { db } from '..';
 import {
   AssignmentDraft,
@@ -7,6 +7,24 @@ import {
 } from '../schema';
 
 export class DraftRepository {
+  /**
+   * Find the first draft for a given assignment and student.
+   * @param assignmentId - The ID of the assignment
+   * @param studentId - The ID of the student
+   * @returns A promise that resolves to the assignment draft if found, otherwise null
+   */
+  public static async findByAssignmentAndStudent(
+    assignmentId: string,
+    studentId: string
+  ): Promise<AssignmentDraft | undefined> {
+    return db.query.assignmentDrafts.findFirst({
+      where: and(
+        eq(assignmentDrafts.assignmentId, assignmentId),
+        eq(assignmentDrafts.studentId, studentId)
+      ),
+    });
+  }
+
   /**
    * Finds all drafts for a specific student, ordered by last saved date descending.
    * @param studentId - The ID of the student.

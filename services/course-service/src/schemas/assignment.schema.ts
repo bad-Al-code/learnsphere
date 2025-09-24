@@ -193,7 +193,9 @@ export const querySchema = z.object({
  *       additionalProperties: false
  */
 export const assignmentParamsSchema = z.object({
-  assignmentId: z.string().min(1, 'assignmentId is required'),
+  params: z.object({
+    assignmentId: z.string().uuid('assignmentId must be a valid UUID'),
+  }),
 });
 
 /**

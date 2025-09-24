@@ -4,7 +4,11 @@ import { AssignmentController } from '../controllers/assignment.controller';
 import { requireAuth } from '../middlewares/require-auth';
 import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
-import { assignmentSchema, updateAssignmentSchema } from '../schemas';
+import {
+  assignmentParamsSchema,
+  assignmentSchema,
+  updateAssignmentSchema,
+} from '../schemas';
 
 const router = Router();
 router.use(requireAuth, requireRole(['instructor', 'admin']));
@@ -279,6 +283,7 @@ router.get(
 router.post(
   '/assignments/:assignmentId/start',
   requireAuth,
+  validateRequest(assignmentParamsSchema),
   AssignmentController.startAssignment
 );
 

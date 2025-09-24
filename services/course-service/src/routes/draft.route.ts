@@ -14,11 +14,11 @@ router.use(requireAuth);
 
 /**
  * @openapi
- * /drafts/my-drafts:
+ * /api/assignments/drafts/my-drafts:
  *   get:
  *     summary: Retrieve all drafts of the authenticated user
  *     tags:
- *       - Drafts
+ *       - Assignment Drafts
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -37,11 +37,11 @@ router.get('/my-drafts', DraftController.getMyDrafts);
 
 /**
  * @openapi
- * /drafts:
+ * /api/assignments/drafts:
  *   post:
  *     summary: Create a new draft
  *     tags:
- *       - Drafts
+ *       - Assignment Drafts
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -66,11 +66,11 @@ router.post('/', validateRequest(createDraftSchema), DraftController.create);
 
 /**
  * @openapi
- * /drafts/{id}:
+ * /api/assignments/drafts/{id}:
  *   put:
  *     summary: Update an existing draft
  *     tags:
- *       - Drafts
+ *       - Assignment Drafts
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -105,11 +105,11 @@ router.put('/:id', validateRequest(updateDraftSchema), DraftController.update);
 
 /**
  * @openapi
- * /drafts/{id}:
+ * /api/assignments/drafts/{id}:
  *   delete:
  *     summary: Delete a draft
  *     tags:
- *       - Drafts
+ *       - Assignment Drafts
  *     security:
  *       - bearerAuth: []
  *     parameters:

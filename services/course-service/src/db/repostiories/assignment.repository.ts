@@ -12,18 +12,23 @@ import {
   sql,
 } from 'drizzle-orm';
 import { db } from '..';
+import { EnrollmentClient } from '../../clients/enrollment.client';
+import { ForbiddenError, NotFoundError } from '../../errors';
 import {
   Assignment,
   FindAssignmentsQuery,
   NewAssignment,
   UpdateAssignmentDto,
 } from '../../schemas';
+import { Requester } from '../../types';
 import {
   assignmentDrafts,
   assignments,
   assignmentSubmissions,
   courses,
+  NewAssignmentDraft,
 } from '../schema';
+import { DraftRepository } from './draft.repository';
 
 export class AssignmentRepository {
   /**
@@ -329,11 +334,26 @@ export class AssignmentRepository {
    * @param {string} studentId - Student ID.
    * @returns {Promise<void>} - Resolves when draft is created (or ignored if already exists).
    */
-  public static async createDraft(assignmentId: string, studentId: string) {
-    await db
-      .insert(assignmentDrafts)
-      .values({ assignmentId, studentId })
-      .onConflictDoNothing();
+  public static async createDraft(
+    data: NewAssignmentDraft,
+    requester: Requester
+  ) {
+    const assignment = await AssignmentRepository.findById(data.assignmentId);
+    if (!assignment) throw new NotFoundError('Assignment');
+
+    const isEnrolled = await EnrollmentClient.isEnrolled(
+      requester.id,
+      assignment.courseId
+    );
+    if (!isEnrolled) throw new ForbiddenError();
+
+    return DraftRepository.create({
+      studentId: requester.id,
+      assignmentId: data.assignmentId,
+      title: data.title,
+      category: data.category,
+      priority: data.priority,
+    });
   }
 
   /**

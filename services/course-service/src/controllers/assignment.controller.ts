@@ -3,7 +3,6 @@ import { StatusCodes } from 'http-status-codes';
 import { AssignmentRepository } from '../db/repostiories';
 import { NotAuthorizedError } from '../errors';
 import {
-  assignmentParamsSchema,
   draftStatusesSchema,
   findAssignmentsSchema,
   querySchema,
@@ -206,29 +205,21 @@ export class AssignmentController {
     next: NextFunction
   ) {
     try {
-      const parseResult = assignmentParamsSchema.safeParse(req.params);
-      if (!parseResult.success) {
-        res.status(400).json({
-          error: 'Invalid path parameters',
-          details: parseResult.error.format(),
-        });
-        return;
-      }
-
-      const { assignmentId } = parseResult.data;
+      const { assignmentId } = req.params;
 
       const requester = req.currentUser;
       if (!requester) throw new NotAuthorizedError();
 
       await AssignmentService.startAssignment(assignmentId, requester);
 
-      res
-        .status(StatusCodes.OK)
-        .json({ message: 'Assignment marked as in-progress.' });
+      res.status(StatusCodes.OK).json({
+        message: 'Assignment marked as in-progress.',
+      });
     } catch (error) {
       next(error);
     }
   }
+
   public static async getMyDraftStatuses(
     req: Request,
     res: Response,
