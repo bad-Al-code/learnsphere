@@ -29,3 +29,21 @@ export const discussionSchema = z.object({
   tags: z.array(z.string()).optional().nullable(),
 });
 export type Discussion = z.infer<typeof discussionSchema>;
+
+export const createDraftInputSchema = z.object({
+  assignmentId: z.uuid(),
+  title: z.string().min(3),
+  course: z.string(),
+  category: z.string(),
+  priority: z.enum(['low', 'medium', 'high']),
+  dueDate: z.string().optional(),
+});
+export type CreateDraftInput = z.infer<typeof createDraftInputSchema>;
+
+export const createDiscussionInputSchema = z.object({
+  title: z.string().min(5),
+  courseId: z.uuid(),
+  content: z.string().min(10),
+  tags: z.string(),
+});
+export type CreateDiscussionInput = z.infer<typeof createDiscussionInputSchema>;

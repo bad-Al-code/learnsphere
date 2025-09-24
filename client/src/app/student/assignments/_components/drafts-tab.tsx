@@ -48,6 +48,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   BookOpen,
   Bot,
@@ -74,7 +75,17 @@ import {
   Zap,
 } from 'lucide-react';
 import { useState } from 'react';
-import { useDiscussions, useDrafts } from '../hooks/use-draft';
+import { useForm } from 'react-hook-form';
+import {
+  useCreateDraft,
+  useDeleteDraft,
+  useDiscussions,
+  useDrafts,
+} from '../hooks/use-draft';
+import {
+  CreateDraftInput,
+  createDraftInputSchema,
+} from '../schemas/draft.schema';
 import { CourseSelectionScreen } from './common/CourseSelectionScrren';
 
 type TDraft = {
@@ -713,6 +724,24 @@ export function DraftsTab({ courseId }: { courseId?: string }) {
 
   function DraftAssignmentsSection() {
     const { data: drafts, isLoading } = useDrafts();
+    const { mutate: createDraft, isPending: isCreating } = useCreateDraft();
+    const { mutate: deleteDraft } = useDeleteDraft();
+    const [isNewDraftDialogOpen, setIsNewDraftDialogOpen] = useState(false);
+
+    const form = useForm<CreateDraftInput>({
+      resolver: zodResolver(createDraftInputSchema),
+      defaultValues: { priority: 'medium', title: '', course: '' },
+    });
+
+    const onSubmit = (values: CreateDraftInput) => {
+      const submissionData = {
+        ...values,
+        assignmentId: 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1',
+      };
+      createDraft(submissionData, {
+        onSuccess: () => setIsNewDraftDialogOpen(false),
+      });
+    };
 
     if (isLoading) return <DraftAssignmentsSectionSkeleton />;
 

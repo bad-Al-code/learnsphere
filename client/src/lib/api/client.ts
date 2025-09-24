@@ -131,6 +131,83 @@ class ApiClient {
 
     return { data };
   }
+
+  private async handleResponse<T>(response: Response): Promise<T> {
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(
+        `API Error: ${response.status} ${response.statusText}`,
+        errorBody
+      );
+
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+
+    return response.json() as Promise<T>;
+  }
+
+  public async getTyped<T>(path: string, options?: RequestInit): Promise<T> {
+    const response = await this.fetchWithAuth(path, {
+      ...options,
+      method: 'GET',
+    });
+
+    return this.handleResponse<T>(response);
+  }
+
+  public async postTyped<T>(
+    path: string,
+    body: unknown,
+    options?: RequestInit
+  ): Promise<T> {
+    const response = await this.fetchWithAuth(path, {
+      ...options,
+      method: 'POST',
+      headers: this.getHeaders(options?.headers),
+      body: JSON.stringify(body),
+    });
+
+    return this.handleResponse<T>(response);
+  }
+
+  public async putTyped<T>(
+    path: string,
+    body: unknown,
+    options?: RequestInit
+  ): Promise<T> {
+    const response = await this.fetchWithAuth(path, {
+      ...options,
+      method: 'PUT',
+      headers: this.getHeaders(options?.headers),
+      body: JSON.stringify(body),
+    });
+
+    return this.handleResponse<T>(response);
+  }
+
+  public async patchTyped<T>(
+    path: string,
+    body: unknown,
+    options?: RequestInit
+  ): Promise<T> {
+    const response = await this.fetchWithAuth(path, {
+      ...options,
+      method: 'PATCH',
+      headers: this.getHeaders(options?.headers),
+      body: JSON.stringify(body),
+    });
+
+    return this.handleResponse<T>(response);
+  }
+
+  public async deleteTyped<T>(path: string, options?: RequestInit): Promise<T> {
+    const response = await this.fetchWithAuth(path, {
+      ...options,
+      method: 'DELETE',
+    });
+
+    return this.handleResponse<T>(response);
+  }
 }
 
 export const authService = new ApiClient(
