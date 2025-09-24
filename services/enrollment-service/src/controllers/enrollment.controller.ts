@@ -2,9 +2,11 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { EnrollRepository } from '../db/repositories';
+import { NotAuthorizedError, NotFoundError } from '../errors';
 import { getEnrollmentsSchema } from '../schema/enrollment.schema';
 import { AnalyticsService } from '../services/analytics.service';
 import { EnrollmentService } from '../services/enrollment.service';
+import { ManualEnrollmentData } from '../types';
 
 export class EnrollmentController {
   public static async enrollUserInCourse(req: Request, res: Response) {
@@ -17,6 +19,32 @@ export class EnrollmentController {
     });
 
     res.status(StatusCodes.CREATED).json(enrollment);
+  }
+
+  public static async manualEnrollment(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const requester = req.currentUser;
+      if (!requester) throw new NotAuthorizedError();
+
+      const { userId, courseId } = req.body as ManualEnrollmentData;
+
+      const enrollment = await EnrollmentService.enrollUserManually({
+        userId,
+        courseId,
+        requester,
+      });
+
+      res.status(StatusCodes.CREATED).json({
+        message: 'User manually enrolled successfully',
+        enrollment,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 
   public static async getMyCourses(req: Request, res: Response) {
@@ -44,6 +72,33 @@ export class EnrollmentController {
     }
   }
 
+  public static async resetProgress(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const requester = req.currentUser;
+      if (!requester) throw new NotAuthorizedError();
+
+      const { enrollmentId } = req.params as { enrollmentId: string };
+
+      const updatedEnrollment = await EnrollmentService.resetEnrollmentProgress(
+        {
+          enrollmentId,
+          requesterId: requester.id,
+        }
+      );
+
+      res.status(StatusCodes.OK).json({
+        message: 'Enrollment progress reset successfully',
+        enrollment: updatedEnrollment,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public static async markProgress(req: Request, res: Response) {
     const { courseId, lessonId } = req.body;
     const userId = req.currentUser!.id;
@@ -66,34 +121,26 @@ export class EnrollmentController {
     res: Response,
     next: NextFunction
   ) {
-    await EnrollmentService.checkEnrollment(req, res, next);
-  }
+    try {
+      const { courseId, userId: userIdFromParams } = req.params;
+      const userId = req.currentUser?.id || userIdFromParams;
+      if (!userId) {
+        throw new NotAuthorizedError();
+      }
 
-  public static async resetProgress(req: Request, res: Response) {
-    const { enrollmentId } = req.params;
-    const requesterId = req.currentUser!.id;
+      const enrollment = await EnrollRepository.findByUserAndCourse(
+        userId,
+        courseId
+      );
 
-    await EnrollmentService.resetEnrollmentProgress({
-      enrollmentId,
-      requesterId,
-    });
+      if (!enrollment || enrollment.status !== 'active') {
+        throw new NotFoundError('Enrollment');
+      }
 
-    res
-      .status(StatusCodes.OK)
-      .json({ message: 'Course progress has been successfully reset' });
-  }
-
-  public static async manualEnrollment(req: Request, res: Response) {
-    const { userId, courseId } = req.body;
-    const requester = req.currentUser!;
-
-    const enrollment = await EnrollmentService.enrollUserManually({
-      userId,
-      courseId,
-      requester,
-    });
-
-    res.status(StatusCodes.CREATED).json(enrollment);
+      res.status(StatusCodes.OK).json(enrollment);
+    } catch (error) {
+      next(error);
+    }
   }
 
   public static async suspendEnrollment(req: Request, res: Response) {
