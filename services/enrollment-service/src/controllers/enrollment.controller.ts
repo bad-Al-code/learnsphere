@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { EnrollRepository } from '../db/repositories';
-import { NotAuthorizedError, NotFoundError } from '../errors';
+import { NotAuthorizedError } from '../errors';
 import { getEnrollmentsSchema } from '../schema/enrollment.schema';
 import { AnalyticsService } from '../services/analytics.service';
 import { EnrollmentService } from '../services/enrollment.service';
@@ -124,18 +124,15 @@ export class EnrollmentController {
     try {
       const { courseId, userId: userIdFromParams } = req.params;
       const userId = req.currentUser?.id || userIdFromParams;
+
       if (!userId) {
         throw new NotAuthorizedError();
       }
 
-      const enrollment = await EnrollRepository.findByUserAndCourse(
+      const enrollment = await EnrollmentService.checkEnrollment(
         userId,
         courseId
       );
-
-      if (!enrollment || enrollment.status !== 'active') {
-        throw new NotFoundError('Enrollment');
-      }
 
       res.status(StatusCodes.OK).json(enrollment);
     } catch (error) {

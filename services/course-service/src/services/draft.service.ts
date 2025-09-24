@@ -69,6 +69,15 @@ export class DraftService {
     );
     if (!isEnrolled) throw new ForbiddenError();
 
+    const existingDraft = await DraftRepository.findByAssignmentAndStudent(
+      data.assignmentId,
+      requester.id
+    );
+
+    if (existingDraft) {
+      return DraftRepository.update(existingDraft.id, data);
+    }
+
     return DraftRepository.create({ ...data, studentId: requester.id });
   }
 

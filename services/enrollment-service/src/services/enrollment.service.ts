@@ -1,7 +1,5 @@
 import axios, { isAxiosError } from 'axios';
 import { count, eq } from 'drizzle-orm';
-import { NextFunction, Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
 
 import logger from '../config/logger';
 import { db } from '../db';
@@ -23,6 +21,7 @@ import {
 import {
   ChangeEnrollmentStatus,
   CourseStructureSnapshotDetails,
+  Enrollment,
   GetEnrollmentsOptions,
   ManualEnrollmentData,
   MarkProgressData,
@@ -130,26 +129,18 @@ export class EnrollmentService {
   }
 
   public static async checkEnrollment(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const userId = req.currentUser!.id;
-      const { courseId } = req.params;
-      const enrollment = await EnrollRepository.findByUserAndCourse(
-        userId,
-        courseId
-      );
-
-      if (!enrollment || enrollment.status !== 'active') {
-        throw new NotFoundError('Enrollment');
-      }
-
-      res.status(StatusCodes.OK).json(enrollment);
-    } catch (error) {
-      next(error);
+    userId: string,
+    courseId: string
+  ): Promise<Enrollment> {
+    const enrollment = await EnrollRepository.findByUserAndCourse(
+      userId,
+      courseId
+    );
+    if (!enrollment || enrollment.status !== 'active') {
+      throw new NotFoundError('Enrollment');
     }
+
+    return enrollment;
   }
 
   public static async enrollUserInCourse({
