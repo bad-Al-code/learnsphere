@@ -40,7 +40,7 @@ const contentMap: Record<
   quiz: (props) => <QuizTab {...props} />,
 };
 
-export function AiToolsTabs({ courseId }: { courseId: string | null }) {
+export function AiToolsTabs({ courseId }: { courseId?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

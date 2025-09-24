@@ -32,7 +32,7 @@ interface Props {
 
 export default function AiTools() {
   const searchParams = useSearchParams();
-  const courseId = searchParams.get('courseId');
+  const courseId = searchParams.get('courseId') ?? undefined;
 
   return (
     <div className="mb-4 space-y-2">

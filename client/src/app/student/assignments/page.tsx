@@ -1,5 +1,8 @@
+'use client';
+
 import { Skeleton } from '@/components/ui/skeleton';
 import { studentAssignmentsTabs } from '@/config/nav-items';
+import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { PageHeader, PageHeaderSkeleton } from '../_components/page-header';
 import { AssignmentsTabs } from './_components/assignments-tabs';
@@ -24,6 +27,9 @@ function AssignmentsPageSkeleton() {
 }
 
 export default function AssignmentsPage() {
+  const searchParams = useSearchParams();
+  const courseId = searchParams.get('courseId') ?? undefined;
+
   return (
     <div className="mb-4 space-y-2">
       <PageHeader
@@ -32,7 +38,7 @@ export default function AssignmentsPage() {
       />
 
       <Suspense fallback={<AssignmentsPageSkeleton />}>
-        <AssignmentsTabs />
+        <AssignmentsTabs courseId={courseId} />
       </Suspense>
     </div>
   );

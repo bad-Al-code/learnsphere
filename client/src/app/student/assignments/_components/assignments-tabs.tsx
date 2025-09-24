@@ -29,7 +29,21 @@ const skeletonMap: Record<string, React.ReactNode> = {
   analytics: <AnalyticsTabSkeleton />,
 };
 
-export function AssignmentsTabs() {
+const contentMap: Record<
+  string,
+  (props?: { courseId?: string }) => React.ReactNode
+> = {
+  upcoming: (props) => <UpcomingTab />,
+  submitted: (props) => <SubmittedTab />,
+  drafts: (props) => <DraftsTab {...props} />,
+  'peer-review': (props) => <PeerReviewTab />,
+  templates: (props) => <TemplatesTab />,
+  collaborative: (props) => <CollaborativeTab />,
+  portfolio: (props) => <PortfolioTab />,
+  analytics: (props) => <AnalyticsTab />,
+};
+
+export function AssignmentsTabs({ courseId }: { courseId?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -42,12 +56,15 @@ export function AssignmentsTabs() {
     setActiveTab(newTab);
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', newTab);
+    if (courseId) {
+      params.set('courseId', courseId);
+    }
     startTransition(() => {
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     });
   };
 
-  const pendingSkeleton = skeletonMap[activeTab] || (
+  const activeContent = contentMap[activeTab]?.({ courseId }) || (
     <Skeleton className="h-48 w-full" />
   );
 
@@ -58,20 +75,11 @@ export function AssignmentsTabs() {
         basePath="/student/assignments"
         activeTab="tab"
       />
-      <div className="">
+      <div>
         {isPending ? (
-          pendingSkeleton
+          skeletonMap[activeTab] || <Skeleton className="h-48 w-full" />
         ) : (
-          <TabsContent value={currentTabFromUrl}>
-            {currentTabFromUrl === 'upcoming' && <UpcomingTab />}
-            {currentTabFromUrl === 'submitted' && <SubmittedTab />}
-            {currentTabFromUrl === 'drafts' && <DraftsTab />}
-            {currentTabFromUrl === 'peer-review' && <PeerReviewTab />}
-            {currentTabFromUrl === 'templates' && <TemplatesTab />}
-            {currentTabFromUrl === 'collaborative' && <CollaborativeTab />}
-            {currentTabFromUrl === 'portfolio' && <PortfolioTab />}
-            {currentTabFromUrl === 'analytics' && <AnalyticsTab />}
-          </TabsContent>
+          <TabsContent value={activeTab}>{activeContent}</TabsContent>
         )}
       </div>
     </Tabs>
