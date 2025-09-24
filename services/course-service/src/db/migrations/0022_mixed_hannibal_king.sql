@@ -1,0 +1,1 @@
+ALTER TABLE "assignment_drafts" ADD COLUMN "collaborators" jsonb;
