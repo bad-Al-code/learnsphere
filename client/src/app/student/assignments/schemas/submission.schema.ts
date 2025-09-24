@@ -34,7 +34,7 @@ export const aiFeedbackSchema = z.object({
   suggestions: z.array(z.string()),
   detailedFeedback: z.string().nullable(),
   status: z.enum(['reviewed', 'pending']),
-  reviewedDate: z.iso.datetime(),
+  reviewedAt: z.iso.datetime(),
 });
 export type AIFeedback = z.infer<typeof aiFeedbackSchema>;
 export type EnrichedAIFeedback = AIFeedback & { title: string };

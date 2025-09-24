@@ -21,6 +21,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { format } from 'date-fns';
 import {
   AlertCircle,
   Bot,
@@ -60,7 +61,8 @@ function FeedbackDetailsModal({ feedback }: { feedback: EnrichedAIFeedback }) {
 
           <DialogDescription>
             Detailed feedback reviewed on{' '}
-            {new Date(feedback.reviewedDate).toLocaleDateString()}
+            {/* {new Date(feedback.reviewedAt).toLocaleDateString()} */}
+            {format(new Date(feedback.reviewedAt), "PPP 'at' p")}
           </DialogDescription>
         </DialogHeader>
 
@@ -264,7 +266,7 @@ function AIFeedbackItem({ feedback }: { feedback: EnrichedAIFeedback }) {
           <div>
             <h3 className="font-semibold">{feedback.title}</h3>
             <p className="text-muted-foreground text-sm">
-              Reviewed on {new Date(feedback.reviewedDate).toLocaleDateString()}
+              Reviewed on {format(new Date(feedback.reviewedAt), "PPP 'at' p")}
             </p>
           </div>
 
@@ -324,13 +326,11 @@ function SubmittedAssignmentItem({
             </Badge>
           )}
         </div>
-      </CardHeader>
 
-      <CardContent>
         <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
           <span>
             Submitted on{' '}
-            {new Date(assignment.submittedDate).toLocaleDateString()}
+            {format(new Date(assignment.submittedDate), "PPP 'at' p")}
           </span>
 
           <span className="flex items-center gap-1">
@@ -339,8 +339,7 @@ function SubmittedAssignmentItem({
           </span>
           <span>Peer avg: {assignment.peerAvg}%</span>
         </div>
-      </CardContent>
-
+      </CardHeader>
       <CardFooter className="flex flex-col items-center gap-4 sm:flex-row">
         <div className="flex-grow">
           {assignment.status === 'Graded' ? (
