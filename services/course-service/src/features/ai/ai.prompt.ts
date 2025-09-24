@@ -25,3 +25,22 @@ Rules:
 
   You MUST return the data in the specified JSON format.`;
 };
+
+export const buildAIDraftSuggestionPrompt = (
+  title: string,
+  content: string
+): string => {
+  return `You are an AI Writing Assistant. Analyze the user's assignment draft and provide a list of actionable suggestions.
+
+The suggestion 'type' must be one of: 'grammar', 'content', 'structure', or 'research'.
+The 'suggestion' should be a concise, helpful tip.
+The 'confidence' should be your estimated confidence (0-100) that this suggestion will improve the draft.
+
+Assignment Title: "${title}"
+Draft Content:
+---
+${content}
+---
+
+You MUST return the data in the specified JSON format.`;
+};

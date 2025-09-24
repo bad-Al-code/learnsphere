@@ -1,15 +1,22 @@
 import logger from '../../config/logger';
-import { BadRequestError } from '../../errors';
+import { DraftRepository } from '../../db/repostiories';
+import { BadRequestError, NotFoundError } from '../../errors';
 import { AIFeedbackReadyPublisher } from '../../events/publisher';
-import { buildAIAssignmentFeedbackPrompt } from './ai.prompt';
+import {
+  buildAIAssignmentFeedbackPrompt,
+  buildAIDraftSuggestionPrompt,
+} from './ai.prompt';
 import { AIRepository } from './ai.repository';
 import {
+  AIDraftSuggestionResponse,
+  aiDraftSuggestionResponseSchema,
+  aiDraftSuggestionZodSchema,
   assignmentFeedbackResponseSchema,
   assignmentFeedbackZodSchema,
 } from './aiResponse.schema';
 import { GeminiClient } from './client/gemini.client';
 
-export class AIFeedbackService {
+export class AIService {
   private static ai = GeminiClient.getInstance();
   private static model: string = 'gemini-2.5-flash-lite';
 
@@ -89,5 +96,57 @@ export class AIFeedbackService {
     logger.info(
       `Feedback saved and notification event dispatched for submission ${submissionId}.`
     );
+  }
+
+  /**
+   * Generates AI-based draft suggestions (content, structure, grammar, research, etc.)
+   * for a given draft owned by the current user.
+   * @param draftId - The ID of the draft to generate suggestions for.
+   * @param userId - The ID of the user requesting suggestions.
+   * @returns - A list of AI-generated draft suggestions.
+   */
+  public static async generateDraftSuggestions(
+    draftId: string,
+    userId: string
+  ): Promise<AIDraftSuggestionResponse> {
+    const draft = await DraftRepository.findById(draftId);
+    if (!draft || draft.studentId !== userId) {
+      throw new NotFoundError('Draft');
+    }
+
+    if (!draft.content) {
+      return { suggestions: [] };
+    }
+
+    const systemInstruction = buildAIDraftSuggestionPrompt(
+      draft.title,
+      draft.content
+    );
+
+    const response = await this.ai.models.generateContent({
+      model: this.model,
+      contents: 'Generate suggestions now',
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: aiDraftSuggestionResponseSchema,
+        systemInstruction,
+      },
+    });
+
+    const text = response.text;
+    if (!text) {
+      throw new Error('No response text from AI provider.');
+    }
+
+    const parsed = aiDraftSuggestionZodSchema.safeParse(JSON.parse(text));
+    if (!parsed.success) {
+      logger.error('Validation error:', parsed.error.format());
+
+      throw new Error(
+        'AI returned invalid data structure for draft suggestions.'
+      );
+    }
+
+    return parsed.data;
   }
 }
