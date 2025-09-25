@@ -41,6 +41,7 @@ export const aiSuggestionsResponseSchema = z.object({
   suggestions: z.array(aiSuggestionSchema),
 });
 export type AISuggestion = z.infer<typeof aiSuggestionSchema>;
+export type AISuggestionResponse = z.infer<typeof aiSuggestionsResponseSchema>;
 
 export const createDraftInputSchema = z.object({
   title: z.string().min(3, 'Title is required.'),

@@ -77,16 +77,13 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import {
-  useCreateDraft,
-  useDeleteDraft,
-  useDiscussions,
-  useDrafts,
-} from '../hooks/use-draft';
+import { useDiscussions } from '../hooks/use-discussion';
+import { useCreateDraft, useDrafts } from '../hooks/use-draft';
 import {
   CreateDraftInput,
   createDraftInputSchema,
 } from '../schemas/draft.schema';
+import { useAssignmentStore } from '../stores/assignment.store';
 import { CourseSelectionScreen } from './common/CourseSelectionScrren';
 
 type TDraft = {
@@ -235,6 +232,8 @@ const aiSuggestions: TAIAssistance[] = [
 ];
 
 export function DraftsTab({ courseId }: { courseId?: string }) {
+  const { actions, ...store } = useAssignmentStore();
+
   if (!courseId) {
     return (
       <div className="h-[calc(100vh-12.5rem)]">
@@ -726,26 +725,27 @@ export function DraftsTab({ courseId }: { courseId?: string }) {
   function DraftAssignmentsSection() {
     const { data: drafts, isLoading } = useDrafts();
     const { mutate: createDraft, isPending: isCreating } = useCreateDraft();
-    const { mutate: deleteDraft } = useDeleteDraft();
     const [isNewDraftDialogOpen, setIsNewDraftDialogOpen] = useState(false);
 
     const form = useForm<CreateDraftInput>({
       resolver: zodResolver(createDraftInputSchema),
-      defaultValues: { priority: 'medium', title: '', course: '' },
+      defaultValues: { title: '', category: '', priority: 'medium' },
     });
 
     const onSubmit = (values: CreateDraftInput) => {
-      const submissionData = {
-        ...values,
-        assignmentId: 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1',
-      };
-      createDraft(submissionData, {
-        onSuccess: () => setIsNewDraftDialogOpen(false),
-      });
+      // A real implementation would get assignmentId from a selector within the form
+      createDraft(
+        { ...values, assignmentId: 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1' },
+        {
+          onSuccess: () => {
+            setIsNewDraftDialogOpen(false);
+            form.reset();
+          },
+        }
+      );
     };
 
     if (isLoading) return <DraftAssignmentsSectionSkeleton />;
-
     return (
       <Card>
         <CardHeader>
