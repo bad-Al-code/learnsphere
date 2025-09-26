@@ -3,7 +3,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getStudyRoomsAction } from '../action/study-room.action';
-import { createStudyRoom, getCategories } from '../api/study-room.api.client';
+import {
+  createStudyRoom,
+  getCategories,
+  joinStudyRoom,
+} from '../api/study-room.api.client';
 import { StudyRoom } from '../schema/study-rooms.schema';
 
 export const useStudyRooms = (query?: string, topic?: string) => {
@@ -48,5 +52,22 @@ export const useCategories = () => {
     queryKey: ['categories'],
     queryFn: getCategories,
     staleTime: 1000 * 60 * 60,
+  });
+};
+
+export const useJoinStudyRoom = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: joinStudyRoom,
+    onSuccess: (data) => {
+      toast.success(data.message);
+
+      queryClient.invalidateQueries({ queryKey: ['study-rooms'] });
+    },
+
+    onError: (error) => {
+      toast.error('Failed to join room', { description: error.message });
+    },
   });
 };

@@ -333,4 +333,23 @@ export class ChatController {
       next(error);
     }
   }
+
+  public static async joinStudyRoom(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { roomId } = req.params;
+
+      await ChatService.joinStudyRoom(roomId, req.currentUser);
+
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'Successfully joined the room.' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

@@ -197,3 +197,22 @@ export const createStudyRoomSchema = z
 export type CreateStudyRoomDTO = z.infer<
   typeof createStudyRoomSchema.shape.body
 >;
+
+/**
+ * @openapi
+ * components:
+ *   parameters:
+ *     RoomIdParam:
+ *       name: roomId
+ *       in: path
+ *       required: true
+ *       description: The unique ID of the study room
+ *       schema:
+ *         type: string
+ *         format: uuid
+ */
+export const joinRoomParamsSchema = z.object({
+  params: z.object({
+    roomId: z.uuid(),
+  }),
+});

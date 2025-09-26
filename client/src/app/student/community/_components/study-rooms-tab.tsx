@@ -75,10 +75,12 @@ import {
 } from 'date-fns';
 import { useState } from 'react';
 import { Resolver, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { useDebounce } from 'use-debounce';
 import {
   useCategories,
   useCreateStudyRoom,
+  useJoinStudyRoom,
   useStudyRooms,
 } from '../hooks/use-study-room';
 import {
@@ -488,6 +490,16 @@ function CreateRoomDialog({ isOpen, onOpenChange }: CreateRoomDialogProps) {
 }
 
 function StudyRoomCard({ room }: { room: StudyRoom }) {
+  const { mutate: joinRoom, isPending } = useJoinStudyRoom();
+
+  const handleJoinClick = () => {
+    if (room.isLive) {
+      joinRoom(room.id);
+    } else {
+      toast.info('Reminder scheduled for this room!'); // Placeholder
+    }
+  };
+
   const formattedTime = room.time
     ? format(parseISO(room.time), 'dd MMM yyyy, HH:mm a')
     : 'No time available';
@@ -519,16 +531,19 @@ function StudyRoomCard({ room }: { room: StudyRoom }) {
               <Users className="h-3 w-3" />
               {room.participants}/{room.maxParticipants}
             </span>
+
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
               {room.duration}
             </span>
           </div>
+
           <div className="flex items-center gap-2">
             <Video className="h-4 w-4" />
             <Monitor className="h-4 w-4" />
           </div>
         </div>
+
         <div className="flex flex-wrap gap-2">
           {room.tags?.map((tag) => (
             <Badge key={tag} variant="secondary">
@@ -536,12 +551,16 @@ function StudyRoomCard({ room }: { room: StudyRoom }) {
             </Badge>
           ))}
         </div>
+
         <Progress value={room.progress} />
       </CardContent>
+
       <CardFooter className="mt-auto">
         <Button
           className="w-full"
           variant={room.isLive ? 'default' : 'secondary'}
+          onClick={handleJoinClick}
+          disabled={isPending}
         >
           {room.isLive ? 'Join Room' : 'Schedule Reminder'}
         </Button>

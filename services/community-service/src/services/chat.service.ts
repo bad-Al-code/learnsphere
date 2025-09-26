@@ -637,4 +637,33 @@ export class ChatService {
 
     return newRoom;
   }
+
+  /**
+   * Adds a user to a study room if it exists, is not full, and they are not already a participant.
+   * @param roomId - The ID of the study room to join
+   * @param requester - The authenticated user requesting to join
+   */
+  public static async joinStudyRoom(roomId: string, requester: Requester) {
+    const room = await ConversationRepository.findById(roomId);
+    if (!room || room.type !== 'group') {
+      throw new NotFoundError('Study room not found.');
+    }
+
+    const participants =
+      await ConversationRepository.findParticipantIds(roomId);
+    if (participants.length >= (room.maxParticipants || 10)) {
+      throw new BadRequestError('This study room is already full.');
+    }
+
+    if (participants.includes(requester.id)) {
+      logger.warn(
+        `User ${requester.id} is already in room ${roomId}. Ignoring join request.`
+      );
+      return;
+    }
+
+    await ConversationRepository.addParticipant(roomId, requester.id);
+
+    logger.info(`User ${requester.id} successfully joined room ${roomId}`);
+  }
 }

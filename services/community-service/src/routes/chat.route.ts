@@ -7,6 +7,7 @@ import {
   createDiscussionSchema,
   createStudyRoomSchema,
   discussionsParamsSchema,
+  joinRoomParamsSchema,
   postReplySchema,
 } from '../schemas';
 import {
@@ -638,6 +639,39 @@ router.post(
   requireAuth,
   validateRequest(createStudyRoomSchema),
   ChatController.createStudyRoom
+);
+
+/**
+ * @openapi
+ * /api/community/study-rooms/{roomId}/join:
+ *   post:
+ *     summary: Join a study room
+ *     description: Allows an authenticated user to join a study room if it's not full and they are not already a participant.
+ *     tags:
+ *       - Community
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The unique ID of the study room to join
+ *     responses:
+ *       200:
+ *         description: Successfully joined the study room
+ *       400:
+ *         description: Study room is full or invalid request
+ *       401:
+ *         description: Unauthorized - user must be authenticated
+ *       404:
+ *         description: Study room not found
+ */
+router.post(
+  '/study-rooms/:roomId/join',
+  requireAuth,
+  validateRequest(joinRoomParamsSchema),
+  ChatController.joinStudyRoom
 );
 
 export { router as chatRouter };

@@ -32,3 +32,14 @@ export const getCategories = async (): Promise<Category[]> => {
 
   return response.data;
 };
+
+export const joinStudyRoom = async (
+  roomId: string
+): Promise<{ message: string }> => {
+  const response = await clientCommunityService.post<{ message: string }>(
+    `/api/community/study-rooms/${roomId}/join`,
+    {}
+  );
+
+  return response.data;
+};
