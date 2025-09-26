@@ -114,3 +114,86 @@ export const postReplySchema = z.object({
   }),
   params: z.object({ id: z.uuid() }),
 });
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     CreateStudyRoom:
+ *       type: object
+ *       required:
+ *         - title
+ *         - description
+ *         - category
+ *       properties:
+ *         title:
+ *           type: string
+ *           description: The title of the study room.
+ *           minLength: 5
+ *           example: "React Deep Dive"
+ *         description:
+ *           type: string
+ *           description: Detailed description of the study room.
+ *           minLength: 10
+ *           example: "Let's master React Hooks and advanced patterns together!"
+ *         category:
+ *           type: string
+ *           description: The topic or category of the study room.
+ *           example: "React"
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Optional tags to categorize the study room.
+ *           example: ["React", "Frontend", "Workshop"]
+ *         maxParticipants:
+ *           type: integer
+ *           description: Maximum number of participants allowed.
+ *           minimum: 2
+ *           maximum: 50
+ *           default: 10
+ *         isPrivate:
+ *           type: boolean
+ *           description: Whether the study room is private.
+ *           default: false
+ *         durationMinutes:
+ *           type: integer
+ *           description: Duration of the study room in minutes.
+ *           example: 90
+ *         startTime:
+ *           type: string
+ *           format: date-time
+ *           description: Optional scheduled start time for the study room.
+ *           example: "2025-09-26T06:00:00.000Z"
+ */
+export const createStudyRoomSchema = z
+  .object({
+    body: z.object({
+      title: z.string().min(3, 'Title must be at least 3 characters.'),
+      description: z
+        .string()
+        .min(10, 'Description must be at least 10 characters.'),
+      category: z.string().min(1, 'Category is required.'),
+      tags: z.array(z.string()).optional(),
+      maxParticipants: z.number().int().min(2).max(50).default(10),
+      isPrivate: z.boolean().default(false),
+      durationMinutes: z.number().int().positive().optional(),
+      startTime: z.iso.datetime().optional(),
+      sessionType: z.enum(['now', 'later']),
+    }),
+  })
+  .refine(
+    (data) => {
+      if (data.body.sessionType === 'later' && !data.body.startTime)
+        return false;
+      return true;
+    },
+    {
+      message: 'Please select a start time for a scheduled session.',
+      path: ['startTime'],
+    }
+  );
+
+export type CreateStudyRoomDTO = z.infer<
+  typeof createStudyRoomSchema.shape.body
+>;

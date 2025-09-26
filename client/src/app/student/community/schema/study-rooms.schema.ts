@@ -18,3 +18,30 @@ export const studyRoomSchema = z.object({
 export const studyRoomsResponseSchema = z.array(studyRoomSchema);
 
 export type StudyRoom = z.infer<typeof studyRoomSchema>;
+
+export const createStudyRoomFormSchema = z
+  .object({
+    title: z.string().min(3, 'Title must be at least 3 characters.'),
+    description: z.string().min(10, 'Please provide a longer description.'),
+    category: z.string({ error: 'Please select a category.' }),
+    tags: z.string().optional(),
+    maxParticipants: z.coerce.number().int().min(2).max(50),
+    sessionType: z.enum(['now', 'later']),
+    startTime: z.string().optional(),
+    durationInMinutes: z.coerce
+      .number()
+      .int()
+      .positive('Duration must be a positive number.'),
+  })
+  .refine(
+    (data) => {
+      if (data.sessionType === 'later' && !data.startTime) return false;
+      return true;
+    },
+    {
+      error: 'Please select a start time for a scheduled session.',
+      path: ['startTime'],
+    }
+  );
+
+export type CreateStudyRoomInput = z.infer<typeof createStudyRoomFormSchema>;

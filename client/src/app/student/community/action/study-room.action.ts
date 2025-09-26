@@ -1,6 +1,6 @@
 'use server';
 
-import { getStudyRooms } from '../api/study-room.api';
+import { getStudyRooms } from '../api/study-room.api.server';
 
 export const getStudyRoomsAction = async (params: {
   query?: string;

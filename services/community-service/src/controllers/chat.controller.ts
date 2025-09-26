@@ -314,4 +314,23 @@ export class ChatController {
       next(error);
     }
   }
+
+  public static async createStudyRoom(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const newRoom = await ChatService.createStudyRoom(
+        req.body,
+        req.currentUser
+      );
+
+      res.status(StatusCodes.CREATED).json(newRoom);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

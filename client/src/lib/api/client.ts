@@ -134,13 +134,28 @@ class ApiClient {
 
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
-      const errorBody = await response.text();
-      console.error(
-        `API Error: ${response.status} ${response.statusText}`,
-        errorBody
-      );
+      let message = `Request failed with status ${response.status}`;
 
-      throw new Error(`Request failed with status ${response.status}`);
+      try {
+        const errorBody = await response.json();
+        // console.error(
+        //   `API Error: ${response.status} ${response.statusText}`,
+        //   errorBody
+        // );
+
+        if (Array.isArray(errorBody?.errors) && errorBody.errors.length > 0) {
+          message = errorBody.errors.map((e: any) => e.message).join(', ');
+        }
+      } catch (e) {
+        const errorText = await response.text();
+        // console.error(
+        //   `API Error (non-JSON): ${response.status} ${response.statusText}`,
+        //   errorText
+        // );
+        message = errorText || message;
+      }
+
+      throw new Error(message);
     }
 
     return response.json() as Promise<T>;

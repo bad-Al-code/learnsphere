@@ -46,6 +46,7 @@ export const conversations = pgTable(
     tags: text('tags').array(),
     views: integer('views').default(0),
     isResolved: boolean('is_resolved').default(false),
+    isPrivate: boolean('is_private').default(false),
 
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),

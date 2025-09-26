@@ -64,6 +64,13 @@
       "when": 1758704636057,
       "tag": "0008_soft_stick",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1758869950311,
+      "tag": "0009_legal_wasp",
+      "breakpoints": true
     }
   ]
 }

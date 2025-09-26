@@ -1,13 +1,12 @@
-import { format } from 'date-fns';
 import { webSocketService } from '..';
 import logger from '../config/logger';
 import { redisConnection } from '../config/redis';
 import { ConversationRepository, MessageRepository } from '../db/repositories';
-import { NewConversation } from '../db/schema';
+import { Conversation, NewConversation } from '../db/schema';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
 import { ConflictError } from '../errors/conflic-error';
 import { GroupUpdatedPublisher } from '../events/publisher';
-import { CreateDiscussionDto } from '../schemas';
+import { CreateDiscussionDto, CreateStudyRoomDTO } from '../schemas';
 import { Requester } from '../types';
 import { ChatCacheService } from './cache.service';
 import { ONLINE_USERS_KEY } from './presence.service';
@@ -587,8 +586,55 @@ export class ChatService {
         (room.participants.length / (room.maxParticipants || 1)) * 100
       ),
       isLive: room.isLive,
-      isPrivate: false, // Placeholder
-      time: room.startTime ? format(room.startTime, 'p') : undefined,
+      isPrivate: room.isPrivate,
+      time: room.startTime,
     }));
+  }
+
+  /**
+   * Creates a new study room for the requesting user.
+   * @param data - The data for the new study room (title, description, category, etc.).
+   * @param requester - The user creating the study room.
+   * @returns The newly created Conversation object representing the study room.
+   */
+  public static async createStudyRoom(
+    data: CreateStudyRoomDTO,
+    requester: Requester
+  ): Promise<Conversation> {
+    const existing = await ConversationRepository.findByNameAndCreator(
+      data.title,
+      requester.id
+    );
+    if (existing) {
+      throw new BadRequestError(
+        `You already have a study room named "${data.title}".`
+      );
+    }
+
+    const isLive = data.sessionType === 'now';
+    const startTime = isLive
+      ? new Date()
+      : data.startTime
+        ? new Date(data.startTime)
+        : undefined;
+
+    const newRoom = await ConversationRepository.create(
+      {
+        type: 'group',
+        name: data.title,
+        createdById: requester.id,
+        description: data.description,
+        category: data.category,
+        tags: data.tags,
+        maxParticipants: data.maxParticipants,
+        isPrivate: data.isPrivate,
+        durationMinutes: data.durationMinutes,
+        startTime,
+        isLive,
+      },
+      [requester.id]
+    );
+
+    return newRoom;
   }
 }

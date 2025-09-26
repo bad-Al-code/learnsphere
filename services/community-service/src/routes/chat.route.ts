@@ -5,6 +5,7 @@ import { validateRequest } from '../middlewares/validate-request';
 import {
   courseDiscussionsParamsSchema,
   createDiscussionSchema,
+  createStudyRoomSchema,
   discussionsParamsSchema,
   postReplySchema,
 } from '../schemas';
@@ -568,6 +569,75 @@ router.get(
   requireAuth,
   validateRequest(getStudyRoomsSchema),
   ChatController.getStudyRooms
+);
+
+/**
+ * @openapi
+ * /api/community/study-rooms:
+ *   post:
+ *     summary: Create a new study room
+ *     description: Creates a new study room for the authenticated user. Fails if a room with the same name already exists for that user.
+ *     tags:
+ *       - Community
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateStudyRoom'
+ *     responses:
+ *       201:
+ *         description: Study room successfully created.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   example: "room_123"
+ *                 name:
+ *                   type: string
+ *                   example: "React Deep Dive"
+ *                 description:
+ *                   type: string
+ *                   example: "Let's master React Hooks and advanced patterns together!"
+ *                 category:
+ *                   type: string
+ *                   example: "React"
+ *                 tags:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example: ["React", "Frontend"]
+ *                 maxParticipants:
+ *                   type: integer
+ *                   example: 15
+ *                 isPrivate:
+ *                   type: boolean
+ *                   example: false
+ *                 durationMinutes:
+ *                   type: integer
+ *                   example: 90
+ *                 startTime:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-09-26T06:00:00.000Z"
+ *                 createdById:
+ *                   type: string
+ *                   example: "b06531a1-2563-4702-8706-819ce72649ac"
+ *       400:
+ *         description: Bad request, e.g., a study room with the same name already exists.
+ *       401:
+ *         description: Unauthorized, user must be authenticated.
+ */
+router.post(
+  '/study-rooms',
+  requireAuth,
+  validateRequest(createStudyRoomSchema),
+  ChatController.createStudyRoom
 );
 
 export { router as chatRouter };
