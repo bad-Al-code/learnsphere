@@ -1,9 +1,43 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { studentAnalyticsTabs } from '@/config/nav-items';
+import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { PageHeader, PageHeaderSkeleton } from '../_components/page-header';
 import { AnalyticsTabs } from './_components/analytics-tabs';
 import { PerformanceTabSkeleton } from './_components/performance-tab';
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}): Promise<Metadata> {
+  const tab = searchParams.tab || 'Performance';
+
+  const titles: Record<string, string> = {
+    performance: 'Performance',
+    engagement: 'Engagement',
+    'ai-insights': 'AI Insights',
+  };
+
+  return {
+    title: titles[tab] || 'Performance',
+  };
+}
+
+export default function AnalyticsPage() {
+  return (
+    <div className="mb-4 space-y-2">
+      <PageHeader
+        title="My Analytics"
+        description="Track your performance and engagement metrics"
+      />
+
+      <Suspense fallback={<AnalyticsPageSkeleton />}>
+        <AnalyticsTabs />
+      </Suspense>
+    </div>
+  );
+}
 
 function AnalyticsPageSkeleton() {
   return (
@@ -19,21 +53,6 @@ function AnalyticsPageSkeleton() {
         </div>
       </div>
       <PerformanceTabSkeleton />
-    </div>
-  );
-}
-
-export default function AnalyticsPage() {
-  return (
-    <div className="mb-4 space-y-2">
-      <PageHeader
-        title="My Analytics"
-        description="Track your performance and engagement metrics"
-      />
-
-      <Suspense fallback={<AnalyticsPageSkeleton />}>
-        <AnalyticsTabs />
-      </Suspense>
     </div>
   );
 }

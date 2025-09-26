@@ -1,9 +1,48 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { studentCommunityTabs } from '@/config/nav-items';
+import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { PageHeader, PageHeaderSkeleton } from '../_components/page-header';
 import { ChatTabSkeleton } from './_components/chat-tab';
 import { CommunityTabs } from './_components/community-tabs';
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}): Promise<Metadata> {
+  const tab = searchParams.tab || 'Chat';
+
+  const titles: Record<string, string> = {
+    chat: 'Chats',
+    'study-rooms': 'Study Rooms',
+    projects: 'Projects',
+    tutoring: 'Tutoring',
+    events: 'Events',
+    mentorship: 'Mentorship',
+    leaderboard: 'Leaderboard',
+    discussions: 'Discussions',
+  };
+
+  return {
+    title: titles[tab] ?? 'Chat',
+  };
+}
+
+export default function CommunityPage() {
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Community"
+        description="Connect with classmates, instructors, and get AI assistance"
+      />
+
+      <Suspense fallback={<CommunityPageSkeleton />}>
+        <CommunityTabs />
+      </Suspense>
+    </div>
+  );
+}
 
 function CommunityPageSkeleton() {
   return (
@@ -19,21 +58,6 @@ function CommunityPageSkeleton() {
         </div>
         <ChatTabSkeleton />
       </div>
-    </div>
-  );
-}
-
-export default function CommunityPage() {
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Community"
-        description="Connect with classmates, instructors, and get AI assistance"
-      />
-
-      <Suspense fallback={<CommunityPageSkeleton />}>
-        <CommunityTabs />
-      </Suspense>
     </div>
   );
 }

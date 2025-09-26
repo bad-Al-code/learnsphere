@@ -75,10 +75,22 @@ import {
   Users,
   Zap,
 } from 'lucide-react';
+import Head from 'next/head';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useDiscussions } from '../hooks/use-discussion';
-import { useCreateDraft, useDrafts } from '../hooks/use-draft';
+import {
+  useBookmarkDiscussion,
+  useCreateDiscussion,
+  useDiscussions,
+  usePostReply,
+  useResolveDiscussion,
+} from '../hooks/use-discussion';
+import {
+  useCreateDraft,
+  useDeleteDraft,
+  useDrafts,
+  useGenerateAISuggestions,
+} from '../hooks/use-draft';
 import {
   CreateDraftInput,
   createDraftInputSchema,
@@ -233,6 +245,40 @@ const aiSuggestions: TAIAssistance[] = [
 
 export function DraftsTab({ courseId }: { courseId?: string }) {
   const { actions, ...store } = useAssignmentStore();
+  const { data: drafts, isLoading: isLoadingDrafts } = useDrafts();
+  const { data: discussions, isLoading: isLoadingDiscussions } = useDiscussions(
+    courseId!
+  );
+  const { mutate: createDraft } = useCreateDraft();
+  const { mutate: deleteDraft } = useDeleteDraft();
+  const { mutate: createDiscussion } = useCreateDiscussion();
+  const { mutate: postReply } = usePostReply();
+  const { mutate: bookmarkDiscussion } = useBookmarkDiscussion();
+  const { mutate: resolveDiscussion } = useResolveDiscussion();
+  const {
+    mutate: generateAISuggestions,
+    data: aiSuggestions,
+    isPending: isGeneratingAI,
+  } = useGenerateAISuggestions();
+
+  const newDraftForm = useForm<CreateDraftInput>({
+    resolver: zodResolver(createDraftInputSchema),
+  });
+  const handleCreateNewDraft = (values: CreateDraftInput) => {
+    createDraft(
+      {
+        ...values,
+        assignmentId:
+          'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1' /* TODO: Replace with dynamic ID */,
+      },
+      {
+        onSuccess: () => {
+          actions.closeNewDraftModal();
+          newDraftForm.reset();
+        },
+      }
+    );
+  };
 
   if (!courseId) {
     return (
@@ -240,6 +286,10 @@ export function DraftsTab({ courseId }: { courseId?: string }) {
         <CourseSelectionScreen />
       </div>
     );
+  }
+
+  if (isLoadingDrafts || isLoadingDiscussions) {
+    return <DraftsTabSkeleton />;
   }
 
   const [drafts, setDrafts] = useState<TDraft[]>(initialDraftsData);
@@ -1466,14 +1516,19 @@ export function DraftsTab({ courseId }: { courseId?: string }) {
   );
 
   return (
-    <div className="space-y-4">
-      <DraftAssignmentsSection />
-      <AssignmentDiscussionsSection />
+    <>
+      <Head>
+        <title>{courseId ? 'Draft Assignments' : 'Select a Course'}</title>
+      </Head>
+      <div className="space-y-4">
+        <DraftAssignmentsSection />
+        <AssignmentDiscussionsSection />
 
-      <AIAssistanceDialog />
-      <ShareDialog />
-      <EditDialog />
-    </div>
+        <AIAssistanceDialog />
+        <ShareDialog />
+        <EditDialog />
+      </div>
+    </>
   );
 }
 

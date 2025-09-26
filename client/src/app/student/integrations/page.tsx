@@ -1,9 +1,43 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { studentIntegrationsTabs } from '@/config/nav-items';
+import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { IntegrationsTabs } from './_components/integrations-tabs';
 import { PageHeader, PageHeaderSkeleton } from './_components/page-header';
 import { AllTabSkeleton } from './skeletons/all-tab-skeleton';
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}): Promise<Metadata> {
+  const tab = searchParams.tab || 'All Integrations';
+
+  const titles: Record<string, string> = {
+    all: 'All Integrations',
+    connected: 'Connected Integrations',
+    available: 'Available Integrations',
+  };
+
+  return {
+    title: titles[tab] ?? 'All Integrations',
+  };
+}
+
+export default function IntegrationsPage() {
+  return (
+    <div className="mb-4 space-y-2">
+      <PageHeader
+        title="Integrations"
+        description="Connect your favorite apps and services to enhance your learning workflow."
+      />
+
+      <Suspense fallback={<IntegrationsPageSkeleton />}>
+        <IntegrationsTabs />
+      </Suspense>
+    </div>
+  );
+}
 
 function IntegrationsPageSkeleton() {
   return (
@@ -19,21 +53,6 @@ function IntegrationsPageSkeleton() {
         </div>
         <AllTabSkeleton />
       </div>
-    </div>
-  );
-}
-
-export default function IntegrationsPage() {
-  return (
-    <div className="mb-4 space-y-2">
-      <PageHeader
-        title="Integrations"
-        description="Connect your favorite apps and services to enhance your learning workflow."
-      />
-
-      <Suspense fallback={<IntegrationsPageSkeleton />}>
-        <IntegrationsTabs />
-      </Suspense>
     </div>
   );
 }

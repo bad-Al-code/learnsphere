@@ -583,21 +583,21 @@ function PeerReviewInterface() {
 
       case 'content':
         return (
-          <div className="space-y-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Assignment Content</CardTitle>
-                <CardDescription>
-                  Review the complete submission carefully. Take notes as
-                  needed.
-                </CardDescription>
-              </CardHeader>
+          <ScrollArea className="h-32 border border-red-500 pr-3">
+            <div className="space-y-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Assignment Content</CardTitle>
+                  <CardDescription>
+                    Review the complete submission carefully. Take notes as
+                    needed.
+                  </CardDescription>
+                </CardHeader>
 
-              <ScrollArea className="h-32 border border-red-500 pr-3">
                 {assignment.assignmentContent}
-              </ScrollArea>
-            </Card>
-          </div>
+              </Card>
+            </div>
+          </ScrollArea>
         );
 
       case 'scoring':
@@ -2279,7 +2279,7 @@ function ReviewCard({
       </Card>
 
       <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
-        <DialogContent className="container flex max-h-[95vh] max-w-[80vw] flex-col overflow-hidden">
+        <DialogContent className="container flex max-h-[95vh] min-w-[80vw] flex-col overflow-hidden">
           <DialogHeader className="">
             <DialogTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
@@ -2340,9 +2340,7 @@ function ReviewCard({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-2 py-4">
-            {renderStepContent()}
-          </div>
+          <ScrollArea className="flex-1 pr-2">{renderStepContent()}</ScrollArea>
 
           <div className="flex flex-shrink-0 items-center justify-between border-t px-2 py-4">
             <div className="flex items-center gap-4">
