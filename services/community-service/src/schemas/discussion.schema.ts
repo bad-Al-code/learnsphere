@@ -216,3 +216,141 @@ export const joinRoomParamsSchema = z.object({
     roomId: z.uuid(),
   }),
 });
+
+/**
+ * @openapi
+ * components:
+ *   parameters:
+ *     RoomIdParam:
+ *       name: roomId
+ *       in: path
+ *       required: true
+ *       description: The unique ID of the study room
+ *       schema:
+ *         type: string
+ *         format: uuid
+ *   schemas:
+ *     UpdateStudyRoomBody:
+ *       type: object
+ *       description: Fields to update in the study room
+ *       properties:
+ *         title:
+ *           type: string
+ *           minLength: 5
+ *           description: The new title of the study room
+ *         description:
+ *           type: string
+ *           minLength: 10
+ *           description: The new description of the study room
+ *         category:
+ *           type: string
+ *           description: The category of the study room
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: List of tags for the study room
+ *         maxParticipants:
+ *           type: integer
+ *           minimum: 2
+ *           maximum: 50
+ *           description: Maximum number of participants
+ *         isPrivate:
+ *           type: boolean
+ *           description: Whether the study room is private
+ *       example:
+ *         title: "New Study Room Title"
+ *         description: "A detailed description of the study room"
+ *         category: "Math"
+ *         tags: ["algebra", "geometry"]
+ *         maxParticipants: 20
+ *         isPrivate: false
+ */
+export const updateStudyRoomSchema = z.object({
+  body: z
+    .object({
+      title: z
+        .string()
+        .min(5, 'Title must be at least 5 characters.')
+        .optional(),
+      description: z
+        .string()
+        .min(10, 'Description must be at least 10 characters.')
+        .optional(),
+      category: z.string().min(1).optional(),
+      tags: z.array(z.string()).optional(),
+      maxParticipants: z.number().int().min(2).max(50).optional(),
+      isPrivate: z.boolean().optional(),
+    })
+    .refine((data) => Object.keys(data).length > 0, {
+      message: 'At least one field must be provided for an update.',
+    }),
+
+  params: z.object({ roomId: z.uuid() }),
+});
+export type UpdateStudyRoomDto = z.infer<
+  typeof updateStudyRoomSchema.shape.body
+>;
+
+/**
+ * @openapi
+ * components:
+ *   parameters:
+ *     RoomIdParam:
+ *       name: roomId
+ *       in: path
+ *       required: true
+ *       description: The unique ID of the study room
+ *       schema:
+ *         type: string
+ *         format: uuid
+ */
+export const roomParamsSchema = z.object({
+  params: z.object({ roomId: z.uuid() }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   parameters:
+ *     ListStudyRoomsQuery:
+ *       name: query
+ *       in: query
+ *       required: false
+ *       description: Search term to filter study rooms
+ *       schema:
+ *         type: string
+ *     ListStudyRoomsTopic:
+ *       name: topic
+ *       in: query
+ *       required: false
+ *       description: Topic of the study room
+ *       schema:
+ *         type: string
+ *     ListStudyRoomsLimit:
+ *       name: limit
+ *       in: query
+ *       required: false
+ *       description: Maximum number of rooms to return (default 9, max 20)
+ *       schema:
+ *         type: integer
+ *         minimum: 1
+ *         maximum: 20
+ *         default: 9
+ *     ListStudyRoomsCursor:
+ *       name: cursor
+ *       in: query
+ *       required: false
+ *       description: UUID of the last item from previous page for pagination
+ *       schema:
+ *         type: string
+ *         format: uuid
+ */
+export const listStudyRoomsSchema = z.object({
+  query: z.object({
+    query: z.string().optional(),
+    topic: z.string().optional(),
+    limit: z.coerce.number().int().min(1).max(20).default(9),
+    cursor: z.uuid().optional(),
+  }),
+});

@@ -13,6 +13,7 @@ import {
   MessageSentListener,
   ReportGenerationFailedListener,
   ReportGenerationSuccessListener,
+  StudyRoomReminderListener,
   UserPasswordChangedListener,
   UserPasswordResetRequiredListener,
   UserSyncRegisteredListener,
@@ -43,6 +44,7 @@ const start = async () => {
     new ReportGenerationFailedListener(emailService).listen();
     new MessageSentListener().listen();
     new AIFeedbackReadyListener(emailService).listen();
+    new StudyRoomReminderListener().listen();
 
     const server = http.createServer(app);
 

@@ -1,3 +1,4 @@
+import { differenceInMilliseconds } from 'date-fns';
 import { webSocketService } from '..';
 import logger from '../config/logger';
 import { redisConnection } from '../config/redis';
@@ -5,8 +6,15 @@ import { ConversationRepository, MessageRepository } from '../db/repositories';
 import { Conversation, NewConversation } from '../db/schema';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
 import { ConflictError } from '../errors/conflic-error';
-import { GroupUpdatedPublisher } from '../events/publisher';
-import { CreateDiscussionDto, CreateStudyRoomDTO } from '../schemas';
+import {
+  GroupUpdatedPublisher,
+  StudyRoomReminderPublisher,
+} from '../events/publisher';
+import {
+  CreateDiscussionDto,
+  CreateStudyRoomDTO,
+  UpdateStudyRoomDto,
+} from '../schemas';
 import { Requester } from '../types';
 import { ChatCacheService } from './cache.service';
 import { ONLINE_USERS_KEY } from './presence.service';
@@ -560,23 +568,35 @@ export class ChatService {
   }
 
   /**
-   * Retrieves formatted study room data for API responses.
-   * - Uses `findStudyRooms` to query raw rooms.
-   * - Maps rooms into a normalized object shape for clients.
-   * @param options.query  Optional search string to filter study room names.
+   * Retrieves and formats study room data for API responses.
+   * - Queries raw rooms using `findStudyRooms`.
+   * - Maps rooms into a normalized shape for clients.
+   * - Supports pagination with `cursor`.
+   * @param options.query  Optional search string for room names.
    * @param options.topic  Optional topic filter ("all" returns all topics).
-   * @returns Promise resolving to a list of study rooms with metadata (title, host, participants, etc.).
+   * @param options.limit  Maximum number of rooms to return.
+   * @param options.cursor Optional UUID for pagination.
+   * @returns Object containing `rooms` array and `nextCursor` for pagination.
    */
   public static async getStudyRooms(options: {
     query?: string;
     topic?: string;
+    limit: number;
+    cursor?: string;
   }) {
     const rooms = await ConversationRepository.findStudyRooms(options);
+    let nextCursor: string | null = null;
+    if (rooms.length === options.limit) {
+      const lastRoom = rooms[rooms.length - 1];
 
-    return rooms.map((room) => ({
+      nextCursor = lastRoom.id;
+    }
+
+    const formattedRooms = rooms.map((room) => ({
       id: room.id,
       title: room.name,
       subtitle: room.description,
+      hostId: room.createdById,
       host: `Hosted By ${room.participants.find((p) => p.userId === room.createdById)?.user.name || '...'}`,
       participants: room.participants.length,
       maxParticipants: room.maxParticipants,
@@ -589,6 +609,8 @@ export class ChatService {
       isPrivate: room.isPrivate,
       time: room.startTime,
     }));
+
+    return { rooms: formattedRooms, nextCursor };
   }
 
   /**
@@ -665,5 +687,72 @@ export class ChatService {
     await ConversationRepository.addParticipant(roomId, requester.id);
 
     logger.info(`User ${requester.id} successfully joined room ${roomId}`);
+  }
+
+  /**
+   * Updates a study room if the requester is the creator.
+   * @param roomId - The unique ID of the study room to update
+   * @param data - Fields to update on the study room
+   * @param requester - The authenticated user making the request
+   * @returns The updated study room
+   */
+  public static async updateStudyRoom(
+    roomId: string,
+    data: UpdateStudyRoomDto,
+    requester: Requester
+  ): Promise<Conversation> {
+    const room = await ConversationRepository.findById(roomId);
+    if (!room || room.createdById !== requester.id) {
+      throw new ForbiddenError();
+    }
+
+    return ConversationRepository.update(roomId, data);
+  }
+
+  /**
+   * Deletes a study room if the requester is the creator.
+   * @param roomId - The unique ID of the study room to delete
+   * @param requester - The authenticated user making the request
+   */
+  public static async deleteStudyRoom(roomId: string, requester: Requester) {
+    const room = await ConversationRepository.findById(roomId);
+    if (!room || room.createdById !== requester.id) {
+      throw new ForbiddenError();
+    }
+
+    await ConversationRepository.delete(roomId);
+  }
+
+  public static async scheduleReminder(roomId: string, requester: Requester) {
+    const room = await ConversationRepository.findById(roomId);
+    if (!room || !room.startTime) {
+      throw new NotFoundError('Scheduled study room not found.');
+    }
+
+    const reminderTime = new Date(room.startTime).getTime() - 15 * 60 * 1000;
+    const delayMilliseconds = differenceInMilliseconds(
+      reminderTime,
+      new Date()
+    );
+    if (delayMilliseconds <= 0) {
+      throw new BadRequestError(
+        'Cannot schedule a reminder for a room that is starting in less than 15 minutes or has already started.'
+      );
+    }
+
+    const publisher = new StudyRoomReminderPublisher();
+    await publisher.publish(
+      {
+        userId: requester.id,
+        roomId: room.id,
+        roomTitle: room.name!,
+        startTime: room.startTime.toISOString(),
+      },
+      { expiration: delayMilliseconds }
+    );
+
+    logger.info(
+      `Scheduled reminder for user ${requester.id} for room ${roomId}`
+    );
   }
 }

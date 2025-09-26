@@ -8,13 +8,15 @@ import {
   createStudyRoomSchema,
   discussionsParamsSchema,
   joinRoomParamsSchema,
+  listStudyRoomsSchema,
   postReplySchema,
+  roomParamsSchema,
+  updateStudyRoomSchema,
 } from '../schemas';
 import {
   createConversationSchema,
   createGroupConversationSchema,
   getMessagesSchema,
-  getStudyRoomsSchema,
 } from '../schemas/chat.schema';
 
 const router = Router();
@@ -492,7 +494,7 @@ router.post(
  * /api/community/study-rooms:
  *   get:
  *     summary: Get study rooms
- *     description: Retrieve a list of study rooms filtered by topic and optional search query.
+ *     description: Retrieve a list of study rooms filtered by topic, optional search, and paginated.
  *     tags:
  *       - Community
  *     parameters:
@@ -502,64 +504,87 @@ router.post(
  *           type: string
  *           example: React
  *         required: false
- *         description: Filter study rooms by topic/category. Use `all` to return all topics.
+ *         description: Topic/category filter. Use `all` to return all topics.
  *       - in: query
  *         name: q
  *         schema:
  *           type: string
  *           example: Workshop
  *         required: false
- *         description: Search string to match against study room names.
+ *         description: Search string for room names.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 9
+ *           minimum: 1
+ *           maximum: 20
+ *         required: false
+ *         description: Maximum number of rooms to return.
+ *       - in: query
+ *         name: cursor
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         required: false
+ *         description: UUID of the last item from previous page for pagination.
  *     responses:
  *       200:
- *         description: A list of study rooms.
+ *         description: List of study rooms with metadata.
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: string
- *                     example: "room_123"
- *                   title:
- *                     type: string
- *                     example: "React Workshop"
- *                   subtitle:
- *                     type: string
- *                     example: "Hands-on React learning session"
- *                   host:
- *                     type: string
- *                     example: "Hosted By Alice"
- *                   participants:
- *                     type: integer
- *                     example: 12
- *                   maxParticipants:
- *                     type: integer
- *                     example: 50
- *                   duration:
- *                     type: string
- *                     example: "45m"
- *                   tags:
- *                     type: array
- *                     items:
- *                       type: string
- *                     example: ["React", "Workshop"]
- *                   progress:
- *                     type: integer
- *                     description: Percentage of room capacity filled
- *                     example: 24
- *                   isLive:
- *                     type: boolean
- *                     example: true
- *                   isPrivate:
- *                     type: boolean
- *                     example: false
- *                   time:
- *                     type: string
- *                     format: time
- *                     example: "3:00 PM"
+ *               type: object
+ *               properties:
+ *                 rooms:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: "room_123"
+ *                       title:
+ *                         type: string
+ *                         example: "React Workshop"
+ *                       subtitle:
+ *                         type: string
+ *                         example: "Hands-on React learning session"
+ *                       host:
+ *                         type: string
+ *                         example: "Hosted By Alice"
+ *                       participants:
+ *                         type: integer
+ *                         example: 12
+ *                       maxParticipants:
+ *                         type: integer
+ *                         example: 50
+ *                       duration:
+ *                         type: string
+ *                         example: "45m"
+ *                       tags:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                         example: ["React", "Workshop"]
+ *                       progress:
+ *                         type: integer
+ *                         description: Percentage of room capacity filled
+ *                         example: 24
+ *                       isLive:
+ *                         type: boolean
+ *                         example: true
+ *                       isPrivate:
+ *                         type: boolean
+ *                         example: false
+ *                       time:
+ *                         type: string
+ *                         format: time
+ *                         example: "3:00 PM"
+ *                 nextCursor:
+ *                   type: string
+ *                   nullable: true
+ *                   description: Cursor for next page of results.
  *       400:
  *         description: Invalid query parameters.
  *       401:
@@ -568,7 +593,7 @@ router.post(
 router.get(
   '/study-rooms',
   requireAuth,
-  validateRequest(getStudyRoomsSchema),
+  validateRequest(listStudyRoomsSchema),
   ChatController.getStudyRooms
 );
 
@@ -672,6 +697,102 @@ router.post(
   requireAuth,
   validateRequest(joinRoomParamsSchema),
   ChatController.joinStudyRoom
+);
+
+/**
+ * @openapi
+ * /api/community/study-rooms/{roomId}:
+ *   put:
+ *     summary: Update a study room
+ *     description: Updates the specified study room if the authenticated user is the creator.
+ *     tags:
+ *       - Community
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The unique ID of the study room to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               maxParticipants:
+ *                 type: integer
+ *               isPrivate:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Successfully updated the study room
+ *       400:
+ *         description: Invalid request data
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - requester is not the creator
+ *       404:
+ *         description: Study room not found
+ */
+router.put(
+  '/study-rooms/:roomId',
+  requireAuth,
+  validateRequest(updateStudyRoomSchema),
+  ChatController.updateStudyRoom
+);
+
+/**
+ * @openapi
+ * /api/community/study-rooms/{roomId}:
+ *   delete:
+ *     summary: Delete a study room
+ *     description: Deletes the specified study room if the authenticated user is the creator.
+ *     tags:
+ *       - Community
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The unique ID of the study room to delete
+ *     responses:
+ *       200:
+ *         description: Successfully deleted the study room
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - requester is not the creator
+ *       404:
+ *         description: Study room not found
+ */
+router.delete(
+  '/study-rooms/:roomId',
+  requireAuth,
+  validateRequest(roomParamsSchema),
+  ChatController.deleteStudyRoom
+);
+
+router.post(
+  '/study-rooms/:roomId/schedule-reminder',
+  requireAuth,
+  validateRequest(roomParamsSchema),
+  ChatController.scheduleReminder
 );
 
 export { router as chatRouter };

@@ -5,6 +5,8 @@ import { getStudyRooms } from '../api/study-room.api.server';
 export const getStudyRoomsAction = async (params: {
   query?: string;
   topic?: string;
+  limit?: number;
+  cursor?: string;
 }) => {
   try {
     return { data: await getStudyRooms(params) };

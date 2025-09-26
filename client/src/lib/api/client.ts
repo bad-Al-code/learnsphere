@@ -157,8 +157,10 @@ class ApiClient {
 
       throw new Error(message);
     }
+    const text = await response.text();
+    if (!text) return undefined as unknown as T;
 
-    return response.json() as Promise<T>;
+    return JSON.parse(text) as T;
   }
 
   public async getTyped<T>(path: string, options?: RequestInit): Promise<T> {

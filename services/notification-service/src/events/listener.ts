@@ -741,3 +741,54 @@ export class AIFeedbackReadyListener extends Listener<AIFeedbackReadyEvent> {
     }
   }
 }
+
+interface StudyRoomReminderEvent {
+  topic: 'study.room.reminder.requested';
+  data: {
+    userId: string;
+    roomId: string;
+    roomTitle: string;
+    startTime: string;
+  };
+}
+export class StudyRoomReminderListener extends Listener<StudyRoomReminderEvent> {
+  readonly topic = 'study.room.reminder.requested' as const;
+  queueGroupName = 'notification-service-room-reminder';
+  protected exchange = 'notification-processing.exchange';
+  protected exchangeType = 'direct';
+  //  private emailService: EmailService;
+
+  //   constructor(emailService: EmailService) {
+  //     super();
+  //     this.emailService = emailService;
+  //   }
+
+  async onMessage(data: StudyRoomReminderEvent['data'], _msg: ConsumeMessage) {
+    try {
+      logger.info(
+        `Processing reminder for user ${data.userId} for room ${data.roomTitle}`
+      );
+
+      const user = await UserRepository.findById(data.userId);
+      if (!user) return;
+
+      const linkUrl = `/student/community?tab=study-rooms&highlight=${data.roomId}`;
+      const startTimeFormatted = new Date(data.startTime).toLocaleTimeString(
+        [],
+        { hour: '2-digit', minute: '2-digit' }
+      );
+
+      await NotificationService.createNotification({
+        recipientId: data.userId,
+        type: 'STUDY_ROOM_REMINDER',
+        content: `Reminder: Your study session "${data.roomTitle}" is starting at ${startTimeFormatted}.`,
+        linkUrl,
+      });
+    } catch (error) {
+      logger.error('Failed to process study room reminder event', {
+        data,
+        error,
+      });
+    }
+  }
+}

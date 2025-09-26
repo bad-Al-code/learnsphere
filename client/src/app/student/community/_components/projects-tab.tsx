@@ -225,9 +225,7 @@ function ProjectCard({ project }: { project: TProject }) {
               <span className="hidden sm:inline">Chat</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
-            <p>Chat</p>
-          </TooltipContent>
+          <TooltipContent className="sm:hidden">Chat</TooltipContent>
         </Tooltip>
       </CardFooter>
     </Card>

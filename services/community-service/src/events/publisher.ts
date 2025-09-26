@@ -1,3 +1,4 @@
+import { Options } from 'amqplib';
 import logger from '../config/logger';
 import { rabbitMQConnection } from './connection';
 
@@ -6,7 +7,7 @@ export abstract class Publisher<T extends { topic: string; data: unknown }> {
   protected exchange = 'learnsphere';
   protected exchangeType = 'topic';
 
-  async publish(data: T['data']): Promise<void> {
+  async publish(data: T['data'], options?: Options.Publish): Promise<void> {
     const channel = rabbitMQConnection.getChannel();
     await channel.assertExchange(this.exchange, this.exchangeType, {
       durable: true,
@@ -14,11 +15,11 @@ export abstract class Publisher<T extends { topic: string; data: unknown }> {
 
     const message = JSON.stringify(data);
 
-    channel.publish(this.exchange, this.topic, Buffer.from(message));
+    channel.publish(this.exchange, this.topic, Buffer.from(message), options);
 
     logger.info(
       `Event published to exchange '${this.exchange}' with topic '${this.topic}': %o`,
-      data
+      { data, options }
     );
   }
 }
@@ -62,4 +63,18 @@ interface GroupUpdatedEvent {
 
 export class GroupUpdatedPublisher extends Publisher<GroupUpdatedEvent> {
   readonly topic: 'group.updated' = 'group.updated' as const;
+}
+
+interface StudyRoomReminderRequestedEvent {
+  topic: 'study.room.reminder.requested';
+  data: {
+    userId: string;
+    roomId: string;
+    roomTitle: string;
+    startTime: string;
+  };
+}
+export class StudyRoomReminderPublisher extends Publisher<StudyRoomReminderRequestedEvent> {
+  readonly topic = 'study.room.reminder.requested' as const;
+  protected exchange = 'delay.exchange';
 }

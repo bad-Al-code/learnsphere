@@ -302,13 +302,13 @@ export class ChatController {
     next: NextFunction
   ) {
     try {
-      const { q, topic } = req.query;
-
+      const { q, topic, limit, cursor } = req.query;
       const rooms = await ChatService.getStudyRooms({
         query: q as string,
         topic: topic as string,
+        limit: Number(limit) || 9,
+        cursor: cursor as string | undefined,
       });
-
       res.status(StatusCodes.OK).json(rooms);
     } catch (error) {
       next(error);
@@ -348,6 +348,60 @@ export class ChatController {
       res
         .status(StatusCodes.OK)
         .json({ message: 'Successfully joined the room.' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async updateStudyRoom(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { roomId } = req.params;
+
+      const updatedRoom = await ChatService.updateStudyRoom(
+        roomId,
+        req.body,
+        req.currentUser
+      );
+
+      res.status(StatusCodes.OK).json(updatedRoom);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async deleteStudyRoom(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { roomId } = req.params;
+
+      await ChatService.deleteStudyRoom(roomId, req.currentUser);
+
+      res.status(StatusCodes.NO_CONTENT).send();
+    } catch (error) {
+      next(error);
+    }
+  }
+  public static async scheduleReminder(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { roomId } = req.params;
+      await ChatService.scheduleReminder(roomId, req.currentUser);
+      res
+        .status(StatusCodes.ACCEPTED)
+        .json({ message: 'Reminder has been scheduled.' });
     } catch (error) {
       next(error);
     }

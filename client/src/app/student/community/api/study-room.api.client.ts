@@ -3,7 +3,11 @@ import {
   courseService,
 } from '@/lib/api/client';
 import { Category } from '@/types/category';
-import { CreateStudyRoomInput, StudyRoom } from '../schema/study-rooms.schema';
+import {
+  CreateStudyRoomInput,
+  StudyRoom,
+  UpdateStudyRoomInput,
+} from '../schema/study-rooms.schema';
 
 export const createStudyRoom = async (
   data: CreateStudyRoomInput
@@ -38,6 +42,43 @@ export const joinStudyRoom = async (
 ): Promise<{ message: string }> => {
   const response = await clientCommunityService.post<{ message: string }>(
     `/api/community/study-rooms/${roomId}/join`,
+    {}
+  );
+
+  return response.data;
+};
+
+export const updateStudyRoom = async (
+  roomId: string,
+  data: UpdateStudyRoomInput
+): Promise<StudyRoom> => {
+  const payload = {
+    ...data,
+    tags: data.tags
+      ?.split(',')
+      .map((t) => t.trim())
+      .filter(Boolean),
+  };
+
+  const response = await clientCommunityService.put<StudyRoom>(
+    `/api/community/study-rooms/${roomId}`,
+    payload
+  );
+
+  return response.data;
+};
+
+export const deleteStudyRoom = async (roomId: string): Promise<void> => {
+  await clientCommunityService.deleteTyped(
+    `/api/community/study-rooms/${roomId}`
+  );
+};
+
+export const scheduleReminder = async (
+  roomId: string
+): Promise<{ message: string }> => {
+  const response = await clientCommunityService.post<{ message: string }>(
+    `/api/community/study-rooms/${roomId}/schedule-reminder`,
     {}
   );
 

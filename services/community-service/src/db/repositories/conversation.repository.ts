@@ -1,6 +1,7 @@
-import { and, asc, desc, eq, ilike, inArray, ne, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, inArray, lt, ne, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { db } from '..';
+import { UpdateStudyRoomDto } from '../../schemas';
 import {
   Conversation,
   conversationParticipants,
@@ -402,17 +403,21 @@ export class ConversationRepository {
   }
 
   /**
-   * Finds study rooms in the database based on optional query and topic filters.
-   * - Matches group conversations only.
-   * - Supports partial name search via `query`.
-   * - Filters by category when `topic` is provided and not "all".
-   * @param options.query  Optional search string to match conversation names.
-   * @param options.topic  Optional category/topic filter (ignored if "all").
-   * @returns Promise resolving to a list of matching conversation records with participants.
+   * Finds group study rooms with optional filters.
+   * - Partial match on `query` against room names.
+   * - Filter by `topic` if provided and not "all".
+   * - Supports pagination via `cursor`.
+   * @param options.query  Optional search string for room names.
+   * @param options.topic  Optional topic/category filter.
+   * @param options.limit  Max number of rooms to return.
+   * @param options.cursor Optional UUID for pagination.
+   * @returns List of matching study rooms with participants.
    */
   public static async findStudyRooms(options: {
     query?: string;
     topic?: string;
+    limit: number;
+    cursor?: string;
   }) {
     const conditions = [eq(conversations.type, 'group')];
     if (options.query) {
@@ -421,13 +426,51 @@ export class ConversationRepository {
     if (options.topic && options.topic !== 'all') {
       conditions.push(ilike(conversations.category, options.topic));
     }
+    if (options.cursor) {
+      const cursorItem = await db.query.conversations.findFirst({
+        where: eq(conversations.id, options.cursor),
+        columns: { createdAt: true },
+      });
+
+      if (cursorItem) {
+        conditions.push(lt(conversations.createdAt, cursorItem.createdAt));
+      }
+    }
 
     return db.query.conversations.findMany({
       where: and(...conditions),
       orderBy: [desc(conversations.isLive), desc(conversations.createdAt)],
+      limit: options.limit,
       with: {
-        participants: { with: { user: { columns: { name: true } } } },
+        participants: { with: { user: { columns: { name: true, id: true } } } },
       },
     });
+  }
+
+  /**
+   * Updates a study room by ID with the provided fields.
+   * @param roomId - The unique ID of the study room to update
+   * @param data - Partial fields to update on the study room
+   * @returns The updated study room record
+   */
+  public static async update(
+    roomId: string,
+    data: Partial<UpdateStudyRoomDto>
+  ): Promise<Conversation> {
+    const [updatedRoom] = await db
+      .update(conversations)
+      .set({ ...data, name: data.title, updatedAt: new Date() })
+      .where(eq(conversations.id, roomId))
+      .returning();
+
+    return updatedRoom;
+  }
+
+  /**
+   * Deletes a study room by ID.
+   * @param roomId - The unique ID of the study room to delete
+   */
+  public static async delete(roomId: string): Promise<void> {
+    await db.delete(conversations).where(eq(conversations.id, roomId));
   }
 }

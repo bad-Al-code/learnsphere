@@ -12,6 +12,7 @@ export const studyRoomSchema = z.object({
   progress: z.number(),
   isLive: z.boolean(),
   isPrivate: z.boolean(),
+  hostId: z.uuid().nullable(),
   time: z.string().optional(),
 });
 
@@ -45,3 +46,29 @@ export const createStudyRoomFormSchema = z
   );
 
 export type CreateStudyRoomInput = z.infer<typeof createStudyRoomFormSchema>;
+
+export const studyRoomsPaginatedResponseSchema = z.object({
+  rooms: z.array(studyRoomSchema),
+  nextCursor: z.uuid().nullable(),
+});
+export type StudyRoomsPaginatedResponse = z.infer<
+  typeof studyRoomsPaginatedResponseSchema
+>;
+
+export const updateStudyRoomFormSchema = z
+  .object({
+    title: z.string().min(5, 'Title must be at least 5 characters.').optional(),
+    description: z
+      .string()
+      .min(10, 'Please provide a longer description.')
+      .optional(),
+    category: z.string().optional(),
+    tags: z.string().optional(),
+    maxParticipants: z.coerce.number().int().min(2).max(50).optional(),
+    isPrivate: z.boolean().optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: 'At least one field must be provided for an update.',
+  });
+
+export type UpdateStudyRoomInput = z.infer<typeof updateStudyRoomFormSchema>;
