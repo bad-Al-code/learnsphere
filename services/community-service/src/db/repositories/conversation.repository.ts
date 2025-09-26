@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, ne, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, inArray, ne, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { db } from '..';
 import {
@@ -399,5 +399,35 @@ export class ConversationRepository {
       .update(conversations)
       .set({ isResolved: sql`NOT ${conversations.isResolved}` })
       .where(eq(conversations.id, conversationId));
+  }
+
+  /**
+   * Finds study rooms in the database based on optional query and topic filters.
+   * - Matches group conversations only.
+   * - Supports partial name search via `query`.
+   * - Filters by category when `topic` is provided and not "all".
+   * @param options.query  Optional search string to match conversation names.
+   * @param options.topic  Optional category/topic filter (ignored if "all").
+   * @returns Promise resolving to a list of matching conversation records with participants.
+   */
+  public static async findStudyRooms(options: {
+    query?: string;
+    topic?: string;
+  }) {
+    const conditions = [eq(conversations.type, 'group')];
+    if (options.query) {
+      conditions.push(ilike(conversations.name, `%${options.query}%`));
+    }
+    if (options.topic && options.topic !== 'all') {
+      conditions.push(eq(conversations.category, options.topic));
+    }
+
+    return db.query.conversations.findMany({
+      where: and(...conditions),
+      orderBy: [desc(conversations.isLive), desc(conversations.createdAt)],
+      with: {
+        participants: { with: { user: { columns: { name: true } } } },
+      },
+    });
   }
 }

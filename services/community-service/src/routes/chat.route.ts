@@ -12,6 +12,7 @@ import {
   createConversationSchema,
   createGroupConversationSchema,
   getMessagesSchema,
+  getStudyRoomsSchema,
 } from '../schemas/chat.schema';
 
 const router = Router();
@@ -482,6 +483,91 @@ router.post(
   requireAuth,
   validateRequest(discussionsParamsSchema),
   ChatController.resolve
+);
+
+/**
+ * @openapi
+ * /api/community/study-rooms:
+ *   get:
+ *     summary: Get study rooms
+ *     description: Retrieve a list of study rooms filtered by topic and optional search query.
+ *     tags:
+ *       - Community
+ *     parameters:
+ *       - in: query
+ *         name: topic
+ *         schema:
+ *           type: string
+ *           example: React
+ *         required: false
+ *         description: Filter study rooms by topic/category. Use `all` to return all topics.
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *           example: Workshop
+ *         required: false
+ *         description: Search string to match against study room names.
+ *     responses:
+ *       200:
+ *         description: A list of study rooms.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     example: "room_123"
+ *                   title:
+ *                     type: string
+ *                     example: "React Workshop"
+ *                   subtitle:
+ *                     type: string
+ *                     example: "Hands-on React learning session"
+ *                   host:
+ *                     type: string
+ *                     example: "Hosted By Alice"
+ *                   participants:
+ *                     type: integer
+ *                     example: 12
+ *                   maxParticipants:
+ *                     type: integer
+ *                     example: 50
+ *                   duration:
+ *                     type: string
+ *                     example: "45m"
+ *                   tags:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     example: ["React", "Workshop"]
+ *                   progress:
+ *                     type: integer
+ *                     description: Percentage of room capacity filled
+ *                     example: 24
+ *                   isLive:
+ *                     type: boolean
+ *                     example: true
+ *                   isPrivate:
+ *                     type: boolean
+ *                     example: false
+ *                   time:
+ *                     type: string
+ *                     format: time
+ *                     example: "3:00 PM"
+ *       400:
+ *         description: Invalid query parameters.
+ *       401:
+ *         description: Unauthorized.
+ */
+router.get(
+  '/study-rooms',
+  requireAuth,
+  validateRequest(getStudyRoomsSchema),
+  ChatController.getStudyRooms
 );
 
 export { router as chatRouter };

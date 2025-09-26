@@ -291,3 +291,10 @@ export const createGroupConversationSchema = z.object({
 export type createGroupConversation = z.infer<
   typeof createGroupConversationSchema
 >;
+
+export const getStudyRoomsSchema = z.object({
+  query: z.object({
+    q: z.string().min(1, 'Query cannot be empty').optional(),
+    topic: z.string().min(1, 'Topic cannot be empty').optional(),
+  }),
+});

@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { webSocketService } from '..';
 import logger from '../config/logger';
 import { redisConnection } from '../config/redis';
@@ -557,5 +558,37 @@ export class ChatService {
     }
 
     await ConversationRepository.toggleResolved(discussionId);
+  }
+
+  /**
+   * Retrieves formatted study room data for API responses.
+   * - Uses `findStudyRooms` to query raw rooms.
+   * - Maps rooms into a normalized object shape for clients.
+   * @param options.query  Optional search string to filter study room names.
+   * @param options.topic  Optional topic filter ("all" returns all topics).
+   * @returns Promise resolving to a list of study rooms with metadata (title, host, participants, etc.).
+   */
+  public static async getStudyRooms(options: {
+    query?: string;
+    topic?: string;
+  }) {
+    const rooms = await ConversationRepository.findStudyRooms(options);
+
+    return rooms.map((room) => ({
+      id: room.id,
+      title: room.name,
+      subtitle: room.description,
+      host: `Hosted By ${room.participants.find((p) => p.userId === room.createdById)?.user.name || '...'}`,
+      participants: room.participants.length,
+      maxParticipants: room.maxParticipants,
+      duration: `${room.durationMinutes || 0}m`,
+      tags: room.tags,
+      progress: Math.floor(
+        (room.participants.length / (room.maxParticipants || 1)) * 100
+      ),
+      isLive: room.isLive,
+      isPrivate: false, // Placeholder
+      time: room.startTime ? format(room.startTime, 'p') : undefined,
+    }));
   }
 }

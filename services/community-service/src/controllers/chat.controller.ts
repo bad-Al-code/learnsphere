@@ -295,4 +295,23 @@ export class ChatController {
       next(error);
     }
   }
+
+  public static async getStudyRooms(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { q, topic } = req.query;
+
+      const rooms = await ChatService.getStudyRooms({
+        query: q as string,
+        topic: topic as string,
+      });
+
+      res.status(StatusCodes.OK).json(rooms);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
