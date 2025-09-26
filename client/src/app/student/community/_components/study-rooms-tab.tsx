@@ -37,6 +37,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useState } from 'react';
+import { useDebounce } from 'use-debounce';
+import { useStudyRooms } from '../hooks/use-study-room';
+import { StudyRoom } from '../schema/study-rooms.schema';
 
 type TStudyRoom = {
   id: string;
@@ -84,47 +88,62 @@ const studyRoomsData: TStudyRoom[] = [
   progress: faker.number.int({ min: 20, max: 80 }),
 }));
 
-function StudyRoomsHeader() {
+function StudyRoomsHeader({
+  onSearch,
+  onTopicChange,
+}: {
+  onSearch: (q: string) => void;
+  onTopicChange: (t: string) => void;
+}) {
   return (
     <div className="flex items-center gap-2">
       <div className="relative flex-1">
         <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-        <Input placeholder="Search study rooms..." className="pl-9" />
+        <Input
+          placeholder="Search study rooms..."
+          className="pl-9"
+          onChange={(e) => onSearch(e.target.value)}
+        />
       </div>
-      {/* Desktop Filter */}
-      <Select>
-        <SelectTrigger className="hidden md:flex">
-          <SelectValue placeholder="Filter by topic" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Topics</SelectItem>
-          <SelectItem value="react">React</SelectItem>
-          <SelectItem value="database">Database</SelectItem>
-          <SelectItem value="algorithms">Algorithms</SelectItem>
-        </SelectContent>
-      </Select>
-      {/* Mobile Filter */}
+
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="outline" size="icon" className="md:hidden">
-            <Filter className="h-4 w-4" />
-          </Button>
+          <div className="">
+            <Select onValueChange={onTopicChange}>
+              <SelectTrigger>
+                <div className="md:hidden">
+                  <Filter className="h-4 w-4" />
+                </div>
+                <div className="hidden md:flex">
+                  <SelectValue className="" placeholder="Filter by topic" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Topics</SelectItem>
+                <SelectItem value="react">React</SelectItem>
+                <SelectItem value="database">Database</SelectItem>
+                <SelectItem value="algorithms">Algorithms</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </TooltipTrigger>
         <TooltipContent>
           <p>Filter by topic</p>
         </TooltipContent>
       </Tooltip>
-      {/* Desktop Create Button */}
-      <Button className="hidden md:flex">
-        <Plus className="h-4 w-4" />
-        Create Room
-      </Button>
-      {/* Mobile Create Button */}
+
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button size="icon" className="md:hidden">
-            <Plus className="h-4 w-4" />
-          </Button>
+          <div className="">
+            <Button size="icon" className="md:hidden">
+              <Plus className="h-4 w-4" />
+            </Button>
+
+            <Button className="hidden md:flex">
+              <Plus className="h-4 w-4" />
+              Create Room
+            </Button>
+          </div>
         </TooltipTrigger>
         <TooltipContent>
           <p>Create Room</p>
@@ -134,7 +153,7 @@ function StudyRoomsHeader() {
   );
 }
 
-function StudyRoomCard({ room }: { room: TStudyRoom }) {
+function StudyRoomCard({ room }: { room: StudyRoom }) {
   return (
     <Card className="flex flex-col">
       <CardHeader>
@@ -176,7 +195,7 @@ function StudyRoomCard({ room }: { room: TStudyRoom }) {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {room.tags.map((tag) => (
+          {room.tags?.map((tag) => (
             <Badge key={tag} variant="secondary">
               {tag}
             </Badge>
@@ -193,6 +212,47 @@ function StudyRoomCard({ room }: { room: TStudyRoom }) {
         </Button>
       </CardFooter>
     </Card>
+  );
+}
+
+export function StudyRoomsTab() {
+  const [query, setQuery] = useState('');
+  const [topic, setTopic] = useState('all');
+  const [debouncedQuery] = useDebounce(query, 500);
+  const { data: studyRoomsData, isLoading } = useStudyRooms(
+    debouncedQuery,
+    topic
+  );
+
+  return (
+    <TooltipProvider delayDuration={0}>
+      <div className="space-y-2">
+        <StudyRoomsHeader onSearch={setQuery} onTopicChange={setTopic} />
+
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+          {isLoading
+            ? Array.from({ length: 3 }).map((_, i) => (
+                <StudyRoomCardSkeleton key={i} />
+              ))
+            : studyRoomsData?.map((room) => (
+                <StudyRoomCard key={room.id} room={room} />
+              ))}
+        </div>
+      </div>
+    </TooltipProvider>
+  );
+}
+
+export function StudyRoomsTabSkeleton() {
+  return (
+    <div className="space-y-2">
+      <StudyRoomsHeaderSkeleton />
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+        <StudyRoomCardSkeleton />
+        <StudyRoomCardSkeleton />
+        <StudyRoomCardSkeleton />
+      </div>
+    </div>
   );
 }
 
@@ -234,33 +294,5 @@ function StudyRoomCardSkeleton() {
         <Skeleton className="h-10 w-full" />
       </CardFooter>
     </Card>
-  );
-}
-
-export function StudyRoomsTab() {
-  return (
-    <TooltipProvider delayDuration={0}>
-      <div className="space-y-2">
-        <StudyRoomsHeader />
-        <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-          {studyRoomsData.map((room) => (
-            <StudyRoomCard key={room.id} room={room} />
-          ))}
-        </div>
-      </div>
-    </TooltipProvider>
-  );
-}
-
-export function StudyRoomsTabSkeleton() {
-  return (
-    <div className="space-y-2">
-      <StudyRoomsHeaderSkeleton />
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-        <StudyRoomCardSkeleton />
-        <StudyRoomCardSkeleton />
-        <StudyRoomCardSkeleton />
-      </div>
-    </div>
   );
 }

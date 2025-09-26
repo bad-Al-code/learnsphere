@@ -419,7 +419,7 @@ export class ConversationRepository {
       conditions.push(ilike(conversations.name, `%${options.query}%`));
     }
     if (options.topic && options.topic !== 'all') {
-      conditions.push(eq(conversations.category, options.topic));
+      conditions.push(ilike(conversations.category, options.topic));
     }
 
     return db.query.conversations.findMany({
