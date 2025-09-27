@@ -3,15 +3,16 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
-import { env } from './config/env';
-import { swaggerSpec } from './config/swagger';
-import { correlationIdMiddleware } from './middlewares/correlation-id.middleware';
-import { currentUser } from './middlewares/current-user';
-import { errorHandler } from './middlewares/error-handler';
-import { httpLogger } from './middlewares/http-logger';
-import { metricsMiddleware } from './middlewares/metrics.middleware';
-import { chatRouter } from './routes/chat.route';
-import { healthRouter } from './routes/health.route';
+
+import { env, swaggerSpec } from './config';
+import {
+  correlationIdMiddleware,
+  currentUser,
+  errorHandler,
+  httpLogger,
+  metricsMiddleware,
+} from './middlewares';
+import { analyticsRouter, chatRouter, healthRouter } from './routes';
 import { metricsService } from './services/metrics.service';
 
 const app = express();
@@ -42,6 +43,7 @@ app.get('/api/community/metrics', async (req, res) => {
 
 app.use('/api/community', healthRouter);
 app.use('/api/community', chatRouter);
+app.use('/api/community', analyticsRouter);
 
 app.use(errorHandler);
 

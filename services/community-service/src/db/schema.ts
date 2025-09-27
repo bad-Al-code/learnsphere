@@ -89,6 +89,31 @@ export const messages = pgTable('messages', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const reactionTypeEnum = pgEnum('reaction_type', [
+  'like',
+  'upvote',
+  'downvote',
+  'star',
+  'heart',
+  'sparkles',
+]);
+
+export const reactions = pgTable(
+  'reactions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    messageId: uuid('message_id')
+      .references(() => messages.id, { onDelete: 'cascade' })
+      .notNull(),
+    userId: uuid('user_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    reaction: reactionTypeEnum('reaction').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [unique().on(table.messageId, table.userId)]
+);
+
 export const usersRelations = relations(users, ({ many }) => ({
   conversations: many(conversationParticipants),
   messages: many(messages),
@@ -113,7 +138,7 @@ export const conversationParticipantsRelations = relations(
   })
 );
 
-export const messagesRelations = relations(messages, ({ one }) => ({
+export const messagesRelations = relations(messages, ({ one, many }) => ({
   conversation: one(conversations, {
     fields: [messages.conversationId],
     references: [conversations.id],
@@ -127,6 +152,7 @@ export const messagesRelations = relations(messages, ({ one }) => ({
     references: [messages.id],
     relationName: 'replies',
   }),
+  reactions: many(reactions),
 }));
 
 export type NewUser = typeof users.$inferInsert;
@@ -135,3 +161,6 @@ export type NewConversation = typeof conversations.$inferInsert;
 export type Conversation = typeof conversations.$inferSelect;
 export type NewMessage = typeof messages.$inferInsert;
 export type Message = typeof messages.$inferSelect;
+export type ReactionType = (typeof reactionTypeEnum.enumValues)[number];
+export type Reaction = typeof reactions.$inferSelect;
+export type NewReaction = typeof reactions.$inferInsert;

@@ -1,11 +1,12 @@
 import { createServer } from 'node:http';
+
 import { app } from './app';
-import { env } from './config/env';
-import logger from './config/logger';
-import { redisConnection } from './config/redis';
 import { checkDatabaseConnection } from './db';
 import { rabbitMQConnection } from './events/connection';
 
+import { env } from 'node:process';
+import { redisConnection } from './config';
+import logger from './config/logger';
 import {
   ChatMediaProcessedListener,
   UserProfileUpdatedListener,

@@ -6,11 +6,13 @@ import { PageHeader, PageHeaderSkeleton } from '../_components/page-header';
 import { ChatTabSkeleton } from './_components/chat-tab';
 import { CommunityTabs } from './_components/community-tabs';
 
+interface Props {
+  searchParams: { tab?: string; courseId?: string };
+}
+
 export async function generateMetadata({
   searchParams,
-}: {
-  searchParams: { tab?: string };
-}): Promise<Metadata> {
+}: Props): Promise<Metadata> {
   const tab = searchParams.tab || 'Chat';
 
   const titles: Record<string, string> = {
@@ -29,7 +31,7 @@ export async function generateMetadata({
   };
 }
 
-export default function CommunityPage() {
+export default function CommunityPage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       <PageHeader
@@ -38,7 +40,7 @@ export default function CommunityPage() {
       />
 
       <Suspense fallback={<CommunityPageSkeleton />}>
-        <CommunityTabs />
+        <CommunityTabs courseId={searchParams.courseId} />
       </Suspense>
     </div>
   );

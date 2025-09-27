@@ -215,8 +215,13 @@ export class ChatController {
   ) {
     try {
       const { courseId } = courseDiscussionsParamsSchema.parse(req).params;
+      const userId = req.currentUser!.id;
+      if (!userId) throw new NotAuthorizedError();
 
-      const discussions = await ChatService.getDiscussionsForCourse(courseId);
+      const discussions = await ChatService.getDiscussionsForCourse(
+        courseId,
+        userId
+      );
 
       res.status(StatusCodes.OK).json(discussions);
     } catch (error) {

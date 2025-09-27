@@ -1,13 +1,27 @@
-import { and, asc, desc, eq, ilike, inArray, lt, ne, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  lt,
+  max,
+  ne,
+  sql,
+} from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { db } from '..';
 import { UpdateStudyRoomDto } from '../../schemas';
+import { DiscussionWithEngagement } from '../../types';
 import {
   Conversation,
   conversationParticipants,
   conversations,
   messages,
   NewConversation,
+  reactions,
   users,
 } from '../schema';
 
@@ -337,27 +351,96 @@ export class ConversationRepository {
    * Retrieves all group discussions for a specific course.
    * Includes participant information and orders results by creation date (newest first).
    * @param courseId - The ID of the course to fetch discussions for.
+   * @param userId
    * @returns An array of group discussions with participants and author information.
    */
-  public static async findDiscussionsByCourse(courseId: string) {
-    return db.query.conversations.findMany({
-      where: and(
-        eq(conversations.type, 'group'),
-        eq(conversations.courseId, courseId)
-      ),
-      with: {
-        participants: {
-          with: {
-            user: {
-              columns: {
-                name: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: [desc(conversations.createdAt)],
-    });
+  public static async findDiscussionsByCourse(
+    courseId: string,
+    userId: string
+  ): Promise<DiscussionWithEngagement[]> {
+    const lastMessageSubquery = db
+      .select({
+        conversationId: messages.conversationId,
+        lastMessageTime: max(messages.createdAt).as('last_message_time'),
+      })
+      .from(messages)
+      .groupBy(messages.conversationId)
+      .as('LastMessage');
+
+    const reactionCountsSubquery = db
+      .select({
+        conversationId: messages.conversationId,
+        upvotes: count(
+          sql`CASE WHEN ${reactions.reaction} = 'upvote' THEN 1 END`
+        ).as('upvotes'),
+        downvotes: count(
+          sql`CASE WHEN ${reactions.reaction} = 'downvote' THEN 1 END`
+        ).as('downvotes'),
+        stars: count(
+          sql`CASE WHEN ${reactions.reaction} = 'star' THEN 1 END`
+        ).as('stars'),
+        hearts: count(
+          sql`CASE WHEN ${reactions.reaction} = 'heart' THEN 1 END`
+        ).as('hearts'),
+        sparkles: count(
+          sql`CASE WHEN ${reactions.reaction} = 'sparkles' THEN 1 END`
+        ).as('sparkles'),
+      })
+      .from(messages)
+      .innerJoin(reactions, eq(messages.id, reactions.messageId))
+      .groupBy(messages.conversationId)
+      .as('ReactionCounts');
+
+    const results = await db
+      .select({
+        id: conversations.id,
+        isStarred: conversationParticipants.isBookmarked,
+        title: conversations.name,
+        author: users.name,
+        authorInitials: sql<string>`SUBSTRING(${users.name} for 1) || SUBSTRING(SPLIT_PART(${users.name}, ' ', 2) for 1)`,
+        role: sql<string>`'Student'`,
+        timestamp: conversations.createdAt,
+        content: conversations.description,
+        tags: conversations.tags,
+        upvotes: sql<number>`COALESCE(${reactionCountsSubquery.upvotes}, 0)::int`,
+        downvotes: sql<number>`COALESCE(${reactionCountsSubquery.downvotes}, 0)::int`,
+        stars: sql<number>`COALESCE(${reactionCountsSubquery.stars}, 0)::int`,
+        hearts: sql<number>`COALESCE(${reactionCountsSubquery.hearts}, 0)::int`,
+        sparkles: sql<number>`COALESCE(${reactionCountsSubquery.sparkles}, 0)::int`,
+        replies: sql<number>`(SELECT COUNT(*)::int FROM ${messages} WHERE conversation_id = ${conversations.id})`,
+        lastMessageTime: lastMessageSubquery.lastMessageTime,
+      })
+      .from(conversations)
+      .innerJoin(users, eq(conversations.createdById, users.id))
+      .innerJoin(
+        conversationParticipants,
+        and(
+          eq(conversations.id, conversationParticipants.conversationId),
+          eq(conversationParticipants.userId, userId)
+        )
+      )
+      .leftJoin(
+        lastMessageSubquery,
+        eq(conversations.id, lastMessageSubquery.conversationId)
+      )
+      .leftJoin(
+        reactionCountsSubquery,
+        eq(conversations.id, reactionCountsSubquery.conversationId)
+      )
+      .where(
+        and(
+          eq(conversations.type, 'group'),
+          eq(conversations.courseId, courseId)
+        )
+      )
+      .orderBy(
+        desc(conversationParticipants.isBookmarked),
+        desc(
+          sql`COALESCE(${lastMessageSubquery.lastMessageTime}, ${conversations.createdAt})`
+        )
+      );
+
+    return results;
   }
 
   /**

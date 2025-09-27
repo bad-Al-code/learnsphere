@@ -71,6 +71,13 @@
       "when": 1758869950311,
       "tag": "0009_legal_wasp",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1758985999630,
+      "tag": "0010_nasty_stone_men",
+      "breakpoints": true
     }
   ]
 }

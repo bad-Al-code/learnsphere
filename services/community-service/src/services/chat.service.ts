@@ -465,25 +465,29 @@ export class ChatService {
    * Maps the discussions to a simplified structure including author name, replies, and metadata.
    *
    * @param courseId - The ID of the course to fetch discussions for.
+   * @param userId
    * @returns An array of mapped discussion objects for the course.
    */
-  public static async getDiscussionsForCourse(courseId: string) {
-    const discussions =
-      await ConversationRepository.findDiscussionsByCourse(courseId);
+  public static async getDiscussionsForCourse(
+    courseId: string,
+    userId: string
+  ) {
+    const discussions = await ConversationRepository.findDiscussionsByCourse(
+      courseId,
+      userId
+    );
 
-    return discussions.map((d) => ({
-      id: d.id,
-      title: d.name,
-      course: d.courseId,
-      author:
-        d.participants.find((p) => p.userId === d.createdById)?.user.name ||
-        'Anonymous',
-      replies: 0,
-      lastReply: 'N/A',
-      isResolved: d.isResolved,
-      isBookmarked: false,
-      views: d.views,
-      tags: d.tags,
+    return discussions.map((discussion) => ({
+      ...discussion,
+      reactions: [
+        { emoji: 'Star', count: discussion.stars, color: 'text-yellow-500' },
+        { emoji: 'Heart', count: discussion.hearts, color: 'text-red-500' },
+        {
+          emoji: 'Sparkles',
+          count: discussion.sparkles,
+          color: 'text-blue-500',
+        },
+      ].filter((reaction) => reaction.count > 0),
     }));
   }
 
