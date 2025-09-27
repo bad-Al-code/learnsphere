@@ -252,4 +252,28 @@ Finds a single user by their email address, returning only public essentials.
 
     return user;
   }
+
+  /**
+   * Searches for users by name or email, returning public-safe data.
+   * @param query The search term.
+   * @param limit The maximum number of results to return.
+   * @returns An array of simplified user profile objects.
+   */
+  public static async searchUsers(query: string, limit: number) {
+    return db
+      .select({
+        id: profiles.userId,
+        name: sql<string>`CONCAT(${profiles.firstName}, ' ', ${profiles.lastName})`,
+        email: profiles.email,
+      })
+      .from(profiles)
+      .where(
+        or(
+          ilike(profiles.firstName, `%${query}%`),
+          ilike(profiles.lastName, `%${query}%`),
+          ilike(profiles.email, `%${query}%`)
+        )
+      )
+      .limit(limit);
+  }
 }

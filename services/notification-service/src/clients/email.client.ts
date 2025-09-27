@@ -60,4 +60,80 @@ export class EmailClient {
       throw sendError;
     }
   }
+
+  /**
+   * Sends multiple emails in bulk using Resend batch API
+   * and logs each message to the outbox.
+   * @param messages Array of messages to send. Each message must include:
+   *   - from: string
+   *   - to: string
+   *   - subject: string
+   *   - html: string
+   *   - text: string
+   */
+  public async sendBulk(
+    messages: {
+      from: string;
+      to: string;
+      subject: string;
+      html: string;
+      text: string;
+      type?: string;
+    }[]
+  ): Promise<void> {
+    if (!messages || messages.length === 0) return;
+
+    const fromAddress = `${env.EMAIL_FROM_NAME} <${env.EMAIL_FROM_ADDRESS}>`;
+
+    const batchMessages = messages.map((msg) => ({
+      from: fromAddress,
+      to: [msg.to],
+      subject: msg.subject,
+      html: msg.html,
+      text: msg.text,
+    }));
+
+    let sendError: Error | null = null;
+
+    try {
+      const { data, error } = await this.resend.batch.send(batchMessages);
+
+      if (error) throw error;
+
+      logger.info(
+        `Successfully sent batch of ${messages.length} emails via Resend.`
+      );
+
+      for (const msg of messages) {
+        await EmailOutboxRepository.create({
+          recipient: msg.to,
+          subject: msg.subject,
+          type: msg.type ?? 'user_notification',
+
+          status: 'sent',
+          errorMessage: null,
+        });
+      }
+    } catch (error) {
+      sendError = error as Error;
+
+      logger.error('Error sending bulk emails via Resend EmailClient: %o', {
+        error: sendError.message,
+        stack: sendError.stack,
+      });
+
+      for (const msg of messages) {
+        await EmailOutboxRepository.create({
+          recipient: msg.to,
+          subject: msg.subject,
+
+          type: msg.type ?? 'user_notification',
+          status: 'failed',
+          errorMessage: sendError.message,
+        });
+      }
+
+      throw sendError;
+    }
+  }
 }

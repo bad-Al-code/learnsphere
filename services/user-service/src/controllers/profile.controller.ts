@@ -368,4 +368,23 @@ export class ProfileController {
       next(error);
     }
   }
+
+  public static async searchUsersQuery(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { q, limit } = req.query;
+
+      const users = await ProfileService.searchUsers(
+        q as string,
+        Number(limit)
+      );
+
+      res.status(StatusCodes.OK).json(users);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

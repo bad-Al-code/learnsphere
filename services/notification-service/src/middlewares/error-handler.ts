@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import logger from '../config/logger';
-import { CustomError } from '../errors/error-error';
+import { CustomError } from '../errors/custom-error';
 
 export const errorHandler = (
   err: Error,

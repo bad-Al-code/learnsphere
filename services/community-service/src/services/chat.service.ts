@@ -1,5 +1,8 @@
 import { differenceInMilliseconds } from 'date-fns';
+import jwt from 'jsonwebtoken';
+
 import { webSocketService } from '..';
+import { env } from '../config/env';
 import logger from '../config/logger';
 import { redisConnection } from '../config/redis';
 import { ConversationRepository, MessageRepository } from '../db/repositories';
@@ -9,10 +12,12 @@ import { ConflictError } from '../errors/conflic-error';
 import {
   GroupUpdatedPublisher,
   StudyRoomReminderPublisher,
+  UserInvitedToStudyRoomPublisher,
 } from '../events/publisher';
 import {
   CreateDiscussionDto,
   CreateStudyRoomDTO,
+  Expiry,
   UpdateStudyRoomDto,
 } from '../schemas';
 import { Requester } from '../types';
@@ -753,6 +758,78 @@ export class ChatService {
 
     logger.info(
       `Scheduled reminder for user ${requester.id} for room ${roomId}`
+    );
+  }
+
+  /**
+   * Generates a shareable link for a conversation room.
+   * @param roomId - The UUID of the room to generate the link for.
+   * @param expiresIn - Expiry duration of the link ('1hour', '24hours', '7days', or 'never').
+   * @param requester - The user requesting the share link, must be the room creator.
+   * @returns An object containing the generated share link.
+   */
+  public static async generateShareLink(
+    roomId: string,
+    expiresIn: Expiry,
+    requester: Requester
+  ): Promise<{
+    shareLink: string;
+  }> {
+    const room = await ConversationRepository.findById(roomId);
+    if (!room || room.createdById !== requester.id) {
+      throw new ForbiddenError();
+    }
+
+    const expiresInMap: Record<
+      Exclude<Expiry, 'never'>,
+      jwt.SignOptions['expiresIn']
+    > = {
+      '1hour': '1h',
+      '24hours': '24h',
+      '7days': '7d',
+    };
+
+    const payload = { roomId };
+    const options: jwt.SignOptions = {};
+    if (expiresIn !== 'never') {
+      options.expiresIn = expiresInMap[expiresIn];
+    }
+
+    const token = jwt.sign(payload, env.JWT_SECRET, options);
+    const shareLink = `${process.env.CLIENT_URL || 'http://localhost:3000'}/student/community/join-room?token=${token}`;
+
+    return { shareLink };
+  }
+
+  /**
+   * Invites multiple users to a study room by publishing invitation events.
+   * @param roomId - The ID of the study room to which users are being invited.
+   * @param userIds - An array of user IDs to invite.
+   * @param requester - The user initiating the invitations.
+   * @returns {Promise<void>} Resolves when all invitation events have been published.
+   */
+  public static async inviteUsersToRoom(
+    roomId: string,
+    userIds: string[],
+    requester: Requester
+  ) {
+    const room = await ConversationRepository.findById(roomId);
+    if (!room) throw new NotFoundError('Study room not found.');
+
+    const publisher = new UserInvitedToStudyRoomPublisher();
+    const publishPromises = userIds.map((userId) => {
+      return publisher.publish({
+        inviterId: requester.id,
+        inviteeId: userId,
+        roomId: room.id,
+        roomTitle: room.name!,
+      });
+    });
+
+    await Promise.all(publishPromises);
+
+    logger.info(
+      `Published ${userIds.length} invitation events for room ${roomId}`
     );
   }
 }

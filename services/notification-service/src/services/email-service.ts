@@ -1,4 +1,7 @@
 import { EmailClient } from '../clients/email.client';
+import { env } from '../config/env';
+import logger from '../config/logger';
+import { EmailTemplate } from '../templates';
 import { generateApplicationSubmittedUserEmail } from '../templates/appliaction-submitted-user';
 import { generateApplicationApprovedEmail } from '../templates/application-approved.template';
 import { generateApplicationDeclinedEmail } from '../templates/application-declined.template';
@@ -233,5 +236,70 @@ export class EmailService {
       text: `Your AI feedback is ready. View it here: ${data.linkUrl}`,
       type: 'user_notification',
     });
+  }
+
+  public async sendBatchInvites(
+    emails: string[],
+    subject: string,
+    message: string,
+    linkUrl: string,
+    inviterName: string
+  ) {
+    const htmlBody = EmailTemplate.generateGenericInviteEmail(
+      subject,
+      message,
+      linkUrl,
+      inviterName
+    );
+
+    const sendPromises = emails.map((email) => {
+      return this.emailClient.send({
+        to: email,
+        subject: subject,
+        html: htmlBody,
+        text: `${message}\n\nJoin here: ${linkUrl}`,
+        type: 'study_group_invite',
+      });
+    });
+
+    await Promise.all(sendPromises);
+
+    logger.info(`Successfully sent ${emails.length} study room invitations.`);
+  }
+
+  public async sendBulkInvites(
+    contacts: { name: string; email: string }[],
+    subject: string,
+    message: string,
+    linkUrl: string,
+    inviterName: string
+  ) {
+    if (contacts.length === 0) return;
+
+    const htmlBody = EmailTemplate.generateBulkInviteEmail(
+      subject,
+      message,
+      linkUrl,
+      inviterName
+    );
+    const fromAddress = `${env.EMAIL_FROM_NAME} <${env.EMAIL_FROM_ADDRESS}>`;
+
+    const messages = contacts.map((contact) => ({
+      from: fromAddress,
+      to: contact.email,
+      subject: subject,
+      html: htmlBody,
+      text: `${message}\n\nJoin here: ${linkUrl}`,
+    }));
+
+    try {
+      await this.emailClient.sendBulk(messages);
+      logger.info(
+        `Successfully queued ${contacts.length} bulk study room invitations.`
+      );
+    } catch (error) {
+      logger.error('Failed to send bulk invites', { error });
+      throw error; // Re-throw to be handled by the controller
+    }
   }
 }

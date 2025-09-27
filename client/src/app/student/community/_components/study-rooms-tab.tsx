@@ -2,24 +2,32 @@
 
 import {
   AlertCircle,
+  AlertTriangle,
+  Check,
+  CheckCircle,
   CheckCircle2,
   ChevronDownIcon,
   Clock,
   Copy,
   Download,
   Edit,
-  ExternalLink,
+  Eye,
+  FileSpreadsheet,
+  FileText,
   Filter,
+  Info,
   Loader,
   Lock,
   Mail,
   MessageCircle,
+  MessageSquare,
   Monitor,
   MoreVertical,
   Plus,
   QrCode,
   RefreshCw,
   Search,
+  Send,
   Share,
   Trash2,
   Twitter,
@@ -27,6 +35,7 @@ import {
   User,
   UserPlus,
   Users,
+  UserX,
   Video,
   Wifi,
   X,
@@ -57,6 +66,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -64,11 +74,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -83,6 +95,7 @@ import {
 } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -116,20 +129,33 @@ import { Resolver, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useDebounce } from 'use-debounce';
 import {
+  useInviteUsers,
+  useSendBulkInvites,
+  useSendEmailInvites,
+  useUserSearch,
+} from '../hooks';
+import {
   useCategories,
   useCreateStudyRoom,
   useDeleteStudyRoom,
+  useGenerateShareLink,
   useJoinStudyRoom,
   useScheduleReminder,
   useStudyRooms,
   useUpdateStudyRoom,
 } from '../hooks/use-study-room';
 import {
+  emailInviteFormSchema,
+  EmailInviteInput,
+  ExpirationOption,
+  SearchedUser,
+} from '../schema';
+import {
+  createStudyRoomFormSchema,
   CreateStudyRoomInput,
   StudyRoom,
-  UpdateStudyRoomInput,
-  createStudyRoomFormSchema,
   updateStudyRoomFormSchema,
+  UpdateStudyRoomInput,
 } from '../schema/study-rooms.schema';
 
 function StudyRoomsHeader({
@@ -923,40 +949,65 @@ function ShareInviteDialog({
   isOpen,
   onOpenChange,
 }: ShareInviteDialogProps) {
-  const [shareLink, setShareLink] = useState(
-    `${window.location.origin}/room/${room.id}`
-  );
-  const [linkExpiration, setLinkExpiration] = useState('never');
+  const [shareLink, setShareLink] = useState<string>('');
+  const [linkExpiration, setLinkExpiration] =
+    useState<ExpirationOption>('24hours');
   const [showQRCode, setShowQRCode] = useState(false);
+  const [hasGeneratedLink, setHasGeneratedLink] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  const generateShareLink = useCallback(() => {
-    let link = `${window.location.origin}/room/${room.id}`;
+  const {
+    mutateAsync: generateLink,
+    isPending,
+    isSuccess,
+    data: linkData,
+  } = useGenerateShareLink();
 
-    if (linkExpiration !== 'never') {
-      const expiresAt = new Date();
-      switch (linkExpiration) {
-        case '1hour':
-          expiresAt.setHours(expiresAt.getHours() + 1);
-          break;
-        case '24hours':
-          expiresAt.setHours(expiresAt.getHours() + 24);
-          break;
-        case '7days':
-          expiresAt.setDate(expiresAt.getDate() + 7);
-          break;
-      }
-      link += `?expires=${expiresAt.getTime()}`;
+  useEffect(() => {
+    if (!isOpen) {
+      setShareLink('');
+      setHasGeneratedLink(false);
+      setShowQRCode(false);
+      setIsGenerating(false);
     }
+  }, [isOpen]);
 
-    setShareLink(link);
-  }, [room.id, linkExpiration]);
+  useEffect(() => {
+    if (isSuccess && linkData) {
+      setShareLink(linkData.shareLink);
+      setHasGeneratedLink(true);
+      setIsGenerating(false);
+    }
+  }, [isSuccess, linkData]);
+
+  const handleGenerateLink = useCallback(async () => {
+    try {
+      setIsGenerating(true);
+      const result = await generateLink({
+        roomId: room.id,
+        expiresIn: linkExpiration,
+      });
+
+      if (result) {
+        toast.success('Share link generated successfully!', {
+          description:
+            linkExpiration === 'never'
+              ? 'This link will never expire'
+              : `Link expires in ${getExpirationLabel(linkExpiration)}`,
+        });
+      }
+    } catch (error) {
+      setIsGenerating(false);
+    }
+  }, [room.id, linkExpiration, generateLink]);
 
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success('Copied to clipboard');
+
+      toast.success('Copied to clipboard!');
     } catch (err) {
-      toast.error('Failed to copy');
+      toast.error('Failed to copy to clipboard');
     }
   };
 
@@ -993,7 +1044,7 @@ function ShareInviteDialog({
       ctx?.drawImage(img, 0, 0);
 
       const link = document.createElement('a');
-      link.download = `${room.title}-qr-code.png`;
+      link.download = `${room.title.replace(/[^a-z0-9]/gi, '_')}-qr-code.png`;
       link.href = canvas.toDataURL();
       link.click();
     };
@@ -1001,18 +1052,37 @@ function ShareInviteDialog({
     img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
   };
 
+  const getExpirationLabel = (expiration: ExpirationOption): string => {
+    const labels = {
+      '1hour': '1 hour',
+      '24hours': '24 hours',
+      '7days': '7 days',
+      never: 'never',
+    };
+    return labels[expiration];
+  };
+
+  const regenerateLink = () => {
+    setHasGeneratedLink(false);
+    setShowQRCode(false);
+    handleGenerateLink();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="min-w-2xl">
+      <DialogContent className="max-h-[80vh] min-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Share className="h-5 w-5" />
             Share & Invite to "{room.title}"
           </DialogTitle>
+          <DialogDescription>
+            Generate a secure link to invite others to join your study room
+          </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="share" className="w-full">
-          <TabsList className="mb-2 grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="share">Share Link</TabsTrigger>
             <TabsTrigger value="email">Email Invite</TabsTrigger>
             <TabsTrigger value="users">Invite Users</TabsTrigger>
@@ -1021,161 +1091,261 @@ function ShareInviteDialog({
 
           <TabsContent value="share" className="space-y-4">
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Link Expiration</Label>
-                <Select
-                  value={linkExpiration}
-                  onValueChange={setLinkExpiration}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="never">Never expires</SelectItem>
-                    <SelectItem value="1hour">1 hour</SelectItem>
-                    <SelectItem value="24hours">24 hours</SelectItem>
-                    <SelectItem value="7days">7 days</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Share Link</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={shareLink}
-                    readOnly
-                    className="font-mono text-sm"
-                  />
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() => copyToClipboard(shareLink)}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Copy link</TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={generateShareLink}
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Generate new link</TooltipContent>
-                  </Tooltip>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-base font-medium">
+                    Create Share Link
+                  </Label>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    Choose when the link should expire and generate it
+                  </p>
                 </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-3">
-                <Label>Share on Social Media</Label>
-                <div className="flex gap-2">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => shareToSocial('twitter')}
-                        className="flex items-center gap-2"
-                      >
-                        <Twitter className="h-4 w-4" />
-                        Twitter
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Share on Twitter</TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => shareToSocial('whatsapp')}
-                        className="flex items-center gap-2"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        WhatsApp
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Share on WhatsApp</TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => shareToSocial('discord')}
-                        className="flex items-center gap-2"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        Discord
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Copy link for Discord</TooltipContent>
-                  </Tooltip>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label>QR Code</Label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowQRCode(!showQRCode)}
+                {hasGeneratedLink && (
+                  <Badge
+                    variant="secondary"
+                    className="flex items-center gap-1"
                   >
-                    <QrCode className="h-4 w-4" />
-                    {showQRCode ? 'Hide' : 'Show'} QR Code
-                  </Button>
+                    <CheckCircle2 className="h-3 w-3" />
+                    Generated
+                  </Badge>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <Select
+                    value={linkExpiration}
+                    onValueChange={(value) =>
+                      setLinkExpiration(value as ExpirationOption)
+                    }
+                    disabled={isGenerating || isPending}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1hour">Expires in 1 hour</SelectItem>
+                      <SelectItem value="24hours">
+                        Expires in 24 hours
+                      </SelectItem>
+                      <SelectItem value="7days">Expires in 7 days</SelectItem>
+                      <SelectItem value="never">Never expires</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                {showQRCode && (
-                  <div className="bg-background flex flex-col items-center space-y-3 rounded-lg border p-4">
-                    <QRCodeSVG
-                      id="qr-code-svg"
+                <Button
+                  onClick={
+                    hasGeneratedLink ? regenerateLink : handleGenerateLink
+                  }
+                  disabled={isGenerating || isPending}
+                  className="min-w-[140px]"
+                  size="default"
+                >
+                  {isGenerating || isPending ? (
+                    <>
+                      <Loader className="h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : hasGeneratedLink ? (
+                    <>Regenerate</>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4" />
+                      Generate Link
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {hasGeneratedLink && shareLink && (
+              <div className="space-y-4">
+                <Separator />
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-medium">
+                      Your Share Link
+                    </Label>
+                    <Badge variant="outline" className="text-xs">
+                      Expires: {getExpirationLabel(linkExpiration)}
+                    </Badge>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Input
                       value={shareLink}
-                      size={200}
-                      level="M"
-                      includeMargin
+                      readOnly
+                      className="font-mono text-sm"
+                      onClick={() => copyToClipboard(shareLink)}
                     />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => copyToClipboard(shareLink)}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Copy link</TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <Label className="text-base font-medium">
+                    Share on Social Media
+                  </Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          onClick={() => shareToSocial('twitter')}
+                          className=""
+                        >
+                          <Twitter className="h-4 w-4" />
+                          Twitter
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Share on Twitter</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          onClick={() => shareToSocial('whatsapp')}
+                          className=""
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          WhatsApp
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Share on WhatsApp</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          onClick={() => shareToSocial('discord')}
+                          className=""
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          Discord
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Copy link for Discord</TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-medium">QR Code</Label>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={downloadQRCode}
-                      className="flex items-center gap-2"
+                      onClick={() => setShowQRCode(!showQRCode)}
+                      className=""
                     >
-                      <Download className="h-4 w-4" />
-                      Download QR Code
+                      <QrCode className="h-4 w-4" />
+                      {showQRCode ? 'Hide' : 'Show'} QR Code
                     </Button>
                   </div>
-                )}
+
+                  {showQRCode && (
+                    <div className="bg-background flex flex-col items-center space-y-4 rounded-lg border p-6">
+                      <div className="bg-muted/30 rounded-lg p-4">
+                        <QRCodeSVG
+                          id="qr-code-svg"
+                          value={shareLink}
+                          size={200}
+                          level="M"
+                          includeMargin
+                        />
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={downloadQRCode}
+                        className="flex items-center gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        Download QR Code
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <Info className="text-muted-foreground mt-0.5 h-5 w-5 shrink-0" />
+                    <div className="text-muted-foreground text-sm">
+                      <p className="mb-1 font-medium">Share Link Information</p>
+                      <ul className="space-y-1">
+                        <li>
+                          • Anyone with this link can join your study room
+                        </li>
+                        <li>
+                          • Link{' '}
+                          {linkExpiration === 'never'
+                            ? 'never expires'
+                            : `expires in ${getExpirationLabel(linkExpiration)}`}
+                        </li>
+                        <li>
+                          • You can regenerate the link anytime to invalidate
+                          the old one
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {!hasGeneratedLink && (
+              <Card className="text-muted-foreground text-center">
+                <CardContent>
+                  <Share className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                  <p className="mb-2 text-lg font-medium">
+                    No link generated yet
+                  </p>
+                  <p className="text-sm">
+                    Choose an expiration time and generate your share link to
+                    get started
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="email" className="space-y-4">
-            <EmailInviteTab roomId={room.id} roomTitle={room.title} />
+            <EmailInviteTab
+              roomId={room.id}
+              roomTitle={room.title}
+              shareLink={shareLink}
+            />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-4">
             <UserInviteTab roomId={room.id} />
           </TabsContent>
 
-          <TabsContent value="bulk" className="space-y-4">
-            <BulkInviteTab roomId={room.id} roomTitle={room.title} />
+          <TabsContent value="bulk" className="mt-2 space-y-4">
+            <BulkInviteTab
+              roomId={room.id}
+              roomTitle={room.title}
+              shareLink={shareLink}
+            />
           </TabsContent>
         </Tabs>
       </DialogContent>
@@ -1186,249 +1356,790 @@ function ShareInviteDialog({
 function EmailInviteTab({
   roomId,
   roomTitle,
+  shareLink,
 }: {
   roomId: string;
   roomTitle: string;
+  shareLink: string;
 }) {
-  const [emails, setEmails] = useState('');
-  const [subject, setSubject] = useState(
-    `You're invited to join: ${roomTitle}`
-  );
-  const [message, setMessage] = useState(
-    `Hi there!\n\nYou've been invited to join a study session.\n\nRoom: ${roomTitle}\n\nClick the link above to join us!`
-  );
-  const [isSending, setIsSending] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
+  const [emailCount, setEmailCount] = useState(0);
+  const [isValidating, setIsValidating] = useState(false);
 
-  const handleSendInvites = async () => {
-    const emailList = emails
+  const {
+    mutate: sendInvites,
+    isPending,
+    isSuccess,
+    data,
+  } = useSendEmailInvites();
+
+  const form = useForm<EmailInviteInput>({
+    resolver: zodResolver(emailInviteFormSchema),
+    defaultValues: {
+      subject: `You're invited to join: ${roomTitle}`,
+      message: `Hi there!\n\nYou've been invited to join a study session.\n\nRoom: ${roomTitle}\n\nClick the link above to join us!`,
+      emails: '',
+    },
+  });
+
+  const watchedEmails = form.watch('emails');
+  const watchedSubject = form.watch('subject');
+  const watchedMessage = form.watch('message');
+
+  useEffect(() => {
+    const emails = watchedEmails
       .split('\n')
       .map((email) => email.trim())
-      .filter((email) => email.length > 0);
+      .filter(Boolean);
+    setEmailCount(emails.length);
+  }, [watchedEmails]);
 
-    if (emailList.length === 0) {
-      toast.error('Please enter at least one email address');
+  const validateEmails = useCallback(
+    async (emailText: string) => {
+      if (!emailText.trim()) return;
+
+      setIsValidating(true);
+      const emails = emailText
+        .split('\n')
+        .map((email) => email.trim())
+        .filter(Boolean);
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const invalidEmails = emails.filter((email) => !emailRegex.test(email));
+
+      if (invalidEmails.length > 0) {
+        form.setError('emails', {
+          message: `Invalid email(s): ${invalidEmails.slice(0, 3).join(', ')}${invalidEmails.length > 3 ? '...' : ''}`,
+        });
+      } else {
+        form.clearErrors('emails');
+      }
+      setIsValidating(false);
+    },
+    [form]
+  );
+
+  const [debouncedValidateEmails] = useDebounce(validateEmails, 500);
+
+  useEffect(() => {
+    debouncedValidateEmails(watchedEmails);
+  }, [watchedEmails, debouncedValidateEmails]);
+
+  const onSubmit = (values: EmailInviteInput) => {
+    const emails = values.emails
+      .split('\n')
+      .map((email) => email.trim())
+      .filter(Boolean);
+
+    if (emails.length === 0) {
+      toast.error('Please enter at least one valid email address');
       return;
     }
 
-    setIsSending(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      toast.success(`Invitations sent to ${emailList.length} recipients`);
-      setEmails('');
-    } catch (error) {
-      toast.error('Failed to send invitations');
-    } finally {
-      setIsSending(false);
-    }
+    sendInvites(
+      { ...values, linkUrl: shareLink },
+      {
+        onSuccess: (data) => {
+          form.reset({
+            subject: `You're invited to join: ${roomTitle}`,
+            message: `Hi there!\n\nYou've been invited to join a study session.\n\nRoom: ${roomTitle}\n\nClick the link above to join us!`,
+            emails: '',
+          });
+          setEmailCount(0);
+        },
+      }
+    );
   };
+
+  const handleAddTemplate = (templateType: 'casual' | 'formal' | 'urgent') => {
+    const templates = {
+      casual: {
+        subject: `Join me for a study session: ${roomTitle}`,
+        message: `Hey!\n\nI'm hosting a study session and thought you might want to join.\n\nTopic: ${roomTitle}\n\nHop in when you're free! 📚`,
+      },
+      formal: {
+        subject: `Invitation to Study Session: ${roomTitle}`,
+        message: `Dear Colleague,\n\nYou are cordially invited to participate in our upcoming study session.\n\nSession: ${roomTitle}\n\nWe look forward to your participation.\n\nBest regards`,
+      },
+      urgent: {
+        subject: `🚨 Last chance to join: ${roomTitle}`,
+        message: `Hi there!\n\nThis is a final reminder about our study session starting soon.\n\nTopic: ${roomTitle}\n\nJoin now before we begin! ⏰`,
+      },
+    };
+
+    const template = templates[templateType];
+    form.setValue('subject', template.subject);
+    form.setValue('message', template.message);
+    toast.success(
+      `${templateType.charAt(0).toUpperCase() + templateType.slice(1)} template applied!`
+    );
+  };
+
+  const previewContent = useMemo(() => {
+    if (!previewMode) return null;
+
+    return {
+      subject: watchedSubject || 'No subject',
+      message: watchedMessage.replace(/\n/g, '<br>') || 'No message',
+      emailCount,
+    };
+  }, [previewMode, watchedSubject, watchedMessage, emailCount]);
+
+  if (!shareLink) {
+    return (
+      <Card className="space-y-2">
+        <CardContent className="py-8 text-center">
+          <Mail className="text-muted-foreground/50 mx-auto mb-4 h-12 w-12" />
+          <h3 className="text-muted-foreground mb-2 text-lg font-medium">
+            Generate Share Link First
+          </h3>
+          <p className="text-muted-foreground text-sm">
+            You need to generate a share link before sending email invitations.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>Email Addresses (one per line)</Label>
-        <Textarea
-          placeholder="john@example.com&#10;jane@example.com&#10;alex@example.com"
-          value={emails}
-          onChange={(e) => setEmails(e.target.value)}
-          className="min-h-[100px] max-w-2xl font-mono text-sm"
-        />
+      {isSuccess && data && (
+        <Card className="animate-in slide-in-from-top-2 fade-in rounded-lg border border-green-200 bg-green-50 duration-300 dark:border-green-800 dark:bg-green-900/20">
+          <CardContent className="flex flex-col items-center gap-1 text-green-800 dark:text-green-200">
+            <CheckCircle className="h-5 w-5" />
+            <div className="gap-0 text-center">
+              <span className="font-medium">
+                Invitations sent successfully!
+              </span>
+              <p className="mt-1 text-sm text-green-700 dark:text-green-300">
+                {data.message}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-medium">Email Invitations</h3>
+          <p className="text-muted-foreground text-sm">
+            Send personalized invitations to multiple recipients
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {emailCount > 0 && (
+            <Badge
+              variant="secondary"
+              className="animate-in zoom-in-50 duration-200"
+            >
+              {emailCount} {emailCount === 1 ? 'recipient' : 'recipients'}
+            </Badge>
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPreviewMode(!previewMode)}
+            className="flex items-center gap-2"
+          >
+            <Eye className="h-4 w-4" />
+            {previewMode ? 'Edit' : 'Preview'}
+          </Button>
+        </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Subject</Label>
-        <Input value={subject} onChange={(e) => setSubject(e.target.value)} />
-      </div>
+      {!previewMode ? (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-medium">Quick Templates</Label>
+              </div>
 
-      <div className="space-y-2">
-        <Label>Message</Label>
-        <Textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          className="min-h-[120px]"
-        />
-      </div>
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAddTemplate('casual')}
+                  className="flex items-center gap-2"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Casual
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAddTemplate('formal')}
+                  className="flex items-center gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  Formal
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAddTemplate('urgent')}
+                  className="flex items-center gap-2"
+                >
+                  <Clock className="h-4 w-4" />
+                  Urgent
+                </Button>
+              </div>
+            </div>
 
-      <Button
-        onClick={handleSendInvites}
-        disabled={isSending}
-        className="w-full"
-      >
-        {isSending ? (
-          <>
-            <Mail className="h-4 w-4 animate-pulse" />
-            Sending Invitations...
-          </>
-        ) : (
-          <>
-            <Mail className="h-4 w-4" />
-            Send Email Invitations
-          </>
-        )}
-      </Button>
+            <Separator />
+
+            <FormField
+              control={form.control}
+              name="emails"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center justify-between">
+                    <span>Email Addresses</span>
+                    <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                      {isValidating && (
+                        <div className="flex items-center gap-1">
+                          <Loader className="h-3 w-3 animate-spin" />
+                          Validating...
+                        </div>
+                      )}
+                    </div>
+                  </FormLabel>
+                  <FormControl>
+                    <ScrollArea className="h-[160px] w-full rounded-md border">
+                      <Textarea
+                        placeholder="Enter email addresses (one per line)&#10;john@example.com&#10;jane@example.com&#10;team@company.com"
+                        className="min-h-[160px] resize-none border-0 font-mono text-sm focus-visible:ring-0"
+                        {...field}
+                      />
+                    </ScrollArea>
+                  </FormControl>
+
+                  <FormDescription>
+                    Enter one email address per line. We'll validate them
+                    automatically.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="subject"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email Subject</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter email subject..."
+                      className="text-sm"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="message"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Message Body</FormLabel>
+                  <FormControl>
+                    <ScrollArea className="h-[200px] w-full rounded-md border">
+                      <Textarea
+                        className="min-h-[200px] resize-none border-0 focus-visible:ring-0"
+                        placeholder="Write your invitation message..."
+                        {...field}
+                      />
+                    </ScrollArea>
+                  </FormControl>
+                  <FormDescription>
+                    The share link will be automatically included in the email.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+              <div className="flex items-start gap-3">
+                <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                <div className="text-sm">
+                  <p className="mb-1 font-medium text-blue-900 dark:text-blue-100">
+                    Email Preview Information
+                  </p>
+                  <ul className="space-y-1 text-blue-800 dark:text-blue-200">
+                    <li>• Share link will be automatically inserted</li>
+                    <li>
+                      • Recipients will see your room title and invitation
+                    </li>
+                    <li>• Emails are sent individually (no CC/BCC)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isPending || emailCount === 0 || isValidating}
+              className="h-12 w-full"
+            >
+              {isPending ? (
+                <>
+                  <Loader className="h-4 w-4 animate-spin" />
+                  Sending to {emailCount}{' '}
+                  {emailCount === 1 ? 'recipient' : 'recipients'}...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  Send {emailCount > 0 ? `${emailCount} ` : ''}Email Invitation
+                  {emailCount !== 1 ? 's' : ''}
+                </>
+              )}
+            </Button>
+          </form>
+        </Form>
+      ) : (
+        <div className="animate-in slide-in-from-right-4 fade-in space-y-6 duration-300">
+          <div className="bg-muted/20 space-y-4 rounded-lg p-6">
+            <div className="space-y-2">
+              <Label className="text-muted-foreground text-sm font-medium">
+                Subject Line
+              </Label>
+              <div className="bg-background rounded-lg border p-3">
+                <p className="font-medium">{previewContent?.subject}</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-muted-foreground text-sm font-medium">
+                Message Body
+              </Label>
+              <div className="bg-background min-h-[150px] rounded-lg border p-4">
+                <div
+                  className="text-sm leading-relaxed whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{
+                    __html: previewContent?.message || 'No message',
+                  }}
+                />
+                <div className="border-border mt-4 border-t pt-4">
+                  <div className="rounded bg-blue-50 p-3 dark:bg-blue-900/20">
+                    <p className="mb-2 text-sm font-medium text-blue-900 dark:text-blue-100">
+                      🔗 Join the study session:
+                    </p>
+                    <div className="rounded border bg-white p-2 dark:bg-gray-800">
+                      <code className="text-xs break-all text-blue-600 dark:text-blue-400">
+                        {shareLink}
+                      </code>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between border-t pt-4">
+              <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                <Users className="h-4 w-4" />
+                Will be sent to {previewContent?.emailCount || 0} recipient
+                {previewContent?.emailCount !== 1 ? 's' : ''}
+              </div>
+              <Badge variant="outline">Preview Mode</Badge>
+            </div>
+          </div>
+
+          <Button
+            onClick={() => setPreviewMode(false)}
+            variant="outline"
+            className="w-full"
+          >
+            <Edit className="h-4 w-4" />
+            Edit Invitation
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
 
 function UserInviteTab({ roomId }: { roomId: string }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState<
-    Array<{ id: string; username: string; email: string }>
-  >([]);
-  const [searchResults, setSearchResults] = useState<
-    Array<{ id: string; username: string; email: string }>
-  >([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [isSending, setIsSending] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<SearchedUser[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
 
-  const handleSearch = async (query: string) => {
-    if (query.length < 2) {
-      setSearchResults([]);
-      return;
+  const {
+    data: searchResults,
+    isFetching: isSearching,
+    error: searchError,
+    isError: isSearchError,
+  } = useUserSearch(searchQuery);
+
+  const {
+    mutate: sendInvites,
+    isPending: isSending,
+    isSuccess: isSent,
+    data: inviteData,
+    error: inviteError,
+  } = useInviteUsers();
+
+  const [debouncedQuery] = useDebounce(searchQuery, 500);
+
+  useEffect(() => {
+    if (debouncedQuery.length >= 2) {
+      setHasSearched(true);
+    } else {
+      setHasSearched(false);
     }
+  }, [debouncedQuery]);
 
-    setIsSearching(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const mockResults = [
-        { id: '1', username: 'john_doe', email: 'john@example.com' },
-        { id: '2', username: 'jane_smith', email: 'jane@example.com' },
-        { id: '3', username: 'alex_johnson', email: 'alex@example.com' },
-      ].filter(
-        (user) =>
-          user.username.toLowerCase().includes(query.toLowerCase()) ||
-          user.email.toLowerCase().includes(query.toLowerCase())
-      );
-
-      setSearchResults(mockResults);
-    } catch (error) {
-      toast.error('Failed to search users');
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const addUser = (user: { id: string; username: string; email: string }) => {
+  const addUser = (user: SearchedUser) => {
     if (!selectedUsers.find((u) => u.id === user.id)) {
       setSelectedUsers([...selectedUsers, user]);
     }
   };
 
   const removeUser = (userId: string) => {
+    const user = selectedUsers.find((u) => u.id === userId);
     setSelectedUsers(selectedUsers.filter((u) => u.id !== userId));
   };
 
-  const sendInvitations = async () => {
+  const handleSendInvitations = () => {
     if (selectedUsers.length === 0) {
-      toast.error('Please select at least one user');
+      toast.error('Please select at least one user to invite');
       return;
     }
 
-    setIsSending(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      toast.success(`Invitations sent to ${selectedUsers.length} users`);
-      setSelectedUsers([]);
-    } catch (error) {
-      toast.error('Failed to send invitations');
-    } finally {
-      setIsSending(false);
-    }
+    sendInvites(
+      { roomId, userIds: selectedUsers.map((u) => u.id) },
+      {
+        onSuccess: () => {
+          setSelectedUsers([]);
+          setSearchQuery('');
+          setHasSearched(false);
+        },
+      }
+    );
   };
+
+  const clearAllSelected = () => {
+    setSelectedUsers([]);
+  };
+
+  const handleSearchClear = () => {
+    setSearchQuery('');
+    setHasSearched(false);
+  };
+
+  const SearchResultsSkeleton = () => (
+    <div className="space-y-2">
+      {[...Array(3)].map((_, i) => (
+        <div
+          key={i}
+          className="flex animate-pulse items-center justify-between rounded-md border p-3"
+        >
+          <div className="flex items-center gap-3">
+            <div className="bg-muted h-8 w-8 rounded-full"></div>
+            <div className="space-y-1">
+              <div className="bg-muted h-4 w-24 rounded"></div>
+              <div className="bg-muted h-3 w-32 rounded"></div>
+            </div>
+          </div>
+          <div className="bg-muted h-8 w-16 rounded"></div>
+        </div>
+      ))}
+    </div>
+  );
+
+  const EmptySearchState = () => (
+    <div className="py-8 text-center">
+      <Users className="text-muted-foreground/50 mx-auto mb-4 h-12 w-12" />
+      <h3 className="text-muted-foreground mb-2 text-lg font-medium">
+        Find users to invite
+      </h3>
+      <p className="text-muted-foreground text-sm">
+        Search by name or email to find users and add them to your invitation
+        list
+      </p>
+    </div>
+  );
+
+  const NoResultsState = () => (
+    <div className="py-6 text-center">
+      <UserX className="text-muted-foreground/50 mx-auto mb-3 h-10 w-10" />
+      <p className="text-muted-foreground mb-1 font-medium">No users found</p>
+      <p className="text-muted-foreground text-sm">
+        Try searching with different keywords or check the spelling
+      </p>
+    </div>
+  );
+
+  const SearchErrorState = () => (
+    <div className="py-6 text-center">
+      <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-500" />
+      <p className="mb-1 font-medium text-red-600 dark:text-red-400">
+        Search failed
+      </p>
+      <p className="text-muted-foreground mb-3 text-sm">
+        {searchError?.message || 'Unable to search users at the moment'}
+      </p>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setSearchQuery((prev) => prev + ' ')}
+      >
+        <RefreshCw className="mr-1 h-4 w-4" />
+        Try Again
+      </Button>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>Search Users</Label>
-        <div className="relative">
-          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
-          <Input
-            placeholder="Search by username or email..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              handleSearch(e.target.value);
-            }}
-            className="pl-10"
-          />
-          {isSearching && (
-            <div className="absolute top-1/2 right-3 -translate-y-1/2 transform">
-              <div className="border-primary h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
+      {isSent && inviteData && (
+        <div className="animate-in slide-in-from-top-2 fade-in rounded-lg border border-green-200 bg-green-50 p-4 duration-300 dark:border-green-800 dark:bg-green-900/20">
+          <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
+            <CheckCircle className="h-5 w-5" />
+            <span className="font-medium">Invitations sent successfully!</span>
+          </div>
+          <p className="mt-1 text-sm text-green-700 dark:text-green-300">
+            {inviteData.message}
+          </p>
+        </div>
+      )}
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-medium">Invite Users</h3>
+            <p className="text-muted-foreground text-sm">
+              Search and invite users directly to join your study room
+            </p>
+          </div>
+
+          {selectedUsers.length > 0 && (
+            <Badge
+              variant="secondary"
+              className="animate-in zoom-in-50 duration-200"
+            >
+              {selectedUsers.length} selected
+            </Badge>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-base font-medium">Search Users</Label>
+          <div className="relative">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+            <Input
+              placeholder="Search by name or email (minimum 2 characters)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pr-10 pl-10"
+            />
+
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 p-0"
+                onClick={handleSearchClear}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+
+            {isSearching && (
+              <div className="absolute top-1/2 right-3 -translate-y-1/2 transform">
+                <Loader className="text-primary h-4 w-4 animate-spin" />
+              </div>
+            )}
+          </div>
+          <p className="text-muted-foreground text-xs">
+            Start typing to search for users. Results will appear as you type.
+          </p>
+        </div>
+
+        {hasSearched && (
+          <div className="space-y-2">
+            <Label className="text-base font-medium">Search Results</Label>
+
+            <ScrollArea className="h-[300px] w-full rounded-md border">
+              <div className="p-4">
+                {isSearching && <SearchResultsSkeleton />}
+
+                {isSearching && isSearchError && <SearchErrorState />}
+
+                {!isSearching &&
+                  !isSearchError &&
+                  searchResults &&
+                  searchResults.length === 0 && <NoResultsState />}
+
+                {!isSearching &&
+                  !isSearchError &&
+                  searchResults &&
+                  searchResults.length > 0 && (
+                    <div className="space-y-2">
+                      {searchResults.map((user) => {
+                        const isSelected = selectedUsers.some(
+                          (u) => u.id === user.id
+                        );
+                        return (
+                          <div
+                            key={user.id}
+                            className={`hover:bg-muted/50 flex items-center justify-between rounded-md p-3 transition-colors ${
+                              isSelected
+                                ? 'border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20'
+                                : 'border border-transparent'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
+                                <User className="text-primary h-4 w-4" />
+                              </div>
+
+                              <div>
+                                <p className="text-sm font-medium">
+                                  {user.name}
+                                </p>
+                                <p className="text-muted-foreground text-xs">
+                                  {user.email}
+                                </p>
+                              </div>
+                            </div>
+
+                            <Button
+                              size="sm"
+                              variant={isSelected ? 'default' : 'outline'}
+                              onClick={() => addUser(user)}
+                              disabled={isSelected}
+                              className=""
+                            >
+                              {isSelected ? (
+                                <>
+                                  <Check className="h-4 w-4" />
+                                  Added
+                                </>
+                              ) : (
+                                <>
+                                  <UserPlus className="h-4 w-4" />
+                                  Add
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+              </div>
+            </ScrollArea>
+          </div>
+        )}
+
+        {!hasSearched && <EmptySearchState />}
+
+        {selectedUsers.length > 0 && (
+          <div className="animate-in slide-in-from-bottom-4 fade-in space-y-3 duration-300">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">
+                Selected Users ({selectedUsers.length})
+              </Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllSelected}
+                className="text-muted-foreground hover:text-destructive text-xs"
+              >
+                Clear All
+              </Button>
+            </div>
+
+            <ScrollArea className="h-[120px] w-full">
+              <div className="flex flex-wrap gap-2 p-1">
+                {selectedUsers.map((user) => (
+                  <Button
+                    size="sm"
+                    key={user.id}
+                    variant="secondary"
+                    className=""
+                  >
+                    <User className="h-3 w-3" />
+                    <span>{user.name}</span>
+                    <X
+                      className="hover:text-destructive h-3 w-3 cursor-pointer transition-colors"
+                      onClick={() => removeUser(user.id)}
+                    />
+                  </Button>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          {inviteError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+              <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
+                <AlertCircle className="h-4 w-4" />
+                <span className="font-medium">Failed to send invitations</span>
+              </div>
+              <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+                {inviteError.message}
+              </p>
+            </div>
+          )}
+
+          <Button
+            onClick={handleSendInvitations}
+            disabled={isSending || selectedUsers.length === 0}
+            className="w-full"
+          >
+            {isSending ? (
+              <>
+                <Loader className="h-4 w-4 animate-spin" />
+                Sending invitations to {selectedUsers.length} user
+                {selectedUsers.length !== 1 ? 's' : ''}...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4" />
+                Send Invitation{selectedUsers.length !== 1 ? 's' : ''}
+                {selectedUsers.length > 0 && ` (${selectedUsers.length})`}
+              </>
+            )}
+          </Button>
+
+          {selectedUsers.length > 0 && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+              <div className="flex items-start gap-3">
+                <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                <div className="text-sm">
+                  <p className="mb-1 font-medium text-blue-900 dark:text-blue-100">
+                    Invitation Details
+                  </p>
+                  <ul className="space-y-1 text-blue-800 dark:text-blue-200">
+                    <li>• Selected users will receive direct invitations</li>
+                    <li>
+                      • They'll get a notification to join your study room
+                    </li>
+                    <li>
+                      • Invitations are sent immediately after confirmation
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
           )}
         </div>
       </div>
-
-      {searchResults.length > 0 && (
-        <div className="space-y-2">
-          <Label>Search Results</Label>
-          <div className="max-h-40 space-y-2 overflow-y-auto rounded-md border p-2">
-            {searchResults.map((user) => (
-              <div
-                key={user.id}
-                className="hover:bg-muted flex items-center justify-between rounded-md p-2"
-              >
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <div>
-                    <p className="text-sm font-medium">{user.username}</p>
-                    <p className="text-muted-foreground text-xs">
-                      {user.email}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => addUser(user)}
-                  disabled={selectedUsers.some((u) => u.id === user.id)}
-                >
-                  <UserPlus className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {selectedUsers.length > 0 && (
-        <div className="space-y-2">
-          <Label>Selected Users ({selectedUsers.length})</Label>
-          <div className="flex flex-wrap gap-2">
-            {selectedUsers.map((user) => (
-              <Badge
-                key={user.id}
-                variant="secondary"
-                className="flex items-center gap-1"
-              >
-                {user.username}
-                <X
-                  className="hover:text-destructive h-3 w-3 cursor-pointer"
-                  onClick={() => removeUser(user.id)}
-                />
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <Button
-        onClick={sendInvitations}
-        disabled={isSending || selectedUsers.length === 0}
-        className="w-full"
-      >
-        {isSending ? (
-          <>
-            <UserPlus className="h-4 w-4 animate-pulse" />
-            Sending Invitations...
-          </>
-        ) : (
-          <>
-            <UserPlus className="h-4 w-4" />
-            Send Invitations to {selectedUsers.length} Users
-          </>
-        )}
-      </Button>
     </div>
   );
 }
@@ -1436,165 +2147,488 @@ function UserInviteTab({ roomId }: { roomId: string }) {
 function BulkInviteTab({
   roomId,
   roomTitle,
+  shareLink,
 }: {
   roomId: string;
   roomTitle: string;
+  shareLink: string;
 }) {
   const [csvData, setCsvData] = useState('');
+  const [contacts, setContacts] = useState<{ name: string; email: string }[]>(
+    []
+  );
   const [isProcessing, setIsProcessing] = useState(false);
-  const [contacts, setContacts] = useState<
-    Array<{ name: string; email: string }>
-  >([]);
+  const [uploadError, setUploadError] = useState<string>('');
+  const [parseErrors, setParseErrors] = useState<string[]>([]);
+  const [dragOver, setDragOver] = useState(false);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const {
+    mutate: sendInvites,
+    isPending,
+    isSuccess,
+    data: successData,
+    error: inviteError,
+  } = useSendBulkInvites();
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleFileUpload = async (file: File) => {
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      setCsvData(text);
-      parseContacts(text);
-    };
-    reader.readAsText(file);
-  };
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      setUploadError('Please upload a CSV file');
+      return;
+    }
 
-  const parseContacts = (csvText: string) => {
-    const lines = csvText.split('\n').filter((line) => line.trim());
-    const parsed = lines
-      .slice(1)
-      .map((line) => {
-        const [name, email] = line.split(',').map((item) => item.trim());
-        return { name: name || 'Unknown', email };
-      })
-      .filter((contact) => contact.email && contact.email.includes('@'));
-
-    setContacts(parsed);
-  };
-
-  const sendBulkInvitations = async () => {
-    if (contacts.length === 0) {
-      toast.error('Please upload a valid CSV file with contacts');
+    if (file.size > 5 * 1024 * 1024) {
+      // 5MB limit
+      setUploadError('File size should not exceed 5MB');
       return;
     }
 
     setIsProcessing(true);
+    setUploadError('');
+    setParseErrors([]);
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      toast.success(`Bulk invitations sent to ${contacts.length} contacts`);
-      setCsvData('');
-      setContacts([]);
+      const text = await file.text();
+      setCsvData(text);
+      await parseContacts(text);
     } catch (error) {
-      toast.error('Failed to send bulk invitations');
+      setUploadError('Failed to read file. Please try again.');
     } finally {
       setIsProcessing(false);
     }
   };
 
+  const parseContacts = async (csvText: string) => {
+    const lines = csvText.split('\n').filter((line) => line.trim());
+
+    if (lines.length === 0) {
+      setUploadError('CSV file is empty');
+      return;
+    }
+
+    if (lines.length === 1) {
+      setUploadError('CSV file should contain data rows, not just headers');
+      return;
+    }
+
+    const errors: string[] = [];
+    const validContacts: { name: string; email: string }[] = [];
+    const duplicateEmails = new Set<string>();
+
+    lines.slice(1).forEach((line, index) => {
+      const lineNumber = index + 2;
+      const columns = line
+        .split(',')
+        .map((item) => item.trim().replace(/"/g, ''));
+
+      if (columns.length < 2) {
+        errors.push(`Line ${lineNumber}: Missing name or email`);
+        return;
+      }
+
+      const [name, email] = columns;
+
+      if (!name) {
+        errors.push(`Line ${lineNumber}: Name is required`);
+        return;
+      }
+
+      if (!email) {
+        errors.push(`Line ${lineNumber}: Email is required`);
+        return;
+      }
+
+      if (!validateEmail(email)) {
+        errors.push(`Line ${lineNumber}: Invalid email format (${email})`);
+        return;
+      }
+
+      if (duplicateEmails.has(email.toLowerCase())) {
+        errors.push(`Line ${lineNumber}: Duplicate email (${email})`);
+        return;
+      }
+
+      duplicateEmails.add(email.toLowerCase());
+      validContacts.push({ name, email });
+    });
+
+    setParseErrors(errors);
+    setContacts(validContacts);
+
+    if (validContacts.length === 0 && errors.length > 0) {
+      setUploadError('No valid contacts found in CSV file');
+    }
+  };
+
+  const handleFileInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragOver(false);
+
+    const file = event.dataTransfer.files[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragOver(false);
+  };
+
+  const handleSendBulkInvitations = () => {
+    if (contacts.length === 0) {
+      toast.error('Please upload a valid CSV file with contacts');
+      return;
+    }
+
+    sendInvites(
+      {
+        contacts,
+        subject: `You're invited to join: ${roomTitle}`,
+        message: `Hi there!\n\nYou've been invited to join our study session for ${roomTitle}.\n\nWe look forward to seeing you there!`,
+        linkUrl: shareLink,
+      },
+      {
+        onSuccess: () => {
+          setCsvData('');
+          setContacts([]);
+          setParseErrors([]);
+          setUploadError('');
+        },
+      }
+    );
+  };
+
   const downloadTemplate = () => {
     const template =
-      'Name,Email\nJohn Doe,john@example.com\nJane Smith,jane@example.com';
-    const blob = new Blob([template], { type: 'text/csv' });
+      'Name,Email\n"John Doe","john@example.com"\n"Jane Smith","jane@example.com"\n"Alice Johnson","alice@company.com"';
+    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'contacts_template.csv';
+    link.download = `${roomTitle.replace(/[^a-z0-9]/gi, '_')}_contacts_template.csv`;
     link.click();
     window.URL.revokeObjectURL(url);
+    toast.success('Template downloaded successfully!');
   };
+
+  const clearData = () => {
+    setCsvData('');
+    setContacts([]);
+    setParseErrors([]);
+    setUploadError('');
+    const fileInput = document.getElementById('csv-upload') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+    toast.info('All data cleared');
+  };
+
+  if (!shareLink) {
+    return (
+      <div className="space-y-4">
+        <Card className="p-6">
+          <div className="py-8 text-center">
+            <FileSpreadsheet className="text-muted-foreground/50 mx-auto mb-4 h-12 w-12" />
+            <h3 className="text-muted-foreground mb-2 text-lg font-medium">
+              Generate Share Link First
+            </h3>
+            <p className="text-muted-foreground text-sm">
+              You need to generate a share link before sending bulk invitations.
+            </p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>Upload Contacts (CSV)</Label>
-        <div className="border-muted-foreground/25 rounded-lg border-2 border-dashed p-6 text-center">
-          <div className="flex flex-col items-center justify-center space-y-2">
-            <Upload className="text-muted-foreground mx-auto h-8 w-8" />
-            <div>
-              <Input
-                type="file"
-                accept=".csv"
-                onChange={handleFileUpload}
-                className="hidden"
-                id="csv-upload"
-              />
-              <Label
-                htmlFor="csv-upload"
-                className="text-primary cursor-pointer text-center hover:underline"
-              >
-                Click to upload CSV file
-              </Label>
-            </div>
-            <p className="text-muted-foreground text-xs">
-              CSV should have Name and Email columns
+      {isSuccess && successData && (
+        <div className="animate-in slide-in-from-top-2 fade-in rounded-lg border border-green-200 bg-green-50 p-4 duration-300 dark:border-green-800 dark:bg-green-900/20">
+          <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
+            <CheckCircle className="h-5 w-5" />
+            <span className="font-medium">
+              Bulk invitations sent successfully!
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-green-700 dark:text-green-300">
+            {successData.message}
+          </p>
+        </div>
+      )}
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-medium">Bulk Email Invitations</h3>
+            <p className="text-muted-foreground text-sm">
+              Upload a CSV file with contacts to send multiple invitations at
+              once
             </p>
           </div>
-        </div>
-      </div>
 
-      <div className="flex justify-center">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={downloadTemplate}
-          className="flex items-center gap-2"
-        >
-          <Download className="h-4 w-4" />
-          Download CSV Template
-        </Button>
-      </div>
-
-      {contacts.length > 0 && (
-        <div className="space-y-2">
-          <Label>Parsed Contacts ({contacts.length})</Label>
-          <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border p-2">
-            {contacts.slice(0, 10).map((contact, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between text-sm"
+          {contacts.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="secondary"
+                className="animate-in zoom-in-50 duration-200"
               >
-                <span>{contact.name}</span>
-                <span className="text-muted-foreground">{contact.email}</span>
+                {contacts.length} contacts ready
+              </Badge>
+              <Button variant="ghost" size="sm" onClick={clearData}>
+                <X className="mr-1 h-4 w-4" />
+                Clear
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <Card className="p-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">Upload CSV File</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadTemplate}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download Template
+              </Button>
+            </div>
+
+            <div
+              className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+                dragOver
+                  ? 'border-primary bg-primary/5'
+                  : uploadError
+                    ? 'border-red-300 bg-red-50 dark:bg-red-900/20'
+                    : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+              }`}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+            >
+              {isProcessing ? (
+                <div className="flex flex-col items-center space-y-3">
+                  <Loader className="text-primary h-8 w-8 animate-spin" />
+                  <p className="text-sm font-medium">Processing CSV file...</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center space-y-3">
+                  <div className="bg-primary/10 rounded-full p-3">
+                    <Upload className="text-primary h-8 w-8" />
+                  </div>
+                  <div className="space-y-2">
+                    <Input
+                      type="file"
+                      accept=".csv"
+                      onChange={handleFileInputChange}
+                      className="hidden"
+                      id="csv-upload"
+                      disabled={isProcessing}
+                    />
+                    <Label
+                      htmlFor="csv-upload"
+                      className="text-primary cursor-pointer font-medium hover:underline"
+                    >
+                      Click to upload CSV file or drag and drop
+                    </Label>
+                    <p className="text-muted-foreground text-xs">
+                      CSV should have Name and Email columns • Max file size:
+                      5MB
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {uploadError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+                <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="font-medium">Upload Error</span>
+                </div>
+                <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+                  {uploadError}
+                </p>
               </div>
-            ))}
-            {contacts.length > 10 && (
-              <p className="text-muted-foreground py-2 text-center text-xs">
-                ... and {contacts.length - 10} more contacts
-              </p>
             )}
           </div>
-        </div>
-      )}
+        </Card>
 
-      <Button
-        onClick={sendBulkInvitations}
-        disabled={isProcessing || contacts.length === 0}
-        className="w-full"
-      >
-        {isProcessing ? (
-          <>
-            <Users className="h-4 w-4 animate-pulse" />
-            Processing {contacts.length} Invitations...
-          </>
-        ) : (
-          <>
-            <Users className="h-4 w-4" />
-            Send Bulk Invitations ({contacts.length})
-          </>
+        {parseErrors.length > 0 && (
+          <Card className="p-4">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-orange-800 dark:text-orange-200">
+                <AlertTriangle className="h-4 w-4" />
+                <span className="font-medium">
+                  Parsing Warnings ({parseErrors.length})
+                </span>
+              </div>
+              <ScrollArea className="h-32 w-full">
+                <div className="space-y-1">
+                  {parseErrors.map((error, index) => (
+                    <p
+                      key={index}
+                      className="font-mono text-xs text-orange-700 dark:text-orange-300"
+                    >
+                      {error}
+                    </p>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          </Card>
         )}
-      </Button>
 
-      {csvData && (
-        <div className="space-y-2">
-          <Label>Raw CSV Data (Preview)</Label>
-          <Textarea
-            value={csvData.slice(0, 500) + (csvData.length > 500 ? '...' : '')}
-            readOnly
-            className="font-mono text-xs"
-            rows={6}
-          />
+        {contacts.length > 0 && (
+          <Card className="animate-in slide-in-from-bottom-4 fade-in p-4 duration-300">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-medium">
+                  Valid Contacts ({contacts.length})
+                </Label>
+                <Badge variant="outline">{contacts.length} ready to send</Badge>
+              </div>
+
+              <ScrollArea className="h-48 w-full rounded-md border">
+                <div className="space-y-2 p-4">
+                  {contacts.map((contact, index) => (
+                    <div
+                      key={index}
+                      className="hover:bg-muted/50 flex items-center justify-between rounded-md px-3 py-2 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
+                          <User className="text-primary h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{contact.name}</p>
+                          <p className="text-muted-foreground text-xs">
+                            {contact.email}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="text-xs">
+                        #{index + 1}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+
+              {contacts.length > 100 && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
+                  <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                    <Clock className="h-4 w-4" />
+                    <span className="text-sm font-medium">
+                      Large batch detected ({contacts.length} contacts)
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+                    Sending may take a few minutes. Please be patient.
+                  </p>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
+
+        {inviteError && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+            <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
+              <AlertCircle className="h-4 w-4" />
+              <span className="font-medium">Failed to send invitations</span>
+            </div>
+            <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+              {inviteError.message}
+            </p>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <Button
+            onClick={handleSendBulkInvitations}
+            disabled={isPending || contacts.length === 0 || isProcessing}
+            className="h-12 w-full"
+          >
+            {isPending ? (
+              <>
+                <Loader className="h-4 w-4 animate-spin" />
+                Sending to {contacts.length} contacts...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4" />
+                Send Bulk Invitations ({contacts.length})
+              </>
+            )}
+          </Button>
+
+          {contacts.length > 0 && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+              <div className="flex items-start gap-3">
+                <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                <div className="text-sm">
+                  <p className="mb-1 font-medium text-blue-900 dark:text-blue-100">
+                    Bulk Invitation Details
+                  </p>
+                  <ul className="space-y-1 text-blue-800 dark:text-blue-200">
+                    <li>
+                      • {contacts.length} contacts will receive personalized
+                      invitations
+                    </li>
+                    <li>
+                      • Each email will include your room link automatically
+                    </li>
+                    <li>
+                      • Invitations are sent individually to protect privacy
+                    </li>
+                    <li>
+                      • You'll receive a confirmation once all emails are sent
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+
+        {csvData && (
+          <Card className="p-4">
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Raw CSV Preview</Label>
+              <ScrollArea className="bg-muted/20 h-32 w-full rounded-md border">
+                <pre className="p-4 font-mono text-xs whitespace-pre-wrap">
+                  {csvData.slice(0, 1000)}
+                  {csvData.length > 1000 && '\n... (truncated)'}
+                </pre>
+              </ScrollArea>
+            </div>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
@@ -1645,14 +2679,14 @@ function StudyRoomCard({ room }: { room: StudyRoom }) {
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="min-w-0 flex-1">
-            <CardTitle className="truncate pr-2 text-lg">
+            <CardTitle className="min-w-0 truncate pr-2 text-lg">
               {room.title}
             </CardTitle>
 
             <CardDescription className="mt-2 flex items-center gap-2">
               {room.isLive ? (
                 <Badge variant="destructive" className="animate-pulse">
-                  <div className="mr-1 h-2 w-2 rounded-full bg-white"></div>
+                  <div className="h-2 w-2 rounded-full bg-white"></div>
                   LIVE
                 </Badge>
               ) : room.time ? (
@@ -1681,47 +2715,49 @@ function StudyRoomCard({ room }: { room: StudyRoom }) {
             </CardDescription>
           </div>
 
-          {isOwner && (
-            <CardAction>
-              <div className="flex items-center gap-1">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
+          <CardAction>
+            <div className="flex items-center gap-1">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
 
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => setIsShareDialogOpen(true)}
-                      className="flex items-center gap-2"
-                    >
-                      <Share className="h-4 w-4" />
-                      Share & Invite
-                    </DropdownMenuItem>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => setIsShareDialogOpen(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <Share className="h-4 w-4" />
+                    Share & Invite
+                  </DropdownMenuItem>
 
-                    <DropdownMenuItem
-                      onClick={() => setIsEditDialogOpen(true)}
-                      className="flex items-center gap-2"
-                    >
-                      <Edit className="h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
+                  {isOwner && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => setIsEditDialogOpen(true)}
+                        className="flex items-center gap-2"
+                      >
+                        <Edit className="h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
 
-                    <Separator className="m-1" />
+                      <DropdownMenuSeparator />
 
-                    <DropdownMenuItem
-                      onClick={() => setIsDeleteDialogOpen(true)}
-                      className="text-destructive focus:text-destructive flex items-center gap-2"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardAction>
-          )}
+                      <DropdownMenuItem
+                        onClick={() => setIsDeleteDialogOpen(true)}
+                        className="text-destructive focus:text-destructive flex items-center gap-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </CardAction>
         </div>
       </CardHeader>
 

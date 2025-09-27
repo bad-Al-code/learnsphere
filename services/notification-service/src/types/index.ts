@@ -40,7 +40,8 @@ export interface EmailOptions {
     | 'instructor_approved'
     | 'instructor_rejected'
     | 'admin_notification'
-    | 'user_notification';
+    | 'user_notification'
+    | 'study_group_invite';
 }
 
 export type Notification = typeof notifications.$inferSelect;

@@ -25,6 +25,7 @@ import {
   searchProfileSchema,
   updateProfileSchema,
   updateSettingsSchema,
+  userSearchQuerySchema,
 } from '../schemas/profile-schema';
 
 const router = Router();
@@ -355,6 +356,53 @@ router.post(
   '/bulk',
   validateRequest(bulkUsersSchema),
   ProfileController.getBulkProfiles
+);
+
+/**
+ * @openapi
+ * /api/users/search-users:
+ *   get:
+ *     summary: Search users by query
+ *     tags:
+ *       - Profiles
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *           minLength: 2
+ *         required: true
+ *         description: The search query string (at least 2 characters)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 10
+ *           default: 5
+ *         required: false
+ *         description: Maximum number of results to return
+ *     responses:
+ *       200:
+ *         description: List of matching users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ *       400:
+ *         description: Invalid query parameter
+ */
+router.get(
+  '/search-users',
+  requireAuth,
+  validateRequest(userSearchQuerySchema),
+  ProfileController.searchUsersQuery
 );
 
 /**

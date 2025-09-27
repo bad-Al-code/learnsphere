@@ -78,3 +78,17 @@ export class StudyRoomReminderPublisher extends Publisher<StudyRoomReminderReque
   readonly topic = 'study.room.reminder.requested' as const;
   protected exchange = 'delay.exchange';
 }
+
+interface UserInvitedToStudyRoomEvent {
+  topic: 'user.invited.to.study.room';
+  data: {
+    inviterId: string;
+    inviteeId: string;
+    roomId: string;
+    roomTitle: string;
+  };
+}
+
+export class UserInvitedToStudyRoomPublisher extends Publisher<UserInvitedToStudyRoomEvent> {
+  readonly topic = 'user.invited.to.study.room' as const;
+}

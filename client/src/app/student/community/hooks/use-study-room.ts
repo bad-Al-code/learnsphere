@@ -11,11 +11,13 @@ import { getStudyRoomsAction } from '../action/study-room.action';
 import {
   createStudyRoom,
   deleteStudyRoom,
+  generateShareLink,
   getCategories,
   joinStudyRoom,
   scheduleReminder,
   updateStudyRoom,
 } from '../api/study-room.api.client';
+import { GenerateShareLinkInput } from '../schema';
 import { StudyRoom, UpdateStudyRoomInput } from '../schema/study-rooms.schema';
 
 export const useStudyRooms = (query?: string, topic?: string) => {
@@ -135,6 +137,18 @@ export const useScheduleReminder = () => {
 
     onError: (error) => {
       toast.error('Failed to schedule reminder', {
+        description: error.message,
+      });
+    },
+  });
+};
+
+export const useGenerateShareLink = () => {
+  return useMutation({
+    mutationFn: (data: GenerateShareLinkInput) => generateShareLink(data),
+
+    onError: (error) => {
+      toast.error('Failed to create share link', {
         description: error.message,
       });
     },

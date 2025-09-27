@@ -792,3 +792,40 @@ export class StudyRoomReminderListener extends Listener<StudyRoomReminderEvent> 
     }
   }
 }
+
+interface UserInvitedToStudyRoomEvent {
+  topic: 'user.invited.to.study.room';
+  data: {
+    inviterId: string;
+    inviteeId: string;
+    roomId: string;
+    roomTitle: string;
+  };
+}
+
+export class UserInvitedToStudyRoomListener extends Listener<UserInvitedToStudyRoomEvent> {
+  readonly topic = 'user.invited.to.study.room' as const;
+  queueGroupName = 'notification-service-study-room-invites';
+
+  async onMessage(
+    data: UserInvitedToStudyRoomEvent['data'],
+    _msg: ConsumeMessage
+  ) {
+    try {
+      const inviter = await UserRepository.findById(data.inviterId);
+      const inviterName = inviter?.name || 'A fellow student';
+
+      await NotificationService.createNotification({
+        recipientId: data.inviteeId,
+        type: 'STUDY_ROOM_INVITE',
+        content: `${inviterName} has invited you to join the study room: "${data.roomTitle}".`,
+        linkUrl: `/student/community/room/${data.roomId}`,
+      });
+    } catch (error) {
+      logger.error('Failed to process study room invite event', {
+        data,
+        error,
+      });
+    }
+  }
+}

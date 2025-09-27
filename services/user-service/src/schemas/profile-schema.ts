@@ -376,3 +376,33 @@ export const getProfileByEmailSchema = z.object({
     email: z.string().email('Please provide a valid email'),
   }),
 });
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     UserSearchQuery:
+ *       type: object
+ *       properties:
+ *         q:
+ *           type: string
+ *           description: The search query string. Must be at least 2 characters.
+ *           minLength: 2
+ *         limit:
+ *           type: integer
+ *           description: Maximum number of results to return.
+ *           minimum: 1
+ *           maximum: 10
+ *           default: 5
+ *       required:
+ *         - q
+ */
+export const userSearchQuerySchema = z.object({
+  query: z.object({
+    q: z.string().min(2, 'Search query must be at least 2 characters.'),
+    limit: z.coerce.number().int().min(1).max(10).default(5),
+  }),
+
+  body: z.object({}).optional(),
+  params: z.object({}).optional(),
+});

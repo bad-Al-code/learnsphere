@@ -406,4 +406,46 @@ export class ChatController {
       next(error);
     }
   }
+
+  public static async generateShareLink(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { roomId } = req.params;
+      const { expiresIn } = req.body;
+
+      const result = await ChatService.generateShareLink(
+        roomId,
+        expiresIn,
+        req.currentUser
+      );
+
+      res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async inviteUsersToRoom(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { roomId } = req.params;
+      const { userIds } = req.body;
+
+      await ChatService.inviteUsersToRoom(roomId, userIds, req.currentUser);
+
+      res
+        .status(StatusCodes.OK)
+        .json({ message: `Invitations sent to ${userIds.length} users.` });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

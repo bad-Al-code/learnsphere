@@ -3,6 +3,7 @@ import {
   courseService,
 } from '@/lib/api/client';
 import { Category } from '@/types/category';
+import { GenerateShareLinkInput } from '../schema';
 import {
   CreateStudyRoomInput,
   StudyRoom,
@@ -80,6 +81,17 @@ export const scheduleReminder = async (
   const response = await clientCommunityService.post<{ message: string }>(
     `/api/community/study-rooms/${roomId}/schedule-reminder`,
     {}
+  );
+
+  return response.data;
+};
+
+export const generateShareLink = async (
+  data: GenerateShareLinkInput
+): Promise<{ shareLink: string }> => {
+  const response = await clientCommunityService.post<{ shareLink: string }>(
+    `/api/community/study-rooms/${data.roomId}/share`,
+    { expiresIn: data.expiresIn }
   );
 
   return response.data;

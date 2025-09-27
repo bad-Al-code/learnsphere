@@ -401,4 +401,14 @@ export class ProfileService {
   public static async getPlatformStats() {
     return ProfileRepository.getState();
   }
+
+  /**
+   * Searches for user profiles based on a query.
+   * @param query The search term.
+   * @param limit The number of results to return.
+   * @returns A list of found user profiles.
+   */
+  public static async searchUsers(query: string, limit: number) {
+    return ProfileRepository.searchUsers(query, limit);
+  }
 }

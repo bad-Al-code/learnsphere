@@ -7,6 +7,8 @@ import {
   createDiscussionSchema,
   createStudyRoomSchema,
   discussionsParamsSchema,
+  generateShareLinkSchema,
+  inviteUsersSchema,
   joinRoomParamsSchema,
   listStudyRoomsSchema,
   postReplySchema,
@@ -793,6 +795,109 @@ router.post(
   requireAuth,
   validateRequest(roomParamsSchema),
   ChatController.scheduleReminder
+);
+
+/**
+ * @openapi
+ * /api/community/study-rooms/{roomId}/share:
+ *   post:
+ *     summary: Generate a shareable link for a study room
+ *     description: Creates a JWT-based share link for a study room if the requester is the room creator.
+ *     tags:
+ *       - Community
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the study room
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               expiresIn:
+ *                 type: string
+ *                 enum: [1hour, 24hours, 7days, never]
+ *                 description: Expiration time for the share link
+ *     responses:
+ *       200:
+ *         description: Share link generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 shareLink:
+ *                   type: string
+ *                   format: uri
+ *                   example: http://localhost:3000/student/community/join-room?token=abcd1234
+ *       403:
+ *         description: Forbidden - requester is not the room creator
+ */
+router.post(
+  '/study-rooms/:roomId/share',
+  requireAuth,
+  validateRequest(generateShareLinkSchema),
+  ChatController.generateShareLink
+);
+
+/**
+ * @openapi
+ * /api/community/study-rooms/{roomId}/invite-users:
+ *   post:
+ *     tags:
+ *       - Community
+ *     summary: Invite users to a study room
+ *     description: Sends invitations to one or more users to join the specified study room.
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the study room.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userIds
+ *             properties:
+ *               userIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uuid
+ *                 description: Array of user IDs to invite.
+ *     responses:
+ *       200:
+ *         description: Invitations successfully sent.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Invitations sent to 3 users.
+ *       401:
+ *         description: Unauthorized – user must be logged in.
+ *       404:
+ *         description: Study room not found.
+ */
+router.post(
+  '/study-rooms/:roomId/invite-users',
+  requireAuth,
+  validateRequest(inviteUsersSchema),
+  ChatController.inviteUsersToRoom
 );
 
 export { router as chatRouter };
