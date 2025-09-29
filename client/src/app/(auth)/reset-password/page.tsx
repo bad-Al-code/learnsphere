@@ -61,15 +61,15 @@ function ResetPasswordFlow() {
   return (
     <div className="flex min-h-[80vh] items-center justify-center">
       <Card className="w-full max-w-md text-center shadow-2xl/20">
-        <CardHeader className="text-start">
+        <CardHeader className="">
           <div className="mb-4 flex">
             <Logo variant="icon" />
           </div>
           <CardTitle>Invalid Link</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-2">
           <p>Please request a new password reset link.</p>
-          <Button asChild variant="link">
+          <Button asChild variant="outline">
             <Link href="/forgot-password">Request Again</Link>
           </Button>
         </CardContent>
@@ -114,7 +114,7 @@ function EnterCodeComponent({ email }: { email: string }) {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="code"
@@ -138,11 +138,11 @@ function EnterCodeComponent({ email }: { email: string }) {
                 )}
               />
 
-              <div className="flex items-center gap-x-4 pt-2">
+              <div className="flex items-center gap-x-2">
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-auto whitespace-nowrap"
+                  className="whitespace-nowrap"
                   onClick={() => router.back()}
                 >
                   Back

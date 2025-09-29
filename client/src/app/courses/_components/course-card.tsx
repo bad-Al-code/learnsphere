@@ -22,22 +22,21 @@ const getInitials = (firstName?: string | null, lastName?: string | null) => {
 export function CourseCard({ course }: { course: Course }) {
   return (
     <Link href={`/courses/${course.id}`}>
-      <Card className="hover:border-primary/30 flex h-full flex-col transition-all">
-        <CardHeader>
-          <AspectRatio
-            ratio={16 / 9}
-            className="bg-muted rounded-md shadow-2xl/10"
-          >
-            {course.imageUrl && (
-              <Image
-                src={course.imageUrl}
-                alt={course.title}
-                fill
-                className="rounded-md object-cover"
-              />
-            )}
+      <Card className="group hover:border-primary/30 border-border/50 cursor-pointer overflow-hidden pt-0 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl">
+        <div className="relative overflow-hidden">
+          <AspectRatio ratio={16 / 9}>
+            <Image
+              src={course.imageUrl || '/images/placeholder.svg'}
+              alt={course.title}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-110"
+            />
           </AspectRatio>
 
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-80" />
+        </div>
+
+        <CardHeader>
           <div className="mb-2 flex items-center justify-between">
             <CardTitle className="line-clamp-2 leading-tight">
               {course.title}

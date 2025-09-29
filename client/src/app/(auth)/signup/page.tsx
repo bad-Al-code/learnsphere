@@ -89,12 +89,12 @@ export default function SignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1">
             <Button asChild variant="secondary">
               <Link
                 href={`${process.env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/google`}
               >
-                <GoogleIcon className="mr-2 h-4 w-4" />
+                <GoogleIcon className="h-4 w-4" />
                 Sign up with Google
               </Link>
             </Button>
@@ -111,7 +111,7 @@ export default function SignupPage() {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-2">
                 <FormField
                   control={form.control}
                   name="firstName"
@@ -166,7 +166,7 @@ export default function SignupPage() {
                           {...field}
                         />
                       </FormControl>
-                      <div className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-gray-400">
+                      <div className="text-muted-foreground hover:text-primary absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3">
                         {showPassword ? (
                           <EyeOff
                             className="h-5 w-5"
@@ -190,24 +190,23 @@ export default function SignupPage() {
                 name="terms"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex flex-row items-start space-y-0 space-x-3">
+                    <div className="flex items-center justify-start space-x-2">
                       <FormControl>
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
-                      <div className="space-y-1 leading-none">
+                      <div className="text-muted-foreground space-y-1 leading-none">
                         <FormLabel>
                           I agree to the{' '}
                           <Link
                             href="/legal/terms"
-                            className="underline"
+                            className="hover:text-primary underline"
                             target="_blank"
                           >
                             Terms of Service
                           </Link>
-                          .
                         </FormLabel>
                       </div>
                     </div>
@@ -224,9 +223,9 @@ export default function SignupPage() {
               )}
             </form>
           </Form>
-          <div className="mt-4 text-center text-sm">
+          <div className="text-muted-foreground mt-4 text-center text-sm">
             Already have an account?{' '}
-            <Link href="/login" className="underline">
+            <Link href="/login" className="hover:text-primary underline">
               Log in
             </Link>
           </div>

@@ -75,7 +75,7 @@ export default function LoginPage() {
               <Link
                 href={`${process.env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/google`}
               >
-                <GoogleIcon className="mr-2 h-4 w-4" />
+                <GoogleIcon className="h-4 w-4" />
                 Sign In with Google
               </Link>
             </Button>
@@ -119,7 +119,7 @@ export default function LoginPage() {
                           {...field}
                         />
                       </FormControl>
-                      <div className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-gray-400">
+                      <div className="text-muted-foreground hover:text-primary absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3">
                         {showPassword ? (
                           <EyeOff
                             className="h-5 w-5"
@@ -141,7 +141,7 @@ export default function LoginPage() {
               <div className="flex items-center">
                 <Link
                   href="/forgot-password"
-                  className="ml-auto inline-block text-sm underline"
+                  className="text-muted-foreground hover:text-primary ml-auto inline-block text-sm underline"
                 >
                   Forgot Password?
                 </Link>
@@ -156,9 +156,9 @@ export default function LoginPage() {
             </form>
           </Form>
 
-          <div className="mt-4 text-center text-sm">
+          <div className="text-muted-foreground mt-4 text-center text-sm">
             Don't have an account?{' '}
-            <Link href="/signup" className="underline">
+            <Link href="/signup" className="hover:text-primary underline">
               Sign Up
             </Link>
           </div>

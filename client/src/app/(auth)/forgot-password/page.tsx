@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
   if (submitted) {
     return (
       <div className="flex min-h-[80vh] items-center justify-center">
-        <Card className="max-w-mdtext-center w-full shadow-2xl/20">
+        <Card className="w-full max-w-md text-center shadow-2xl/20">
           <CardHeader className="text-start">
             <div className="mb-4 flex">
               <Logo variant="icon" />
@@ -108,11 +108,11 @@ export default function ForgotPasswordPage() {
                   </FormItem>
                 )}
               />
-              <div className="flex items-center gap-x-4 pt-2">
+              <div className="flex items-center gap-x-2">
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-auto whitespace-nowrap"
+                  className="whitespace-nowrap"
                   onClick={() => router.back()}
                 >
                   Back
@@ -129,7 +129,7 @@ export default function ForgotPasswordPage() {
             </form>
           </Form>
 
-          <div className="mt-6 text-center text-sm">
+          <div className="text-muted-foreground hover:text-primary mt-6 text-center text-sm">
             <Link href="/login" className="underline">
               Login to your account
             </Link>

@@ -62,13 +62,9 @@ export function CourseSelectionScreen() {
     return (
       <div className="flex h-full items-center justify-center p-8">
         <div className="space-y-6 text-center">
-          <div className="relative mx-auto">
-            <div className="from-primary/20 to-primary/5 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br shadow-lg">
+          <div className="flex items-center justify-center">
+            <div className="from-primary/20 to-primary/5 flex h-20 w-20 items-center justify-center rounded-full border bg-gradient-to-br shadow-lg">
               <GraduationCap className="text-primary h-10 w-10" />
-            </div>
-
-            <div className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 shadow-sm">
-              <Sparkles className="h-3 w-3 text-white" />
             </div>
           </div>
 
@@ -93,7 +89,7 @@ export function CourseSelectionScreen() {
             ].map((item, index) => (
               <div
                 key={index}
-                className="border-border/50 bg-background/50 flex items-center gap-3 rounded-lg border p-3 backdrop-blur-sm"
+                className="border-border/50 bg-background/50 flex items-center gap-2 rounded-lg border p-3 backdrop-blur-sm"
               >
                 <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
                   <item.icon className="text-primary h-4 w-4" />
@@ -111,7 +107,7 @@ export function CourseSelectionScreen() {
   }
 
   return (
-    <div className="h-full space-y-6 p-8">
+    <div className="h-full space-y-4 p-8">
       <div className="space-y-4 text-center">
         <div className="from-primary/20 to-primary/5 relative mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br shadow-lg">
           <Bot className="text-primary h-10 w-10" />
@@ -128,7 +124,7 @@ export function CourseSelectionScreen() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {courses.map((enrollment) => (
           <Card
             key={enrollment.enrollmentId}
@@ -195,7 +191,7 @@ export function CourseSelectionScreen() {
 
 export function CourseSelectionSkeleton() {
   return (
-    <div className="h-full space-y-6 p-8">
+    <div className="h-full space-y-4 p-8">
       <div className="space-y-4 text-center">
         <Skeleton className="mx-auto h-20 w-20 rounded-full" />
         <div className="space-y-2">
@@ -204,7 +200,7 @@ export function CourseSelectionSkeleton() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 6 }).map((_, i) => (
           <Card key={i} className="overflow-hidden pt-0">
             <div className="relative">
