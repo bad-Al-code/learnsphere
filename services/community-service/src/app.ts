@@ -12,7 +12,12 @@ import {
   httpLogger,
   metricsMiddleware,
 } from './middlewares';
-import { analyticsRouter, chatRouter, healthRouter } from './routes';
+import {
+  analyticsRouter,
+  chatRouter,
+  eventRouter,
+  healthRouter,
+} from './routes';
 import { metricsService } from './services/metrics.service';
 
 const app = express();
@@ -44,6 +49,7 @@ app.get('/api/community/metrics', async (req, res) => {
 app.use('/api/community', healthRouter);
 app.use('/api/community', chatRouter);
 app.use('/api/community', analyticsRouter);
+app.use('/api/community/events', eventRouter);
 
 app.use(errorHandler);
 

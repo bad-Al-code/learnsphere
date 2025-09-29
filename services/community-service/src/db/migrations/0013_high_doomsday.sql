@@ -1,0 +1,1 @@
+ALTER TABLE "events" ADD CONSTRAINT "unique_user_title_date" UNIQUE("host_id","title","date");

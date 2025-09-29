@@ -1,0 +1,57 @@
+import { communityService as clientCommunityService } from '@/lib/api/client';
+import {
+  CreateEventInput,
+  TEvent,
+  UpdateEventInput,
+  UpdateEventPayload,
+} from '../schema';
+
+export const createEvent = async (data: CreateEventInput): Promise<TEvent> => {
+  const payload = {
+    ...data,
+    tags: data.tags
+      ?.split(',')
+      .map((t) => t.trim())
+      .filter(Boolean),
+    date: data.date.toISOString(),
+  };
+  console.log('Creating event with payload:', payload);
+
+  const response = await clientCommunityService.post<TEvent>(
+    '/api/community/events',
+    payload
+  );
+
+  console.log('API Response:', response);
+  console.log('Response data:', response.data);
+
+  return response.data;
+};
+
+export const updateEvent = async (
+  eventId: string,
+  data: UpdateEventInput
+): Promise<TEvent> => {
+  const payload: UpdateEventPayload = {};
+
+  if (data.title !== undefined) payload.title = data.title;
+  if (data.type !== undefined) payload.type = data.type;
+  if (data.date !== undefined) payload.date = data.date.toISOString();
+  if (data.location !== undefined) payload.location = data.location;
+  if (data.maxAttendees !== undefined) payload.maxAttendees = data.maxAttendees;
+  if (data.tags !== undefined) payload.tags = data.tags;
+  if (data.prize !== undefined) payload.prize = data.prize;
+
+  const response = await clientCommunityService.put<TEvent>(
+    `/api/community/events/${eventId}`,
+    payload
+  );
+
+  return response.data;
+};
+
+export const deleteEvent = async (eventId: string): Promise<void> => {
+  await clientCommunityService.deleteTyped<void>(
+    `/api/community/events/${eventId}`
+  );
+};

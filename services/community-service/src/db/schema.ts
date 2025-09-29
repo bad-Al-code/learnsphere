@@ -134,6 +134,66 @@ export const reactions = pgTable(
   ]
 );
 
+/** EVENTS */
+export const eventTypeEnum = pgEnum('event_type', [
+  'Workshop',
+  'Competition',
+  'Networking',
+]);
+export type EventType = (typeof eventTypeEnum.enumValues)[number];
+
+export const events = pgTable(
+  'events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    title: varchar('title', { length: 255 }).notNull(),
+    type: eventTypeEnum('type').notNull(),
+    hostId: uuid('host_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    date: timestamp('date').notNull(),
+    location: text('location').notNull(),
+    maxAttendees: integer('max_attendees').notNull(),
+    tags: text('tags').array(),
+    isLive: boolean('is_live').default(false).notNull(),
+    prize: text('prize'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    unique('unique_user_title_date').on(table.hostId, table.title, table.date),
+  ]
+);
+
+export type Event = typeof events.$inferSelect;
+export type NewEvent = typeof events.$inferInsert;
+
+export const eventAttendees = pgTable(
+  'event_attendees',
+  {
+    eventId: uuid('event_id')
+      .references(() => events.id, { onDelete: 'cascade' })
+      .notNull(),
+    userId: uuid('user_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.eventId, table.userId] })]
+);
+export type EventAttendees = typeof eventAttendees.$inferSelect;
+
+export const eventsRelations = relations(events, ({ one, many }) => ({
+  host: one(users, { fields: [events.hostId], references: [users.id] }),
+  attendees: many(eventAttendees),
+}));
+
+export const eventAttendeesRelations = relations(eventAttendees, ({ one }) => ({
+  event: one(events, {
+    fields: [eventAttendees.eventId],
+    references: [events.id],
+  }),
+  user: one(users, { fields: [eventAttendees.userId], references: [users.id] }),
+}));
+
 export const usersRelations = relations(users, ({ many }) => ({
   conversations: many(conversationParticipants),
   messages: many(messages),

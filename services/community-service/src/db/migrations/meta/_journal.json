@@ -85,6 +85,20 @@
       "when": 1759127674931,
       "tag": "0011_common_shotgun",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1759137605578,
+      "tag": "0012_bumpy_black_bird",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1759156940034,
+      "tag": "0013_high_doomsday",
+      "breakpoints": true
     }
   ]
 }
