@@ -78,6 +78,13 @@
       "when": 1758985999630,
       "tag": "0010_nasty_stone_men",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1759127674931,
+      "tag": "0011_common_shotgun",
+      "breakpoints": true
     }
   ]
 }

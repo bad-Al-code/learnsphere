@@ -11,7 +11,9 @@ import {
   inviteUsersSchema,
   joinRoomParamsSchema,
   listStudyRoomsSchema,
+  messageParamsSchema,
   postReplySchema,
+  reactMessageSchema,
   roomParamsSchema,
   updateStudyRoomSchema,
 } from '../schemas';
@@ -898,6 +900,112 @@ router.post(
   requireAuth,
   validateRequest(inviteUsersSchema),
   ChatController.inviteUsersToRoom
+);
+
+/**
+ * @openapi
+ * /api/community/messages/{messageId}/upvote:
+ *   post:
+ *     summary: Upvote a message
+ *     description: Adds or removes an upvote reaction on a message for the authenticated user. Any existing downvote from the same user will be removed automatically.
+ *     tags:
+ *       - community
+ *     parameters:
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the message to upvote.
+ *     responses:
+ *       201:
+ *         description: Upvote added successfully.
+ *       200:
+ *         description: Upvote removed successfully.
+ *       401:
+ *         description: Unauthorized (user not authenticated).
+ */
+router.post(
+  '/messages/:messageId/upvote',
+  requireAuth,
+  validateRequest(messageParamsSchema),
+  ChatController.upvoteMessage
+);
+
+/**
+ * @openapi
+ * /api/community/messages/{messageId}/downvote:
+ *   post:
+ *     summary: Downvote a message
+ *     description: Adds or removes a downvote reaction on a message for the authenticated user. Any existing upvote from the same user will be removed automatically.
+ *     tags:
+ *       - community
+ *     parameters:
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the message to downvote.
+ *     responses:
+ *       201:
+ *         description: Downvote added successfully.
+ *       200:
+ *         description: Downvote removed successfully.
+ *       401:
+ *         description: Unauthorized (user not authenticated).
+ */
+router.post(
+  '/messages/:messageId/downvote',
+  requireAuth,
+  validateRequest(messageParamsSchema),
+  ChatController.downvoteMessage
+);
+
+/**
+ * @openapi
+ * /api/community/messages/{messageId}/react:
+ *   post:
+ *     summary: React to a message
+ *     description: Adds or removes a specific reaction (e.g., upvote or downvote) to a message for the authenticated user.
+ *     tags:
+ *       - community
+ *     parameters:
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the message to react to.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reaction:
+ *                 type: string
+ *                 enum: [upvote, downvote]
+ *                 description: The type of reaction to apply.
+ *             required:
+ *               - reaction
+ *     responses:
+ *       201:
+ *         description: Reaction added successfully.
+ *       200:
+ *         description: Reaction removed successfully.
+ *       401:
+ *         description: Unauthorized (user not authenticated).
+ */
+router.post(
+  '/messages/:messageId/react',
+  requireAuth,
+  validateRequest(reactMessageSchema),
+  ChatController.reactToMessage
 );
 
 export { router as chatRouter };

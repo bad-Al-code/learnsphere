@@ -1,10 +1,13 @@
 import { z } from 'zod';
 
+export const ReactionEmojiEnum = z.enum(['Star', 'Heart', 'Sparkles']);
 export const reactionSchema = z.object({
-  emoji: z.enum(['Star', 'Heart', 'Sparkles']),
+  emoji: ReactionEmojiEnum,
   count: z.number(),
   color: z.string(),
 });
+export type ReactionEmoji = z.infer<typeof ReactionEmojiEnum>;
+export type Reaction = z.infer<typeof reactionSchema>;
 
 export const discussionSchema = z.object({
   id: z.uuid(),
@@ -24,3 +27,27 @@ export const discussionSchema = z.object({
 
 export const discussionsResponseSchema = z.array(discussionSchema);
 export type Discussion = z.infer<typeof discussionSchema>;
+
+export const reactionTypeSchema = z.enum([
+  'like',
+  'upvote',
+  'downvote',
+  'star',
+  'heart',
+  'sparkles',
+]);
+export type ReactionType = z.infer<typeof reactionTypeSchema>;
+
+export const reactMessageInputSchema = z.object({
+  messageId: z.uuid(),
+  reaction: reactionTypeSchema,
+});
+export type ReactMessageInput = z.infer<typeof reactMessageInputSchema>;
+
+export const discussionMutationResponseSchema = z.object({
+  status: z.enum(['added', 'removed', 'updated']),
+});
+
+export type DiscussionMutationResponse = z.infer<
+  typeof discussionMutationResponseSchema
+>;

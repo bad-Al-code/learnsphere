@@ -22,6 +22,7 @@ import {
   messages,
   NewConversation,
   reactions,
+  ReactionType,
   users,
 } from '../schema';
 
@@ -555,5 +556,92 @@ export class ConversationRepository {
    */
   public static async delete(roomId: string): Promise<void> {
     await db.delete(conversations).where(eq(conversations.id, roomId));
+  }
+
+  /**
+   * Toggle a reaction on a message. For vote types (upvote/downvote),
+   * removes the opposite vote. For emoji reactions, removes any existing emoji.
+   * @param messageId The ID of the message
+   * @param userId The ID of the user
+   * @param reaction The reaction type
+   * @returns 'removed' if toggled off, 'added' if toggled on, 'updated' if changed emoji
+   */
+  public static async toggleReaction(
+    messageId: string,
+    userId: string,
+    reaction: ReactionType
+  ): Promise<'removed' | 'added' | 'updated'> {
+    const voteTypes: ReactionType[] = ['upvote', 'downvote'];
+    const emojiTypes: ReactionType[] = ['like', 'star', 'heart', 'sparkles'];
+
+    const isVote = voteTypes.includes(reaction);
+
+    const existingReaction = await db.query.reactions.findFirst({
+      where: and(
+        eq(reactions.messageId, messageId),
+        eq(reactions.userId, userId),
+        eq(reactions.reaction, reaction)
+      ),
+    });
+
+    if (existingReaction) {
+      await db.delete(reactions).where(eq(reactions.id, existingReaction.id));
+
+      return 'removed';
+    }
+
+    if (isVote) {
+      const oppositeVote = reaction === 'upvote' ? 'downvote' : 'upvote';
+      await db
+        .delete(reactions)
+        .where(
+          and(
+            eq(reactions.messageId, messageId),
+            eq(reactions.userId, userId),
+            eq(reactions.reaction, oppositeVote)
+          )
+        );
+    } else {
+      const existingEmoji = await db.query.reactions.findFirst({
+        where: and(
+          eq(reactions.messageId, messageId),
+          eq(reactions.userId, userId),
+          inArray(reactions.reaction, emojiTypes)
+        ),
+      });
+
+      if (existingEmoji) {
+        await db.delete(reactions).where(eq(reactions.id, existingEmoji.id));
+        await db.insert(reactions).values({ messageId, userId, reaction });
+
+        return 'updated';
+      }
+    }
+
+    await db.insert(reactions).values({ messageId, userId, reaction });
+    return 'added';
+  }
+
+  /**
+   * Remove a specific reaction from a message for a given user.
+   * @param messageId The ID of the message to remove the reaction from.
+   * @param userId The ID of the user whose reaction should be removed.
+   * @param reaction The reaction type to remove
+   * @returns A promise that resolves when the reaction is deleted
+   */
+  public static async removeReaction(
+    messageId: string,
+    userId: string,
+    reaction: ReactionType
+  ): Promise<void> {
+    await db
+      .delete(reactions)
+      .where(
+        and(
+          eq(reactions.messageId, messageId),
+          eq(reactions.userId, userId),
+          eq(reactions.reaction, reaction)
+        )
+      );
   }
 }

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { reactionTypeEnum } from '../db/schema';
 
 /**
  * @openapi
@@ -353,4 +354,63 @@ export const listStudyRoomsSchema = z.object({
     limit: z.coerce.number().int().min(1).max(20).default(9),
     cursor: z.uuid().optional(),
   }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     MessageParams:
+ *       type: object
+ *       properties:
+ *         params:
+ *           type: object
+ *           properties:
+ *             messageId:
+ *               type: string
+ *               format: uuid
+ *               description: Unique identifier of the message being reacted to.
+ *           required:
+ *             - messageId
+ *       required:
+ *         - params
+ */
+export const messageParamsSchema = z.object({
+  params: z.object({ messageId: z.uuid() }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ReactMessage:
+ *       type: object
+ *       properties:
+ *         body:
+ *           type: object
+ *           properties:
+ *             reaction:
+ *               type: string
+ *               enum: [upvote, downvote]
+ *               description: Reaction type applied to the message.
+ *           required:
+ *             - reaction
+ *         params:
+ *           type: object
+ *           properties:
+ *             messageId:
+ *               type: string
+ *               format: uuid
+ *               description: Unique identifier of the message being reacted to.
+ *           required:
+ *             - messageId
+ *       required:
+ *         - body
+ *         - params
+ */
+export const reactMessageSchema = z.object({
+  body: z.object({
+    reaction: z.enum(reactionTypeEnum.enumValues),
+  }),
+  params: z.object({ messageId: z.uuid() }),
 });

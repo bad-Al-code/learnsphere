@@ -6,7 +6,7 @@ import { env } from '../config/env';
 import logger from '../config/logger';
 import { redisConnection } from '../config/redis';
 import { ConversationRepository, MessageRepository } from '../db/repositories';
-import { Conversation, NewConversation } from '../db/schema';
+import { Conversation, NewConversation, ReactionType } from '../db/schema';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
 import { ConflictError } from '../errors/conflic-error';
 import {
@@ -834,6 +834,93 @@ export class ChatService {
 
     logger.info(
       `Published ${userIds.length} invitation events for room ${roomId}`
+    );
+  }
+
+  /**
+   * Upvote a message. Removes any existing downvote.
+   * @param messageId - The ID of the message to upvote.
+   * @param requester - The user performing the action.
+   * @returns A promise resolving to the action result.
+   */
+  public static async upvoteMessage(
+    messageId: string,
+    requester: Requester
+  ): Promise<'removed' | 'added' | 'updated'> {
+    const message = await MessageRepository.findById(messageId);
+    if (!message) {
+      throw new NotFoundError('Message');
+    }
+
+    await ConversationRepository.removeReaction(
+      messageId,
+      requester.id,
+      'downvote'
+    );
+
+    return ConversationRepository.toggleReaction(
+      messageId,
+      requester.id,
+      'upvote'
+    );
+  }
+
+  /**
+   * Downvote a message. Removes any existing upvote.
+   * @param messageId - The ID of the message to downvote.
+   * @param requester - The user performing the action.
+   * @returns A promise resolving to the action result.
+   */
+  public static async downvoteMessage(
+    messageId: string,
+    requester: Requester
+  ): Promise<'removed' | 'added' | 'updated'> {
+    const message = await MessageRepository.findById(messageId);
+    if (!message) {
+      throw new NotFoundError('Message');
+    }
+
+    await ConversationRepository.removeReaction(
+      messageId,
+      requester.id,
+      'upvote'
+    );
+
+    return ConversationRepository.toggleReaction(
+      messageId,
+      requester.id,
+      'downvote'
+    );
+  }
+
+  /**
+   * React to a message with a given reaction type (emoji reactions).
+   * Replaces any existing emoji reaction with the new one.
+   * @param messageId - The ID of the message to react to.
+   * @param reaction - The reaction type.
+   * @param requester - The user performing the action.
+   * @returns A promise resolving to the action result.
+   */
+  public static async reactToMessage(
+    messageId: string,
+    reaction: ReactionType,
+    requester: Requester
+  ): Promise<'removed' | 'added' | 'updated'> {
+    const message = await MessageRepository.findById(messageId);
+    if (!message) {
+      throw new NotFoundError('Message');
+    }
+
+    if (reaction === 'upvote' || reaction === 'downvote') {
+      throw new BadRequestError(
+        'Use /upvote or /downvote endpoints for vote reactions'
+      );
+    }
+
+    return ConversationRepository.toggleReaction(
+      messageId,
+      requester.id,
+      reaction
     );
   }
 }

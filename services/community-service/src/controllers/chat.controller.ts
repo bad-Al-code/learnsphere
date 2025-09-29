@@ -453,4 +453,95 @@ export class ChatController {
       next(error);
     }
   }
+
+  public static async upvoteMessage(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { messageId } = req.params;
+
+      const result = await ChatService.upvoteMessage(
+        messageId,
+        req.currentUser
+      );
+
+      res
+        .status(result === 'added' ? StatusCodes.CREATED : StatusCodes.OK)
+        .json({
+          status: result,
+          message:
+            result === 'added'
+              ? 'Upvote added successfully'
+              : 'Upvote removed successfully',
+        });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async downvoteMessage(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { messageId } = req.params;
+
+      const result = await ChatService.downvoteMessage(
+        messageId,
+        req.currentUser
+      );
+
+      res
+        .status(result === 'added' ? StatusCodes.CREATED : StatusCodes.OK)
+        .json({
+          status: result,
+          message:
+            result === 'added'
+              ? 'Downvote added successfully'
+              : 'Downvote removed successfully',
+        });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async reactToMessage(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { reaction } = req.body;
+      const { messageId } = req.params;
+
+      const result = await ChatService.reactToMessage(
+        messageId,
+        reaction,
+        req.currentUser
+      );
+
+      const statusCode =
+        result === 'added' ? StatusCodes.CREATED : StatusCodes.OK;
+      const message =
+        result === 'added'
+          ? `Reaction '${reaction}' added successfully`
+          : result === 'updated'
+            ? `Reaction updated to '${reaction}' successfully`
+            : `Reaction '${reaction}' removed successfully`;
+
+      res.status(statusCode).json({
+        status: result,
+        message,
+        reaction,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

@@ -44,8 +44,13 @@ import { CourseSelectionScreen } from '@/features/ai-tools/_components/common/Co
 import { useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { useCommunityInsights } from '../hooks';
-import { useDiscussions } from '../hooks/use-discussions';
-import { Discussion } from '../schema';
+import {
+  useDiscussions,
+  useDownvoteDiscussion,
+  useReactToDiscussion,
+  useUpvoteDiscussion,
+} from '../hooks/use-discussions';
+import { Discussion, ReactionType } from '../schema';
 
 function DiscussionsHeader() {
   return (
@@ -521,97 +526,513 @@ function AiCommunityInsights() {
   );
 }
 
+function DiscussionCardError({ error }: { error: Error }) {
+  return (
+    <Card className="border-destructive">
+      <CardContent className="pt-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Failed to load discussion: {error.message}
+          </AlertDescription>
+        </Alert>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface VoteButtonsProps {
+  messageId: string;
+  upvotes: number;
+  downvotes: number;
+  userVote?: 'upvote' | 'downvote' | null;
+}
+
+function VoteButtons({
+  messageId,
+  upvotes,
+  downvotes,
+  userVote,
+}: VoteButtonsProps) {
+  const {
+    mutate: upvote,
+    isPending: isUpvoting,
+    isError: isUpvoteError,
+  } = useUpvoteDiscussion();
+  const {
+    mutate: downvote,
+    isPending: isDownvoting,
+    isError: isDownvoteError,
+  } = useDownvoteDiscussion();
+
+  const handleUpvote = () => {
+    upvote(messageId);
+  };
+
+  const handleDownvote = () => {
+    downvote(messageId);
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={userVote === 'upvote' ? 'default' : 'ghost'}
+            size="sm"
+            className="flex items-center gap-1 px-2"
+            onClick={handleUpvote}
+            disabled={isUpvoting || isDownvoting}
+          >
+            {isUpvoting ? (
+              <Loader className="h-4 w-4 animate-spin" />
+            ) : (
+              <ThumbsUp
+                className={`h-4 w-4 ${userVote === 'upvote' ? 'fill-current' : ''}`}
+              />
+            )}
+            <span className={isUpvoteError ? 'text-destructive' : ''}>
+              {upvotes}
+            </span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Upvote this discussion</p>
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={userVote === 'downvote' ? 'default' : 'ghost'}
+            size="sm"
+            className="flex items-center gap-1 px-2"
+            onClick={handleDownvote}
+            disabled={isUpvoting || isDownvoting}
+          >
+            {isDownvoting ? (
+              <Loader className="h-4 w-4 animate-spin" />
+            ) : (
+              <ThumbsDown
+                className={`h-4 w-4 ${userVote === 'downvote' ? 'fill-current' : ''}`}
+              />
+            )}
+            <span className={isDownvoteError ? 'text-destructive' : ''}>
+              {downvotes}
+            </span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Downvote this discussion</p>
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
+
 const reactionIcons: { [key: string]: React.ElementType } = {
   Star,
   Heart,
   Sparkles,
 };
 
-function DiscussionCard({ discussion }: { discussion: Discussion }) {
+const EMOJI_REACTIONS: { emoji: ReactionType; icon: React.ElementType }[] = [
+  { emoji: 'star', icon: Star },
+  { emoji: 'heart', icon: Heart },
+  { emoji: 'sparkles', icon: Sparkles },
+];
+
+interface EmojiReactionsProps {
+  messageId: string;
+  reactions: { emoji: string; count: number; color: string }[];
+  userReaction?: string | null;
+}
+
+function EmojiReactions({
+  messageId,
+  reactions,
+  userReaction,
+}: EmojiReactionsProps) {
+  const { mutate: react, isPending, variables } = useReactToDiscussion();
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
+
+  const handleReaction = (emoji: ReactionType) => {
+    react(
+      { messageId, reaction: emoji },
+      {
+        onSuccess: () => setShowReactionPicker(false),
+      }
+    );
+  };
+
+  const getReactionCount = (emoji: string) => {
+    const reaction = reactions.find((r) => r.emoji === emoji);
+    return reaction?.count || 0;
+  };
+
   return (
-    <Card>
-      <CardContent>
-        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-          <div className="w-full flex-1">
-            <h3 className="flex items-center gap-2 text-sm font-semibold sm:text-base">
-              {discussion.isStarred && (
-                <Star className="h-4 w-4 text-yellow-500" />
-              )}
-              {discussion.title}
-            </h3>
+    <div className="flex items-center gap-2">
+      {reactions.map((r) => {
+        const Icon = reactionIcons[r.emoji];
+        if (!Icon) return null;
 
-            <div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-xs sm:text-sm">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback>{discussion.authorInitials}</AvatarFallback>
-              </Avatar>
+        const isUserReaction = userReaction === r.emoji.toLowerCase();
+        const isPendingThis =
+          isPending && variables?.reaction === r.emoji.toLowerCase();
 
-              <p className="text-primary font-medium">{discussion.author}</p>
-              <Badge variant="secondary">{discussion.role}</Badge>
-              <span>•</span>
-              <p>
-                {formatDistanceToNow(new Date(discussion.timestamp), {
-                  addSuffix: true,
-                })}
-              </p>
-            </div>
+        return (
+          <Tooltip key={r.emoji}>
+            <TooltipTrigger asChild>
+              <Button
+                variant={isUserReaction ? 'default' : 'ghost'}
+                size="sm"
+                className="flex items-center gap-1 px-2"
+                onClick={() =>
+                  handleReaction(r.emoji.toLowerCase() as ReactionType)
+                }
+                disabled={isPending}
+              >
+                {isPendingThis ? (
+                  <Loader className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Icon
+                    className={`h-4 w-4 ${isUserReaction ? 'fill-current' : r.color}`}
+                  />
+                )}
+                <span>{r.count}</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>React with {r.emoji}</p>
+            </TooltipContent>
+          </Tooltip>
+        );
+      })}
 
-            <p className="text-muted-foreground mt-2 line-clamp-3 text-sm sm:text-base">
-              {discussion.content}
-            </p>
-
-            <div className="mt-3 flex flex-wrap gap-2">
-              {discussion.tags?.map((tag) => (
-                <Badge key={tag} variant="outline">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-
-            <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-4 text-sm">
-              <div className="flex items-center gap-1">
-                <ThumbsUp className="h-4 w-4" />
-                {discussion.upvotes}
-              </div>
-              <div className="flex items-center gap-1">
-                <ThumbsDown className="h-4 w-4" />
-                {discussion.downvotes}
-              </div>
-              <div className="flex items-center gap-1">
-                <MessageSquare className="h-4 w-4" />
-                {discussion.replies} replies
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                {discussion.reactions.map((r, i) => {
-                  const Icon = reactionIcons[r.emoji];
-                  if (!Icon) return null;
-                  return (
-                    <div
-                      key={i}
-                      className={`flex items-center gap-1 ${r.color}`}
+      {reactions.length < 3 && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => setShowReactionPicker(!showReactionPicker)}
+                disabled={isPending}
+              >
+                <span className="text-lg">+</span>
+              </Button>
+              {showReactionPicker && (
+                <div className="bg-background absolute bottom-full left-0 mb-2 flex gap-1 rounded-md border p-2 shadow-lg">
+                  {EMOJI_REACTIONS.map(({ emoji, icon: Icon }) => (
+                    <Button
+                      key={emoji}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => handleReaction(emoji)}
+                      disabled={isPending}
                     >
                       <Icon className="h-4 w-4" />
-                      {r.count}
-                    </div>
-                  );
-                })}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Add reaction</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+    </div>
+  );
+}
+
+interface AISummaryButtonProps {
+  discussionId: string;
+}
+
+function AISummaryButton({ discussionId }: AISummaryButtonProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleGetSummary = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      setSummary(
+        'This discussion explores the key concepts of React hooks and their practical applications in modern web development.'
+      );
+    } catch (err) {
+      setError('Failed to generate AI summary');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 sm:flex-none"
+            onClick={handleGetSummary}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <Loader className="h-4 w-4 animate-spin" />
+            ) : (
+              <Info className="h-4 w-4" />
+            )}
+            <span className="ml-1">AI Summary</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Get AI-generated summary of this discussion</p>
+        </TooltipContent>
+      </Tooltip>
+
+      {summary && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>{summary}</AlertDescription>
+        </Alert>
+      )}
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+    </div>
+  );
+}
+
+interface ViewDiscussionButtonProps {
+  discussionId: string;
+  onViewDiscussion?: (discussionId: string) => void;
+}
+
+function ViewDiscussionButton({
+  discussionId,
+  onViewDiscussion,
+}: ViewDiscussionButtonProps) {
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const handleViewDiscussion = async () => {
+    setIsNavigating(true);
+
+    try {
+      if (onViewDiscussion) {
+        onViewDiscussion(discussionId);
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        console.log('Navigate to discussion:', discussionId);
+      }
+    } catch (err) {
+      console.error('Navigation failed:', err);
+    } finally {
+      setIsNavigating(false);
+    }
+  };
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1 sm:flex-none"
+          onClick={handleViewDiscussion}
+          disabled={isNavigating}
+        >
+          {isNavigating ? (
+            <Loader className="h-4 w-4 animate-spin" />
+          ) : (
+            <MessageSquare className="h-4 w-4" />
+          )}
+          <span className="ml-1">View Discussion</span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>View full discussion thread</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+interface ReplyButtonProps {
+  discussionId: string;
+  onReply?: (discussionId: string) => void;
+}
+
+function ReplyButton({ discussionId, onReply }: ReplyButtonProps) {
+  const [isReplying, setIsReplying] = useState(false);
+
+  const handleReply = () => {
+    setIsReplying(true);
+    if (onReply) {
+      onReply(discussionId);
+    } else {
+      console.log('Open reply form for:', discussionId);
+    }
+    setIsReplying(false);
+  };
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleReply}
+          disabled={isReplying}
+        >
+          <MessageSquare className="h-4 w-4" />
+          <span className="ml-1">Reply</span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Reply to this discussion</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+interface DiscussionContentProps {
+  content: string;
+  tags?: string[] | null;
+}
+
+function DiscussionContent({ content, tags }: DiscussionContentProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const needsExpansion = content.length > 300;
+
+  return (
+    <div className="space-y-3">
+      <p
+        className={`text-muted-foreground text-sm sm:text-base ${
+          !isExpanded && needsExpansion ? 'line-clamp-3' : ''
+        }`}
+      >
+        {content}
+      </p>
+
+      {needsExpansion && (
+        <Button
+          variant="link"
+          size="sm"
+          className="h-auto p-0 text-xs"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? 'Show less' : 'Show more'}
+        </Button>
+      )}
+
+      {tags && tags.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <Badge key={tag} variant="outline" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface DiscussionHeaderProps {
+  discussion: Discussion;
+}
+
+function DiscussionHeader({ discussion }: DiscussionHeaderProps) {
+  return (
+    <div className="space-y-2">
+      <h3 className="flex items-center gap-2 text-sm font-semibold sm:text-base">
+        {discussion.isStarred && (
+          <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+        )}
+        {discussion.title}
+      </h3>
+
+      <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+        <Avatar className="h-8 w-8">
+          <AvatarFallback className="text-xs">
+            {discussion.authorInitials}
+          </AvatarFallback>
+        </Avatar>
+        <p className="text-primary font-medium">{discussion.author}</p>
+        <Badge variant="secondary" className="text-xs">
+          {discussion.role}
+        </Badge>
+        <span>•</span>
+        <p>
+          {formatDistanceToNow(new Date(discussion.timestamp), {
+            addSuffix: true,
+          })}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+interface DiscussionCardProps {
+  discussion: Discussion;
+  onViewDiscussion?: (discussionId: string) => void;
+  onReply?: (discussionId: string) => void;
+}
+
+export default function DiscussionCard({
+  discussion,
+  onViewDiscussion,
+  onReply,
+}: DiscussionCardProps) {
+  if (!discussion) {
+    return <DiscussionCardError error={new Error('Discussion not found')} />;
+  }
+
+  return (
+    <Card className="transition-shadow hover:shadow-md">
+      <CardContent className="pt-6">
+        <div className="flex flex-col gap-4">
+          <div className="w-full space-y-3">
+            <DiscussionHeader discussion={discussion} />
+            <DiscussionContent
+              content={discussion.content}
+              tags={discussion.tags}
+            />
+
+            <div className="text-muted-foreground flex flex-wrap items-center gap-4 border-t pt-3 text-sm">
+              <VoteButtons
+                messageId={discussion.id}
+                upvotes={discussion.upvotes}
+                downvotes={discussion.downvotes}
+              />
+
+              <div className="flex items-center gap-1">
+                <MessageSquare className="h-4 w-4" />
+                <span>{discussion.replies} replies</span>
               </div>
 
+              <EmojiReactions
+                messageId={discussion.id}
+                reactions={discussion.reactions}
+              />
+
               <div className="ml-auto flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 sm:flex-none"
-                >
-                  <Info className="h-4 w-4" />
-                  AI Summary
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 sm:flex-none"
-                >
-                  View Discussion
-                </Button>
+                <AISummaryButton discussionId={discussion.id} />
+                <ViewDiscussionButton
+                  discussionId={discussion.id}
+                  onViewDiscussion={onViewDiscussion}
+                />
               </div>
             </div>
           </div>
@@ -630,8 +1051,50 @@ export function DiscussionsTab({ courseId }: { courseId?: string }) {
     );
   }
 
-  const { data: discussionsData, isLoading } = useDiscussions(courseId);
-  if (isLoading) return <DiscussionsTabSkeleton />;
+  const {
+    data: discussionsData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useDiscussions(courseId);
+
+  if (isLoading) {
+    return <DiscussionsTabSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-2">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>
+              Failed to load discussions: {error?.message || 'Unknown error'}
+            </span>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!discussionsData || discussionsData.length === 0) {
+    return (
+      <div className="space-y-2">
+        <Separator className="border-dashed" />
+        <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+          <AlertCircle className="text-muted-foreground mb-4 h-12 w-12" />
+          <h3 className="mb-2 text-lg font-semibold">No discussions yet</h3>
+          <p className="text-muted-foreground text-sm">
+            Be the first to start a discussion in this course!
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
@@ -710,34 +1173,28 @@ function AiCommunityInsightsSkeleton() {
   );
 }
 
-function DiscussionCardSkeleton() {
+export function DiscussionCardSkeleton() {
   return (
     <Card>
-      <CardContent className="p-4">
-        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-          <Skeleton className="h-9 w-9 flex-shrink-0 rounded-full" />
-
-          <div className="w-full flex-1 space-y-2">
-            <Skeleton className="h-5 w-3/4 sm:w-1/2" />
-            <Skeleton className="h-4 w-1/2 sm:w-1/3" />
-            <Skeleton className="h-4 w-full" />
-
-            <div className="flex flex-wrap gap-2">
+      <CardContent className="pt-6">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="w-full flex-1 space-y-3">
+            <Skeleton className="h-5 w-3/4" />
+            <div className="flex flex-wrap items-center gap-2">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <Skeleton className="h-4 w-24" />
               <Skeleton className="h-5 w-16" />
-              <Skeleton className="h-5 w-20" />
-              <Skeleton className="h-5 w-12" />
+              <Skeleton className="h-4 w-20" />
             </div>
-
-            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 sm:flex-nowrap">
-              <div className="flex flex-wrap gap-4">
-                <Skeleton className="h-5 w-10" />
-                <Skeleton className="h-5 w-10" />
-                <Skeleton className="h-5 w-12" />
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Skeleton className="h-8 w-24 sm:w-28" />
-                <Skeleton className="h-8 w-28 sm:w-32" />
-              </div>
+            <Skeleton className="h-16 w-full" />
+            <div className="flex gap-2">
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-6 w-20" />
+            </div>
+            <div className="flex flex-wrap gap-4">
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-8 w-24" />
             </div>
           </div>
         </div>

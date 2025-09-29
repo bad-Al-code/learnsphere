@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
   boolean,
   integer,
@@ -9,6 +9,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
@@ -111,7 +112,26 @@ export const reactions = pgTable(
     reaction: reactionTypeEnum('reaction').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => [unique().on(table.messageId, table.userId)]
+  (table) => [
+    uniqueIndex('reactions_message_user_upvote_idx')
+      .on(table.messageId, table.userId)
+      .where(sql`${table.reaction} = 'upvote'`),
+    uniqueIndex('reactions_message_user_downvote_idx')
+      .on(table.messageId, table.userId)
+      .where(sql`${table.reaction} = 'downvote'`),
+    uniqueIndex('reactions_message_user_like_idx')
+      .on(table.messageId, table.userId)
+      .where(sql`${table.reaction} = 'like'`),
+    uniqueIndex('reactions_message_user_star_idx')
+      .on(table.messageId, table.userId)
+      .where(sql`${table.reaction} = 'star'`),
+    uniqueIndex('reactions_message_user_heart_idx')
+      .on(table.messageId, table.userId)
+      .where(sql`${table.reaction} = 'heart'`),
+    uniqueIndex('reactions_message_user_sparkles_idx')
+      .on(table.messageId, table.userId)
+      .where(sql`${table.reaction} = 'sparkles'`),
+  ]
 );
 
 export const usersRelations = relations(users, ({ many }) => ({
