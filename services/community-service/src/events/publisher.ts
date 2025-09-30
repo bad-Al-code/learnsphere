@@ -92,3 +92,41 @@ interface UserInvitedToStudyRoomEvent {
 export class UserInvitedToStudyRoomPublisher extends Publisher<UserInvitedToStudyRoomEvent> {
   readonly topic = 'user.invited.to.study.room' as const;
 }
+
+interface EventUserRegisteredEvent {
+  topic: 'event.user.registered';
+  data: {
+    eventId: string;
+    userId: string;
+    eventTitle: string;
+    eventDate: string;
+  };
+}
+
+export class EventUserRegisteredPublisher extends Publisher<EventUserRegisteredEvent> {
+  readonly topic = 'event.user.registered' as const;
+}
+
+interface EventUserUnregisteredEvent {
+  topic: 'event.user.unregistered';
+  data: { eventId: string; userId: string; eventTitle: string };
+}
+
+export class EventUserUnregisteredPublisher extends Publisher<EventUserUnregisteredEvent> {
+  readonly topic = 'event.user.unregistered' as const;
+}
+
+interface EventReminderRequestedEvent {
+  topic: 'event.reminder.requested';
+  data: {
+    eventId: string;
+    userId: string;
+    eventTitle: string;
+    eventDate: string;
+  };
+}
+
+export class EventReminderPublisher extends Publisher<EventReminderRequestedEvent> {
+  readonly topic = 'event.reminder.requested' as const;
+  protected exchange = 'delay.exchange';
+}

@@ -299,7 +299,97 @@ export class EmailService {
       );
     } catch (error) {
       logger.error('Failed to send bulk invites', { error });
-      throw error; // Re-throw to be handled by the controller
+      throw error;
     }
+  }
+
+  /**
+   * Sends a confirmation email to a user after they register for an event.
+   * @param data - The information required to send the registration confirmation email.
+   * @param data.email - The recipient's email address.
+   * @param data.userName - The recipient's name, if available.
+   * @param data.eventTitle - The title of the event.
+   * @param data.eventDate - The date of the event as a string.
+   * @param data.linkUrl - The URL for the user to view event details.
+   */
+  public async sendEventRegistrationConfirmation(data: {
+    email: string;
+    userName: string | null;
+    eventTitle: string;
+    eventDate: string;
+    linkUrl: string;
+  }): Promise<void> {
+    const htmlBody = EmailTemplate.generateEventRegistrationEmail(
+      data.userName,
+      data.eventTitle,
+      data.eventDate,
+      data.linkUrl
+    );
+    await this.emailClient.send({
+      to: data.email,
+      subject: `You're Registered for: ${data.eventTitle}`,
+      html: htmlBody,
+      text: `You are confirmed for ${data.eventTitle} on ${new Date(data.eventDate).toLocaleString()}.`,
+      type: 'event_registration',
+    });
+  }
+
+  /**
+   * Sends a notification email to a user confirming they have unregistered from an event.
+   * @param data - The information required to send the unregistration email.
+   * @param data.email - The recipient's email address.
+   * @param data.userName - The recipient's name, if available.
+   * @param data.eventTitle - The title of the event the user unregistered from.
+   */
+  public async sendEventUnregisteredNotice(data: {
+    email: string;
+    userName: string | null;
+    eventTitle: string;
+  }): Promise<void> {
+    const linkUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/student/community?tab=events`;
+
+    const htmlBody = EmailTemplate.generateEventUnregisteredEmail(
+      data.userName,
+      data.eventTitle,
+      linkUrl
+    );
+    await this.emailClient.send({
+      to: data.email,
+      subject: `You have unregistered from: ${data.eventTitle}`,
+      html: htmlBody,
+      text: `This confirms you have unregistered from the event: ${data.eventTitle}.`,
+      type: 'event_unregistration',
+    });
+  }
+
+  /**
+   * Sends a reminder email to a user about an upcoming event.
+   * @param data - The information required to send the event reminder email.
+   * @param data.email - The recipient's email address.
+   * @param data.userName - The recipient's name, if available.
+   * @param data.eventTitle - The title of the event.
+   * @param data.eventDate - The date of the event as a string.
+   * @param data.linkUrl - The URL for the user to join or view the event.
+   */
+  public async sendEventReminder(data: {
+    email: string;
+    userName: string | null;
+    eventTitle: string;
+    eventDate: string;
+    linkUrl: string;
+  }): Promise<void> {
+    const htmlBody = EmailTemplate.generateEventReminderEmail(
+      data.userName,
+      data.eventTitle,
+      data.eventDate,
+      data.linkUrl
+    );
+    await this.emailClient.send({
+      to: data.email,
+      subject: `Reminder: "${data.eventTitle}" is starting soon!`,
+      html: htmlBody,
+      text: `Reminder: ${data.eventTitle} is starting soon. Join here: ${data.linkUrl}`,
+      type: 'event_reminder',
+    });
   }
 }

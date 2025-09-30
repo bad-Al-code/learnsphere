@@ -829,3 +829,148 @@ export class UserInvitedToStudyRoomListener extends Listener<UserInvitedToStudyR
     }
   }
 }
+
+interface EventUserRegisteredEvent {
+  topic: 'event.user.registered';
+  data: {
+    eventId: string;
+    userId: string;
+    eventTitle: string;
+    eventDate: string;
+  };
+}
+export class EventUserRegisteredListener extends Listener<EventUserRegisteredEvent> {
+  readonly topic = 'event.user.registered' as const;
+  queueGroupName = 'notification-service-event-registered';
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
+
+  async onMessage(
+    data: EventUserRegisteredEvent['data'],
+    _msg: ConsumeMessage
+  ) {
+    const user = await UserRepository.findById(data.userId);
+    if (!user) return;
+
+    const linkUrl = `/student/community/events/${data.eventId}`;
+
+    try {
+      await NotificationService.createNotification({
+        recipientId: data.userId,
+        type: 'EVENT_REGISTRATION',
+        content: `You've successfully registered for the event: "${data.eventTitle}".`,
+        linkUrl,
+      });
+
+      await this.emailService.sendEventRegistrationConfirmation({
+        email: user.email,
+        userName: user.name,
+        eventTitle: data.eventTitle,
+        eventDate: data.eventDate,
+        linkUrl,
+      });
+    } catch (err) {
+      logger.error('Failed to process event registration message', err);
+    }
+  }
+}
+
+interface EventUserUnregisteredEvent {
+  topic: 'event.user.unregistered';
+  data: { eventId: string; userId: string; eventTitle: string };
+}
+
+export class EventUserUnregisteredListener extends Listener<EventUserUnregisteredEvent> {
+  readonly topic = 'event.user.unregistered' as const;
+  queueGroupName = 'notification-service-event-unregistered';
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
+
+  async onMessage(
+    data: EventUserUnregisteredEvent['data'],
+    _msg: ConsumeMessage
+  ) {
+    const user = await UserRepository.findById(data.userId);
+    if (!user) return;
+
+    await Promise.all([
+      NotificationService.createNotification({
+        recipientId: data.userId,
+        type: 'EVENT_UNREGISTRATION',
+        content: `You have unregistered from the event: "${data.eventTitle}".`,
+      }),
+
+      this.emailService.sendEventUnregisteredNotice({
+        email: user.email,
+        userName: user.name,
+        eventTitle: data.eventTitle,
+      }),
+    ]);
+  }
+}
+
+interface EventReminderRequestedEvent {
+  topic: 'event.reminder.requested';
+  data: {
+    eventId: string;
+    userId: string;
+    eventTitle: string;
+    eventDate: string;
+  };
+}
+
+export class EventReminderListener extends Listener<EventReminderRequestedEvent> {
+  readonly topic = 'event.reminder.requested' as const;
+  queueGroupName = 'notification-service-room-reminder';
+  protected exchange = 'notification-processing.exchange';
+  protected exchangeType = 'direct';
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
+
+  async onMessage(
+    data: EventReminderRequestedEvent['data'],
+    _msg: ConsumeMessage
+  ) {
+    try {
+      const user = await UserRepository.findById(data.userId);
+      if (!user) return;
+
+      const linkUrl = `/student/community/events/${data.eventId}`;
+      const startTimeFormatted = new Date(data.eventDate).toLocaleTimeString(
+        [],
+        { hour: '2-digit', minute: '2-digit' }
+      );
+
+      await Promise.all([
+        NotificationService.createNotification({
+          recipientId: data.userId,
+          type: 'EVENT_REMINDER',
+          content: `Reminder: Your event "${data.eventTitle}" is starting at ${startTimeFormatted}.`,
+          linkUrl,
+        }),
+
+        this.emailService.sendEventReminder({
+          email: user.email,
+          userName: user.name,
+          eventTitle: data.eventTitle,
+          eventDate: data.eventDate,
+          linkUrl,
+        }),
+      ]);
+    } catch (error) {
+      logger.error('Failed to process event reminder', { data, error });
+    }
+  }
+}

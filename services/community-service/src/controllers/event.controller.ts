@@ -19,11 +19,33 @@ export class EventController {
     next: NextFunction
   ) {
     try {
+      if (!req.currentUser) throw new NotAuthorizedError();
       const { query } = getEventsSchema.parse(req);
 
-      const result = await EventService.getEvents(query);
+      const result = await EventService.getEvents(query, req.currentUser);
 
       res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getEventAttendees(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { params } = eventParamsSchema.parse({ params: req.params });
+      const { eventId } = params;
+
+      const attendees = await EventService.getEventAttendees(
+        eventId,
+        req.currentUser
+      );
+
+      res.status(StatusCodes.OK).json(attendees);
     } catch (error) {
       next(error);
     }
@@ -185,11 +207,14 @@ export class EventController {
         params: req.params,
       });
 
-      await EventService.unregisterFromEvent(params.eventId, req.currentUser);
+      const status = await EventService.checkRegistrationStatus(
+        params.eventId,
+        req.currentUser
+      );
 
       res.status(StatusCodes.OK).json({
         success: true,
-        message: 'Successfully unregistered from the event.',
+        data: status,
       });
     } catch (error) {
       next(error);

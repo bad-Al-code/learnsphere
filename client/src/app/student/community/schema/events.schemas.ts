@@ -102,3 +102,38 @@ export type UpdateEventPayload = {
   tags?: string[];
   prize?: string;
 };
+
+export const registrationStatusSchema = z.object({
+  isRegistered: z.boolean(),
+  isHost: z.boolean(),
+  isFull: z.boolean(),
+  currentAttendees: z.number(),
+  maxAttendees: z.number(),
+});
+
+export type RegistrationStatus = z.infer<typeof registrationStatusSchema>;
+
+export const registrationResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: z
+    .object({
+      eventId: z.string(),
+      eventTitle: z.string(),
+      currentAttendees: z.number(),
+      maxAttendees: z.number(),
+    })
+    .optional(),
+});
+
+export type RegistrationResponse = z.infer<typeof registrationResponseSchema>;
+
+export const eventAttendeeSchema = z.object({
+  user: z.object({
+    id: z.uuid(),
+    name: z.string().nullable(),
+    avatarUrl: z.url().nullable(),
+  }),
+});
+
+export type EventAttendee = z.infer<typeof eventAttendeeSchema>;

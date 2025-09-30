@@ -1,22 +1,11 @@
-import {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  ilike,
-  inArray,
-  lt,
-  not,
-  sql,
-} from 'drizzle-orm';
+import { and, asc, desc, eq, not, sql } from 'drizzle-orm';
 
 import { DatabaseError } from 'pg';
 import { db } from '..';
 import { BadRequestError } from '../../errors';
 import { ConflictError } from '../../errors/conflic-error';
 import { GetEventsSchema, UpdateEventDto } from '../../schemas';
-import { Event, eventAttendees, events, EventType, NewEvent } from '../schema';
+import { Event, eventAttendees, events, NewEvent, users } from '../schema';
 
 export class EventRepository {
   /**
@@ -26,48 +15,98 @@ export class EventRepository {
    * @param options.type - Optional event type (`EventType` or "all")
    * @param options.limit - Maximum number of events to return
    * @param options.cursor - Optional event ID used for cursor-based pagination
+   * @param userId - Optional user ID
    * @returns A list of events with host info and attendee counts
    */
-  public static async findEvents(options: GetEventsSchema['query']) {
-    const { q, type, limit, cursor } = options;
-
+  public static async findEvents(
+    options: GetEventsSchema['query'],
+    userId: string
+  ) {
+    const { q, type, limit, cursor, attending } = options;
     const conditions = [];
+    const offset = cursor ? parseInt(cursor, 10) : 0;
+
+    conditions.push(sql`(${events.date} >= NOW() OR ${events.isLive} = true)`);
 
     if (q) {
-      conditions.push(ilike(events.title, `%${q}%`));
+      conditions.push(
+        sql`(
+        ${events.title} ILIKE ${`%${q}%`} OR 
+        ${events.location} ILIKE ${`%${q}%`} OR
+        EXISTS (
+          SELECT 1 FROM unnest(${events.tags}) tag 
+          WHERE tag ILIKE ${`%${q}%`}
+        )
+      )`
+      );
     }
 
     if (type && type !== 'all') {
-      conditions.push(eq(events.type, type as EventType));
+      conditions.push(eq(events.type, type));
     }
 
-    if (cursor) {
-      const cursorItem = await db.query.events.findFirst({
-        where: eq(events.id, cursor),
-        columns: { createdAt: true },
-      });
-      if (cursorItem) {
-        conditions.push(lt(events.createdAt, cursorItem.createdAt));
-      }
+    if (attending) {
+      conditions.push(
+        sql`EXISTS (
+        SELECT 1 FROM ${eventAttendees}
+        WHERE ${eventAttendees.eventId} = ${events.id}
+        AND ${eventAttendees.userId} = ${userId}
+      )`
+      );
     }
 
-    const results = await db.query.events.findMany({
-      where: and(...conditions),
-      orderBy: [desc(events.isLive), asc(events.date)],
-      limit,
-      with: { host: { columns: { name: true } } },
-    });
+    const eventsData = await db
+      .select({
+        id: events.id,
+        title: events.title,
+        type: events.type,
+        hostId: events.hostId,
+        date: events.date,
+        location: events.location,
+        maxAttendees: events.maxAttendees,
+        tags: events.tags,
+        isLive: events.isLive,
+        prize: events.prize,
+        createdAt: events.createdAt,
+        hostName: users.name,
+        attendeeCount: sql<number>`COUNT(DISTINCT ${eventAttendees.userId})::int`,
+      })
+      .from(events)
+      .leftJoin(users, eq(events.hostId, users.id))
+      .leftJoin(eventAttendees, eq(events.id, eventAttendees.eventId))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .groupBy(
+        events.id,
+        events.title,
+        events.type,
+        events.hostId,
+        events.date,
+        events.location,
+        events.maxAttendees,
+        events.tags,
+        events.isLive,
+        events.prize,
+        events.createdAt,
+        users.name
+      )
+      .orderBy(desc(events.isLive), asc(events.date), asc(events.id))
+      .limit(limit)
+      .offset(offset);
 
-    const eventIds = results.map((r) => r.id);
-    const attendeeCounts = await db
-      .select({ eventId: eventAttendees.eventId, count: count() })
-      .from(eventAttendees)
-      .where(inArray(eventAttendees.eventId, eventIds))
-      .groupBy(eventAttendees.eventId);
-
-    const countMap = new Map(attendeeCounts.map((c) => [c.eventId, c.count]));
-
-    return results.map((r) => ({ ...r, attendees: countMap.get(r.id) || 0 }));
+    return eventsData.map((event) => ({
+      id: event.id,
+      title: event.title,
+      type: event.type,
+      hostId: event.hostId,
+      date: event.date,
+      location: event.location,
+      maxAttendees: event.maxAttendees,
+      tags: event.tags || [],
+      isLive: event.isLive,
+      prize: event.prize,
+      host: { name: event.hostName || 'Unknown Host' },
+      attendees: event.attendeeCount || 0,
+    }));
   }
 
   /**
@@ -351,18 +390,19 @@ export class EventRepository {
     const oneHourAfter = new Date(eventDate);
     oneHourAfter.setHours(oneHourAfter.getHours() + 1);
 
-    const conflictingEvent = await db.query.events.findFirst({
-      where: and(
-        sql`${events.date} BETWEEN ${oneHourBefore} AND ${oneHourAfter}`,
-        sql`EXISTS (
-        SELECT 1 FROM ${eventAttendees}
-        WHERE ${eventAttendees.eventId} = ${events.id}
-        AND ${eventAttendees.userId} = ${userId}
-      )`
-      ),
-    });
+    const result = await db
+      .select({ id: events.id })
+      .from(events)
+      .innerJoin(eventAttendees, eq(eventAttendees.eventId, events.id))
+      .where(
+        and(
+          sql`${events.date} BETWEEN ${oneHourBefore} AND ${oneHourAfter}`,
+          eq(eventAttendees.userId, userId)
+        )
+      )
+      .limit(1);
 
-    return !!conflictingEvent;
+    return result.length > 0;
   }
 
   /**

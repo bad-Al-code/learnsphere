@@ -1,3 +1,4 @@
+import { differenceInMilliseconds } from 'date-fns';
 import { DatabaseError } from 'pg';
 import logger from '../config/logger';
 import { EventRepository } from '../db/repositories/event.repository';
@@ -5,11 +6,11 @@ import { Event } from '../db/schema';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
 import { ConflictError } from '../errors/conflic-error';
 import {
-  CreateEventDto,
-  EventWithAttendees,
-  GetEventsSchema,
-  UpdateEventDto,
-} from '../schemas';
+  EventReminderPublisher,
+  EventUserRegisteredPublisher,
+  EventUserUnregisteredPublisher,
+} from '../events/publisher';
+import { CreateEventDto, GetEventsSchema, UpdateEventDto } from '../schemas';
 import { Requester } from '../types';
 
 export class EventService {
@@ -24,30 +25,68 @@ export class EventService {
    * - events: A list of formatted events with host info, attendees, progress, etc.
    * - nextCursor: The ID of the last event in the current batch (for pagination), or null if none
    */
-  public static async getEvents(options: GetEventsSchema['query']) {
-    const events = await EventRepository.findEvents(options);
-    let nextCursor: string | null = null;
-    if (events.length === options.limit) {
-      nextCursor = events[events.length - 1].id;
-    }
+  public static async getEvents(
+    options: GetEventsSchema['query'],
+    requester: Requester
+  ) {
+    const limit = options.limit || 9;
+    const offset = options.cursor ? parseInt(options.cursor, 10) : 0;
 
-    const formattedEvents = events.map((event: EventWithAttendees) => ({
-      id: event.id,
-      title: event.title,
-      type: event.type,
-      host: `Hosted By ${event.host.name}`,
-      hostId: event.hostId,
-      date: event.date,
-      location: event.location,
-      attendees: event.attendees,
-      maxAttendees: event.maxAttendees,
-      tags: event.tags || [],
-      isLive: event.isLive,
-      prize: event.prize,
-      progress: Math.round((event.attendees / event.maxAttendees) * 100),
-    }));
+    const eventData = await EventRepository.findEvents(
+      {
+        ...options,
+        limit: limit + 1,
+      },
+      requester.id
+    );
+
+    const hasMore = eventData.length > limit;
+    const events = hasMore ? eventData.slice(0, limit) : eventData;
+
+    const nextCursor = hasMore ? String(offset + limit) : null;
+
+    const formattedEvents = events.map((event) => {
+      const now = new Date();
+      const eventDate = new Date(event.date);
+      const isPast = eventDate < now;
+
+      return {
+        id: event.id,
+        title: event.title,
+        type: event.type,
+        host: `Hosted By ${event.host.name}`,
+        hostId: event.hostId,
+        date: event.date,
+        location: event.location,
+        attendees: event.attendees,
+        maxAttendees: event.maxAttendees,
+        tags: event.tags || [],
+        isLive: event.isLive && !isPast,
+        prize: event.prize,
+        progress: Math.round((event.attendees / event.maxAttendees) * 100),
+      };
+    });
 
     return { events: formattedEvents, nextCursor };
+  }
+
+  /**
+   * Retrieves the list of attendees for a specific event.
+   * Only allows access if the requester is registered for the event.
+   * @param eventId - The ID of the event to fetch attendees for.
+   * @param requester - The user making the request.
+   * @returns A promise that resolves to the list of event attendees.
+   */
+  public static async getEventAttendees(eventId: string, requester: Requester) {
+    const isRegistered = await EventRepository.findAttendee(
+      eventId,
+      requester.id
+    );
+    if (!isRegistered) {
+      throw new ForbiddenError();
+    }
+
+    return EventRepository.getEventAttendees(eventId);
   }
 
   /**
@@ -325,6 +364,33 @@ export class EventService {
     logger.info(
       `User ${requester.id} successfully registered for event ${eventId}`
     );
+
+    const newEvent = await EventRepository.findById(eventId);
+    if (newEvent) {
+      const regPublisher = new EventUserRegisteredPublisher();
+      await regPublisher.publish({
+        eventId: newEvent.id,
+        userId: requester.id,
+        eventTitle: newEvent.title,
+        eventDate: newEvent.date.toISOString(),
+      });
+
+      const oneHourBefore = new Date(newEvent.date).getTime() - 60 * 60 * 1000;
+      const delay = differenceInMilliseconds(oneHourBefore, new Date());
+
+      if (delay > 0) {
+        const reminderPublisher = new EventReminderPublisher();
+        await reminderPublisher.publish(
+          {
+            eventId: event.id,
+            userId: requester.id,
+            eventTitle: event.title,
+            eventDate: event.date.toISOString(),
+          },
+          { expiration: delay }
+        );
+      }
+    }
   }
 
   /**
@@ -360,6 +426,19 @@ export class EventService {
     }
 
     await EventRepository.removeAttendee(eventId, requester.id);
+    logger.info(
+      `User ${requester.id} successfully unRegistered for event ${eventId}`
+    );
+
+    const newEvent = await EventRepository.findById(eventId);
+    if (newEvent) {
+      const publisher = new EventUserUnregisteredPublisher();
+      await publisher.publish({
+        eventId: newEvent.id,
+        userId: requester.id,
+        eventTitle: newEvent.title,
+      });
+    }
   }
 
   /**

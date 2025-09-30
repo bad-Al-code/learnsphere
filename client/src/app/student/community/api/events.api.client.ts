@@ -1,6 +1,9 @@
 import { communityService as clientCommunityService } from '@/lib/api/client';
 import {
   CreateEventInput,
+  EventAttendee,
+  RegistrationResponse,
+  RegistrationStatus,
   TEvent,
   UpdateEventInput,
   UpdateEventPayload,
@@ -54,4 +57,41 @@ export const deleteEvent = async (eventId: string): Promise<void> => {
   await clientCommunityService.deleteTyped<void>(
     `/api/community/events/${eventId}`
   );
+};
+
+export const registerForEvent = async (
+  eventId: string
+): Promise<RegistrationResponse> => {
+  return clientCommunityService.postTyped<RegistrationResponse>(
+    `/api/community/events/${eventId}/register`,
+    {}
+  );
+};
+
+export const unregisterFromEvent = async (
+  eventId: string
+): Promise<{ success: boolean; message: string }> => {
+  return clientCommunityService.deleteTyped<{
+    success: boolean;
+    message: string;
+  }>(`/api/community/events/${eventId}/register`);
+};
+
+export const checkRegistrationStatus = async (
+  eventId: string
+): Promise<RegistrationStatus> => {
+  return clientCommunityService.getTyped<RegistrationStatus>(
+    `/api/community/events/${eventId}/registration-status`
+  );
+};
+
+export const getEventAttendees = async (
+  eventId: string
+): Promise<EventAttendee[]> => {
+  const response = await clientCommunityService.get<EventAttendee[]>(
+    `/api/community/events/${eventId}/attendees`
+  );
+
+  console.debug('Response Data', response.data);
+  return response.data;
 };

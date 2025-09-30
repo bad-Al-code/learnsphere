@@ -58,6 +58,8 @@ export const eventTypeSchema = z.enum(
  *           type: string
  *           description: Event ID used for pagination (fetch events created before this one).
  *           example: "5cd028a2-7e04-47fb-9002-ebb9af4ab534"
+ *         attending:
+ *           type: boolean
  */
 export const getEventsSchema = z.object({
   query: z.object({
@@ -74,6 +76,7 @@ export const getEventsSchema = z.object({
         message: 'Limit must be a positive number',
       }),
     cursor: z.string().optional(),
+    attending: z.preprocess((val) => val === 'true', z.boolean()).optional(),
   }),
 });
 

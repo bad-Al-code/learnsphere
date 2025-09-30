@@ -14,7 +14,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -90,29 +90,27 @@ export function TutorsHeader() {
   return (
     <div className="flex flex-col gap-2 md:flex-row md:items-center">
       <div className="flex flex-1 gap-2">
-        {/* Search Input */}
         <div className="relative flex-1">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input placeholder="Search tutors or subjects..." className="pl-9" />
         </div>
 
-        {/* Subject Select */}
         <Select>
-          {/* Desktop */}
-          <SelectTrigger className="hidden md:flex">
-            <SelectValue placeholder="Subject" />
-          </SelectTrigger>
-          {/* Mobile */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <SelectTrigger className="justify-center md:hidden">
-                <BookOpen className="h-4 w-4" />
+              <SelectTrigger className="">
+                <div className="md:hidden">
+                  <BookOpen className="h-4 w-4" />
+                </div>
+
+                <div className="hidden md:flex">
+                  <SelectValue placeholder="Subject" />
+                </div>
               </SelectTrigger>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>Subject</p>
-            </TooltipContent>
+            <TooltipContent className="md:hidden">Subject</TooltipContent>
           </Tooltip>
+
           <SelectContent>
             <SelectItem value="all">All Subjects</SelectItem>
             <SelectItem value="math">Math</SelectItem>
@@ -120,22 +118,20 @@ export function TutorsHeader() {
           </SelectContent>
         </Select>
 
-        {/* Price Range Select */}
         <Select>
-          {/* Desktop */}
-          <SelectTrigger className="hidden w-auto md:flex">
-            <SelectValue placeholder="Price Range" />
-          </SelectTrigger>
-          {/* Mobile*/}
           <Tooltip>
             <TooltipTrigger asChild>
-              <SelectTrigger className="justify-center md:hidden">
-                <DollarSign className="h-4 w-4" />
+              <SelectTrigger className="">
+                <div className="hidden md:flex">
+                  <SelectValue placeholder="Price Range" />
+                </div>
+
+                <div className="md:hidden">
+                  <DollarSign className="h-4 w-4" />
+                </div>
               </SelectTrigger>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>Price Range</p>
-            </TooltipContent>
+            <TooltipContent className="md:hidden">Price Range</TooltipContent>
           </Tooltip>
           <SelectContent>
             <SelectItem value="all">All Prices</SelectItem>
@@ -219,25 +215,24 @@ function TutorCard({ tutor }: { tutor: TTutor }) {
             <p className="text-muted-foreground text-xs">Availability</p>
           </div>
         </div>
-
-        <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1">
-            <Book className="h-4 w-4" />
-            Book Session
-          </Button>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline">
-                <MessageSquare className="h-4 w-4" />
-                <span className="hidden sm:inline">Message</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Message</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
       </CardContent>
+
+      <CardFooter className="mt-auto gap-2">
+        <Button variant="secondary" className="flex-1">
+          <Book className="h-4 w-4" />
+          Book Session
+        </Button>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline">
+              <MessageSquare className="h-4 w-4" />
+              <span className="hidden sm:inline">Message</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Message</TooltipContent>
+        </Tooltip>
+      </CardFooter>
     </Card>
   );
 }

@@ -99,29 +99,30 @@ function MentorshipHeader() {
           <Input placeholder="Search mentorship programs..." className="pl-9" />
         </div>
 
-        <Select>
-          <SelectTrigger className="hidden shrink-0 md:flex">
-            <SelectValue placeholder="Focus Area" />
-          </SelectTrigger>
-          {/* Mobile Filter */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <SelectTrigger className="w-auto shrink-0 p-0 md:hidden">
-                <Button variant="outline" size="icon" className="border-0">
-                  <Filter className="h-4 w-4" />
-                </Button>
-              </SelectTrigger>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Filter by Focus Area</p>
-            </TooltipContent>
-          </Tooltip>
-          <SelectContent>
-            <SelectItem value="all">All Areas</SelectItem>
-            <SelectItem value="frontend">Frontend</SelectItem>
-            <SelectItem value="backend">Backend</SelectItem>
-          </SelectContent>
-        </Select>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <Select>
+                <SelectTrigger className="">
+                  <div className="hidden md:flex">
+                    <SelectValue placeholder="Focus Area" />
+                  </div>
+                  <div className="flex md:hidden">
+                    <Filter className="h-4 w-4" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Areas</SelectItem>
+                  <SelectItem value="frontend">Frontend</SelectItem>
+                  <SelectItem value="backend">Backend</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="md:hidden">
+            Filter by Focus Area
+          </TooltipContent>
+        </Tooltip>
 
         <Button className="hidden shrink-0 md:flex">
           <Users className="h-4 w-4" />

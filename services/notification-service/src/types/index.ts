@@ -41,7 +41,10 @@ export interface EmailOptions {
     | 'instructor_rejected'
     | 'admin_notification'
     | 'user_notification'
-    | 'study_group_invite';
+    | 'study_group_invite'
+    | 'event_registration'
+    | 'event_unregistration'
+    | 'event_reminder';
 }
 
 export type Notification = typeof notifications.$inferSelect;

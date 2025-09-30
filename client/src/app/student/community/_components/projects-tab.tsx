@@ -94,33 +94,23 @@ function ProjectsHeader() {
         <Input placeholder="Search projects..." className="pl-9" />
       </div>
 
-      {/* Mobile Filter */}
       <Select>
         <Tooltip>
           <TooltipTrigger asChild>
-            <SelectTrigger className="w-auto p-0 md:hidden">
-              <Button variant="outline" size="icon" className="border-0">
+            <SelectTrigger className="">
+              <div className="md:hidden">
                 <Filter className="h-4 w-4" />
-              </Button>
+              </div>
+              <div className="hidden md:flex">
+                <SelectValue placeholder="Filter by status" />
+              </div>
             </SelectTrigger>
           </TooltipTrigger>
           <TooltipContent>
             <p>Filter by status</p>
           </TooltipContent>
         </Tooltip>
-        <SelectContent>
-          <SelectItem value="all">All Projects</SelectItem>
-          <SelectItem value="active">Active</SelectItem>
-          <SelectItem value="recruiting">Recruiting</SelectItem>
-          <SelectItem value="completed">Completed</SelectItem>
-        </SelectContent>
-      </Select>
 
-      {/* Desktop Filter */}
-      <Select>
-        <SelectTrigger className="hidden w-[180px] md:flex">
-          <SelectValue placeholder="Filter by status" />
-        </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Projects</SelectItem>
           <SelectItem value="active">Active</SelectItem>
@@ -132,7 +122,7 @@ function ProjectsHeader() {
       <Tooltip>
         <TooltipTrigger asChild>
           <Button className="shrink-0">
-            <Plus className="md: h-4 w-4" />
+            <Plus className="h-4 w-4" />
             <span className="hidden md:inline">Create Project</span>
           </Button>
         </TooltipTrigger>
@@ -218,6 +208,7 @@ function ProjectCard({ project }: { project: TProject }) {
           <FolderKanban className="h-4 w-4" />
           View Project
         </Button>
+
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="secondary">

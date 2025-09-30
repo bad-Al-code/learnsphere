@@ -7,6 +7,9 @@ import logger from './config/logger';
 import { rabbitMQConnection } from './events/connection';
 import {
   AIFeedbackReadyListener,
+  EventReminderListener,
+  EventUserRegisteredListener,
+  EventUserUnregisteredListener,
   InstructorApplicationApprovedListener,
   InstructorApplicationDeclinedListener,
   InstructorApplicationSubmittedListener,
@@ -47,6 +50,9 @@ const start = async () => {
     new AIFeedbackReadyListener(emailService).listen();
     new StudyRoomReminderListener().listen();
     new UserInvitedToStudyRoomListener().listen();
+    new EventUserRegisteredListener(emailService).listen();
+    new EventUserUnregisteredListener(emailService).listen();
+    new EventReminderListener(emailService).listen();
 
     const server = http.createServer(app);
 

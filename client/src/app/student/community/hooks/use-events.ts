@@ -3,23 +3,37 @@
 import {
   useInfiniteQuery,
   useMutation,
+  useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getEventsAction } from '../action';
 import {
+  checkRegistrationStatus,
   createEvent,
   deleteEvent,
+  getEventAttendees,
+  registerForEvent,
+  unregisterFromEvent,
   updateEvent,
 } from '../api/events.api.client';
-import { UpdateEventInput } from '../schema';
+import { RegistrationStatus, UpdateEventInput } from '../schema';
 
-export const useEvents = (query?: string, type?: string) => {
+export const useEvents = (
+  query?: string,
+  type?: string,
+  attending?: boolean
+) => {
   return useInfiniteQuery({
-    queryKey: ['events', query, type],
+    queryKey: ['events', query, type, attending],
 
     queryFn: async ({ pageParam }) => {
-      const result = await getEventsAction({ query, type, cursor: pageParam });
+      const result = await getEventsAction({
+        query,
+        type,
+        attending,
+        cursor: pageParam,
+      });
       if (result.error) throw new Error(result.error);
 
       return result.data;
@@ -28,6 +42,19 @@ export const useEvents = (query?: string, type?: string) => {
     initialPageParam: undefined as string | undefined,
 
     getNextPageParam: (lastPage) => lastPage?.nextCursor,
+  });
+};
+
+export const useEventAttendees = (
+  eventId: string,
+  options: { enabled: boolean }
+) => {
+  return useQuery({
+    queryKey: ['event-attendees', eventId],
+    queryFn: () => getEventAttendees(eventId),
+    enabled: options.enabled && !!eventId,
+    retryOnMount: true,
+    staleTime: 0,
   });
 };
 
@@ -157,5 +184,165 @@ export const useDeleteEvent = () => {
 
       toast.error(errorMessage, { description });
     },
+  });
+};
+
+export const useRegisterForEvent = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (eventId: string) => registerForEvent(eventId),
+
+    onMutate: async (eventId) => {
+      await queryClient.cancelQueries({
+        queryKey: ['registration-status', eventId],
+      });
+
+      const previousStatus = queryClient.getQueryData<RegistrationStatus>([
+        'registration-status',
+        eventId,
+      ]);
+
+      queryClient.setQueryData<RegistrationStatus>(
+        ['registration-status', eventId],
+        (old) =>
+          ({
+            ...old,
+            isRegistered: true,
+            isFull: false,
+          }) as RegistrationStatus
+      );
+
+      return { previousStatus };
+    },
+
+    onSuccess: (data, eventId) => {
+      toast.success('Registration successful!', {
+        description: data.message || 'You have been registered for the event.',
+      });
+
+      queryClient.setQueryData<RegistrationStatus>(
+        ['registration-status', eventId],
+        (old) => ({
+          isRegistered: true,
+          isHost: old?.isHost || false,
+          isFull: false,
+          currentAttendees: (old?.currentAttendees || 0) + 1,
+          maxAttendees: old?.maxAttendees || 0,
+        })
+      );
+
+      queryClient.invalidateQueries({
+        queryKey: ['events'],
+        refetchType: 'none',
+      });
+
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['events'] });
+        queryClient.invalidateQueries({ queryKey: ['my-events'] });
+      }, 500);
+    },
+
+    onError: (error: any, eventId, context) => {
+      if (context?.previousStatus) {
+        queryClient.setQueryData(
+          ['registration-status', eventId],
+          context.previousStatus
+        );
+      }
+
+      let errorMessage = 'Registration failed';
+      let description = 'Please try again later.';
+
+      if (error?.response?.data?.message) {
+        description = error.response.data.message;
+      } else if (error?.message) {
+        description = error.message;
+      }
+
+      if (error?.response?.status === 409) {
+        errorMessage = 'Already Registered';
+        description = 'You are already registered for this event.';
+
+        queryClient.setQueryData<RegistrationStatus>(
+          ['registration-status', eventId],
+          (old) =>
+            ({
+              ...old,
+              isRegistered: true,
+            }) as RegistrationStatus
+        );
+      } else if (error?.response?.status === 400) {
+        errorMessage = 'Cannot Register';
+        if (description.includes('full')) {
+          description = 'This event is already full.';
+        } else if (
+          description.includes('started') ||
+          description.includes('passed')
+        ) {
+          description = 'This event has already started or passed.';
+        } else if (description.includes('closed')) {
+          description = 'Registration for this event has closed.';
+        }
+      } else if (error?.response?.status === 404) {
+        errorMessage = 'Event Not Found';
+        description =
+          'The event you are trying to register for does not exist.';
+      }
+
+      toast.error(errorMessage, { description });
+    },
+  });
+};
+
+export const useUnregisterFromEvent = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (eventId: string) => unregisterFromEvent(eventId),
+    onSuccess: (data, eventId) => {
+      toast.success('Unregistered successfully!', {
+        description: data.message || 'You have been removed from the event.',
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({
+        queryKey: ['registration-status', eventId],
+      });
+      queryClient.invalidateQueries({ queryKey: ['my-events'] });
+    },
+    onError: (error: any) => {
+      let errorMessage = 'Unregistration failed';
+      let description = 'Please try again later.';
+
+      if (error?.response?.data?.message) {
+        description = error.response.data.message;
+      } else if (error?.message) {
+        description = error.message;
+      }
+
+      if (error?.response?.status === 404) {
+        errorMessage = 'Not Registered';
+        description = 'You are not registered for this event.';
+      } else if (error?.response?.status === 400) {
+        errorMessage = 'Cannot Unregister';
+        description = 'Cannot unregister from this event at this time.';
+      }
+
+      toast.error(errorMessage, { description });
+    },
+  });
+};
+
+export const useRegistrationStatus = (
+  eventId: string,
+  enabled: boolean = true
+) => {
+  return useQuery({
+    queryKey: ['registration-status', eventId],
+    queryFn: () => checkRegistrationStatus(eventId),
+    enabled: enabled && !!eventId,
+    staleTime: 30000,
+    retry: 1,
   });
 };

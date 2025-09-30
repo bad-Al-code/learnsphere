@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Award,
   CalendarIcon,
+  CheckCircle,
   ChevronDownIcon,
   Clock,
   Edit,
@@ -22,15 +23,16 @@ import {
   Loader,
   MapPin,
   MoreVertical,
-  Play,
   Plus,
   RefreshCw,
   Search,
   Tag,
-  Ticket,
   Trash2,
+  UserMinus,
+  UserPlus,
   Users,
   X,
+  XCircle,
 } from 'lucide-react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -38,6 +40,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Card,
   CardContent,
@@ -77,6 +80,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -84,13 +88,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { getInitials } from '@/lib/utils';
 import { useSessionStore } from '@/stores/session-store';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format, isBefore, isToday, set, startOfToday } from 'date-fns';
@@ -101,7 +106,11 @@ import { useDebounce } from 'use-debounce';
 import {
   useCreateEvent,
   useDeleteEvent,
+  useEventAttendees,
   useEvents,
+  useRegisterForEvent,
+  useRegistrationStatus,
+  useUnregisterFromEvent,
   useUpdateEvent,
 } from '../hooks';
 import {
@@ -222,10 +231,7 @@ export function CreateEventDialog({
 
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(
-              (values) => onSubmit(values),
-              (errors) => console.log('Form errors:', errors)
-            )}
+            onSubmit={form.handleSubmit((values) => onSubmit(values))}
             className="space-y-4"
           >
             <FormField
@@ -1097,6 +1103,196 @@ export function DeleteEventDialog({
   );
 }
 
+interface EventRegistrationButtonProps {
+  event: TEvent;
+  currentUserId?: string;
+}
+
+export function EventRegistrationButton({
+  event,
+  currentUserId,
+}: EventRegistrationButtonProps) {
+  const [showUnregisterDialog, setShowUnregisterDialog] = useState(false);
+
+  const { mutate: register, isPending: isRegistering } = useRegisterForEvent();
+  const { mutate: unregister, isPending: isUnregistering } =
+    useUnregisterFromEvent();
+  const { data: registrationStatus, isLoading: isCheckingStatus } =
+    useRegistrationStatus(event.id, !!currentUserId);
+
+  const isHost = currentUserId === event.hostId;
+  const isRegistered = registrationStatus?.isRegistered || false;
+  const isFull =
+    registrationStatus?.isFull || event.attendees >= event.maxAttendees;
+  const isPending = isRegistering || isUnregistering;
+
+  if (!currentUserId) {
+    return null;
+  }
+
+  if (isHost) {
+    return (
+      <Button variant="outline" disabled className="w-full">
+        <CheckCircle className="h-4 w-4" />
+        Your Event
+      </Button>
+    );
+  }
+
+  const handleRegister = () => {
+    register(event.id);
+  };
+
+  const handleUnregister = () => {
+    setShowUnregisterDialog(false);
+    unregister(event.id);
+  };
+
+  if (isCheckingStatus) {
+    return (
+      <Button variant="secondary" disabled className="w-full">
+        <Loader className="h-4 w-4 animate-spin" />
+        Checking...
+      </Button>
+    );
+  }
+
+  if (isRegistered) {
+    return (
+      <>
+        <Button
+          variant="outline"
+          onClick={() => setShowUnregisterDialog(true)}
+          disabled={isPending}
+          className="w-full border-green-500 text-green-600 hover:bg-green-50 dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950"
+        >
+          {isUnregistering ? (
+            <>
+              <Loader className="h-4 w-4 animate-spin" />
+              Unregistering...
+            </>
+          ) : (
+            <>
+              <CheckCircle className="h-4 w-4" />
+              Registered
+            </>
+          )}
+        </Button>
+
+        <AlertDialog
+          open={showUnregisterDialog}
+          onOpenChange={setShowUnregisterDialog}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Unregister from event?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to unregister from "{event.title}"? You
+                can register again later if spots are still available.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleUnregister}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                <UserMinus className="h-4 w-4" />
+                Unregister
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
+    );
+  }
+
+  if (isFull) {
+    return (
+      <Button variant="secondary" disabled className="w-full">
+        <XCircle className="h-4 w-4" />
+        Event Full
+      </Button>
+    );
+  }
+
+  return (
+    <Button onClick={handleRegister} disabled={isPending} className="w-full">
+      {isRegistering ? (
+        <>
+          <Loader className="h-4 w-4 animate-spin" />
+          Registering...
+        </>
+      ) : (
+        <>
+          <UserPlus className="h-4 w-4" />
+          Register Now
+        </>
+      )}
+    </Button>
+  );
+}
+
+interface AttendeesDialogProps {
+  eventId: string;
+  eventTitle: string;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function AttendeesDialog({
+  eventId,
+  eventTitle,
+  isOpen,
+  onOpenChange,
+}: AttendeesDialogProps) {
+  const {
+    data: attendees,
+    isLoading,
+    error,
+  } = useEventAttendees(eventId, {
+    enabled: isOpen,
+  });
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Attendees for "{eventTitle}"</DialogTitle>
+          <DialogDescription>
+            {attendees?.length || 0} members registered.
+          </DialogDescription>
+        </DialogHeader>
+
+        <ScrollArea className="h-[400px] pr-4">
+          <div className="space-y-2">
+            {isLoading
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <AttendeeSkeleton key={i} />
+                ))
+              : attendees?.map((attendee) => (
+                  <div
+                    key={attendee.user.id}
+                    className="hover:bg-muted flex items-center gap-3 rounded-md p-2"
+                  >
+                    <Avatar>
+                      <AvatarImage src={attendee.user.avatarUrl ?? undefined} />
+                      <AvatarFallback>
+                        {getInitials(attendee.user.name)}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <span className="font-medium">{attendee.user.name}</span>
+                  </div>
+                ))}
+          </div>
+          <ScrollBar orientation="vertical" />
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 interface EventsHeaderProps {
   onSearch: (query: string) => void;
   onTypeChange: (type: string) => void;
@@ -1104,6 +1300,8 @@ interface EventsHeaderProps {
   isSearching?: boolean;
   searchValue: string;
   typeValue: string;
+  onAttendingToggle: (val: boolean) => void;
+  isAttending: boolean;
 }
 
 function EventsHeader({
@@ -1113,6 +1311,8 @@ function EventsHeader({
   isSearching = false,
   searchValue,
   typeValue,
+  onAttendingToggle,
+  isAttending,
 }: EventsHeaderProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
@@ -1175,6 +1375,30 @@ function EventsHeader({
         </TooltipContent>
       </Tooltip>
 
+      <div className="flex items-center space-x-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className=""
+              aria-label="my-events-filter"
+            >
+              <Switch
+                id="my-events-filter"
+                checked={isAttending}
+                onCheckedChange={onAttendingToggle}
+                className="cursor-pointer"
+              />
+              <Label htmlFor="my-events-filter" className="hidden md:inline">
+                My Events
+              </Label>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent className="md:hidden">My Events</TooltipContent>
+        </Tooltip>
+      </div>
+
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -1203,11 +1427,13 @@ interface EventCardProps {
   onJoinEvent?: (eventId: string) => void;
   onRegisterEvent?: (eventId: string) => void;
   currentUserId?: string;
+  onViewAttendees?: (eventId: string, eventTitle: string) => void;
 }
 
 function EventCard({
   event,
   onJoinEvent,
+  onViewAttendees,
   onRegisterEvent,
   currentUserId,
 }: EventCardProps) {
@@ -1331,7 +1557,10 @@ function EventCard({
               <span className="truncate">{event.location}</span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div
+              className="flex cursor-pointer items-center gap-2 text-sm hover:underline"
+              onClick={() => onViewAttendees?.(event.id, event.title)}
+            >
               <Users className="h-4 w-4 shrink-0" />
               <span>
                 {event.attendees.toLocaleString()}/
@@ -1369,29 +1598,10 @@ function EventCard({
         </CardContent>
 
         <CardFooter className="pt-auto">
-          <Button
-            className="w-full"
-            variant={event.isLive ? 'default' : 'secondary'}
-            disabled={isFull && !event.isLive}
-            onClick={handleActionClick}
-          >
-            {event.isLive ? (
-              <>
-                <Play className="h-4 w-4" />
-                Join Live Event
-              </>
-            ) : isFull ? (
-              <>
-                <Users className="h-4 w-4" />
-                Event Full
-              </>
-            ) : (
-              <>
-                <Ticket className="h-4 w-4" />
-                Register Now
-              </>
-            )}
-          </Button>
+          <EventRegistrationButton
+            event={event}
+            currentUserId={currentUserId}
+          />
         </CardFooter>
       </Card>
 
@@ -1488,6 +1698,10 @@ export function EventsTab() {
   const [query, setQuery] = useState('');
   const [type, setType] = useState('all');
   const [debouncedQuery] = useDebounce(query, 500);
+  const [isAttending, setIsAttending] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [selectedEventTitle, setSelectedEventTitle] = useState('');
+  const [isAttendeesDialogOpen, setIsAttendeesDialogOpen] = useState(false);
 
   const {
     data,
@@ -1499,7 +1713,7 @@ export function EventsTab() {
     error,
     refetch,
     isRefetching,
-  } = useEvents(debouncedQuery, type);
+  } = useEvents(debouncedQuery, type, isAttending);
 
   const allEvents = data?.pages.flatMap((page) => page?.events ?? []) ?? [];
 
@@ -1508,16 +1722,16 @@ export function EventsTab() {
     setType('all');
   };
 
-  const handleCreateEvent = () => {
-    console.log('Create event clicked');
-  };
+  const handleCreateEvent = () => {};
 
-  const handleJoinEvent = (eventId: string) => {
-    console.log('Join event:', eventId);
-  };
+  const handleJoinEvent = (eventId: string) => {};
 
-  const handleRegisterEvent = (eventId: string) => {
-    console.log('Register for event:', eventId);
+  const handleRegisterEvent = (eventId: string) => {};
+
+  const handleViewAttendees = (eventId: string, eventTitle: string) => {
+    setSelectedEventId(eventId);
+    setSelectedEventTitle(eventTitle);
+    setIsAttendeesDialogOpen(true);
   };
 
   if (error) {
@@ -1530,8 +1744,9 @@ export function EventsTab() {
           isSearching={isRefetching}
           searchValue={query}
           typeValue={type}
+          isAttending={isAttending}
+          onAttendingToggle={setIsAttending}
         />
-        <Separator />
 
         <ErrorState error={error} onRetry={() => refetch()} />
       </div>
@@ -1547,6 +1762,8 @@ export function EventsTab() {
         isSearching={isPending || isRefetching}
         searchValue={query}
         typeValue={type}
+        isAttending={isAttending}
+        onAttendingToggle={setIsAttending}
       />
 
       {(isLoading || isPending) && !data ? (
@@ -1566,6 +1783,7 @@ export function EventsTab() {
                 event={event}
                 onJoinEvent={handleJoinEvent}
                 onRegisterEvent={handleRegisterEvent}
+                onViewAttendees={handleViewAttendees}
                 currentUserId={user?.userId}
               />
             ))}
@@ -1601,6 +1819,15 @@ export function EventsTab() {
       ) : (
         <EmptyState query={debouncedQuery} type={type} onReset={handleReset} />
       )}
+
+      {selectedEventId && (
+        <AttendeesDialog
+          eventId={selectedEventId}
+          eventTitle={selectedEventTitle}
+          isOpen={isAttendeesDialogOpen}
+          onOpenChange={setIsAttendeesDialogOpen}
+        />
+      )}
     </div>
   );
 }
@@ -1609,7 +1836,6 @@ export function EventsTabSkeleton() {
   return (
     <div className="space-y-2">
       <EventsHeaderSkeleton />
-      <Separator />
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         <EventCardSkeleton />
         <EventCardSkeleton />
@@ -1668,3 +1894,10 @@ function EventCardSkeleton() {
     </Card>
   );
 }
+
+const AttendeeSkeleton = () => (
+  <div className="flex items-center gap-3">
+    <Skeleton className="h-10 w-10 rounded-full" />
+    <Skeleton className="h-5 w-40" />
+  </div>
+);

@@ -317,4 +317,49 @@ router.get(
   EventController.getRegistrationStatus
 );
 
+/**
+ * @openapi
+ * /api/community/events/{eventId}/attendees:
+ *   get:
+ *     tags:
+ *       - Events
+ *     summary: Get attendees for a specific event
+ *     description: Retrieves a list of attendees for the specified event.
+ *                  Only users registered for the event can access this endpoint.
+ *     parameters:
+ *       - name: eventId
+ *         in: path
+ *         description: The ID of the event to fetch attendees for.
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: A list of attendees for the event.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *       403:
+ *         description: Forbidden. The requester is not registered for the event.
+ *       400:
+ *         description: Bad request. Invalid eventId.
+ *       500:
+ *         description: Internal server error.
+ */
+router.get(
+  '/:eventId/attendees',
+  validateRequest(eventParamsSchema),
+  EventController.getEventAttendees
+);
+
 export { router as eventRouter };
