@@ -1378,12 +1378,7 @@ function EventsHeader({
       <div className="flex items-center space-x-2">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className=""
-              aria-label="my-events-filter"
-            >
+            <div className="flex items-center gap-1">
               <Switch
                 id="my-events-filter"
                 checked={isAttending}
@@ -1393,7 +1388,7 @@ function EventsHeader({
               <Label htmlFor="my-events-filter" className="hidden md:inline">
                 My Events
               </Label>
-            </Button>
+            </div>
           </TooltipTrigger>
           <TooltipContent className="md:hidden">My Events</TooltipContent>
         </Tooltip>

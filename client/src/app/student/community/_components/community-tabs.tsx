@@ -7,23 +7,15 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useState, useTransition } from 'react';
 
 import { ChatTab, ChatTabSkeleton } from './chat-tab';
-import { DiscussionsTab, DiscussionsTabSkeleton } from './discussions-tab';
 import { EventsTab, EventsTabSkeleton } from './events-tab';
-import { LeaderboardTab, LeaderboardTabSkeleton } from './leaderboard-tab';
-import { MentorshipTab, MentorshipTabSkeleton } from './mentorship-tab';
-import { ProjectsTab, ProjectsTabSkeleton } from './projects-tab';
+import { LearningTab, LearningTabSkeleton } from './learning-tab';
 import { StudyRoomsTab, StudyRoomsTabSkeleton } from './study-rooms-tab';
-import { TutoringTab, TutoringTabSkeleton } from './tutoring-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
   chat: <ChatTabSkeleton />,
   'study-rooms': <StudyRoomsTabSkeleton />,
-  projects: <ProjectsTabSkeleton />,
-  tutoring: <TutoringTabSkeleton />,
+  learning: <LearningTabSkeleton />,
   events: <EventsTabSkeleton />,
-  mentorship: <MentorshipTabSkeleton />,
-  leaderboard: <LeaderboardTabSkeleton />,
-  discussions: <DiscussionsTabSkeleton />,
 };
 
 const contentMap: Record<
@@ -32,12 +24,8 @@ const contentMap: Record<
 > = {
   chat: (props) => <ChatTab />,
   'study-rooms': (props) => <StudyRoomsTab />,
-  projects: (props) => <ProjectsTab />,
-  tutoring: (props) => <TutoringTab />,
+  learning: (props) => <LearningTab />,
   events: (props) => <EventsTab />,
-  mentorship: (props) => <MentorshipTab />,
-  leaderboard: (props) => <LeaderboardTab />,
-  discussions: (props) => <DiscussionsTab {...props} />,
 };
 
 export function CommunityTabs({ courseId }: { courseId?: string }) {

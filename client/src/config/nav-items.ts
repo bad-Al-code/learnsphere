@@ -445,17 +445,13 @@ export const studentAiToolsTabs: NavItem[] = [
 export const studentCommunityTabs: NavItem[] = [
   { href: '#', label: 'Chat', value: 'chat', icon: 'MessageSquare' },
   { href: '#', label: 'Study Rooms', value: 'study-rooms', icon: 'School' },
-  { href: '#', label: 'Projects', value: 'projects', icon: 'Briefcase' },
-  { href: '#', label: 'Tutoring', value: 'tutoring', icon: 'GraduationCap' },
   { href: '#', label: 'Events', value: 'events', icon: 'Calendar' },
   {
     href: '#',
-    label: 'Mentorship',
-    value: 'mentorship',
-    icon: 'HeartHandshake',
+    label: 'Learning',
+    value: 'learning',
+    icon: 'GraduationCap',
   },
-  { href: '#', label: 'Leaderboard', value: 'leaderboard', icon: 'Trophy' },
-  { href: '#', label: 'Discussions', value: 'discussions', icon: 'Users' },
 ];
 
 export const studentIntegrationsTabs: NavItem[] = [

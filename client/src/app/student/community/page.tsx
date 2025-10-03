@@ -18,12 +18,8 @@ export async function generateMetadata({
   const titles: Record<string, string> = {
     chat: 'Chats',
     'study-rooms': 'Study Rooms',
-    projects: 'Projects',
-    tutoring: 'Tutoring',
+    learning: 'Learning',
     events: 'Events',
-    mentorship: 'Mentorship',
-    leaderboard: 'Leaderboard',
-    discussions: 'Discussions',
   };
 
   return {
