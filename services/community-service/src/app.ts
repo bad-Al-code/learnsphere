@@ -17,6 +17,7 @@ import {
   chatRouter,
   eventRouter,
   healthRouter,
+  mentorshipRouter,
 } from './routes';
 import { metricsService } from './services/metrics.service';
 
@@ -50,6 +51,7 @@ app.use('/api/community', healthRouter);
 app.use('/api/community', chatRouter);
 app.use('/api/community', analyticsRouter);
 app.use('/api/community/events', eventRouter);
+app.use('/api/community/mentorships', mentorshipRouter);
 
 app.use(errorHandler);
 

@@ -10,7 +10,6 @@ import {
   Info,
   MoreVertical,
   PenTool,
-  RefreshCw,
   Search,
   Share2,
   Star,
@@ -265,23 +264,6 @@ function MentorshipHeader({
             <SelectItem value="favorites">My Favorites</SelectItem>
           </SelectContent>
         </Select>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={onRefetch}
-              disabled={isRefetching}
-              className="shrink-0"
-            >
-              <RefreshCw
-                className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`}
-              />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Refresh</TooltipContent>
-        </Tooltip>
 
         <Button className="hidden shrink-0 md:flex" onClick={onBecomeMentor}>
           <Users className="h-4 w-4" />
@@ -1050,7 +1032,7 @@ export function MentorshipTab() {
 
   if (isError) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-2">
         <MentorshipHeader
           onBecomeMentor={() => setBecomeMentorOpen(true)}
           onRefetch={handleRefetch}
@@ -1066,7 +1048,7 @@ export function MentorshipTab() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <MentorshipHeader
         onBecomeMentor={() => setBecomeMentorOpen(true)}
         onRefetch={handleRefetch}
@@ -1080,7 +1062,7 @@ export function MentorshipTab() {
       {filteredMentorships && filteredMentorships.length === 0 ? (
         <EmptyState onBecomeMentor={() => setBecomeMentorOpen(true)} />
       ) : (
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
           {filteredMentorships?.map((program) => (
             <MentorCard
               key={program.id}

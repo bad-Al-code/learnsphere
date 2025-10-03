@@ -2,6 +2,7 @@ export * from './analytics.service';
 export * from './cache.service';
 export * from './chat.service';
 export * from './event.service';
+export * from './mentorship.service';
 export * from './metrics.service';
 export * from './presence.service';
 export * from './user.service';

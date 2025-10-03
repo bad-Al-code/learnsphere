@@ -1,6 +1,7 @@
 import { relations, sql } from 'drizzle-orm';
 import {
   boolean,
+  date,
   integer,
   jsonb,
   pgEnum,
@@ -14,12 +15,21 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
+export const userRoleEnum = pgEnum('user_role', [
+  'student',
+  'instructor',
+  'admin',
+]);
+
+export type UserRole = (typeof userRoleEnum.enumValues)[number];
+
 export const users = pgTable('users', {
   id: uuid('id').primaryKey(),
   name: varchar('name', { length: 255 }),
   avatarUrl: text('avatar_url'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  role: userRoleEnum('role').default('student').notNull(),
 });
 
 export const conversationTypeEnum = pgEnum('conversation_type', [
@@ -134,6 +144,74 @@ export const reactions = pgTable(
   ]
 );
 
+/** Mentorship Program */
+export const mentorshipStatusEnum = pgEnum('mentorship_status', [
+  'open',
+  'filling-fast',
+  'full',
+]);
+export type MentorshipStatus = (typeof mentorshipStatusEnum.enumValues)[number];
+
+export const mentorshipPrograms = pgTable('mentorship_programs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: varchar('title', { length: 255 }).notNull(),
+  mentorId: uuid('mentor_id')
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  duration: varchar('duration', { length: 50 }).notNull(),
+  commitment: varchar('commitment', { length: 50 }).notNull(),
+  nextCohort: date('next_cohort').notNull(),
+  price: varchar('price', { length: 50 }).default('Free').notNull(),
+  focusAreas: text('tags').array().notNull(),
+  totalSpots: integer('total_spots').notNull(),
+  status: mentorshipStatusEnum('status').default('open').notNull(),
+  likes: integer('likes').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type Mentorship = typeof mentorshipPrograms.$inferSelect;
+export type NewMentorship = typeof mentorshipPrograms.$inferInsert;
+
+export const mentorshipFavorites = pgTable(
+  'mentorship_favorites',
+  {
+    programId: uuid('program_id')
+      .references(() => mentorshipPrograms.id, { onDelete: 'cascade' })
+      .notNull(),
+    userId: uuid('user_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.programId, table.userId] })]
+);
+
+export type MentorshipFavorites = typeof mentorshipFavorites.$inferSelect;
+
+export const mentorshipProgramsRelations = relations(
+  mentorshipPrograms,
+  ({ one, many }) => ({
+    mentor: one(users, {
+      fields: [mentorshipPrograms.mentorId],
+      references: [users.id],
+    }),
+    favorites: many(mentorshipFavorites),
+  })
+);
+
+export const mentorshipFavoritesRelations = relations(
+  mentorshipFavorites,
+  ({ one }) => ({
+    program: one(mentorshipPrograms, {
+      fields: [mentorshipFavorites.programId],
+      references: [mentorshipPrograms.id],
+    }),
+    user: one(users, {
+      fields: [mentorshipFavorites.userId],
+      references: [users.id],
+    }),
+  })
+);
+
 /** EVENTS */
 export const eventTypeEnum = pgEnum('event_type', [
   'Workshop',
@@ -197,6 +275,8 @@ export const eventAttendeesRelations = relations(eventAttendees, ({ one }) => ({
 export const usersRelations = relations(users, ({ many }) => ({
   conversations: many(conversationParticipants),
   messages: many(messages),
+  mentorshipsHosted: many(mentorshipPrograms),
+  mentorshipFavorites: many(mentorshipFavorites),
 }));
 
 export const conversationsRelations = relations(conversations, ({ many }) => ({
