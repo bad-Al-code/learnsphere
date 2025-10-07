@@ -21,3 +21,11 @@ export type DiscussionWithEngagement = {
   replies: number;
   lastMessageTime: Date | null;
 };
+
+export interface PublicProfile {
+  userId: string;
+  firstName: string | null;
+  lastName: string | null;
+  headline: string | null;
+  bio: string | null;
+}

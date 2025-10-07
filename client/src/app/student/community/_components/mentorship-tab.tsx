@@ -17,7 +17,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -60,28 +60,31 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useDebounce } from 'use-debounce';
+import { useMentorships } from '../hooks';
+import { TMentorshipProgram } from '../schema';
 
-type TMentorshipProgram = {
-  id: string;
-  title: string;
-  mentorName: string;
-  mentorInitials: string;
-  mentorRole: string;
-  mentorBio: string;
-  rating: number;
-  reviews: number;
-  experience: number;
-  duration: string;
-  commitment: string;
-  nextCohort: string;
-  price: string;
-  focusAreas: string[];
-  spotsFilled: number;
-  totalSpots: number;
-  isFavorite: boolean;
-  likes: number;
-  status: 'open' | 'filling-fast' | 'full';
-};
+// type TMentorshipProgram = {
+//   id: string;
+//   title: string;
+//   mentorName: string;
+//   mentorInitials: string;
+//   mentorRole: string;
+//   mentorBio: string;
+//   rating: number;
+//   reviews: number;
+//   experience: number;
+//   duration: string;
+//   commitment: string;
+//   nextCohort: string;
+//   price: string;
+//   focusAreas: string[];
+//   spotsFilled: number;
+//   totalSpots: number;
+//   isFavorite: boolean;
+//   likes: number;
+//   status: 'open' | 'filling-fast' | 'full';
+// };
 
 type TApplicationInput = {
   name: string;
@@ -182,33 +185,33 @@ const fetchMentorships = async (): Promise<TMentorshipProgram[]> => {
   return mockMentorshipData;
 };
 
-function useMentorships() {
-  const [data, setData] = useState<TMentorshipProgram[] | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+// function useMentorships() {
+//   const [data, setData] = useState<TMentorshipProgram[] | null>(null);
+//   const [isLoading, setIsLoading] = useState(true);
+//   const [isError, setIsError] = useState(false);
+//   const [error, setError] = useState<Error | null>(null);
 
-  const refetch = () => {
-    setIsLoading(true);
-    setIsError(false);
-    setTimeout(() => {
-      try {
-        setData(generateMockMentorships());
-        setIsLoading(false);
-      } catch (e) {
-        setError(e as Error);
-        setIsError(true);
-        setIsLoading(false);
-      }
-    }, 1000);
-  };
+//   const refetch = () => {
+//     setIsLoading(true);
+//     setIsError(false);
+//     setTimeout(() => {
+//       try {
+//         setData(generateMockMentorships());
+//         setIsLoading(false);
+//       } catch (e) {
+//         setError(e as Error);
+//         setIsError(true);
+//         setIsLoading(false);
+//       }
+//     }, 1000);
+//   };
 
-  useEffect(() => {
-    refetch();
-  }, []);
+//   useEffect(() => {
+//     refetch();
+//   }, []);
 
-  return { data, isLoading, isError, error, refetch };
-}
+//   return { data, isLoading, isError, error, refetch };
+// }
 
 function MentorshipHeader({
   onBecomeMentor,
@@ -260,8 +263,6 @@ function MentorshipHeader({
             <SelectItem value="all">All Programs</SelectItem>
             <SelectItem value="open">Open</SelectItem>
             <SelectItem value="filling-fast">Filling Fast</SelectItem>
-            <SelectItem value="free">Free Only</SelectItem>
-            <SelectItem value="favorites">My Favorites</SelectItem>
           </SelectContent>
         </Select>
 
@@ -973,14 +974,27 @@ export function MentorshipTab() {
   const [becomeMentorOpen, setBecomeMentorOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [isRefetching, setIsRefetching] = useState(false);
+  const [debouncedQuery] = useDebounce(searchQuery, 500);
+  const filters = {
+    query: debouncedQuery,
+    status: filterStatus,
+    isFree: filterStatus === 'free',
+    isFavorite: filterStatus === 'favorites',
+  };
+
   const {
     data: mentorships,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     isLoading,
     isError,
     error,
     refetch,
-  } = useMentorships();
-  const [isRefetching, setIsRefetching] = useState(false);
+  } = useMentorships(filters);
+  const allPrograms =
+    mentorships?.pages.flatMap((page) => page?.programs) ?? [];
 
   const handleRefetch = () => {
     setIsRefetching(true);
@@ -989,42 +1003,22 @@ export function MentorshipTab() {
   };
 
   const handleToggleFavorite = (id: string) => {
-    if (mentorships) {
-      const updated = mentorships.map((m) =>
-        m.id === id ? { ...m, isFavorite: !m.isFavorite } : m
-      );
-      mockMentorshipData = updated;
-    }
+    // if (mentorships) {
+    //   const updated = allPrograms.map((m) =>
+    //     m?.id === id ? { ...m, isFavorite: !m.isFavorite } : m
+    //   );
+    //   mockMentorshipData = updated;
+    // }
   };
 
   const handleLike = (id: string) => {
-    if (mentorships) {
-      const updated = mentorships.map((m) =>
-        m.id === id ? { ...m, likes: m.likes + 1 } : m
-      );
-      mockMentorshipData = updated;
-    }
+    // if (mentorships) {
+    //   const updated = allPrograms.map((m) =>
+    //     m?.id === id ? { ...m, likes: m.likes + 1 } : m
+    //   );
+    //   mockMentorshipData = updated;
+    // }
   };
-
-  const filteredMentorships = mentorships?.filter((program) => {
-    const matchesSearch =
-      program.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      program.mentorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      program.focusAreas.some((area) =>
-        area.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-
-    if (!matchesSearch) return false;
-
-    if (filterStatus === 'all') return true;
-    if (filterStatus === 'open') return program.status === 'open';
-    if (filterStatus === 'filling-fast')
-      return program.status === 'filling-fast';
-    if (filterStatus === 'free') return program.price === 'Free';
-    if (filterStatus === 'favorites') return program.isFavorite;
-
-    return true;
-  });
 
   if (isLoading) {
     return <MentorshipTabSkeleton />;
@@ -1059,18 +1053,26 @@ export function MentorshipTab() {
         onFilterChange={setFilterStatus}
       />
 
-      {filteredMentorships && filteredMentorships.length === 0 ? (
+      {allPrograms && allPrograms.length === 0 ? (
         <EmptyState onBecomeMentor={() => setBecomeMentorOpen(true)} />
       ) : (
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-          {filteredMentorships?.map((program) => (
+          {allPrograms.map((program) => (
             <MentorCard
-              key={program.id}
-              program={program}
+              key={program?.id}
+              program={program!}
               onToggleFavorite={handleToggleFavorite}
               onLike={handleLike}
             />
           ))}
+        </div>
+      )}
+
+      {hasNextPage && (
+        <div className="text-center">
+          <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+            {isFetchingNextPage ? 'Loading More...' : 'Load More'}
+          </Button>
         </div>
       )}
 

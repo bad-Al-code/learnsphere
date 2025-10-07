@@ -72,3 +72,15 @@ export const getMentorshipProgramsSchema = z.object({
 export type GetMentorshipProgramsQuery = z.infer<
   typeof getMentorshipProgramsSchema
 >['query'];
+
+export const becomeMentorSchema = z.object({
+  body: z.object({
+    expertise: z
+      .string()
+      .min(10, 'Please describe your expertise in more detail.'),
+    experience: z.string().min(1, 'Please select your years of experience.'),
+    availability: z.string().min(1, 'Please select your weekly availability.'),
+  }),
+});
+
+export type BecomeMentorDto = z.infer<typeof becomeMentorSchema.shape.body>;

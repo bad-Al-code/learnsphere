@@ -212,6 +212,29 @@ export const mentorshipFavoritesRelations = relations(
   })
 );
 
+export const applicationStatusEnum = pgEnum('application_status', [
+  'pending',
+  'approved',
+  'rejected',
+]);
+
+export const mentorshipApplications = pgTable('mentorship_applications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull()
+    .unique(),
+  expertise: text('expertise').notNull(),
+  experience: text('experience').notNull(),
+  availability: text('availability').notNull(),
+  status: applicationStatusEnum('status').default('pending').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type MentorshipApplication = typeof mentorshipApplications.$inferSelect;
+export type NewMentorshipApplication =
+  typeof mentorshipApplications.$inferInsert;
+
 /** EVENTS */
 export const eventTypeEnum = pgEnum('event_type', [
   'Workshop',

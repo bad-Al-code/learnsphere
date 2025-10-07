@@ -13,11 +13,11 @@ export class MentorshipController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { query } = getMentorshipProgramsSchema.parse(req.body);
+      const { query } = getMentorshipProgramsSchema.parse({ query: req.query });
 
       const result = await MentorshipService.getPrograms(
         query,
-        req.currentUser.id
+        req.currentUser?.id
       );
 
       res.status(StatusCodes.OK).json(result);

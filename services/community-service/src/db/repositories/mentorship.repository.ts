@@ -3,7 +3,13 @@ import { and, desc, eq, ilike, lt, sql } from 'drizzle-orm';
 import { db } from '..';
 import { NotFoundError } from '../../errors';
 import { GetMentorshipProgramsQuery } from '../../schemas';
-import { mentorshipFavorites, mentorshipPrograms } from '../schema';
+import {
+  MentorshipApplication,
+  mentorshipApplications,
+  mentorshipFavorites,
+  mentorshipPrograms,
+  NewMentorshipApplication,
+} from '../schema';
 
 export class MentorshipRepository {
   /**
@@ -94,5 +100,24 @@ export class MentorshipRepository {
   public static async programExists(programId: string) {
     const program = await this.findProgramById(programId);
     return program !== null;
+  }
+
+  public static async findApplicationByUserId(
+    userId: string
+  ): Promise<MentorshipApplication | undefined> {
+    return db.query.mentorshipApplications.findFirst({
+      where: eq(mentorshipApplications.userId, userId),
+    });
+  }
+
+  public static async createApplication(
+    data: NewMentorshipApplication
+  ): Promise<MentorshipApplication> {
+    const [newApplication] = await db
+      .insert(mentorshipApplications)
+      .values(data)
+      .returning();
+
+    return newApplication;
   }
 }
