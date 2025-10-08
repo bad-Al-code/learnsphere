@@ -32,3 +32,38 @@ export const mentorshipsPaginatedResponseSchema = z.object({
 export type MentorshipPaginatedResponse = z.infer<
   typeof mentorshipsPaginatedResponseSchema
 >;
+
+export const becomeMentorFormSchema = z.object({
+  expertise: z
+    .string()
+    .min(1, 'Expertise is required.')
+    .min(
+      10,
+      'Please provide more detail about your expertise (at least 10 characters).'
+    )
+    .max(1000, 'Expertise description is too long (max 1000 characters).')
+    .refine(
+      (val) => val.trim().split(/\s+/).length >= 5,
+      'Please provide a more detailed description (at least 5 words).'
+    )
+    .refine(
+      (val) => val.trim().length >= 10,
+      'Please avoid using only spaces.'
+    ),
+  experience: z.string().min(1, 'Please select your years of experience.'),
+  availability: z.string().min(1, 'Please select your weekly availability.'),
+});
+
+export type BecomeMentorInput = z.infer<typeof becomeMentorFormSchema>;
+
+export interface MentorshipStatusResponse {
+  hasApplication: boolean;
+  status?: 'pending' | 'approved' | 'rejected';
+  applicationId?: string;
+  submittedAt?: string;
+}
+
+export interface MentorshipStatusApiResponse {
+  success: boolean;
+  data: MentorshipStatusResponse;
+}

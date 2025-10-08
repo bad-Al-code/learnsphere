@@ -2,25 +2,41 @@
 
 import { faker } from '@faker-js/faker';
 import {
+  AlertCircle,
   BookMarked,
   Check,
+  CheckCircle2,
   Clock,
   Filter,
   Heart,
   Info,
+  Loader,
   MoreVertical,
   PenTool,
   Search,
   Share2,
+  Shield,
   Star,
   ThumbsUp,
   Users,
   X,
+  XCircle,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -46,6 +62,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -60,9 +77,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { useDebounce } from 'use-debounce';
-import { useMentorships } from '../hooks';
-import { TMentorshipProgram } from '../schema';
+import { useBecomeMentor, useMentorships, useMentorStatus } from '../hooks';
+import {
+  becomeMentorFormSchema,
+  BecomeMentorInput,
+  TMentorshipProgram,
+} from '../schema';
 
 // type TMentorshipProgram = {
 //   id: string;
@@ -490,6 +514,45 @@ function ApplicationDialog({
   );
 }
 
+function BecomeMentorTrigger({
+  children,
+  onOpenChange,
+}: {
+  children: React.ReactNode;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { data: status, isLoading } = useMentorStatus();
+
+  const handleClick = () => {
+    if (isLoading) return;
+
+    if (status?.hasApplication) {
+      if (status.status === 'pending') {
+        toast.info('Application Pending', {
+          description: 'Your application is currently under review.',
+        });
+      } else if (status.status === 'approved') {
+        toast.success('Already a Mentor', {
+          description: 'You are already an approved mentor!',
+        });
+      } else if (status.status === 'rejected') {
+        toast.error('Application Previously Rejected', {
+          description: 'Please contact support to reapply.',
+        });
+      }
+      return;
+    }
+
+    onOpenChange(true);
+  };
+
+  return (
+    <div onClick={handleClick} className="cursor-pointer">
+      {children}
+    </div>
+  );
+}
+
 function BecomeMentorDialog({
   open,
   onOpenChange,
@@ -497,131 +560,380 @@ function BecomeMentorDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [formData, setFormData] = useState<TBecomeMentorInput>({
-    name: '',
-    email: '',
-    expertise: '',
-    experience: '',
-    availability: '',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    mutate: apply,
+    isPending,
+    isError,
+    error,
+    isSuccess,
+    reset,
+  } = useBecomeMentor();
 
-  const handleSubmit = () => {
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onOpenChange(false);
-      setFormData({
-        name: '',
-        email: '',
-        expertise: '',
-        experience: '',
-        availability: '',
-      });
-    }, 1500);
+  const {
+    data: mentorStatus,
+    isLoading: isLoadingStatus,
+    isError: isStatusError,
+  } = useMentorStatus();
+
+  const [characterCount, setCharacterCount] = useState(0);
+
+  const form = useForm<BecomeMentorInput>({
+    resolver: zodResolver(becomeMentorFormSchema),
+    defaultValues: { expertise: '', experience: '', availability: '' },
+    mode: 'onBlur',
+  });
+
+  const expertiseValue = form.watch('expertise');
+
+  useEffect(() => {
+    setCharacterCount(expertiseValue?.length || 0);
+  }, [expertiseValue]);
+
+  useEffect(() => {
+    if (!open) {
+      const timer = setTimeout(() => {
+        form.reset();
+        reset();
+        setCharacterCount(0);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [open, form, reset]);
+
+  const onSubmit = (values: BecomeMentorInput) => {
+    const sanitizedValues = {
+      expertise: values.expertise.trim(),
+      experience: values.experience,
+      availability: values.availability,
+    };
+
+    apply(sanitizedValues, {
+      onSuccess: () => {
+        setTimeout(() => {
+          onOpenChange(false);
+        }, 1500);
+      },
+    });
   };
 
+  const handleCancel = () => {
+    if (isPending) return;
+
+    const hasChanges = form.formState.isDirty;
+    if (hasChanges) {
+      const confirmed = window.confirm(
+        'You have unsaved changes. Are you sure you want to close?'
+      );
+      if (!confirmed) return;
+    }
+
+    onOpenChange(false);
+  };
+
+  if (isLoadingStatus) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="">
+          <DialogHeader>
+            <DialogTitle>Become a Mentor</DialogTitle>
+            <DialogDescription>
+              Share your knowledge and help others grow in their development
+              journey.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-36" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (mentorStatus?.hasApplication) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="">
+          <DialogHeader>
+            <DialogTitle>Application Status</DialogTitle>
+            <DialogDescription>
+              You already have a mentorship application on file.
+            </DialogDescription>
+          </DialogHeader>
+
+          {mentorStatus.status === 'pending' && (
+            <Alert className="border-blue-500 bg-blue-50 dark:bg-blue-950">
+              <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <AlertTitle className="text-blue-900 dark:text-blue-100">
+                Application Under Review
+              </AlertTitle>
+              <AlertDescription className="text-blue-700 dark:text-blue-300">
+                Your application is currently being reviewed by our team. We'll
+                notify you once a decision has been made.
+                {mentorStatus.submittedAt && (
+                  <p className="mt-2 text-sm">
+                    Submitted on{' '}
+                    {new Date(mentorStatus.submittedAt).toLocaleDateString(
+                      'en-US',
+                      {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      }
+                    )}
+                  </p>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {mentorStatus.status === 'approved' && (
+            <Alert className="border-green-500 bg-green-50 dark:bg-green-950">
+              <Shield className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <AlertTitle className="text-green-900 dark:text-green-100">
+                You're Already a Mentor!
+              </AlertTitle>
+              <AlertDescription className="text-green-700 dark:text-green-300">
+                Congratulations! Your application has been approved and you are
+                now an active mentor on our platform.
+                {mentorStatus.submittedAt && (
+                  <p className="mt-2 text-sm">
+                    Approved on{' '}
+                    {new Date(mentorStatus.submittedAt).toLocaleDateString(
+                      'en-US',
+                      {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      }
+                    )}
+                  </p>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {mentorStatus.status === 'rejected' && (
+            <Alert variant="destructive">
+              <XCircle className="h-4 w-4" />
+              <AlertTitle>Application Not Approved</AlertTitle>
+              <AlertDescription>
+                Unfortunately, your previous application was not approved at
+                this time. If you'd like to discuss this decision or reapply,
+                please contact our support team.
+                {mentorStatus.submittedAt && (
+                  <p className="mt-2 text-sm">
+                    Reviewed on{' '}
+                    {new Date(mentorStatus.submittedAt).toLocaleDateString(
+                      'en-US',
+                      {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      }
+                    )}
+                  </p>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <DialogFooter>
+            <Button onClick={() => onOpenChange(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={isPending ? undefined : onOpenChange}>
+      <DialogContent className="">
         <DialogHeader>
           <DialogTitle>Become a Mentor</DialogTitle>
           <DialogDescription>
-            Share your knowledge and help others grow in their careers.
+            Share your knowledge and help others grow in their development
+            journey.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="mentor-name">Full Name</Label>
-            <Input
-              id="mentor-name"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              placeholder="Jane Smith"
+
+        {isSuccess && (
+          <Alert className="border-green-500 bg-green-50 dark:bg-green-950">
+            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <AlertDescription className="text-green-700 dark:text-green-300">
+              Application submitted successfully! We'll review it soon.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {isError && error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {error.message || 'Something went wrong. Please try again.'}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {isStatusError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Failed to load application status. Please try again.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="expertise"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Area of Expertise{' '}
+                    <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <ScrollArea className="rounded-md pr-3">
+                      <Textarea
+                        placeholder="e.g., Full-Stack Development with React and Node.js. I specialize in building scalable applications..."
+                        className="max-h-[300px] min-h-[105px] resize-none"
+                        disabled={isPending || isSuccess}
+                        {...field}
+                      />
+                    </ScrollArea>
+                  </FormControl>
+                  <FormDescription className="flex justify-between text-xs">
+                    <span>
+                      Describe your technical skills and areas of expertise in
+                      detail.
+                    </span>
+                    <span
+                      className={
+                        characterCount > 1000
+                          ? 'text-destructive'
+                          : 'text-muted-foreground'
+                      }
+                    >
+                      {characterCount}/1000
+                    </span>
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="mentor-email">Email</Label>
-            <Input
-              id="mentor-email"
-              type="email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              placeholder="jane@example.com"
+
+            <FormField
+              control={form.control}
+              name="experience"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Years of Experience{' '}
+                    <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={isPending || isSuccess}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your experience level" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="3-5 years">3-5 years</SelectItem>
+                      <SelectItem value="5-8 years">5-8 years</SelectItem>
+                      <SelectItem value="8-10 years">8-10 years</SelectItem>
+                      <SelectItem value="10+ years">10+ years</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription className="text-xs">
+                    Select your total years of professional experience.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="expertise">Area of Expertise</Label>
-            <Input
-              id="expertise"
-              value={formData.expertise}
-              onChange={(e) =>
-                setFormData({ ...formData, expertise: e.target.value })
-              }
-              placeholder="e.g., Full-Stack Development, Data Science"
+
+            <FormField
+              control={form.control}
+              name="availability"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Weekly Availability{' '}
+                    <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={isPending || isSuccess}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select hours per week" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="2-3 hours/week">
+                        2-3 hours/week
+                      </SelectItem>
+                      <SelectItem value="3-4 hours/week">
+                        3-4 hours/week
+                      </SelectItem>
+                      <SelectItem value="4-5 hours/week">
+                        4-5 hours/week
+                      </SelectItem>
+                      <SelectItem value="5+ hours/week">
+                        5+ hours/week
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription className="text-xs">
+                    How much time can you dedicate to mentoring each week?
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="mentor-experience">Years of Experience</Label>
-            <Select
-              value={formData.experience}
-              onValueChange={(value) =>
-                setFormData({ ...formData, experience: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select years" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="3-5">3-5 years</SelectItem>
-                <SelectItem value="5-8">5-8 years</SelectItem>
-                <SelectItem value="8-10">8-10 years</SelectItem>
-                <SelectItem value="10+">10+ years</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="availability">Weekly Availability</Label>
-            <Select
-              value={formData.availability}
-              onValueChange={(value) =>
-                setFormData({ ...formData, availability: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Hours per week" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="2-3">2-3 hours/week</SelectItem>
-                <SelectItem value="3-4">3-4 hours/week</SelectItem>
-                <SelectItem value="4-5">4-5 hours/week</SelectItem>
-                <SelectItem value="5+">5+ hours/week</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={
-              isSubmitting ||
-              !formData.name ||
-              !formData.email ||
-              !formData.expertise ||
-              !formData.experience ||
-              !formData.availability
-            }
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit Application'}
-          </Button>
-        </DialogFooter>
+
+            <DialogFooter className="gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isPending || isSuccess}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isPending || isSuccess || !form.formState.isValid}
+              >
+                {isPending && <Loader className="h-4 w-4 animate-spin" />}
+                {isPending
+                  ? 'Submitting...'
+                  : isSuccess
+                    ? 'Submitted!'
+                    : 'Submit Application'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

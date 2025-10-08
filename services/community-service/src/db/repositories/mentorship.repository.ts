@@ -4,6 +4,7 @@ import { db } from '..';
 import { NotFoundError } from '../../errors';
 import { GetMentorshipProgramsQuery } from '../../schemas';
 import {
+  ApplicationStatusEnum,
   MentorshipApplication,
   mentorshipApplications,
   mentorshipFavorites,
@@ -102,22 +103,96 @@ export class MentorshipRepository {
     return program !== null;
   }
 
+  /**
+   * Finds the mentorsip applicatio associated with a given user ID.
+   * @param userId The unique identifier for the user
+   * @returns A MentorshipApplication object if found, otherwise undefined.
+   */
   public static async findApplicationByUserId(
     userId: string
   ): Promise<MentorshipApplication | undefined> {
-    return db.query.mentorshipApplications.findFirst({
-      where: eq(mentorshipApplications.userId, userId),
-    });
+    try {
+      return await db.query.mentorshipApplications.findFirst({
+        where: eq(mentorshipApplications.userId, userId),
+      });
+    } catch (error) {
+      throw new Error(
+        `Failed to fetch application for user ${userId}: ${error}`
+      );
+    }
   }
 
+  /**
+   * Creates a new mentorship application record in the database.
+   * @param data The new Mentorship Application data.
+   * @returns The newly created MentorshipApplication object.
+   */
   public static async createApplication(
     data: NewMentorshipApplication
   ): Promise<MentorshipApplication> {
-    const [newApplication] = await db
-      .insert(mentorshipApplications)
-      .values(data)
-      .returning();
+    const sanitizedData = {
+      ...data,
+      expertise: data.expertise.trim(),
+      experience: data.experience.trim(),
+      availability: data.availability.trim(),
+    };
 
-    return newApplication;
+    try {
+      const [newApplication] = await db
+        .insert(mentorshipApplications)
+        .values(sanitizedData)
+        .returning();
+
+      if (!newApplication) {
+        throw new Error('Failed to create application - no data returned');
+      }
+
+      return newApplication;
+    } catch (error) {
+      throw new Error(`Failed to create mentorship application: ${error}`);
+    }
+  }
+
+  /**
+   * Checks if a user has any existing application (regardless status).
+   * @param userId The unique identifier for the user.
+   * @returns boolean indicating if application exists.
+   */
+  public static async hasExistingApplication(userId: string): Promise<boolean> {
+    try {
+      const application = await this.findApplicationByUserId(userId);
+
+      return !!application;
+    } catch (error) {
+      throw new Error(`Failed to check existing application: ${error}`);
+    }
+  }
+
+  /**
+   * Gets the mentorship application status for a user.
+   * @param userId The unique identifier for the user.
+   * @returns Status information object.
+   */
+  public static async getApplicationStatus(userId: string): Promise<{
+    id: string;
+    status: ApplicationStatusEnum;
+    createdAt: Date;
+  } | null> {
+    try {
+      const application = await db.query.mentorshipApplications.findFirst({
+        where: eq(mentorshipApplications.userId, userId),
+        columns: {
+          id: true,
+          status: true,
+          createdAt: true,
+        },
+      });
+
+      return application || null;
+    } catch (error) {
+      throw new Error(
+        `Failed to fetch application status for user ${userId}: ${error}`
+      );
+    }
   }
 }

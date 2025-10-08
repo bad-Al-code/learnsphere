@@ -1,3 +1,5 @@
+import { eq } from 'drizzle-orm';
+
 import { db } from '..';
 import { NewUser, users } from '../schema';
 
@@ -18,5 +20,20 @@ export class UserRepository {
           updatedAt: new Date(),
         },
       });
+  }
+
+  /**
+   * Retrieves the username of a user by their unique ID.
+   * @param id The UUID of the user.
+   * @returns The user's name if found, otherwise `null`.
+   */
+  public static async getUsernameByUserId(id: string): Promise<string | null> {
+    const [result] = await db
+      .select({ name: users.name })
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1);
+
+    return result.name;
   }
 }

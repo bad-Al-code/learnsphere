@@ -130,3 +130,18 @@ export class EventReminderPublisher extends Publisher<EventReminderRequestedEven
   readonly topic = 'event.reminder.requested' as const;
   protected exchange = 'delay.exchange';
 }
+
+interface MentorApplicationSubmittedEvent {
+  topic: 'mentor.application.submitted';
+  data: {
+    applicationId: string;
+    userId: string;
+    userName: string | null;
+    expertise: string;
+  };
+}
+
+export class MentorApplicationSubmittedPublisher extends Publisher<MentorApplicationSubmittedEvent> {
+  readonly topic: 'mentor.application.submitted' =
+    'mentor.application.submitted' as const;
+}

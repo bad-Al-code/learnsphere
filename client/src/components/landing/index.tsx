@@ -525,7 +525,7 @@ const SocialProofSection = () => {
 const CTASection = () => {
   return (
     <section className="relative w-full overflow-hidden px-6 py-32">
-      <div className="from-muted/50 to-muted/5 absolute inset-0 bg-gradient-to-br via-transparent"></div>
+      <div className="from-muted/30 to-muted/5 absolute inset-0 rounded-lg bg-gradient-to-br via-transparent"></div>
 
       <div className="relative z-10 mx-auto max-w-4xl text-center">
         <div className="bg-primary/10 mb-8 inline-block rounded-full p-4">

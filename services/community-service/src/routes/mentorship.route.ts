@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import { MentorshipController } from '../controllers';
 import { requireAuth, validateRequest } from '../middlewares';
-import { getMentorshipProgramsSchema } from '../schemas';
+import { becomeMentorSchema, getMentorshipProgramsSchema } from '../schemas';
 
 const router = Router();
 
@@ -92,5 +92,83 @@ router.get(
   validateRequest(getMentorshipProgramsSchema),
   MentorshipController.getPrograms
 );
+
+/**
+ * @openapi
+ * /api/community/mentorships/apply:
+ *   post:
+ *     summary: Apply to become a mentor
+ *     description: Allows an authenticated user to submit an application to become a mentor in the community.
+ *     tags:
+ *       - Mentorship
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/BecomeMentorDto'
+ *     responses:
+ *       201:
+ *         description: Mentor application submitted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MentorshipApplication'
+ *       400:
+ *         description: Invalid request body or missing required fields.
+ *       401:
+ *         description: Unauthorized — user must be authenticated.
+ *       409:
+ *         description: User already has a pending or approved mentorship application.
+ *       500:
+ *         description: Internal server error.
+ *     x-requireAuth: true
+ */
+router.post(
+  '/apply',
+  validateRequest(becomeMentorSchema),
+  MentorshipController.applyToBeMentor
+);
+
+/**
+ * @openapi
+ * /api/community/mentorships/status:
+ *   get:
+ *     summary: Get current user's mentorship application status
+ *     description: Returns the mentorship application status of the currently authenticated user.
+ *     tags:
+ *       - Mentorships
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the user's mentorship application status.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   enum: [pending, approved, rejected]
+ *                   example: pending
+ *                 expertise:
+ *                   type: string
+ *                   example: Web Development
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: 2025-10-08T14:23:00.000Z
+ *       401:
+ *         description: Unauthorized — user must be authenticated.
+ *       404:
+ *         description: No mentorship application found for this user.
+ *       500:
+ *         description: Internal server error.
+ *     x-requireAuth: true
+ */
+router.get('/status', MentorshipController.getMentorshipStatus);
 
 export { router as mentorshipRouter };

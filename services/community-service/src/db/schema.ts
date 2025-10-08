@@ -217,6 +217,8 @@ export const applicationStatusEnum = pgEnum('application_status', [
   'approved',
   'rejected',
 ]);
+export type ApplicationStatusEnum =
+  (typeof applicationStatusEnum.enumValues)[number];
 
 export const mentorshipApplications = pgTable('mentorship_applications', {
   id: uuid('id').primaryKey().defaultRandom(),

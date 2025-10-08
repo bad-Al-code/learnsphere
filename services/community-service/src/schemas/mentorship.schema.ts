@@ -77,9 +77,26 @@ export const becomeMentorSchema = z.object({
   body: z.object({
     expertise: z
       .string()
-      .min(10, 'Please describe your expertise in more detail.'),
-    experience: z.string().min(1, 'Please select your years of experience.'),
-    availability: z.string().min(1, 'Please select your weekly availability.'),
+      .trim()
+      .min(10, 'Expertise must be at least 10 characters long.')
+      .max(1000, 'Expertise must not exceed 1000 characters.')
+      .refine(
+        (val) => val.split(/\s+/).length >= 5,
+        'Please provide a more detailed description (at least 5 words).'
+      ),
+    experience: z
+      .string()
+      .trim()
+      .min(1, 'Experience field is required.')
+      .max(500, 'Experience description must not exceed 500 characters.')
+      .refine((val) => val.length > 0, 'Please describe your experience.'),
+
+    availability: z
+      .string()
+      .trim()
+      .min(1, 'Availability field is required.')
+      .max(200, 'Availability description must not exceed 200 characters.')
+      .refine((val) => val.length > 0, 'Please specify your availability.'),
   }),
 });
 
