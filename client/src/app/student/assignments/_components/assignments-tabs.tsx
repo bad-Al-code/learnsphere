@@ -40,7 +40,7 @@ const contentMap: Record<
   templates: (props) => <TemplatesTab />,
   collaborative: (props) => <CollaborativeTab />,
   portfolio: (props) => <PortfolioTab />,
-  analytics: (props) => <AnalyticsTab />,
+  analytics: (props) => <AnalyticsTab {...props} />,
 };
 
 export function AssignmentsTabs({ courseId }: { courseId?: string }) {

@@ -1287,4 +1287,48 @@ Saves or updates the AI-generated insights for a user.
         set: { recommendations, generatedAt: new Date() },
       });
   }
+
+  /**
+   * Fetches raw analytics data for a student's assignments in a specific course.
+   * @param courseId The ID of the course.
+   * @param studentId The ID of the student
+   * @returns A promise that resolves with the raw analytics data.
+   */
+  public static async getStudentAssignmentAnalytics(
+    courseId: string,
+    studentId: string
+  ) {
+    const totalSubmissionsQuery = db
+      .select({ value: count() })
+      .from(studentGrades)
+      .where(
+        and(
+          eq(studentGrades.courseId, courseId),
+          eq(studentGrades.studentId, studentId)
+        )
+      );
+
+    const averageGradeQuery = db
+      .select({ value: avg(studentGrades.grade) })
+      .from(studentGrades)
+      .where(
+        and(
+          eq(studentGrades.courseId, courseId),
+          eq(studentGrades.studentId, studentId)
+        )
+      );
+
+    const onTimeRate = 0.95; // Placeholder
+    const peerReviewsCompleted = 23; // Placeholder
+
+    const [[{ value: totalSubmissions }], [{ value: averageGrade }]] =
+      await Promise.all([totalSubmissionsQuery, averageGradeQuery]);
+
+    return {
+      totalSubmissions: totalSubmissions || 0,
+      averageGrade: averageGrade ? parseFloat(averageGrade) : 0,
+      onTimeRate,
+      peerReviewsCompleted,
+    };
+  }
 }

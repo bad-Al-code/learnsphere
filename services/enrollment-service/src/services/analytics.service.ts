@@ -1128,4 +1128,92 @@ export class AnalyticsService {
 
     return validated;
   }
+
+  /**
+   * Retrieves and formats assignment analytics for a specific student and course.
+   * @param courseId The ID of the course.
+   * @param studentId The ID of the student.
+   * @returns Formatted analytics data for the frontend.
+   */
+  public static async getStudentAssignmentAnalytics(
+    courseId: string,
+    studentId: string
+  ) {
+    const rawData = await AnalyticsRepository.getStudentAssignmentAnalytics(
+      courseId,
+      studentId
+    );
+
+    // Placeholder
+    const trendsData = [
+      { month: 'Sep', submissions: 8, grade: 9.5 },
+      { month: 'Oct', submissions: 11.5, grade: 12 },
+      { month: 'Nov', submissions: 10, grade: 10.5 },
+      { month: 'Dec', submissions: 7, grade: 8 },
+      { month: 'Jan', submissions: 5, grade: 2.5 },
+    ];
+
+    const gradesData = [
+      { grade: 'A', value: 12, fill: 'var(--color-a)' },
+      { grade: 'A+', value: 8, fill: 'var(--color-a-plus)' },
+      { grade: 'A-', value: 6, fill: 'var(--color-a-minus)' },
+      { grade: 'B+', value: 3, fill: 'var(--color-b-plus)' },
+      { grade: 'B', value: 1, fill: 'var(--color-b)' },
+    ];
+
+    const insightsData = [
+      {
+        title: 'Strong Performance Trend',
+        text: 'Your grades have improved by 8% over the last 3 months. Keep up the excellent work!',
+        Icon: 'TrendingUp',
+        color: 'bg-green-500/10 text-green-500',
+      },
+      {
+        title: 'Improvement Opportunity',
+        text: 'Consider starting assignments earlier. Your best grades come from submissions made 2+ days before the deadline.',
+        Icon: 'Lightbulb',
+        color: 'bg-blue-500/10 text-blue-500',
+      },
+      {
+        title: 'Peer Review Excellence',
+        text: 'Your peer reviews are consistently rated as helpful. This collaborative approach enhances learning for everyone.',
+        Icon: 'Users',
+        color: 'bg-purple-500/10 text-purple-500',
+      },
+    ];
+
+    return {
+      stats: [
+        {
+          title: 'Total Submitted',
+          value: rawData.totalSubmissions.toString(),
+          change: '+12%', // Placeholder
+          Icon: 'FileText',
+        },
+        {
+          title: 'Average Grade',
+          value: `${rawData.averageGrade.toFixed(1)}%`,
+          change: '+2.1%', // Placeholder
+          Icon: 'BarChart2',
+        },
+        {
+          title: 'On-Time Rate',
+          value: `${rawData.onTimeRate * 100}%`,
+          description: `${Math.round(
+            rawData.totalSubmissions * rawData.onTimeRate
+          )} of ${rawData.totalSubmissions} assignments`,
+          Icon: 'Clock',
+        },
+        {
+          title: 'Peer Reviews',
+          value: rawData.peerReviewsCompleted.toString(),
+          description: 'Reviews completed',
+          Icon: 'Users',
+        },
+      ],
+      trends: trendsData,
+      gradeDistribution: gradesData,
+      insights: insightsData,
+    };
+  }
 }
