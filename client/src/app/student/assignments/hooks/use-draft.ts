@@ -18,110 +18,128 @@ import {
   UpdateDraftContentInput,
 } from '../schemas/draft.schema';
 
-const DRAFTS_QUERY_KEY = ['assignment-drafts'];
+const DRAFTS_QUERY_KEY = (courseId: string) => ['assignment-drafts', courseId];
 
-export const useDrafts = () =>
+export const useDrafts = (courseId: string) =>
   useQuery({
-    queryKey: DRAFTS_QUERY_KEY,
-
+    queryKey: DRAFTS_QUERY_KEY(courseId),
     queryFn: async () => {
-      const res = await getMyDraftsAction();
+      const res = await getMyDraftsAction(courseId);
       if (res.error) throw new Error(res.error);
-
-      return res.data;
+      return res.data!;
     },
+    enabled: !!courseId,
   });
 
 export const useCreateDraft = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (data: CreateDraftInput) => createDraftAction(data),
-
-    onSuccess: (res) => {
-      if (res.data) {
-        toast.success('Draft created!');
-        queryClient.invalidateQueries({ queryKey: DRAFTS_QUERY_KEY });
-      } else {
-        toast.error('Failed to create draft', { description: res.error });
-      }
+    mutationFn: async (data: CreateDraftInput) => {
+      const res = await createDraftAction(data);
+      if (res.error) throw new Error(res.error);
+      return res.data!;
+    },
+    onSuccess: () => {
+      toast.success('Draft created!');
+      queryClient.invalidateQueries({ queryKey: ['assignment-drafts'] });
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to create draft', { description: error.message });
     },
   });
 };
 
 export const useUpdateDraft = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       draftId,
       data,
     }: {
       draftId: string;
       data: UpdateDraftContentInput;
-    }) => updateDraftAction(draftId, data),
-    onSuccess: (res) => {
-      if (res.data) {
-        queryClient.invalidateQueries({ queryKey: DRAFTS_QUERY_KEY });
-      } else {
-        toast.error('Failed to save changes', { description: res.error });
-      }
+    }) => {
+      const res = await updateDraftAction(draftId, data);
+      if (res.error) throw new Error(res.error);
+      return res.data!;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['assignment-drafts'] });
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to save changes', { description: error.message });
     },
   });
 };
 
 export const useDeleteDraft = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (draftId: string) => deleteDraftAction(draftId),
-
-    onSuccess: (res) => {
-      if (res.data) {
-        toast.success('Draft deleted.');
-        queryClient.invalidateQueries({ queryKey: DRAFTS_QUERY_KEY });
-      } else {
-        toast.error('Failed to delete draft', { description: res.error });
-      }
+    mutationFn: async (draftId: string) => {
+      const res = await deleteDraftAction(draftId);
+      if (res.error) throw new Error(res.error);
+      return res.data!;
+    },
+    onSuccess: () => {
+      toast.success('Draft deleted.');
+      queryClient.invalidateQueries({ queryKey: ['assignment-drafts'] });
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to delete draft', { description: error.message });
     },
   });
 };
 
 export const useGenerateAISuggestions = () =>
   useMutation({
-    mutationFn: (draftId: string) => generateAISuggestionsAction(draftId),
-
-    onSuccess: (res) => {
-      if (res.error)
-        toast.error('Failed to get AI suggestions.', {
-          description: res.error,
-        });
+    mutationFn: async (draftId: string) => {
+      const res = await generateAISuggestionsAction(draftId);
+      if (res.error) throw new Error(res.error);
+      return res.data!;
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to get AI suggestions.', {
+        description: error.message,
+      });
     },
   });
 
 export const useAddCollaborator = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       draftId,
       data,
     }: {
       draftId: string;
       data: AddCollaboratorInput;
-    }) => addCollaboratorAction(draftId, data),
-
-    onSuccess: (res) => {
-      if (res.data) {
-        toast.success('Collaborator added!');
-        queryClient.invalidateQueries({ queryKey: DRAFTS_QUERY_KEY });
-      } else {
-        toast.error('Failed to add collaborator.', { description: res.error });
-      }
+    }) => {
+      const res = await addCollaboratorAction(draftId, data);
+      if (res.error) throw new Error(res.error);
+      return res.data!;
+    },
+    onSuccess: () => {
+      toast.success('Collaborator added!');
+      queryClient.invalidateQueries({ queryKey: ['assignment-drafts'] });
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to add collaborator.', {
+        description: error.message,
+      });
     },
   });
 };
+
 export const useGenerateShareLink = () =>
   useMutation({
-    mutationFn: (draftId: string) => generateShareLinkAction(draftId),
+    mutationFn: async (draftId: string) => {
+      const res = await generateShareLinkAction(draftId);
+      if (res.error) throw new Error(res.error);
+      return res.data!;
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to create share link.', {
+        description: error.message,
+      });
+    },
   });

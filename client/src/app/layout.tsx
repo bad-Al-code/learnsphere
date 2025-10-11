@@ -39,8 +39,8 @@ export default async function RootLayout({
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
+            enableSystem={true}
+            disableTransitionOnChange={true}
           >
             <div className="relative mx-6 flex min-h-screen flex-col">
               <Header user={user} />

@@ -13,9 +13,9 @@ import {
 
 const revalidate = () => revalidatePath('/student/assignments');
 
-export const getMyDraftsAction = async () => {
+export const getMyDraftsAction = async (courseId: string) => {
   try {
-    return { data: await api.getMyDrafts() };
+    return { data: await api.getMyDrafts(courseId) };
   } catch (error) {
     return { error: 'Failed to fetch drafts.' };
   }
