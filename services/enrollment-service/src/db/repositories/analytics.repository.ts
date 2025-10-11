@@ -1227,10 +1227,10 @@ export class AnalyticsRepository {
   }
 
   /**
-Fetches the most recent AI-generated insights for a user.
-@param userId The ID of the user.
-@returns The latest insight record, or undefined if none exists.
-*/
+    Fetches the most recent AI-generated insights for a user.
+    @param userId The ID of the user.
+    @returns The latest insight record, or undefined if none exists.
+  */
   public static async getLatestInsights(
     userId: string
   ): Promise<AIInsight | undefined> {
@@ -1286,5 +1286,185 @@ Saves or updates the AI-generated insights for a user.
         target: aiStudyRecommendations.userId,
         set: { recommendations, generatedAt: new Date() },
       });
+  }
+
+  /**
+   * Fetches raw analytics data for a student's assignments in a specific course.
+   * @param courseId The ID of the course.
+   * @param studentId The ID of the student.
+   * @param assignments An array of assignment details from the course-service.
+   * @returns A promise that resolves with the raw analytics data.
+   */
+  public static async getStudentAssignmentAnalytics(
+    courseId: string,
+    studentId: string,
+    assignments: { id: string; dueDate: Date | null }[]
+  ) {
+    const totalSubmissionsQuery = db
+      .select({ value: count() })
+      .from(studentGrades)
+      .where(
+        and(
+          eq(studentGrades.courseId, courseId),
+          eq(studentGrades.studentId, studentId)
+        )
+      );
+
+    const averageGradeQuery = db
+      .select({ value: avg(studentGrades.grade) })
+      .from(studentGrades)
+      .where(
+        and(
+          eq(studentGrades.courseId, courseId),
+          eq(studentGrades.studentId, studentId)
+        )
+      );
+
+    const { onTimeRate, onTimeCount } = await this.getOnTimeSubmissionRate(
+      courseId,
+      studentId,
+      assignments
+    );
+
+    const [[{ value: totalSubmissions }], [{ value: averageGrade }]] =
+      await Promise.all([totalSubmissionsQuery, averageGradeQuery]);
+
+    return {
+      totalSubmissions: totalSubmissions || 0,
+      averageGrade: averageGrade ? parseFloat(averageGrade) : 0,
+      onTimeRate,
+      onTimeCount,
+    };
+  }
+
+  /**
+   * Calculates the on-time submission rate for a student in a specific course.
+   * @param courseId The ID of the course.
+   * @param studentId The ID of the student.
+   * @param assignments An array of assignment details including due dates.
+   * @returns The on-time submission rate (0-1) and the count of on-time submissions.
+   */
+  public static async getOnTimeSubmissionRate(
+    courseId: string,
+    studentId: string,
+    assignments: { id: string; dueDate: Date | null }[]
+  ): Promise<{ onTimeRate: number; onTimeCount: number }> {
+    if (assignments.length === 0) {
+      return { onTimeRate: 0, onTimeCount: 0 };
+    }
+
+    const assignmentMap = new Map(assignments.map((a) => [a.id, a.dueDate]));
+
+    const submissions = await db
+      .select({
+        assignmentId: studentGrades.assignmentId,
+        submittedAt: studentGrades.gradedAt,
+      })
+      .from(studentGrades)
+      .where(
+        and(
+          eq(studentGrades.courseId, courseId),
+          eq(studentGrades.studentId, studentId)
+        )
+      );
+
+    if (submissions.length === 0) {
+      return { onTimeRate: 0, onTimeCount: 0 };
+    }
+
+    let onTimeCount = 0;
+    submissions.forEach((sub) => {
+      const dueDate = assignmentMap.get(sub.assignmentId);
+      if (dueDate && sub.submittedAt <= dueDate) {
+        onTimeCount++;
+      }
+    });
+
+    return {
+      onTimeRate: onTimeCount / submissions.length,
+      onTimeCount,
+    };
+  }
+
+  /**
+   * Retrieves monthly submission counts and average grades for a student in a course.
+   * @param courseId The ID of the course.
+   * @param studentId The ID of the student.
+   * @returns An array of objects with month, submissions, and grade.
+   */
+  public static async getMonthlySubmissionTrends(
+    courseId: string,
+    studentId: string
+  ) {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const result = await db
+      .select({
+        month: sql<string>`TO_CHAR(date_trunc('month', ${studentGrades.gradedAt}), 'Mon')`,
+        submissions: count(studentGrades.id),
+        grade: avg(studentGrades.grade),
+      })
+      .from(studentGrades)
+      .where(
+        and(
+          eq(studentGrades.courseId, courseId),
+          eq(studentGrades.studentId, studentId),
+          gte(studentGrades.gradedAt, sixMonthsAgo)
+        )
+      )
+      .groupBy(sql`date_trunc('month', ${studentGrades.gradedAt})`)
+      .orderBy(sql`date_trunc('month', ${studentGrades.gradedAt})`);
+
+    return result.map((row) => ({
+      month: row.month,
+      submissions: row.submissions,
+      grade: parseFloat(row.grade || '0'),
+    }));
+  }
+
+  /**
+   * Calculates the distribution of grades for a student in a specific course.
+   * @param courseId The ID of the course.
+   * @param studentId The ID of the student.
+   * @returns An array of objects with grade brackets and counts.
+   */
+  public static async getGradeDistributionForStudent(
+    courseId: string,
+    studentId: string
+  ) {
+    const query = sql`
+      SELECT
+        CASE
+          WHEN grade >= 97 THEN 'A+'
+          WHEN grade >= 93 THEN 'A'
+          WHEN grade >= 90 THEN 'A-'
+          WHEN grade >= 87 THEN 'B+'
+          WHEN grade >= 83 THEN 'B'
+          WHEN grade >= 80 THEN 'B-'
+          WHEN grade >= 77 THEN 'C+'
+          WHEN grade >= 73 THEN 'C'
+          WHEN grade >= 70 THEN 'C-'
+          WHEN grade >= 60 THEN 'D'
+          ELSE 'F'
+        END AS grade_bracket,
+        COUNT(*) AS student_count
+      FROM ${studentGrades}
+      WHERE ${studentGrades.courseId} = ${courseId} AND ${studentGrades.studentId} = ${studentId}
+      GROUP BY grade_bracket
+      ORDER BY
+        CASE grade_bracket
+          WHEN 'A+' THEN 1 WHEN 'A' THEN 2 WHEN 'A-' THEN 3
+          WHEN 'B+' THEN 4 WHEN 'B' THEN 5 WHEN 'B-' THEN 6
+          WHEN 'C+' THEN 7 WHEN 'C' THEN 8 WHEN 'C-' THEN 9
+          WHEN 'D' THEN 10 ELSE 11
+        END;
+    `;
+
+    const result = await db.execute<GradeRow>(query);
+    return result.rows.map((row) => ({
+      grade: row.grade_bracket,
+      value: parseInt(row.student_count, 10),
+    }));
   }
 }

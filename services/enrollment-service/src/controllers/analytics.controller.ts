@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { NotAuthorizedError } from '../errors';
+import { courseIdParamsSchema } from '../schema';
 import { AnalyticsService } from '../services/analytics.service';
 
 /**
@@ -522,6 +523,28 @@ export class AnalyticsController {
       );
 
       res.status(StatusCodes.OK).json(recommendations);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getStudentAssignmentAnalytics(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { courseId } = courseIdParamsSchema.parse({
+        params: req.params,
+      }).params;
+
+      const analytics = await AnalyticsService.getStudentAssignmentAnalytics(
+        courseId,
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(analytics);
     } catch (error) {
       next(error);
     }

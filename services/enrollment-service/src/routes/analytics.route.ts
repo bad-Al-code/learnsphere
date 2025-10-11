@@ -10,6 +10,8 @@ import { Router } from 'express';
 import { AnalyticsController } from '../controllers/analytics.controller';
 import { requireAuth } from '../middlewares/require-auth';
 import { requireRole } from '../middlewares/require-role';
+import { validateRequest } from '../middlewares/validate-request';
+import { courseIdParamsSchema } from '../schema';
 
 const router = Router();
 
@@ -755,6 +757,33 @@ router.get(
   requireAuth,
   requireRole(['instructor', 'admin']),
   AnalyticsController.getStudentGrade
+);
+
+/**
+ * @openapi
+ * /api/analytics/student/assignments/{courseId}:
+ *   get:
+ *     summary: "[Student] Get assignment analytics for a specific course"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the course to fetch analytics for.
+ *     responses:
+ *       '200':
+ *         description: A comprehensive object of assignment analytics for the student.
+ */
+router.get(
+  '/student/assignments/:courseId',
+  requireAuth,
+  validateRequest(courseIdParamsSchema),
+  AnalyticsController.getStudentAssignmentAnalytics
 );
 
 export { router as analyticsRouter };

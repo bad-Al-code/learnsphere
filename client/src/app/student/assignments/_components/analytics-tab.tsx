@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -14,11 +15,14 @@ import {
   type ChartConfig,
 } from '@/components/ui/chart';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { LucideIcon } from 'lucide-react';
 import {
+  AlertCircle,
   BarChart2,
   Clock,
   FileText,
   Lightbulb,
+  RefreshCw,
   TrendingUp,
   Users,
   Zap,
@@ -32,80 +36,37 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { useAssignmentAnalytics } from '../hooks/use-analytics';
+import { CourseSelectionScreen } from './common/CourseSelectionScrren';
 
-const statsData = [
-  { title: 'Total Submitted', value: '40', change: '+12%', Icon: FileText },
-  { title: 'Average Grade', value: '88.5%', change: '+2.1%', Icon: BarChart2 },
-  {
-    title: 'On-Time Rate',
-    value: '95%',
-    description: '38 of 40 assignments',
-    Icon: Clock,
-  },
-  {
-    title: 'Peer Reviews',
-    value: '23',
-    description: 'Reviews completed',
-    Icon: Users,
-  },
-];
+const iconMap: Record<string, LucideIcon> = {
+  FileText,
+  BarChart2,
+  Clock,
+  Users,
+  TrendingUp,
+  Lightbulb,
+  Zap,
+};
 
-const trendsData = [
-  { month: 'Sep', submissions: 8, grade: 9.5 },
-  { month: 'Oct', submissions: 11.5, grade: 12 },
-  { month: 'Nov', submissions: 10, grade: 10.5 },
-  { month: 'Dec', submissions: 7, grade: 8 },
-  { month: 'Jan', submissions: 5, grade: 2.5 },
-];
+function StatCard({
+  stat,
+}: {
+  stat: {
+    title: string;
+    value: string;
+    change?: string;
+    description?: string;
+    Icon?: string;
+  };
+}) {
+  const StatIcon = stat.Icon ? iconMap[stat.Icon] : FileText;
 
-const trendsConfig = {
-  submissions: { label: 'Submissions', color: 'var(--chart-1)' },
-  grade: { label: 'Avg. Grade', color: 'var(--chart-2)' },
-} satisfies ChartConfig;
-
-const gradesData = [
-  { grade: 'A', value: 12, fill: 'var(--color-a)' },
-  { grade: 'A+', value: 8, fill: 'var(--color-a-plus)' },
-  { grade: 'A-', value: 6, fill: 'var(--color-a-minus)' },
-  { grade: 'B+', value: 3, fill: 'var(--color-b-plus)' },
-  { grade: 'B', value: 1, fill: 'var(--color-b)' },
-];
-
-const gradesConfig = {
-  value: { label: 'Grades' },
-  a: { label: 'A', color: 'var(--chart-1)' },
-  'a-plus': { label: 'A+', color: 'var(--chart-2)' },
-  'a-minus': { label: 'A-', color: 'var(--chart-3)' },
-  'b-plus': { label: 'B+', color: 'var(--chart-4)' },
-  b: { label: 'B', color: 'var(--chart-5)' },
-} satisfies ChartConfig;
-const insightsData = [
-  {
-    title: 'Strong Performance Trend',
-    text: 'Your grades have improved by 8% over the last 3 months. Keep up the excellent work!',
-    Icon: TrendingUp,
-    color: 'bg-green-500/10 text-green-500',
-  },
-  {
-    title: 'Improvement Opportunity',
-    text: 'Consider starting assignments earlier. Your best grades come from submissions made 2+ days before the deadline.',
-    Icon: Lightbulb,
-    color: 'bg-blue-500/10 text-blue-500',
-  },
-  {
-    title: 'Peer Review Excellence',
-    text: 'Your peer reviews are consistently rated as helpful. This collaborative approach enhances learning for everyone.',
-    Icon: Users,
-    color: 'bg-purple-500/10 text-purple-500',
-  },
-];
-
-function StatCard({ stat }: { stat: (typeof statsData)[0] }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-        <stat.Icon className="text-muted-foreground h-4 w-4" />
+        <StatIcon className="text-muted-foreground h-4 w-4" />
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{stat.value}</div>
@@ -117,7 +78,13 @@ function StatCard({ stat }: { stat: (typeof statsData)[0] }) {
   );
 }
 
-function SubmissionTrendsChart() {
+function SubmissionTrendsChart({
+  data,
+  config,
+}: {
+  data: any[];
+  config: ChartConfig;
+}) {
   return (
     <Card>
       <CardHeader>
@@ -127,8 +94,8 @@ function SubmissionTrendsChart() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={trendsConfig} className="h-64 w-full">
-          <LineChart accessibilityLayer data={trendsData}>
+        <ChartContainer config={config} className="h-64 w-full">
+          <LineChart accessibilityLayer data={data}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="month"
@@ -164,7 +131,13 @@ function SubmissionTrendsChart() {
   );
 }
 
-function GradeDistributionChart() {
+function GradeDistributionChart({
+  data,
+  config,
+}: {
+  data: any[];
+  config: ChartConfig;
+}) {
   return (
     <Card>
       <CardHeader>
@@ -172,17 +145,14 @@ function GradeDistributionChart() {
         <CardDescription>Breakdown of your assignment grades</CardDescription>
       </CardHeader>
       <CardContent className="flex items-center justify-center">
-        <ChartContainer
-          config={gradesConfig}
-          className="mx-auto aspect-square h-64"
-        >
+        <ChartContainer config={config} className="mx-auto aspect-square h-64">
           <PieChart>
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
             <Pie
-              data={gradesData}
+              data={data}
               dataKey="value"
               nameKey="grade"
               label={({ payload, ...props }) => (
@@ -202,17 +172,158 @@ function GradeDistributionChart() {
 function PerformanceInsightItem({
   insight,
 }: {
-  insight: (typeof insightsData)[0];
+  insight: {
+    title: string;
+    text: string;
+    Icon: string;
+    color: string;
+  };
 }) {
+  const InsightIcon = iconMap[insight.Icon] || Lightbulb;
   return (
     <div
       className={`flex items-start gap-4 rounded-lg border p-4 ${insight.color}`}
     >
-      <insight.Icon className="mt-1 h-5 w-5 flex-shrink-0" />
+      <InsightIcon className="mt-1 h-5 w-5 flex-shrink-0" />
       <div className="flex-grow">
         <h4 className="font-semibold">{insight.title}</h4>
         <p className="text-sm opacity-90">{insight.text}</p>
       </div>
+    </div>
+  );
+}
+
+function ErrorState({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry?: () => void;
+}) {
+  return (
+    <Card className="mx-auto flex max-w-md flex-col items-center justify-center p-12 text-center">
+      <AlertCircle className="text-destructive h-12 w-12" />
+      <div className="">
+        <h3 className="text-xl font-semibold">Error</h3>
+        <p className="text-muted-foreground max-w-sm">{message}</p>
+      </div>
+      {onRetry && (
+        <Button variant={'outline'} onClick={onRetry}>
+          <RefreshCw className="h-4 w-4" />
+          Try Again
+        </Button>
+      )}
+    </Card>
+  );
+}
+
+export function AnalyticsTab({ courseId }: { courseId?: string }) {
+  if (!courseId) {
+    return (
+      <div className="h-[calc(100vh-12.5rem)]">
+        <CourseSelectionScreen />
+      </div>
+    );
+  }
+
+  const { data, isLoading, isError, refetch } =
+    useAssignmentAnalytics(courseId);
+
+  if (isLoading) {
+    return <AnalyticsTabSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <ErrorState
+        message="Failed to load assignment analytics."
+        onRetry={refetch}
+      />
+    );
+  }
+
+  if (!data) {
+    return (
+      <ErrorState message="No analytics data available." onRetry={refetch} />
+    );
+  }
+
+  const trendsConfig = {
+    submissions: { label: 'Submissions', color: 'var(--chart-1)' },
+    grade: { label: 'Avg. Grade', color: 'var(--chart-2)' },
+  } satisfies ChartConfig;
+
+  const gradesConfig = data.gradeDistribution.reduce(
+    (acc, item) => {
+      acc[
+        item.grade.toLowerCase().replace('+', '-plus').replace('-', '-minus')
+      ] = {
+        label: item.grade,
+        color: item.fill,
+      };
+      return acc;
+    },
+    { value: { label: 'Grades' } } as ChartConfig
+  );
+
+  return (
+    <div className="space-y-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        {data.stats.map((stat) => (
+          <StatCard key={stat.title} stat={stat} />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+        <SubmissionTrendsChart data={data.trends} config={trendsConfig} />
+        <GradeDistributionChart
+          data={data.gradeDistribution}
+          config={gradesConfig}
+        />
+      </div>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Zap className="h-5 w-5" />
+            <CardTitle>Performance Insights</CardTitle>
+          </div>
+          <CardDescription>
+            AI-powered analysis of your assignment performance
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {data.insights.map((insight) => (
+            <PerformanceInsightItem key={insight.title} insight={insight} />
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export function AnalyticsTabSkeleton() {
+  return (
+    <div className="space-y-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+      </div>
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+        <ChartCardSkeleton />
+        <ChartCardSkeleton />
+      </div>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-56" />
+          <Skeleton className="mt-2 h-4 w-72" />
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <PerformanceInsightItemSkeleton />
+          <PerformanceInsightItemSkeleton />
+          <PerformanceInsightItemSkeleton />
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -248,64 +359,4 @@ function ChartCardSkeleton() {
 
 function PerformanceInsightItemSkeleton() {
   return <Skeleton className="h-20 w-full rounded-lg" />;
-}
-
-export function AnalyticsTab() {
-  return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {statsData.map((stat) => (
-          <StatCard key={stat.title} stat={stat} />
-        ))}
-      </div>
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-        <SubmissionTrendsChart />
-        <GradeDistributionChart />
-      </div>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            <CardTitle>Performance Insights</CardTitle>
-          </div>
-          <CardDescription>
-            AI-powered analysis of your assignment performance
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {insightsData.map((insight) => (
-            <PerformanceInsightItem key={insight.title} insight={insight} />
-          ))}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-export function AnalyticsTabSkeleton() {
-  return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCardSkeleton />
-        <StatCardSkeleton />
-        <StatCardSkeleton />
-        <StatCardSkeleton />
-      </div>
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-        <ChartCardSkeleton />
-        <ChartCardSkeleton />
-      </div>
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-56" />
-          <Skeleton className="mt-2 h-4 w-72" />
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <PerformanceInsightItemSkeleton />
-          <PerformanceInsightItemSkeleton />
-          <PerformanceInsightItemSkeleton />
-        </CardContent>
-      </Card>
-    </div>
-  );
 }

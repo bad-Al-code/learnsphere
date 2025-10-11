@@ -129,6 +129,7 @@ This table is populated by listening to 'assignment.submission.graded' events fr
 export const studentGrades = pgTable(
   'student_grades',
   {
+    id: uuid('id').defaultRandom(),
     submissionId: uuid('submission_id').notNull(),
     assignmentId: uuid('assignment_id').notNull(),
     courseId: uuid('course_id').notNull(),

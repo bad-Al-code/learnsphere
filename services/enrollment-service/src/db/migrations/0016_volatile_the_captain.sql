@@ -1,0 +1,1 @@
+ALTER TABLE "student_grades" ADD COLUMN "id" uuid DEFAULT gen_random_uuid();

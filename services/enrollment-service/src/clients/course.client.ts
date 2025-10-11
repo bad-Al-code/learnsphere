@@ -78,4 +78,32 @@ export class CourseClient {
       return [];
     }
   }
+
+  /**
+   * Fetches all assignments for a given course.
+   * @param courseId The ID of the course.
+   * @returns An array of assignment objects.
+   */
+  public static async getAssignmentsForCourse(
+    courseId: string
+  ): Promise<{ id: string; dueDate: Date | null }[]> {
+    try {
+      const response = await axios.get<{
+        results: { id: string; dueDate: string | null }[];
+      }>(`${this.courseServiceUrl}/api/courses/${courseId}/assignments`, {
+        params: { limit: 1000 },
+      });
+
+      return response.data.results.map((a) => ({
+        ...a,
+        dueDate: a.dueDate ? new Date(a.dueDate) : null,
+      }));
+    } catch (error) {
+      logger.error(
+        `Failed to fetch assignments for course ${courseId} from course-service`,
+        { error }
+      );
+      return [];
+    }
+  }
 }
