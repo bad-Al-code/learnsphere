@@ -46,4 +46,19 @@ export class StudentGradeRepository {
       ? parseFloat(result.averageGrade)
       : null;
   }
+
+  public static async hasSubmissions(
+    courseId: string,
+    studentId: string
+  ): Promise<{ count: string | null }[]> {
+    return await db
+      .select({ count: studentGrades.id })
+      .from(studentGrades)
+      .where(
+        and(
+          eq(studentGrades.courseId, courseId),
+          eq(studentGrades.studentId, studentId)
+        )
+      );
+  }
 }

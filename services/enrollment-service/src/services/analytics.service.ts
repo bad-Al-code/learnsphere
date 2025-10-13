@@ -5,9 +5,13 @@ import { CourseClient } from '../clients/course.client';
 import { UserClient } from '../clients/user.client';
 import { env } from '../config/env';
 import logger from '../config/logger';
-import { CourseRepository, StudentGradeRepository } from '../db/repositories';
+import {
+  CourseRepository,
+  EnrollRepository,
+  StudentGradeRepository,
+} from '../db/repositories';
 import { AnalyticsRepository } from '../db/repositories/analytics.repository';
-import { BadRequestError } from '../errors';
+import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
 import { ReportGenerationRequestedPublisher } from '../events/publisher';
 import { GeminiClient } from '../features/ai/client/gemini.client';
 import { buildRecommendationSystemPrompt } from '../features/ai/prompts/assignmentRecommendation.prompt';
@@ -22,6 +26,12 @@ import {
   FeedbackResponseSchema,
   feedbackResponseSchemaZod,
 } from '../features/ai/schema/feedback.schema';
+import {
+  Assignment,
+  AssignmentAnalytics,
+  assignmentAnalyticsSchema,
+  assignmentSchema,
+} from '../schema';
 import { StudentPerformance, UserProfileData } from '../types';
 
 interface ModuleDetails {
@@ -1138,42 +1148,93 @@ export class AnalyticsService {
   public static async getStudentAssignmentAnalytics(
     courseId: string,
     studentId: string
-  ) {
-    const assignmentForCourse =
-      await CourseClient.getAssignmentsForCourse(courseId);
+  ): Promise<AssignmentAnalytics> {
+    const enrollment = await EnrollRepository.findByUserAndCourse(
+      studentId,
+      courseId
+    );
+    if (!enrollment) {
+      throw new ForbiddenError('Student is not enrolled in this course');
+    }
 
-    const { totalSubmissions, averageGrade, onTimeRate, onTimeCount } =
-      await AnalyticsRepository.getStudentAssignmentAnalytics(
+    if (enrollment.status === 'suspended') {
+      throw new ForbiddenError('Enrollment is suspended');
+    }
+
+    let assignmentForCourse: Assignment[];
+    try {
+      const rawAssignments =
+        await CourseClient.getAssignmentsForCourse(courseId);
+
+      if (!rawAssignments) {
+        throw new NotFoundError('Course not found or has no assignments');
+      }
+
+      if (!Array.isArray(rawAssignments)) {
+        throw new BadRequestError('Invalid assignments data structure');
+      }
+
+      assignmentForCourse = rawAssignments.map((assignment) =>
+        assignmentSchema.parse(assignment)
+      );
+    } catch (error) {
+      if (error instanceof NotFoundError || error instanceof BadRequestError) {
+        throw error;
+      }
+
+      throw new Error(
+        `Failed to fetch course assignments: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+
+    const hasSubmissions = await StudentGradeRepository.hasSubmissions(
+      courseId,
+      studentId
+    );
+    const submissionCount = hasSubmissions?.[0]?.count || 0;
+
+    let rawAnalytics;
+    let trendsData;
+    let gradeDistributionData;
+
+    try {
+      rawAnalytics = await AnalyticsRepository.getStudentAssignmentAnalytics(
         courseId,
         studentId,
         assignmentForCourse
       );
 
-    const [trendsData, gradeDistributionData] = await Promise.all([
-      AnalyticsRepository.getMonthlySubmissionTrends(courseId, studentId),
-      AnalyticsRepository.getGradeDistributionForStudent(courseId, studentId),
-    ]);
+      if (!rawAnalytics || typeof rawAnalytics !== 'object') {
+        throw new Error('Invalid analytics data received from repository');
+      }
 
-    const insightsData = [
-      {
-        title: 'Strong Performance Trend',
-        text: 'Your grades have improved by 8% over the last 3 months. Keep up the excellent work!',
-        Icon: 'TrendingUp',
-        color: 'bg-green-500/10 text-green-500',
-      },
-      {
-        title: 'Improvement Opportunity',
-        text: 'Consider starting assignments earlier. Your best grades come from submissions made 2+ days before the deadline.',
-        Icon: 'Lightbulb',
-        color: 'bg-blue-500/10 text-blue-500',
-      },
-      {
-        title: 'Peer Review Excellence',
-        text: 'Your peer reviews are consistently rated as helpful. This collaborative approach enhances learning for everyone.',
-        Icon: 'Users',
-        color: 'bg-purple-500/10 text-purple-500',
-      },
-    ];
+      [trendsData, gradeDistributionData] = await Promise.all([
+        AnalyticsRepository.getMonthlySubmissionTrends(courseId, studentId),
+        AnalyticsRepository.getGradeDistributionForStudent(courseId, studentId),
+      ]);
+    } catch (error) {
+      if (
+        error instanceof BadRequestError ||
+        error instanceof NotFoundError ||
+        error instanceof ForbiddenError
+      ) {
+        throw error;
+      }
+
+      throw new Error(
+        `Failed to fetch analytics data: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+
+    const { totalSubmissions, averageGrade, onTimeRate, onTimeCount } =
+      rawAnalytics;
+
+    const insightsData = this.generateInsights(
+      averageGrade,
+      onTimeRate,
+      totalSubmissions,
+      trendsData
+    );
 
     const gradeFills: Record<string, string> = {
       'A+': 'var(--color-a-plus)',
@@ -1189,18 +1250,26 @@ export class AnalyticsService {
       F: 'var(--color-f)',
     };
 
-    return {
+    const formattedGradeDistribution = gradeDistributionData.map((item) => ({
+      ...item,
+      fill: gradeFills[item.grade] || 'var(--color-default)',
+    }));
+
+    const submissionChange = this.calculateSubmissionChange(trendsData);
+    const gradeChange = this.calculateGradeChange(trendsData);
+
+    const analyticsResponse = {
       stats: [
         {
           title: 'Total Submitted',
           value: totalSubmissions.toString(),
-          change: '+12%', // Placeholder
+          change: submissionChange,
           Icon: 'FileText',
         },
         {
           title: 'Average Grade',
           value: `${averageGrade.toFixed(1)}%`,
-          change: '+2.1%', // Placeholder
+          change: gradeChange,
           Icon: 'BarChart2',
         },
         {
@@ -1211,11 +1280,97 @@ export class AnalyticsService {
         },
       ],
       trends: trendsData,
-      gradeDistribution: gradeDistributionData.map((item) => ({
-        ...item,
-        fill: gradeFills[item.grade] || 'var(--color-default)',
-      })),
+      gradeDistribution: formattedGradeDistribution,
       insights: insightsData,
     };
+
+    try {
+      return assignmentAnalyticsSchema.parse(analyticsResponse);
+    } catch (error) {
+      throw new Error(
+        `Failed to validate analytics response: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  private static generateInsights(
+    averageGrade: number,
+    onTimeRate: number,
+    totalSubmissions: number,
+    trendsData: any[]
+  ) {
+    const insights = [];
+
+    if (trendsData.length >= 2) {
+      const recentAvg =
+        trendsData.slice(-3).reduce((sum, t) => sum + t.grade, 0) /
+        Math.min(3, trendsData.length);
+      const olderAvg =
+        trendsData.slice(0, 3).reduce((sum, t) => sum + t.grade, 0) /
+        Math.min(3, trendsData.length);
+      const improvement = recentAvg - olderAvg;
+
+      if (improvement > 0) {
+        insights.push({
+          title: 'Strong Performance Trend',
+          text: `Your grades have improved by ${improvement.toFixed(1)}% recently. Keep up the excellent work!`,
+          Icon: 'TrendingUp',
+          color: 'bg-green-500/10 text-green-500',
+        });
+      }
+    }
+
+    if (onTimeRate < 0.7 && totalSubmissions > 0) {
+      insights.push({
+        title: 'Improvement Opportunity',
+        text: 'Consider starting assignments earlier. Your best grades come from submissions made 2+ days before the deadline.',
+        Icon: 'Lightbulb',
+        color: 'bg-blue-500/10 text-blue-500',
+      });
+    }
+
+    if (totalSubmissions >= 5) {
+      insights.push({
+        title: 'Consistent Engagement',
+        text: 'You are actively participating in the course. This consistent effort enhances your learning experience.',
+        Icon: 'Users',
+        color: 'bg-purple-500/10 text-purple-500',
+      });
+    }
+
+    if (insights.length === 0) {
+      insights.push({
+        title: 'Getting Started',
+        text: 'Complete more assignments to receive personalized insights about your performance.',
+        Icon: 'Info',
+        color: 'bg-gray-500/10 text-gray-500',
+      });
+    }
+
+    return insights;
+  }
+
+  private static calculateSubmissionChange(trendsData: any[]): string {
+    if (trendsData.length < 2) return '+0%';
+
+    const recent = trendsData[trendsData.length - 1]?.submissions || 0;
+    const previous = trendsData[trendsData.length - 2]?.submissions || 0;
+
+    if (previous === 0) return '+0%';
+
+    const change = ((recent - previous) / previous) * 100;
+    return `${change > 0 ? '+' : ''}${change.toFixed(1)}%`;
+  }
+
+  private static calculateGradeChange(trendsData: any[]): string {
+    if (trendsData.length < 2) return '+0%';
+
+    const recent = trendsData[trendsData.length - 1]?.grade || 0;
+    const previous = trendsData[trendsData.length - 2]?.grade || 0;
+
+    if (previous === 0) return '+0%';
+
+    const change = ((recent - previous) / previous) * 100;
+    return `${change > 0 ? '+' : ''}${change.toFixed(1)}%`;
   }
 }

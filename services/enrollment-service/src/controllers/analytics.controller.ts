@@ -1,8 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { NotAuthorizedError } from '../errors';
-import { courseIdParamsSchema } from '../schema';
+import { ZodError } from 'zod';
+import logger from '../config/logger';
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotAuthorizedError,
+  NotFoundError,
+} from '../errors';
+import { assignmentAnalyticsSchema, courseIdParamsSchema } from '../schema';
 import { AnalyticsService } from '../services/analytics.service';
 
 /**
@@ -539,13 +546,114 @@ export class AnalyticsController {
         params: req.params,
       }).params;
 
-      const analytics = await AnalyticsService.getStudentAssignmentAnalytics(
-        courseId,
-        req.currentUser.id
-      );
+      if (!courseId || courseId.trim().length === 0) {
+        throw new BadRequestError('Course ID cannot be empty');
+      }
 
-      res.status(StatusCodes.OK).json(analytics);
+      const sanitizedCourseId = courseId.trim();
+      const sanitizedStudentId = req.currentUser.id.trim();
+
+      let analytics;
+
+      try {
+        analytics = await AnalyticsService.getStudentAssignmentAnalytics(
+          sanitizedCourseId,
+          sanitizedStudentId
+        );
+      } catch (error) {
+        if (
+          error instanceof NotFoundError ||
+          error instanceof ForbiddenError ||
+          error instanceof BadRequestError
+        ) {
+          throw error;
+        }
+
+        logger.error('Unexpected error in analytics service:', error);
+        throw new Error(
+          'An unexpected error occurred while fetching analytics'
+        );
+      }
+
+      if (!analytics) {
+        throw new Error('Analytics service returned null or undefined');
+      }
+
+      try {
+        assignmentAnalyticsSchema.parse(analytics);
+      } catch (error) {
+        console.error('Analytics response validation failed:', error);
+        throw new Error('Invalid analytics data structure');
+      }
+
+      if (!analytics.stats || !Array.isArray(analytics.stats)) {
+        throw new Error('Invalid analytics stats structure');
+      }
+
+      if (!analytics.trends || !Array.isArray(analytics.trends)) {
+        throw new Error('Invalid analytics trends structure');
+      }
+
+      if (
+        !analytics.gradeDistribution ||
+        !Array.isArray(analytics.gradeDistribution)
+      ) {
+        throw new Error('Invalid analytics grade distribution structure');
+      }
+
+      if (!analytics.insights || !Array.isArray(analytics.insights)) {
+        throw new Error('Invalid analytics insights structure');
+      }
+
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'DENY');
+      res.setHeader('X-XSS-Protection', '1; mode=block');
+
+      res.setHeader(
+        'Cache-Control',
+        'private, no-cache, no-store, must-revalidate'
+      );
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+
+      res.status(StatusCodes.OK).json({
+        success: true,
+        data: analytics,
+        timestamp: new Date().toISOString(),
+      });
     } catch (error) {
+      if (error instanceof NotAuthorizedError) {
+        return next(error);
+      }
+
+      if (error instanceof ForbiddenError) {
+        return next(error);
+      }
+
+      if (error instanceof BadRequestError) {
+        return next(error);
+      }
+
+      if (error instanceof NotFoundError) {
+        return next(error);
+      }
+
+      if (error instanceof ZodError) {
+        const errorMessages = error.errors
+          .map((err) => `${err.path.join('.')}: ${err.message}`)
+          .join(', ');
+        return next(new BadRequestError(`Validation error: ${errorMessages}`));
+      }
+
+      logger.error('Unexpected error in getStudentAssignmentAnalytics: %o', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: req.currentUser?.id,
+        courseId: req.params?.courseId,
+        timestamp: new Date().toISOString(),
+      });
+
       next(error);
     }
   }

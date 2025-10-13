@@ -12,8 +12,20 @@ import {
   sum,
 } from 'drizzle-orm';
 import { db } from '..';
+import { BadRequestError } from '../../errors';
 import { AssignmentResponse } from '../../features/ai/responseSchema/assignmentRecommendationResponse.schema';
 import { FeedbackResponseSchema } from '../../features/ai/schema/feedback.schema';
+import {
+  Assignment,
+  GradeDistributionItem,
+  gradeDistributionItemSchema,
+  gradeRowSchema,
+  MonthlyTrend,
+  monthlyTrendSchema,
+  OnTimeSubmissionData,
+  onTimeSubmissionDataSchema,
+  rawAnalyticsDataSchema,
+} from '../../schema';
 import { GradeRow } from '../../types';
 import {
   AIInsight,
@@ -1298,43 +1310,54 @@ Saves or updates the AI-generated insights for a user.
   public static async getStudentAssignmentAnalytics(
     courseId: string,
     studentId: string,
-    assignments: { id: string; dueDate: Date | null }[]
+    assignments: Assignment[]
   ) {
-    const totalSubmissionsQuery = db
-      .select({ value: count() })
-      .from(studentGrades)
-      .where(
-        and(
-          eq(studentGrades.courseId, courseId),
-          eq(studentGrades.studentId, studentId)
-        )
+    try {
+      const totalSubmissionsQuery = db
+        .select({ value: count() })
+        .from(studentGrades)
+        .where(
+          and(
+            eq(studentGrades.courseId, courseId),
+            eq(studentGrades.studentId, studentId)
+          )
+        );
+
+      const averageGradeQuery = db
+        .select({ value: avg(studentGrades.grade) })
+        .from(studentGrades)
+        .where(
+          and(
+            eq(studentGrades.courseId, courseId),
+            eq(studentGrades.studentId, studentId)
+          )
+        );
+
+      const { onTimeRate, onTimeCount } = await this.getOnTimeSubmissionRate(
+        courseId,
+        studentId,
+        assignments
       );
 
-    const averageGradeQuery = db
-      .select({ value: avg(studentGrades.grade) })
-      .from(studentGrades)
-      .where(
-        and(
-          eq(studentGrades.courseId, courseId),
-          eq(studentGrades.studentId, studentId)
-        )
+      const [[{ value: totalSubmissions }], [{ value: averageGrade }]] =
+        await Promise.all([totalSubmissionsQuery, averageGradeQuery]);
+
+      const rawData = {
+        totalSubmissions: Number(totalSubmissions) || 0,
+        averageGrade: averageGrade ? parseFloat(String(averageGrade)) : 0,
+        onTimeRate,
+        onTimeCount,
+      };
+
+      return rawAnalyticsDataSchema.parse(rawData);
+    } catch (error) {
+      if (error instanceof BadRequestError) {
+        throw error;
+      }
+      throw new Error(
+        `Failed to fetch student assignment analytics: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
-
-    const { onTimeRate, onTimeCount } = await this.getOnTimeSubmissionRate(
-      courseId,
-      studentId,
-      assignments
-    );
-
-    const [[{ value: totalSubmissions }], [{ value: averageGrade }]] =
-      await Promise.all([totalSubmissionsQuery, averageGradeQuery]);
-
-    return {
-      totalSubmissions: totalSubmissions || 0,
-      averageGrade: averageGrade ? parseFloat(averageGrade) : 0,
-      onTimeRate,
-      onTimeCount,
-    };
+    }
   }
 
   /**
@@ -1347,43 +1370,69 @@ Saves or updates the AI-generated insights for a user.
   public static async getOnTimeSubmissionRate(
     courseId: string,
     studentId: string,
-    assignments: { id: string; dueDate: Date | null }[]
-  ): Promise<{ onTimeRate: number; onTimeCount: number }> {
+    assignments: Assignment[]
+  ): Promise<OnTimeSubmissionData> {
+    if (!Array.isArray(assignments)) {
+      throw new BadRequestError('Assignments must be an array');
+    }
+
     if (assignments.length === 0) {
-      return { onTimeRate: 0, onTimeCount: 0 };
+      return onTimeSubmissionDataSchema.parse({
+        onTimeRate: 0,
+        onTimeCount: 0,
+      });
     }
 
-    const assignmentMap = new Map(assignments.map((a) => [a.id, a.dueDate]));
+    try {
+      const assignmentMap = new Map(assignments.map((a) => [a.id, a.dueDate]));
 
-    const submissions = await db
-      .select({
-        assignmentId: studentGrades.assignmentId,
-        submittedAt: studentGrades.gradedAt,
-      })
-      .from(studentGrades)
-      .where(
-        and(
-          eq(studentGrades.courseId, courseId),
-          eq(studentGrades.studentId, studentId)
-        )
-      );
+      const submissions = await db
+        .select({
+          assignmentId: studentGrades.assignmentId,
+          submittedAt: studentGrades.gradedAt,
+        })
+        .from(studentGrades)
+        .where(
+          and(
+            eq(studentGrades.courseId, courseId),
+            eq(studentGrades.studentId, studentId)
+          )
+        );
 
-    if (submissions.length === 0) {
-      return { onTimeRate: 0, onTimeCount: 0 };
-    }
-
-    let onTimeCount = 0;
-    submissions.forEach((sub) => {
-      const dueDate = assignmentMap.get(sub.assignmentId);
-      if (dueDate && sub.submittedAt <= dueDate) {
-        onTimeCount++;
+      if (submissions.length === 0) {
+        return onTimeSubmissionDataSchema.parse({
+          onTimeRate: 0,
+          onTimeCount: 0,
+        });
       }
-    });
 
-    return {
-      onTimeRate: onTimeCount / submissions.length,
-      onTimeCount,
-    };
+      let onTimeCount = 0;
+      submissions.forEach((sub) => {
+        if (!sub.assignmentId || !sub.submittedAt) {
+          return;
+        }
+
+        const dueDate = assignmentMap.get(sub.assignmentId);
+        if (dueDate && sub.submittedAt <= dueDate) {
+          onTimeCount++;
+        }
+      });
+
+      const result = {
+        onTimeRate:
+          submissions.length > 0 ? onTimeCount / submissions.length : 0,
+        onTimeCount,
+      };
+
+      return onTimeSubmissionDataSchema.parse(result);
+    } catch (error) {
+      if (error instanceof BadRequestError) {
+        throw error;
+      }
+      throw new Error(
+        `Failed to calculate on-time submission rate: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
   }
 
   /**
@@ -1395,32 +1444,47 @@ Saves or updates the AI-generated insights for a user.
   public static async getMonthlySubmissionTrends(
     courseId: string,
     studentId: string
-  ) {
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  ): Promise<MonthlyTrend[]> {
+    try {
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-    const result = await db
-      .select({
-        month: sql<string>`TO_CHAR(date_trunc('month', ${studentGrades.gradedAt}), 'Mon')`,
-        submissions: count(studentGrades.id),
-        grade: avg(studentGrades.grade),
-      })
-      .from(studentGrades)
-      .where(
-        and(
-          eq(studentGrades.courseId, courseId),
-          eq(studentGrades.studentId, studentId),
-          gte(studentGrades.gradedAt, sixMonthsAgo)
+      const result = await db
+        .select({
+          month: sql<string>`TO_CHAR(date_trunc('month', ${studentGrades.gradedAt}), 'Mon')`,
+          submissions: count(studentGrades.id),
+          grade: avg(studentGrades.grade),
+        })
+        .from(studentGrades)
+        .where(
+          and(
+            eq(studentGrades.courseId, courseId),
+            eq(studentGrades.studentId, studentId),
+            gte(studentGrades.gradedAt, sixMonthsAgo)
+          )
         )
-      )
-      .groupBy(sql`date_trunc('month', ${studentGrades.gradedAt})`)
-      .orderBy(sql`date_trunc('month', ${studentGrades.gradedAt})`);
+        .groupBy(sql`date_trunc('month', ${studentGrades.gradedAt})`)
+        .orderBy(sql`date_trunc('month', ${studentGrades.gradedAt})`);
 
-    return result.map((row) => ({
-      month: row.month,
-      submissions: row.submissions,
-      grade: parseFloat(row.grade || '0'),
-    }));
+      const trends = result.map((row) => {
+        const trend = {
+          month: String(row.month || ''),
+          submissions: Number(row.submissions) || 0,
+          grade: parseFloat(String(row.grade || '0')),
+        };
+
+        return monthlyTrendSchema.parse(trend);
+      });
+
+      return trends;
+    } catch (error) {
+      if (error instanceof BadRequestError) {
+        throw error;
+      }
+      throw new Error(
+        `Failed to fetch monthly submission trends: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
   }
 
   /**
@@ -1432,39 +1496,57 @@ Saves or updates the AI-generated insights for a user.
   public static async getGradeDistributionForStudent(
     courseId: string,
     studentId: string
-  ) {
-    const query = sql`
-      SELECT
-        CASE
-          WHEN grade >= 97 THEN 'A+'
-          WHEN grade >= 93 THEN 'A'
-          WHEN grade >= 90 THEN 'A-'
-          WHEN grade >= 87 THEN 'B+'
-          WHEN grade >= 83 THEN 'B'
-          WHEN grade >= 80 THEN 'B-'
-          WHEN grade >= 77 THEN 'C+'
-          WHEN grade >= 73 THEN 'C'
-          WHEN grade >= 70 THEN 'C-'
-          WHEN grade >= 60 THEN 'D'
-          ELSE 'F'
-        END AS grade_bracket,
-        COUNT(*) AS student_count
-      FROM ${studentGrades}
-      WHERE ${studentGrades.courseId} = ${courseId} AND ${studentGrades.studentId} = ${studentId}
-      GROUP BY grade_bracket
-      ORDER BY
-        CASE grade_bracket
-          WHEN 'A+' THEN 1 WHEN 'A' THEN 2 WHEN 'A-' THEN 3
-          WHEN 'B+' THEN 4 WHEN 'B' THEN 5 WHEN 'B-' THEN 6
-          WHEN 'C+' THEN 7 WHEN 'C' THEN 8 WHEN 'C-' THEN 9
-          WHEN 'D' THEN 10 ELSE 11
-        END;
-    `;
+  ): Promise<GradeDistributionItem[]> {
+    try {
+      const query = sql`
+        SELECT
+          CASE
+            WHEN ${studentGrades.grade} >= 97 THEN 'A+'
+            WHEN ${studentGrades.grade} >= 93 THEN 'A'
+            WHEN ${studentGrades.grade} >= 90 THEN 'A-'
+            WHEN ${studentGrades.grade} >= 87 THEN 'B+'
+            WHEN ${studentGrades.grade} >= 83 THEN 'B'
+            WHEN ${studentGrades.grade} >= 80 THEN 'B-'
+            WHEN ${studentGrades.grade} >= 77 THEN 'C+'
+            WHEN ${studentGrades.grade} >= 73 THEN 'C'
+            WHEN ${studentGrades.grade} >= 70 THEN 'C-'
+            WHEN ${studentGrades.grade} >= 60 THEN 'D'
+            ELSE 'F'
+          END AS grade_bracket,
+          COUNT(*) AS student_count
+        FROM ${studentGrades}
+        WHERE ${studentGrades.courseId} = ${courseId} 
+          AND ${studentGrades.studentId} = ${studentId}
+        GROUP BY grade_bracket
+        ORDER BY
+          CASE grade_bracket
+            WHEN 'A+' THEN 1 WHEN 'A' THEN 2 WHEN 'A-' THEN 3
+            WHEN 'B+' THEN 4 WHEN 'B' THEN 5 WHEN 'B-' THEN 6
+            WHEN 'C+' THEN 7 WHEN 'C' THEN 8 WHEN 'C-' THEN 9
+            WHEN 'D' THEN 10 ELSE 11
+          END;
+      `;
 
-    const result = await db.execute<GradeRow>(query);
-    return result.rows.map((row) => ({
-      grade: row.grade_bracket,
-      value: parseInt(row.student_count, 10),
-    }));
+      const result = await db.execute<GradeRow>(query);
+
+      const distribution = result.rows.map((row) => {
+        const validatedRow = gradeRowSchema.parse(row);
+        const item = {
+          grade: validatedRow.grade_bracket,
+          value: parseInt(String(validatedRow.student_count), 10),
+        };
+
+        return gradeDistributionItemSchema.parse(item);
+      });
+
+      return distribution;
+    } catch (error) {
+      if (error instanceof BadRequestError) {
+        throw error;
+      }
+      throw new Error(
+        `Failed to fetch grade distribution: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
   }
 }
