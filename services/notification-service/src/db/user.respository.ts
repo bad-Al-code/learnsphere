@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { db } from '.';
-import { users } from './schema';
+import { User, users } from './schema';
 
 type NewUser = typeof users.$inferInsert;
 
@@ -28,8 +28,17 @@ export class UserRepository {
    * @param {string} id - The ID of the user to retrieve.
    * @returns {Promise<NewUser | undefined>} The user record or undefined if not found.
    */
-  public static async findById(id: string) {
+  public static async findById(id: string): Promise<User | undefined> {
     return db.query.users.findFirst({ where: eq(users.id, id) });
+  }
+
+  /**
+   * Get the user by their unique email.
+   * @param email The email of the user
+   * @returns The user record.
+   */
+  public static async findByEmail(email: string): Promise<User | undefined> {
+    return db.query.users.findFirst({ where: eq(users.email, email) });
   }
 
   /**

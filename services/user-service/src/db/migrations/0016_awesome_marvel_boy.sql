@@ -1,0 +1,1 @@
+ALTER TABLE "waitlist" ALTER COLUMN "referral_code" SET NOT NULL;

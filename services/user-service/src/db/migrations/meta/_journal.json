@@ -99,6 +99,48 @@
       "when": 1758301402830,
       "tag": "0013_hot_tigra",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1760337016356,
+      "tag": "0014_useful_meggan",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1760344379944,
+      "tag": "0015_first_wraith",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1760344417691,
+      "tag": "0016_awesome_marvel_boy",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1760352672578,
+      "tag": "0017_great_lady_ursula",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1760368805184,
+      "tag": "0018_chief_zemo",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1760371743810,
+      "tag": "0019_silky_gertrude_yorkes",
+      "breakpoints": true
     }
   ]
 }

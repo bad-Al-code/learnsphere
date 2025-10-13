@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { rewardMap } from '../types';
 import { EmailButton, EmailLayout } from './EmailLayout';
 
 export class EmailTemplate {
@@ -113,4 +114,43 @@ export class EmailTemplate {
 
     return EmailLayout(content);
   }
+
+  public static generateWaitlistConfirmationEmail(): string {
+    const content = `
+    <p>Hello,</p>
+    <p>Thank you for joining the waitlist for LearnSphere! We're thrilled to have you on board.</p>
+    <p>You are now on the list to be among the first to know when we launch. We are working hard to build an incredible AI-powered learning experience and can't wait to share it with you.</p>
+    <p>We'll be in touch with updates and an official launch announcement.</p>
+    <p>Best regards,<br>The LearnSphere Team</p>
+  `;
+
+    return EmailLayout(content);
+  }
+
+  /**
+   * Generates the HTML for the reward unlocked email.
+   * @param userName The name of the user.
+   * @param rewardId The identifier of the reward unlocked.
+   * @returns The full, styled HTML email string.
+   */
+  public static generateRewardUnlockedEmail = (
+    userName: string | null,
+    rewardId: string
+  ): string => {
+    const reward = rewardMap[rewardId] || rewardMap.default;
+    const dashboardLink = 'http://localhost:3000/waitlist';
+
+    const content = `
+    <p>Hi ${userName || 'there'},</p>
+    <p><b>${reward.title}</b></p>
+    <p>${reward.description}</p>
+    <p>Thank you for helping us grow the LearnSphere community. Keep sharing to unlock even more rewards!</p>
+    <p style="text-align: center; margin: 30px 0;">
+        ${EmailButton(dashboardLink, 'Check Your Status')}
+    </p>
+    <p>Best regards,<br>The LearnSphere Team</p>
+  `;
+
+    return EmailLayout(content);
+  };
 }

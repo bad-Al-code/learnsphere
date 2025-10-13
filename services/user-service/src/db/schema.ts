@@ -7,6 +7,7 @@ import {
   pgEnum,
   pgTable,
   primaryKey,
+  serial,
   text,
   timestamp,
   unique,
@@ -512,6 +513,37 @@ export const studyGoals = pgTable('study_goals', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+/** Waitlist */
+export const waitlistRoleEnum = pgEnum('waitlist_role', [
+  'student',
+  'instructor',
+]);
+export type WaitlistRoleEnum = (typeof waitlistRoleEnum.enumValues)[number];
+
+export const waitlist = pgTable('waitlist', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: text('email').notNull().unique(),
+  referralCode: varchar('referral_code', { length: 8 }).notNull().unique(),
+  referredById: uuid('referred_by_id').references((): any => waitlist.id, {
+    onDelete: 'set null',
+  }),
+  referralCount: integer('referral_count').default(0).notNull(),
+  waitlistPosition: serial('waitlist_position').notNull(),
+  rewardsUnlocked: text('rewards_unlocked')
+    .array()
+    .default(sql`'{}'::text[]`)
+    .notNull(),
+  interests: text('interests')
+    .array()
+    .default(sql`'{}'::text[]`)
+    .notNull(),
+  role: waitlistRoleEnum('role').default('student').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type Waitlist = typeof waitlist.$inferSelect;
+export type NewWaitlist = typeof waitlist.$inferInsert;
 
 /**
  * @table replicated_course_content

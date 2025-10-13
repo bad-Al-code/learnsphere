@@ -4,8 +4,9 @@ import { CustomError } from './custom-error';
 export class NotFoundError extends CustomError {
   statusCode = StatusCodes.NOT_FOUND;
 
-  constructor(resource = 'Route') {
-    super(`${resource} not found`);
+  constructor(resource = 'Route', message?: string) {
+    super(message || `${resource} not found`);
+
     Object.setPrototypeOf(this, NotFoundError.prototype);
   }
 

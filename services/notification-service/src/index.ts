@@ -18,8 +18,10 @@ import {
   ReportGenerationSuccessListener,
   StudyRoomReminderListener,
   UserInvitedToStudyRoomListener,
+  UserJoinedWaitlistListener,
   UserPasswordChangedListener,
   UserPasswordResetRequiredListener,
+  UserRewardUnlockedListener,
   UserSyncRegisteredListener,
   UserSyncRoleUpdatedListener,
   UserVerificationRequiredListener,
@@ -53,6 +55,8 @@ const start = async () => {
     new EventUserRegisteredListener(emailService).listen();
     new EventUserUnregisteredListener(emailService).listen();
     new EventReminderListener(emailService).listen();
+    new UserJoinedWaitlistListener(emailService).listen();
+    new UserRewardUnlockedListener(emailService).listen();
 
     const server = http.createServer(app);
 

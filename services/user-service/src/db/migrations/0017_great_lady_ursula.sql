@@ -1,0 +1,1 @@
+ALTER TABLE "waitlist" ADD COLUMN "rewards_unlocked" text[] DEFAULT '{}'::text[] NOT NULL;

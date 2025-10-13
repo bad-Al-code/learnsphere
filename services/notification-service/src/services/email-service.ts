@@ -392,4 +392,41 @@ export class EmailService {
       type: 'event_reminder',
     });
   }
+
+  public async sendWaitlistConfirmationEmail(data: {
+    email: string;
+  }): Promise<void> {
+    const htmlBody = EmailTemplate.generateWaitlistConfirmationEmail();
+
+    await this.emailClient.send({
+      to: data.email,
+      subject: "You're on the LearnSphere Waitlist!",
+      text: "You're on the list! We'll notify you as soon as LearnSphere is ready for launch. Thank you for your interest.",
+      html: htmlBody,
+      type: 'waitlist_confirmation',
+    });
+  }
+
+  /**
+   * Constructs and sends a reward unlocked notification email.
+   * @param data The data needed to build the email.
+   */
+  public async sendRewardUnlockedEmail(data: {
+    email: string;
+    userName: string | null;
+    rewardId: string;
+  }): Promise<void> {
+    const htmlBody = EmailTemplate.generateRewardUnlockedEmail(
+      data.userName,
+      data.rewardId
+    );
+
+    await this.emailClient.send({
+      to: data.email,
+      subject: "🎉 You've Unlocked a New Reward on LearnSphere!",
+      text: `Congratulations! You've unlocked a new reward. Check your status on the waitlist page.`,
+      html: htmlBody,
+      type: 'reward_unlocked',
+    });
+  }
 }

@@ -68,3 +68,43 @@ interface InstructorApplicationApprovedEvent {
 export class InstructorApplicationApprovedPublisher extends Publisher<InstructorApplicationApprovedEvent> {
   readonly topic = 'instructor.application.approved' as const;
 }
+
+interface UserJoinedWaitlistEvent {
+  topic: 'user.joined.waitlist';
+  data: {
+    email: string;
+    joinedAt: Date;
+  };
+}
+export class UserJoinedWaitlistPublisher extends Publisher<UserJoinedWaitlistEvent> {
+  readonly topic: 'user.joined.waitlist' = 'user.joined.waitlist' as const;
+}
+
+interface UserRewardUnlockedEvent {
+  topic: 'user.reward.unlocked';
+  data: {
+    userId: string;
+    email: string;
+    rewardId: string;
+    reward?: string;
+    referralCount: number;
+    unlockedAt: Date;
+  };
+}
+
+export class UserRewardUnlockedPublisher extends Publisher<UserRewardUnlockedEvent> {
+  readonly topic = 'user.reward.unlocked' as const;
+}
+
+interface WaitlistNurtureWeek1Event {
+  topic: 'waitlist.nurture.week1';
+  data: {
+    email: string;
+    joinedAt: Date;
+  };
+}
+
+export class WaitlistNurtureWeek1Publisher extends Publisher<WaitlistNurtureWeek1Event> {
+  readonly topic = 'waitlist.nurture.week1' as const;
+  protected exchange = 'delay.exchange'; 
+}

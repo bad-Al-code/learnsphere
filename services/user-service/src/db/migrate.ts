@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
-import { db, pool } from './index';
 import logger from '../config/logger';
+import { db, pool } from './index';
 
 const runMigrations = async () => {
   try {
@@ -9,7 +9,7 @@ const runMigrations = async () => {
 
     logger.info(`Migartion applied successfully!`);
   } catch (error) {
-    logger.error(`Error applying migrations: `, { error });
+    logger.error(`Error applying migrations: %o`, { error });
 
     process.exit(1);
   } finally {

@@ -974,3 +974,104 @@ export class EventReminderListener extends Listener<EventReminderRequestedEvent>
     }
   }
 }
+
+interface UserJoinedWaitlistEvent {
+  topic: 'user.joined.waitlist';
+  data: {
+    email: string;
+    joinedAt: string;
+  };
+}
+
+export class UserJoinedWaitlistListener extends Listener<UserJoinedWaitlistEvent> {
+  readonly topic = 'user.joined.waitlist' as const;
+  queueGroupName = 'notification-service-waitlist';
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
+
+  async onMessage(
+    data: UserJoinedWaitlistEvent['data'],
+    _msg: ConsumeMessage
+  ): Promise<void> {
+    try {
+      logger.info(`Waitlist confirmation event received for: ${data.email}`);
+
+      await this.emailService.sendWaitlistConfirmationEmail({
+        email: data.email,
+      });
+    } catch (err) {
+      const error = err as Error;
+      logger.error('Error handling user.joined.waitlist event: %o', {
+        email: data.email,
+        error: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+    }
+  }
+}
+
+interface UserRewardUnlockedEvent {
+  topic: 'user.reward.unlocked';
+  data: {
+    userId: string;
+    email: string;
+    rewardId: string;
+    referralCount: number;
+    unlockedAt: string;
+  };
+}
+
+export class UserRewardUnlockedListener extends Listener<UserRewardUnlockedEvent> {
+  readonly topic = 'user.reward.unlocked' as const;
+  queueGroupName = 'notification-service-reward-unlocked';
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
+
+  async onMessage(
+    data: UserRewardUnlockedEvent['data'],
+    _msg: ConsumeMessage
+  ): Promise<void> {
+    try {
+      logger.info(`Reward unlocked event received for user: ${data.userId}`);
+      const user = await UserRepository.findById(data.userId);
+
+      const notificationContent = `Congratulations! You've unlocked a new reward for referring ${data.referralCount} users.`;
+
+      await Promise.all([
+        NotificationService.createNotification({
+          recipientId: data.userId,
+          type: 'REWARD_UNLOCKED',
+          content: notificationContent,
+          linkUrl: '/waitlist',
+          metadata: { rewardId: data.rewardId },
+        }),
+        this.emailService.sendRewardUnlockedEmail({
+          email: data.email,
+          userName: user?.name || null,
+          rewardId: data.rewardId,
+        }),
+      ]);
+
+      logger.info(
+        `Successfully sent reward notification to user ${data.userId} for reward ${data.rewardId}.`
+      );
+    } catch (err) {
+      const error = err as Error;
+      logger.error('Error handling user.reward.unlocked event: %o', {
+        userId: data.userId,
+        error: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+    }
+  }
+}

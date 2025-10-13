@@ -5,8 +5,8 @@ import logger from '../config/logger';
 
 const MAX_RETRIES = 10;
 const RETRY_DELAY_MS = 5000;
-// const NOTIFICATION_PROCESSING_EXCHANGE = 'notification-processing.exchange';
-// const DELAY_EXCHANGE = 'delay.exchange';
+const NOTIFICATION_PROCESSING_EXCHANGE = 'notification-processing.exchange';
+const DELAY_EXCHANGE = 'delay.exchange';
 // const AI_FEEDBACK_DELAY_QUEUE = 'ai-feedback.delay.queue';
 // const AI_FEEDBACK_PROCESSING_QUEUE = 'ai-feedback.processing.queue';
 // const AI_FEEDBACK_ROUTING_KEY = 'ai.feedback.ready';
@@ -49,14 +49,14 @@ class RabbitMQConnection {
           logger.error('RabbitMQ channel error', { error: err.message });
         });
 
-        // await this.channel.assertExchange(
-        //   NOTIFICATION_PROCESSING_EXCHANGE,
-        //   'direct',
-        //   { durable: true }
-        // );
-        // await this.channel.assertExchange(DELAY_EXCHANGE, 'direct', {
-        //   durable: true,
-        // });
+        await this.channel.assertExchange(
+          NOTIFICATION_PROCESSING_EXCHANGE,
+          'direct',
+          { durable: true }
+        );
+        await this.channel.assertExchange(DELAY_EXCHANGE, 'direct', {
+          durable: true,
+        });
         // await this.channel.assertQueue(AI_FEEDBACK_DELAY_QUEUE, {
         //   durable: true,
         //   deadLetterExchange: NOTIFICATION_PROCESSING_EXCHANGE,
@@ -80,6 +80,8 @@ class RabbitMQConnection {
         // logger.info(
         //   'RabbitMQ DLX and delay queues for AI feedback configured successfully.'
         // );
+
+      logger.info('RabbitMQ exchanges for delayed messaging configured successfully.');
 
         return;
       } catch (err) {
