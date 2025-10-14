@@ -9,7 +9,13 @@ import {
   NotAuthorizedError,
   NotFoundError,
 } from '../errors';
-import { assignmentAnalyticsSchema, courseIdParamsSchema } from '../schema';
+import {
+  assignmentAnalyticsSchema,
+  courseIdParamsSchema,
+  getMyGradesQuerySchema,
+  requestReportSchema,
+  submissionIdParamsSchema,
+} from '../schema';
 import { AnalyticsService } from '../services/analytics.service';
 
 /**
@@ -395,12 +401,18 @@ export class AnalyticsController {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
 
-      const { reportType, format } = req.body;
+      const { reportType, format } = requestReportSchema.parse({
+        body: req.body,
+      }).body;
+      const { query: filters } = getMyGradesQuerySchema.parse({
+        query: req.query,
+      });
 
-      const result = await AnalyticsService.requestReportGeneration(
-        req.currentUser.id,
+      const result = await AnalyticsService.requestReport(
+        req.currentUser,
         reportType,
-        format
+        format,
+        filters
       );
 
       res.status(StatusCodes.ACCEPTED).json(result);
@@ -654,6 +666,151 @@ export class AnalyticsController {
         timestamp: new Date().toISOString(),
       });
 
+      next(error);
+    }
+  }
+
+  public static async getMyGrades(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) {
+        throw new NotAuthorizedError();
+      }
+      const query = getMyGradesQuerySchema.parse({ query: req.query }).query;
+
+      const grades = await AnalyticsService.getMyGrades(
+        req.currentUser.id,
+        query
+      );
+      res.status(StatusCodes.OK).json(grades);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getSubmissionDetails(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) {
+        throw new NotAuthorizedError();
+      }
+      const { submissionId } = submissionIdParamsSchema.parse({
+        params: req.params,
+      }).params;
+
+      const cookie = req.headers.cookie;
+      if (!cookie) {
+        throw new NotAuthorizedError('Authentication cookie is missing.');
+      }
+
+      const details = await AnalyticsService.getSubmissionDetails(
+        submissionId,
+        req.currentUser.id,
+        cookie
+      );
+
+      res.status(StatusCodes.OK).json(details);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async requestRecheck(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) {
+        throw new NotAuthorizedError();
+      }
+      const { submissionId } = submissionIdParamsSchema.parse({
+        params: req.params,
+      }).params;
+      const cookie = req.headers.cookie;
+      if (!cookie) {
+        throw new NotAuthorizedError('Authentication cookie is missing.');
+      }
+
+      await AnalyticsService.requestReGrade(
+        submissionId,
+        req.currentUser,
+        cookie
+      );
+
+      res.status(StatusCodes.ACCEPTED).json({
+        message:
+          'Your re-grade request has been submitted. You will be notified when it is complete.',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getStudentComparisonAnalytics(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { courseId } = courseIdParamsSchema.parse({
+        params: req.params,
+      }).params;
+
+      const analytics = await AnalyticsService.getStudentComparisonAnalytics(
+        courseId,
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(analytics);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getPerformanceHighlights(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { courseId } = courseIdParamsSchema.parse({
+        params: req.params,
+      }).params;
+
+      const highlights = await AnalyticsService.getPerformanceHighlights(
+        courseId,
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(highlights);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getPredictiveChart(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const chartData = await AnalyticsService.getPredictiveChartData(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(chartData);
+    } catch (error) {
       next(error);
     }
   }

@@ -123,3 +123,73 @@ export const assignmentAnalyticsSchema = z.object({
 });
 
 export type AssignmentAnalytics = z.infer<typeof assignmentAnalyticsSchema>;
+
+export const getMyGradesQuerySchema = z.object({
+  query: z.object({
+    q: z.string().optional(),
+    courseId: z.string().optional(),
+    grade: z.string().optional(),
+    status: z.enum(['Graded', 'Pending']).optional(),
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(10),
+  }),
+});
+
+export type GetMyGradesQuery = z.infer<typeof getMyGradesQuerySchema>['query'];
+
+export enum ReportType {
+  STUDENT_GRADES = 'student_grades',
+  STUDENT_PERFORMANCE = 'student_performance',
+}
+
+export enum ReportFormat {
+  CSV = 'csv',
+  PDF = 'pdf',
+}
+
+export const requestReportSchema = z.object({
+  body: z.object({
+    reportType: z.nativeEnum(ReportType),
+    format: z.nativeEnum(ReportFormat),
+  }),
+});
+
+export type RequestReportInput = z.infer<typeof requestReportSchema>['body'];
+
+export const submissionIdParamsSchema = z.object({
+  params: z.object({
+    submissionId: z.string().uuid('Invalid submission ID format'),
+  }),
+});
+
+export const performanceHighlightSchema = z.object({
+  title: z.string(),
+  text: z.string(),
+});
+
+export const comparisonAnalyticsResponseSchema = z.object({
+  performanceChart: z.array(
+    z.object({
+      subject: z.string(),
+      yourScore: z.number(),
+      classAverage: z.number(),
+    })
+  ),
+
+  classRanking: z.object({
+    rank: z.number().nullable(),
+    totalStudents: z.number(),
+    topStudents: z.array(
+      z.object({
+        rank: z.number(),
+        name: z.string(),
+        score: z.number(),
+      })
+    ),
+  }),
+  highlights: z.array(performanceHighlightSchema),
+});
+
+export type ComparisonAnalyticsResponse = z.infer<
+  typeof comparisonAnalyticsResponseSchema
+>;

@@ -181,6 +181,14 @@ export const resources = pgTable('resources', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const reGradeStatusEnum = pgEnum('re_grade_status', [
+  'pending',
+  'completed',
+  'failed',
+]);
+
+export type ReGradeStatusEnum = (typeof reGradeStatusEnum.enumValues)[number];
+
 export const assignmentSubmissions = pgTable('assignment_submissions', {
   id: uuid('id').defaultRandom().primaryKey(),
   assignmentId: uuid('assignment_id')
@@ -191,7 +199,10 @@ export const assignmentSubmissions = pgTable('assignment_submissions', {
   submittedAt: timestamp('submitted_at').defaultNow().notNull(),
   grade: integer('grade'),
   content: text('content'),
+  reGradeStatus: reGradeStatusEnum('re_grade_status'),
 });
+
+export type AssignmentSubmissions = typeof assignmentSubmissions.$inferSelect;
 
 export const feedbackStatus = pgEnum('feedback_status', [
   'reviewed',

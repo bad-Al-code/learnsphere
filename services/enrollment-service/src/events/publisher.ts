@@ -1,5 +1,6 @@
 import logger from '../config/logger';
-import { StudentPerformance } from '../types';
+import { ReportFormat, ReportType } from '../schema';
+import { Grade, StudentPerformance } from '../types';
 import { rabbitMQConnection } from './connection';
 
 export abstract class Publisher<T extends { topic: string; data: object }> {
@@ -147,12 +148,43 @@ export interface ReportGenerationRequestedEvent {
   data: {
     jobId: string;
     requesterId: string;
-    reportType: string;
-    format: 'csv' | 'pdf';
-    payload: StudentPerformance[];
+    reportType: ReportType;
+    requesterEmail: string;
+    format: ReportFormat;
+    payload: StudentPerformance[] | Grade[];
   };
 }
 
 export class ReportGenerationRequestedPublisher extends Publisher<ReportGenerationRequestedEvent> {
   readonly topic = 'report.generation.requested' as const;
+}
+
+export interface StudentGradeReport {
+  topic: 'report.generation.requested';
+  data: {
+    jobId: string;
+    requesterId: string;
+    requesterEmail: string;
+    reportType: ReportType;
+    format: ReportFormat;
+    payload: Grade[];
+  };
+}
+
+export class StudentGradeReportPublisher extends Publisher<StudentGradeReport> {
+  readonly topic = 'report.generation.requested' as const;
+}
+
+export interface StudentGradeRecheckRequestedEvent {
+  topic: 'student.grade.recheck.requested';
+  data: {
+    submissionId: string;
+    studentId: string;
+    courseId: string;
+    requestedAt: Date;
+  };
+}
+
+export class StudentGradeRecheckRequestedPublisher extends Publisher<StudentGradeRecheckRequestedEvent> {
+  readonly topic = 'student.grade.recheck.requested' as const;
 }

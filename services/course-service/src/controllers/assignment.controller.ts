@@ -1,11 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { AssignmentRepository } from '../db/repostiories';
-import { NotAuthorizedError } from '../errors';
+import { BadRequestError, NotAuthorizedError } from '../errors';
 import {
+  bulkAssignmentsSchema,
   draftStatusesSchema,
   findAssignmentsSchema,
   querySchema,
+  requestReGradeParamsSchema,
+  submissionIdParamsSchema,
 } from '../schemas';
 import { AssignmentService } from '../services';
 
@@ -106,6 +109,27 @@ export class AssignmentController {
 
       const result = await AssignmentService.getAssignmentsForCourse(options);
       res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * @description Controller to get multiple assignments by their IDs.
+   */
+  public static async getBulk(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { assignmentIds } = bulkAssignmentsSchema.parse({ body: req.body })[
+        'body'
+      ];
+      if (!Array.isArray(assignmentIds)) {
+        throw new BadRequestError('assignmentIds must be an array.');
+      }
+
+      const assignments =
+        await AssignmentService.getAssignmentsByIds(assignmentIds);
+
+      res.status(StatusCodes.OK).json(assignments);
     } catch (error) {
       next(error);
     }
@@ -265,6 +289,58 @@ export class AssignmentController {
       );
 
       res.status(StatusCodes.OK).json(assignments);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * @description Controller to get the content of a single submission.
+   */
+  public static async getSubmissionContent(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { submissionId } = submissionIdParamsSchema.parse({
+        params: req.params,
+      })['params'];
+      const requester = req.currentUser;
+      if (!requester) throw new NotAuthorizedError();
+
+      const content = await AssignmentService.getSubmissionContent(
+        submissionId,
+        requester
+      );
+
+      res.status(StatusCodes.OK).json(content);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * @description Controller to handle a re-grade request for a submission.
+   */
+  public static async requestReGrade(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { submissionId } = requestReGradeParamsSchema.parse({
+        params: req.params,
+      })['params'];
+
+      const requester = req.currentUser;
+      if (!requester) throw new NotAuthorizedError();
+
+      await AssignmentService.requestReGrade(submissionId, requester);
+
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'Re-grade request accepted.' });
     } catch (error) {
       next(error);
     }

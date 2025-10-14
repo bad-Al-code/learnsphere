@@ -219,3 +219,23 @@ export const draftStatusesSchema = z.object({
     .array(z.string().min(1))
     .nonempty('assignmentIds cannot be empty'),
 });
+
+export const bulkAssignmentsSchema = z.object({
+  body: z.object({
+    assignmentIds: z
+      .array(z.string().uuid())
+      .nonempty('At least one assignment ID is required'),
+  }),
+});
+
+export const submissionIdParamsSchema = z.object({
+  params: z.object({
+    submissionId: z.string().uuid('Invalid submission ID format'),
+  }),
+});
+
+export const requestReGradeParamsSchema = z.object({
+  params: z.object({
+    submissionId: z.string().uuid('Invalid submission ID format'),
+  }),
+});

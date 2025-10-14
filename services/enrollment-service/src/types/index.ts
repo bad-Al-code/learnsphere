@@ -66,6 +66,7 @@ export interface MarkProgressData {
 export interface Requester {
   id: string;
   role: 'student' | 'instructor' | 'admin';
+  email: string;
 }
 
 export interface ManualEnrollmentData {
@@ -111,4 +112,14 @@ export interface StudentPerformance {
   progressPercentage: string;
   lastActive: Date;
   averageGrade: number;
+}
+
+export interface Grade {
+  id: string;
+  course: string;
+  assignment: string;
+  module: string;
+  grade: number | null;
+  status: 'Graded' | 'Pending';
+  submitted: Date | null;
 }

@@ -153,4 +153,42 @@ export class EmailTemplate {
 
     return EmailLayout(content);
   };
+
+  /**
+   * Generates the HTML for the first week's nurture email.
+   * @param userName The user's name, if available.
+   * @returns The full, styled HTML email stirng.
+   */
+  public static generateNurtureWeek1Email(userName: string | null): string {
+    const content = `
+      <p>Hi ${userName || 'there'},</p>
+      <p>It's been a week since you joined the LearnSphere waitlist, and we're excited to give you a sneak peek at what we're building.</p>
+      <p>One of our core features is the <b>AI-Powered Study Assistant</b>. Imagine having a personal tutor available 24/7 to help you understand complex topics, generate practice quizzes, and keep your study schedule on track. That's what we're creating.</p>
+      <p>We believe this will revolutionize the way you learn. Stay tuned for more updates soon!</p>
+      <p style="text-align: center; margin: 30px 0;">
+          ${EmailButton('http://localhost:3000', 'Learn More On Our Site')}
+      </p>
+      <p>Best regards,<br>The LearnSphere Team</p>
+    `;
+
+    return EmailLayout(content);
+  }
+
+  /**
+   * Generates the HTML for the second week's nurture email.
+   * @param userName The user's name, if available.
+   * @returns The full, styled HTML email string.
+   */
+  public static generateNurtureWeek2Email(userName: string | null): string {
+    const content = `
+      <p>Hi ${userName || 'there'},</p>
+      <p>We're getting closer to launch! This week, we wanted to share a little about our mission.</p>
+      <p>LearnSphere was founded by a team of educators and developers who believe that personalized education should be accessible to everyone. We're passionate about using technology not just to deliver content, but to create truly adaptive and engaging learning experiences.</p>
+      <p>Your interest and support mean the world to us as we work to bring this vision to life.</p>
+      <p>Thank you for being a part of our journey.</p>
+      <p>Best regards,<br>The LearnSphere Team</p>
+    `;
+
+    return EmailLayout(content);
+  }
 }

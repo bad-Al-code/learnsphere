@@ -5,6 +5,7 @@ import { BadRequestError, ConflictError, NotFoundError } from '../errors';
 import {
   UserJoinedWaitlistPublisher,
   UserRewardUnlockedPublisher,
+  WaitlistNurtureWeek1Publisher,
 } from '../events/publisher';
 
 const REWARD_TIERS = [
@@ -138,6 +139,25 @@ export class WaitlistService {
       } catch (eventError) {
         logger.error(
           `Failed to publish user.joined.waitlist event for ${newEntry.email}`,
+          { error: eventError }
+        );
+      }
+
+      try {
+        const nurturePublisher = new WaitlistNurtureWeek1Publisher();
+        const sevenDaysInMillis = 7 * 24 * 60 * 60 * 1000;
+        await nurturePublisher.publish(
+          {
+            email: newEntry.email,
+            joinedAt: newEntry.createdAt,
+          },
+          {
+            expiration: sevenDaysInMillis.toString(),
+          }
+        );
+      } catch (eventError) {
+        logger.error(
+          `Failed to publish DELAYED waitlist.nurture.week1 event for ${newEntry.email}`,
           { error: eventError }
         );
       }

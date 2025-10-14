@@ -28,7 +28,11 @@ export async function generateMetadata({
   };
 }
 
-export default function GradesPage() {
+export default function GradesPage({
+  searchParams,
+}: {
+  searchParams: { tab?: string; courseId?: string };
+}) {
   return (
     <div className="mb-4 space-y-2">
       <PageHeader
@@ -37,7 +41,7 @@ export default function GradesPage() {
       />
 
       <Suspense fallback={<GradesPageSkeleton />}>
-        <GradesTabs />
+        <GradesTabs courseId={searchParams.courseId} />
       </Suspense>
     </div>
   );

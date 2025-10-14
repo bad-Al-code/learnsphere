@@ -1,5 +1,6 @@
 import { rabbitMQConnection } from './connection';
 
+import { Options } from 'amqplib';
 import logger from '../config/logger';
 
 export abstract class Publisher<T extends { topic: string; data: unknown }> {
@@ -7,7 +8,7 @@ export abstract class Publisher<T extends { topic: string; data: unknown }> {
   protected exchange = 'learnsphere';
   protected exchangeType = 'topic';
 
-  async publish(data: T['data']): Promise<void> {
+  async publish(data: T['data'], options?: Options.Publish): Promise<void> {
     const channel = rabbitMQConnection.getChannel();
     await channel.assertExchange(this.exchange, this.exchangeType, {
       durable: true,
@@ -15,11 +16,11 @@ export abstract class Publisher<T extends { topic: string; data: unknown }> {
 
     const message = JSON.stringify(data);
 
-    channel.publish(this.exchange, this.topic, Buffer.from(message));
+    channel.publish(this.exchange, this.topic, Buffer.from(message), options);
 
     logger.info(
       `Event published to exchange '${this.exchange}' with topic '${this.topic}': %o`,
-      data
+      { data, options }
     );
   }
 }
@@ -106,5 +107,5 @@ interface WaitlistNurtureWeek1Event {
 
 export class WaitlistNurtureWeek1Publisher extends Publisher<WaitlistNurtureWeek1Event> {
   readonly topic = 'waitlist.nurture.week1' as const;
-  protected exchange = 'delay.exchange'; 
+  protected exchange = 'delay.exchange';
 }

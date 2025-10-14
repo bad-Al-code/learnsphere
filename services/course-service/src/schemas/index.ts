@@ -3,4 +3,5 @@ export * from './category.schema';
 export * from './course-schema';
 export * from './draft.schema';
 export * from './lesson-schema';
+export * from './module.schema';
 export * from './resource.schema';

@@ -17,7 +17,10 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ErrorState } from '@/features/ai-tools/_components/common/CourseSelectionScrren';
 import { cn } from '@/lib/utils';
+import { useSessionStore } from '@/stores/session-store';
+import { useComparisonAnalytics, usePerformanceHighlights } from '../hooks';
 
 const chartData = [
   { subject: 'React', yourScore: 98, classAverage: 82 },
@@ -39,7 +42,11 @@ const rankingData = [
   { rank: 5, name: 'Anonymous Student', score: 86 },
 ];
 
-function PerformanceChart() {
+function PerformanceChart({
+  data,
+}: {
+  data: { subject: string; yourScore: number; classAverage: number }[];
+}) {
   return (
     <Card>
       <CardHeader>
@@ -48,38 +55,59 @@ function PerformanceChart() {
           <CardTitle>Performance vs Class Average</CardTitle>
         </div>
         <CardDescription>
-          See how you're performing compared to your peers
+          See how you're performing compared to your peers across courses
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[250px] w-full">
-          <BarChart accessibilityLayer data={chartData}>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="subject"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-            />
-            <YAxis />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent indicator="dot" />}
-            />
-            <Bar dataKey="yourScore" fill="var(--color-yourScore)" radius={4} />
-            <Bar
-              dataKey="classAverage"
-              fill="var(--color-classAverage)"
-              radius={4}
-            />
-          </BarChart>
-        </ChartContainer>
+        {data.length > 0 ? (
+          <ChartContainer config={chartConfig} className="h-[250px] w-full">
+            <BarChart accessibilityLayer data={data}>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="subject"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+                fontSize={12}
+              />
+              <YAxis domain={[0, 100]} />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent indicator="dot" />}
+              />
+              <Bar
+                dataKey="yourScore"
+                fill="var(--color-yourScore)"
+                radius={4}
+              />
+              <Bar
+                dataKey="classAverage"
+                fill="var(--color-classAverage)"
+                radius={4}
+              />
+            </BarChart>
+          </ChartContainer>
+        ) : (
+          <div className="text-muted-foreground flex h-[250px] w-full items-center justify-center text-center text-sm">
+            <p>Not enough grade data available to display performance chart.</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
 
-function ClassRanking() {
+function ClassRanking({
+  rankingData,
+  currentUserId,
+}: {
+  rankingData: {
+    rank: number | null;
+    totalStudents: number;
+    topStudents: { rank: number; name: string; score: number }[];
+  };
+  currentUserId: string;
+}) {
   return (
     <Card>
       <CardHeader>
@@ -87,32 +115,66 @@ function ClassRanking() {
           <ListOrdered className="h-5 w-5" />
           <CardTitle>Class Ranking</CardTitle>
         </div>
-        <CardDescription>Anonymous leaderboard position</CardDescription>
+        <CardDescription>
+          Your position among {rankingData.totalStudents} students in this
+          course
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          {rankingData.map((player) => (
-            <div
-              key={player.rank}
-              className={cn(
-                'hover:bg-muted/50 flex items-center gap-2 rounded-md border p-2',
-                player.isUser && 'bg-muted hover:bg-muted'
-              )}
-            >
-              <span className="text-muted-foreground w-4 text-right text-sm">
-                {player.rank}
-              </span>
-              <p className="flex-1 font-medium">{player.name}</p>
-              <p className="text-sm font-semibold">{player.score}%</p>
-            </div>
-          ))}
-        </div>
+        {rankingData.topStudents.length > 0 ? (
+          <div className="space-y-2">
+            {rankingData.topStudents.map((player) => (
+              <div
+                key={player.rank}
+                className={cn(
+                  'hover:bg-muted/30 flex items-center gap-2 rounded-md border p-2',
+                  player.name === 'You' && 'bg-muted hover:bg-muted'
+                )}
+              >
+                <span className="text-muted-foreground w-4 text-right text-sm">
+                  {player.rank}
+                </span>
+                <p className="flex-1 font-medium">{player.name}</p>
+                <p className="text-sm font-semibold">
+                  {player.score.toFixed(1)}%
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-muted-foreground flex h-[150px] w-full items-center justify-center text-center text-sm">
+            <p>No ranking data available for this course yet.</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
 
-function PerformanceHighlights() {
+function PerformanceHighlights({ courseId }: { courseId: string }) {
+  const { data, isLoading, isError, error, refetch } =
+    usePerformanceHighlights(courseId);
+
+  if (isLoading) {
+    return <PerformanceHighlightsSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Award className="h-5 w-5" />
+            <CardTitle>Performance Highlights</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <ErrorState message={error.message} onRetry={refetch} />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -120,33 +182,80 @@ function PerformanceHighlights() {
           <Award className="h-5 w-5" />
           <CardTitle>Performance Highlights</CardTitle>
         </div>
-        <CardDescription>Your achievements and progress</CardDescription>
+        <CardDescription>AI-powered analysis of your progress</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div>
-          <h4 className="text-muted-foreground text-sm font-semibold">
-            Top 15% of Class
-          </h4>
-          <p className="text-sm">
-            You're performing better than 85% of your peers!
-          </p>
-        </div>
-        <div className="bg-muted rounded-md p-3">
-          <h4 className="font-semibold">Consistent Performer</h4>
-          <p className="text-sm">
-            Your grades have been above average for 6 weeks straight.
-          </p>
-        </div>
-        <div>
-          <h4 className="text-muted-foreground text-sm font-semibold">
-            Subject Leader
-          </h4>
-          <p className="text-sm">
-            You have the highest grade in UI/UX Principles!
-          </p>
-        </div>
+        {data?.map((highlight) => (
+          <div key={highlight.title}>
+            <h4 className="text-muted-foreground text-sm font-semibold">
+              {highlight.title}
+            </h4>
+            <p className="text-sm">{highlight.description}</p>
+          </div>
+        ))}
       </CardContent>
     </Card>
+  );
+}
+
+export function ComparisonTab({ courseId }: { courseId: string }) {
+  const { user } = useSessionStore();
+  const {
+    data: analytics,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useComparisonAnalytics(courseId);
+
+  if (isLoading) {
+    return <ComparisonTabSkeleton />;
+  }
+
+  if (isError) {
+    return <ErrorState message={error.message} onRetry={refetch} />;
+  }
+
+  if (!analytics) {
+    return (
+      <div className="text-muted-foreground py-12 text-center">
+        <p>No comparison data available for this course yet.</p>
+      </div>
+    );
+  }
+
+  const rankingDataWithUser = {
+    ...analytics.classRanking,
+    topStudents: analytics.classRanking.topStudents.map((student) =>
+      student.rank === analytics.classRanking.rank
+        ? { ...student, name: 'You' }
+        : student
+    ),
+  };
+
+  return (
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+      <div className="lg:col-span-2">
+        <PerformanceChart data={analytics.performanceChart} />
+      </div>
+      <ClassRanking
+        rankingData={rankingDataWithUser}
+        currentUserId={user!.userId}
+      />
+
+      <PerformanceHighlights courseId={courseId} />
+    </div>
+  );
+}
+export function ComparisonTabSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+      <div className="lg:col-span-2">
+        <PerformanceChartSkeleton />
+      </div>
+      <ClassRankingSkeleton />
+      <PerformanceHighlightsSkeleton />
+    </div>
   );
 }
 
@@ -206,29 +315,5 @@ function PerformanceHighlightsSkeleton() {
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-export function ComparisonTab() {
-  return (
-    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-      <div className="lg:col-span-2">
-        <PerformanceChart />
-      </div>
-      <ClassRanking />
-      <PerformanceHighlights />
-    </div>
-  );
-}
-
-export function ComparisonTabSkeleton() {
-  return (
-    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-      <div className="lg:col-span-2">
-        <PerformanceChartSkeleton />
-      </div>
-      <ClassRankingSkeleton />
-      <PerformanceHighlightsSkeleton />
-    </div>
   );
 }

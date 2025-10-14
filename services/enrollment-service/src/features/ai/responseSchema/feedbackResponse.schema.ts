@@ -7,7 +7,7 @@ export const feedbackResponseSchema = {
     properties: {
       title: { type: Type.STRING },
       description: { type: Type.STRING },
-      level: { type: Type.STRING },
+      level: { type: Type.STRING, enum: ['high', 'medium', 'low'] },
       actionButtonText: { type: Type.STRING },
     },
 

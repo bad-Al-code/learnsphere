@@ -10,7 +10,11 @@ import { LessonController, ModuleController } from '../controllers';
 import { requireAuth } from '../middlewares/require-auth';
 import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
-import { createLessonSchema, reorderSchema } from '../schemas';
+import {
+  bulkModulesSchema,
+  createLessonSchema,
+  reorderSchema,
+} from '../schemas';
 
 const router = Router();
 
@@ -144,72 +148,30 @@ router.post(
 
 /**
  * @openapi
- * /modules/bulk:
+ * /api/modules/bulk:
  *   post:
- *     tags:
- *       - Modules
- *     summary: Retrieve multiple modules by their IDs
- *     description: Fetches a list of modules with their basic information (ID and title) based on an array of provided module IDs.
- *     operationId: getBulkModules
+ *     summary: Get multiple modules by their IDs
+ *     tags: [Modules]
  *     requestBody:
- *       description: An object containing an array of module IDs to retrieve.
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - moduleIds
  *             properties:
  *               moduleIds:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: uuid
- *                 description: An array of module UUIDs to fetch.
- *                 example:
- *                   - "d290f1ee-6c54-4b01-90e6-d701748f0851"
- *                   - "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
  *     responses:
  *       '200':
- *         description: OK. Successfully retrieved the modules. The response is an array of module objects.
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: string
- *                     format: uuid
- *                     description: The unique identifier for the module.
- *                     example: "d290f1ee-6c54-4b01-90e6-d701748f0851"
- *                   title:
- *                     type: string
- *                     description: The title of the module.
- *                     example: "Introduction to JavaScript"
- *       '400':
- *         description: Bad Request. The request body is missing or `moduleIds` is not a valid array.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Invalid input: moduleIds must be an array of strings."
- *       '500':
- *         description: Internal Server Error. An error occurred on the server.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "An internal server error occurred."
+ *         description: An array of module objects with id and title.
  */
-router.post('/bulk', ModuleController.getBulk);
+router.post(
+  '/bulk',
+  validateRequest(bulkModulesSchema),
+  ModuleController.getBulk
+);
 
 export { router as moduleRouter };

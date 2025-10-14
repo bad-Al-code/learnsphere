@@ -141,3 +141,20 @@ interface AIFeedbackReadyEvent {
 export class AIFeedbackReadyPublisher extends Publisher<AIFeedbackReadyEvent> {
   readonly topic: 'ai.feedback.ready' = 'ai.feedback.ready' as const;
 }
+
+export interface GradeRecheckInitiatedEvent {
+  topic: 'grade.recheck.initiated';
+  data: {
+    submissionId: string;
+    studentId: string;
+    courseId: string;
+    content: string;
+    assignmentTitle: string;
+    courseTitle: string;
+  };
+}
+
+export class GradeRecheckInitiatedPublisher extends Publisher<GradeRecheckInitiatedEvent> {
+  readonly topic: 'grade.recheck.initiated' =
+    'grade.recheck.initiated' as const;
+}

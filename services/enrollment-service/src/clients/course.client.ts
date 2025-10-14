@@ -106,4 +106,136 @@ export class CourseClient {
       return [];
     }
   }
+
+  /**
+   * Fetches details for multiple assingments by their Ids from the course-service.
+   * @param assignmentIds An array of assingment IDs.
+   * @returns A map where the key is the assingment Id and the value is tje assignment title.
+   */
+  public static async getAssignmentsByIds(
+    assignmentIds: string[]
+  ): Promise<Map<string, { title: string }>> {
+    const assingmentMap = new Map<string, { title: string }>();
+    if (assignmentIds.length === 0) return assingmentMap;
+
+    try {
+      const response = await axios.post<{ id: string; title: string }[]>(
+        `${this.courseServiceUrl}/api/assignments/bulk`,
+        { assignmentIds },
+        {
+          headers: {
+            'x-internal-api-key': env.INTERNAL_API_KEY,
+          },
+        }
+      );
+
+      response.data.forEach((assingment) =>
+        assingmentMap.set(assingment.id, { title: assingment.title })
+      );
+    } catch (error) {
+      logger.error('Failed to bulk fetch assignment details', { error });
+    }
+
+    return assingmentMap;
+  }
+
+  /**
+   * Fetches the content of a single assignment submission from the course-service.
+   * @param submissionId The ID of the submission.
+   * @param cookie The authentication cookie of the user making the request.
+   * @returns The submission content string, or null if not found.
+   */
+  public static async getSubmissionContent(
+    submissionId: string,
+    cookie: string
+  ): Promise<string | null> {
+    try {
+      const response = await axios.get<{ content: string | null }>(
+        `${this.courseServiceUrl}/api/assignments/submissions/${submissionId}/content`,
+        {
+          headers: {
+            'x-internal-api-key': env.INTERNAL_API_KEY,
+            Cookie: cookie,
+          },
+        }
+      );
+
+      return response.data.content;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        logger.warn(
+          `Submission content not found in course-service for id: ${submissionId}`
+        );
+        return null;
+      }
+
+      logger.error(
+        'Failed to fetch submission content from course-service: %o',
+        {
+          error,
+        }
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Sends a request to the course-service to initiate a re-grade for a submission.
+   * @param submissionId The ID of the submission.
+   * @param cookie The authentication cookie of the user making the request.
+   * @returns A promise that resolves if the request is successful.
+   * @throws Throws an error if the course-service returns an error.
+   */
+  public static async requestReGrade(
+    submissionId: string,
+    cookie: string
+  ): Promise<void> {
+    try {
+      await axios.post(
+        `${this.courseServiceUrl}/api/assignments/submissions/${submissionId}/request-re-grade`,
+        {},
+        {
+          headers: {
+            'x-internal-api-key': env.INTERNAL_API_KEY,
+            Cookie: cookie,
+          },
+        }
+      );
+
+      logger.info(
+        `Successfully sent re-grade request to course-service for submission ${submissionId}`
+      );
+    } catch (error) {
+      logger.error(
+        `Failed to send re-grade request to course-service for submission ${submissionId}: %o`,
+        { error }
+      );
+
+      throw error;
+    }
+  }
+
+  /**
+   * Fetches details for multiple modules by their IDs from the course-service.
+   * @param moduleIds An array of module IDs.
+   * @returns A Map where the key is the module ID and the value is the module title.
+   */
+  public static async getModulesByIds(
+    moduleIds: string[]
+  ): Promise<Map<string, string>> {
+    const moduleMap = new Map<string, string>();
+    if (moduleIds.length === 0) return moduleMap;
+
+    try {
+      const response = await axios.post<{ id: string; title: string }[]>(
+        `${this.courseServiceUrl}/api/modules/bulk`,
+        { moduleIds }
+      );
+
+      response.data.forEach((module) => moduleMap.set(module.id, module.title));
+    } catch (error) {
+      logger.error('Failed to bulk fetch module details', { error });
+    }
+    return moduleMap;
+  }
 }

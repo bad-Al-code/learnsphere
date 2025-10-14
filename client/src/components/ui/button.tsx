@@ -1,3 +1,4 @@
+import { RippleStyles, RippleVariant, useRipple } from '@/hooks/useRipple';
 import { cn } from '@/lib/utils';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
@@ -34,15 +35,6 @@ const buttonVariants = cva(
   }
 );
 
-const rippleVariants = {
-  default: 'bg-primary-foreground/30',
-  destructive: 'bg-destructive/30',
-  outline: 'bg-foreground/10',
-  secondary: 'bg-secondary-foreground/30',
-  ghost: 'bg-accent-foreground/20',
-  link: 'bg-primary/20',
-};
-
 function Button({
   className,
   variant = 'default',
@@ -54,36 +46,9 @@ function Button({
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
   }) {
-  const buttonRef = React.useRef<HTMLButtonElement>(null);
-
-  const createRipple = (event: React.MouseEvent<HTMLButtonElement>) => {
-    const button = buttonRef.current;
-    if (!button) return;
-
-    const ripple = document.createElement('span');
-    const rect = button.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    const x = event.clientX - rect.left - size / 2;
-    const y = event.clientY - rect.top - size / 2;
-
-    ripple.className =
-      rippleVariants[variant as keyof typeof rippleVariants] ||
-      rippleVariants.default;
-    ripple.style.width = ripple.style.height = `${size}px`;
-    ripple.style.left = `${x}px`;
-    ripple.style.top = `${y}px`;
-    ripple.style.position = 'absolute';
-    ripple.style.borderRadius = '50%';
-    ripple.style.transform = 'scale(0)';
-    ripple.style.animation = 'ripple 900ms ease-out';
-    ripple.style.pointerEvents = 'none';
-
-    button.appendChild(ripple);
-
-    setTimeout(() => {
-      ripple.remove();
-    }, 900);
-  };
+  const { ref: buttonRef, createRipple } = useRipple<HTMLButtonElement>(
+    variant as RippleVariant
+  );
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     createRipple(event);
@@ -96,14 +61,7 @@ function Button({
 
   return (
     <>
-      <style>{`
-        @keyframes ripple {
-          to {
-            transform: scale(4);
-            opacity: 0;
-          }
-        }
-      `}</style>
+      <RippleStyles />
       <Comp
         ref={asChild ? undefined : buttonRef}
         data-slot="button"

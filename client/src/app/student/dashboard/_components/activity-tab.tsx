@@ -20,7 +20,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { getInitials } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import {
   BookOpen,
   Calendar,
@@ -47,7 +47,7 @@ export function LiveActivity() {
   if (isLoading) return <LiveActivitySkeleton />;
 
   return (
-    <Card className="h-[calc(100vh-8rem)]">
+    <Card className="h-[50vh]">
       <CardHeader className="">
         <CardTitle className="text-xl font-bold">Live Activity</CardTitle>
         <CardAction className="flex items-center justify-center gap-2 text-green-500">
@@ -106,16 +106,17 @@ export function LiveActivity() {
 }
 
 export function LiveStudySessionCard({ session }: { session: StudyGroup }) {
-  const formattedStartTime = session.startTime
-    ? format(new Date(session.startTime), 'MMM d, h:mm a')
-    : 'Not scheduled';
+  const formattedStartTime =
+    session.startTime && isValid(new Date(session.startTime))
+      ? format(new Date(session.startTime), 'MMM d, h:mm a')
+      : 'Not scheduled';
 
   const participantCount = session.participants.length;
   const maxParticipants = session.maxParticipants;
   const isNearlyFull = participantCount / maxParticipants > 0.8;
 
   return (
-    <Card className="bg-muted/10">
+    <Card className="bg-muted/5">
       <CardContent className="space-y-2">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">

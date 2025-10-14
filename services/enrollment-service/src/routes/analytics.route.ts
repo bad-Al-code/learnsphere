@@ -11,7 +11,11 @@ import { AnalyticsController } from '../controllers/analytics.controller';
 import { requireAuth } from '../middlewares/require-auth';
 import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
-import { courseIdParamsSchema } from '../schema';
+import {
+  courseIdParamsSchema,
+  getMyGradesQuerySchema,
+  submissionIdParamsSchema,
+} from '../schema';
 
 const router = Router();
 
@@ -714,10 +718,8 @@ router.get(
 router.post(
   '/instructor/request-report',
   requireAuth,
-  requireRole(['instructor', 'admin']),
   AnalyticsController.requestReport
 );
-
 /**
  * @openapi
  * /api/analytics/instructor/student-grade/{courseId}/{studentId}:
@@ -784,6 +786,208 @@ router.get(
   requireAuth,
   validateRequest(courseIdParamsSchema),
   AnalyticsController.getStudentAssignmentAnalytics
+);
+
+/**
+ * @openapi
+ * /api/analytics/my-grades:
+ *   get:
+ *     summary: "[Student] Get my graded and pending assignments"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema: { type: string }
+ *         description: Search by assignment title.
+ *       - in: query
+ *         name: courseId
+ *         schema: { type: string, format: uuid }
+ *         description: Filter by course.
+ *       - in: query
+ *         name: status
+ *         schema: { type: string, enum: [Graded, Pending] }
+ *         description: Filter by submission status.
+ *       - in: query
+ *         name: grade
+ *         schema: { type: string }
+ *         description: Filter by grade range (e.g., "90-100").
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *     responses:
+ *       '200':
+ *         description: A paginated list of the student's grades.
+ */
+router.get(
+  '/my-grades',
+  requireAuth,
+  validateRequest(getMyGradesQuerySchema),
+  AnalyticsController.getMyGrades
+);
+
+/**
+ * @openapi
+ * /api/analytics/submissions/{submissionId}:
+ *   get:
+ *     summary: "[Student] Get details for a single submission"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: submissionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the submission to retrieve.
+ *     responses:
+ *       '200':
+ *         description: The detailed submission object.
+ *       '401':
+ *         description: Unauthorized.
+ *       '403':
+ *         description: Forbidden. User does not own this submission.
+ *       '404':
+ *         description: Submission not found.
+ */
+router.get(
+  '/submissions/:submissionId',
+  requireAuth,
+  validateRequest(submissionIdParamsSchema),
+  AnalyticsController.getSubmissionDetails
+);
+
+/**
+ * @openapi
+ * /api/analytics/submissions/{submissionId}/request-recheck:
+ *   post:
+ *     summary: "[Student] Request an AI re-grade for a submission"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: submissionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       '202':
+ *         description: Request accepted for processing. The user will be notified upon completion.
+ *       '401':
+ *         description: Unauthorized.
+ *       '403':
+ *         description: Forbidden. User does not own this submission.
+ *       '404':
+ *         description: Submission not found.
+ */
+router.post(
+  '/submissions/:submissionId/request-recheck',
+  requireAuth,
+  validateRequest(submissionIdParamsSchema),
+  AnalyticsController.requestRecheck
+);
+
+/**
+ * @openapi
+ * /api/analytics/student/comparison/{courseId}:
+ *   get:
+ *     summary: "[Student] Get performance comparison analytics"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The primary course ID for class ranking.
+ *     responses:
+ *       '200':
+ *         description: A comprehensive object of comparison analytics.
+ */
+router.get(
+  '/student/comparison/:courseId',
+  requireAuth,
+  validateRequest(courseIdParamsSchema),
+  AnalyticsController.getStudentComparisonAnalytics
+);
+
+/**
+ * @openapi
+ * /api/analytics/student/performance-highlights/{courseId}:
+ *   get:
+ *     summary: "[Student] Get AI-generated performance highlights"
+ *     description: Retrieves personalized, AI-generated insights based on a student's performance. Results are cached for 24 hours.
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The course ID to provide context for the insights.
+ *     responses:
+ *       '200':
+ *         description: An array of AI-generated highlight objects.
+ *       '401':
+ *         description: Unauthorized.
+ *       '500':
+ *         description: Internal Server Error, possibly from the AI service.
+ */
+router.get(
+  '/student/performance-highlights/:courseId',
+  requireAuth,
+  validateRequest(courseIdParamsSchema),
+  AnalyticsController.getPerformanceHighlights
+);
+
+/**
+ * @openapi
+ * /api/analytics/student/predictive-chart:
+ *   get:
+ *     summary: "[Student] Get AI-powered predictive performance chart"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     description: Retrieves a time-series prediction of a student's future grades. Results are cached for 24 hours.
+ *     responses:
+ *       '200':
+ *         description: An array of predictive data points for the chart.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   month:
+ *                     type: string
+ *                   predicted:
+ *                     type: number
+ *                   confidence:
+ *                     type: number
+ *       '401':
+ *         description: Unauthorized.
+ *       '500':
+ *         description: Internal Server Error.
+ */
+router.get(
+  '/student/predictive-chart',
+  requireAuth,
+  AnalyticsController.getPredictiveChart
 );
 
 export { router as analyticsRouter };

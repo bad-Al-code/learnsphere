@@ -46,7 +46,9 @@ export interface EmailOptions {
     | 'event_unregistration'
     | 'event_reminder'
     | 'reward_unlocked'
-    | 'waitlist_confirmation';
+    | 'waitlist_confirmation'
+    | 'nurture_week_1'
+    | 'nurture_week_2';
 }
 
 export type Notification = typeof notifications.$inferSelect;

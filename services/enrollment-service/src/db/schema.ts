@@ -14,6 +14,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { AssignmentResponse } from '../features/ai/responseSchema/assignmentRecommendationResponse.schema';
+import { PredictiveChartData } from '../features/ai/schema';
 import { FeedbackResponseSchema } from '../features/ai/schema/feedback.schema';
 
 type ModuleSnapshot = {
@@ -135,13 +136,14 @@ export const studentGrades = pgTable(
     courseId: uuid('course_id').notNull(),
     moduleId: uuid('module_id'),
     studentId: uuid('student_id').notNull(),
-    grade: integer('grade').notNull(),
-    gradedAt: timestamp('graded_at').notNull(),
+    grade: integer('grade'),
+    gradedAt: timestamp('graded_at'),
   },
   (table) => [primaryKey({ columns: [table.submissionId] })]
 );
 
 export type NewStudentGrade = typeof studentGrades.$inferInsert;
+export type StudentGrade = typeof studentGrades.$inferSelect;
 
 export const activityTypeEnum = pgEnum('activity_type', [
   'enrollment',
@@ -232,3 +234,12 @@ export const aiStudyRecommendations = pgTable('ai_study_recommendations', {
   generatedAt: timestamp('generated_at').defaultNow().notNull(),
 });
 export type AIStudyRecommendation = typeof aiStudyRecommendations.$inferSelect;
+
+export const aiLearningPaths = pgTable('ai_learning_paths', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().unique(),
+  pathData: jsonb('path_data').$type<PredictiveChartData>().notNull(),
+  generatedAt: timestamp('generated_at').defaultNow().notNull(),
+});
+
+export type AILearningPath = typeof aiLearningPaths.$inferSelect;

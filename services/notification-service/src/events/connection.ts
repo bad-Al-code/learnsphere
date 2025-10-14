@@ -54,7 +54,7 @@ class RabbitMQConnection {
           'direct',
           { durable: true }
         );
-        await this.channel.assertExchange(DELAY_EXCHANGE, 'direct', {
+        await this.channel.assertExchange(DELAY_EXCHANGE, 'topic', {
           durable: true,
         });
         // await this.channel.assertQueue(AI_FEEDBACK_DELAY_QUEUE, {
@@ -81,7 +81,9 @@ class RabbitMQConnection {
         //   'RabbitMQ DLX and delay queues for AI feedback configured successfully.'
         // );
 
-      logger.info('RabbitMQ exchanges for delayed messaging configured successfully.');
+        logger.info(
+          'RabbitMQ exchanges for delayed messaging configured successfully.'
+        );
 
         return;
       } catch (err) {

@@ -16,6 +16,7 @@ import {
   MessageSentListener,
   ReportGenerationFailedListener,
   ReportGenerationSuccessListener,
+  StudentGradeRecheckRequestedListener,
   StudyRoomReminderListener,
   UserInvitedToStudyRoomListener,
   UserJoinedWaitlistListener,
@@ -26,6 +27,8 @@ import {
   UserSyncRoleUpdatedListener,
   UserVerificationRequiredListener,
   UserVerifiedListener,
+  WaitlistNurtureWeek1Listener,
+  WaitlistNurtureWeek2Listener,
 } from './events/listener';
 import { EmailService } from './services/email-service';
 import { WebSocketService } from './services/websocket.service';
@@ -57,6 +60,9 @@ const start = async () => {
     new EventReminderListener(emailService).listen();
     new UserJoinedWaitlistListener(emailService).listen();
     new UserRewardUnlockedListener(emailService).listen();
+    new WaitlistNurtureWeek1Listener(emailService).listen();
+    new WaitlistNurtureWeek2Listener(emailService).listen();
+    new StudentGradeRecheckRequestedListener().listen();
 
     const server = http.createServer(app);
 

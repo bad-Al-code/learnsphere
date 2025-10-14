@@ -6,7 +6,9 @@ import {
   ModuleRepository,
 } from '../db/repostiories';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
+import { GradeRecheckInitiatedPublisher } from '../events/publisher';
 import {
+  Assignment,
   assignmentSchema,
   CreateAssignmentDto,
   FindAssignmentsQuery,
@@ -169,6 +171,21 @@ export class AssignmentService {
   }
 
   /**
+   * Retrieves mutiple assignment by their IDs.
+   * @param assignmentIds An array of assignment IDs.
+   * @returns A list of assignment objects.
+   */
+  public static async getAssignmentsByIds(
+    assignmentIds: string[]
+  ): Promise<Assignment[]> {
+    logger.info(
+      `Fetching details for ${assignmentIds.length} assignment in bulk`
+    );
+
+    return AssignmentRepository.findManyByIds(assignmentIds);
+  }
+
+  /**
    * Retrieves the status and stats for all assignments in a given course
    * @param courseId The Course ID
    */
@@ -302,5 +319,89 @@ export class AssignmentService {
    */
   public static async getSubmittedAssignments(userId: string) {
     return await AssignmentRepository.findSubmittedForUser(userId);
+  }
+
+  /**
+   * Retrieves the content of a specific submission, ensuring the requester is the owner.
+   * @param submissionId The Id of the submission.
+   * @param requester The user makung the request.
+   * @returns The submission content.
+   */
+  public static async getSubmissionContent(
+    submissionId: string,
+    requester: Requester
+  ): Promise<{ content: string | null }> {
+    logger.info(
+      `User ${requester.id} requsting content for submission ${submissionId}`
+    );
+
+    const submission = await AssignmentRepository.findSubmissionContentById(
+      submissionId,
+      requester.id
+    );
+
+    if (!submission) {
+      throw new NotFoundError('Submission content not found for this user.');
+    }
+
+    return submission;
+  }
+
+  /**
+   * Sets the re-grade status for a submission to 'pending'.
+   * @param submissionId The Id of the submission.
+   * @param requester The user making the request.
+   */
+  public static async requestReGrade(
+    submissionId: string,
+    requester: Requester
+  ): Promise<void> {
+    logger.info(
+      `User ${requester.id} is requesting a re-grade for submission ${submissionId}`
+    );
+
+    const submission =
+      await AssignmentRepository.findSubmissionById(submissionId);
+
+    if (!submission || submission.studentId !== requester.id) {
+      throw new NotFoundError('Submission not found for this user.');
+    }
+
+    if (!submission.content) {
+      throw new BadRequestError(
+        'Cannot request a re-grade for an empty submission.'
+      );
+    }
+
+    const updated = await AssignmentRepository.updateReGradeStatus(
+      submissionId,
+      requester.id,
+      'pending'
+    );
+
+    if (!updated) {
+      throw new Error('Failed to update re-grade status.');
+    }
+
+    logger.info(
+      `Submission ${submissionId} status set to 'pending' for re-grade.`
+    );
+
+    try {
+      const publisher = new GradeRecheckInitiatedPublisher();
+      await publisher.publish({
+        submissionId: submission.id,
+        studentId: submission.studentId,
+        courseId: submission.courseId,
+        content: submission.content,
+        assignmentTitle: submission.assignment.title,
+        courseTitle: submission.assignment.course.title,
+      });
+    } catch (error) {
+      logger.error(
+        `Failed to publish grade.recheck.initiated event for submission ${submissionId}: %o`,
+        { error }
+      );
+    }
   }
 }

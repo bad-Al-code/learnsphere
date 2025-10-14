@@ -391,9 +391,9 @@ export const studentAssignmentsTabs: NavItem[] = [
 export const studentGradesTabs: NavItem[] = [
   { href: '#', label: 'Grades', value: 'grades', icon: 'Award' },
   { href: '#', label: 'Progress', value: 'progress', icon: 'TrendingUp' },
-  { href: '#', label: 'Comparison', value: 'comparison', icon: 'Users' },
+  // { href: '#', label: 'Comparison', value: 'comparison', icon: 'Users' },
   { href: '#', label: 'Study Habits', value: 'study-habits', icon: 'BookOpen' },
-  { href: '#', label: 'AI Insights', value: 'ai-insights', icon: 'Lightbulb' },
+  // { href: '#', label: 'AI Insights', value: 'ai-insights', icon: 'Lightbulb' },
   { href: '#', label: 'Reports', value: 'reports', icon: 'FileBarChart' },
   { href: '#', label: 'Goals', value: 'goals', icon: 'Target' },
 ];

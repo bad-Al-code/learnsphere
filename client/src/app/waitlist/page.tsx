@@ -302,7 +302,7 @@ function WaitlistStatus({
               value={referralLink}
               className="text-center sm:text-left"
             />
-            <Button onClick={copyToClipboard} className="flex-shrink-0">
+            <Button onClick={copyToClipboard}>
               <Copy className="h-4 w-4" />
               Copy Link
             </Button>

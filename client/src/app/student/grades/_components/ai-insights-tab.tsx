@@ -17,12 +17,8 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Skeleton } from '@/components/ui/skeleton';
-
-type TLineChartData = {
-  month: string;
-  predicted: number;
-  confidence: number;
-};
+import { ErrorState } from '@/features/ai-tools/_components/common/CourseSelectionScrren';
+import { usePredictiveChart } from '../hooks';
 
 type TPrediction = {
   title: string;
@@ -34,13 +30,6 @@ type TRecommendation = {
   title: string;
   description: string;
 };
-
-const analyticsChartData: TLineChartData[] = [
-  { month: 'Jan', predicted: 68, confidence: 52 },
-  { month: 'Feb', predicted: 90, confidence: 74 },
-  { month: 'Mar', predicted: 72, confidence: 56 },
-  { month: 'Apr', predicted: 84, confidence: 97 },
-];
 
 const analyticsChartConfig = {
   predicted: { label: 'Predicted Performance', color: 'hsl(38 90% 50%)' },
@@ -85,6 +74,67 @@ const learningRecommendationsData: TRecommendation[] = [
 ];
 
 function PredictivePerformanceChart() {
+  const { data, isLoading, isError, error, refetch } = usePredictiveChart();
+
+  const renderContent = () => {
+    if (isLoading) {
+      return <Skeleton className="h-48 w-full" />;
+    }
+
+    if (isError) {
+      return (
+        <div className="">
+          <ErrorState message={error.message} onRetry={refetch} />
+        </div>
+      );
+    }
+
+    if (!data || data.length === 0) {
+      return (
+        <div className="text-muted-foreground flex h-48 w-full flex-col items-center justify-center text-center text-sm">
+          <BrainCircuit className="mb-4 h-10 w-10 opacity-50" />
+          <p className="font-semibold">Not Enough Data for Prediction</p>
+          <p>
+            Complete more graded assignments to unlock AI-powered performance
+            predictions.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <ChartContainer config={analyticsChartConfig} className="h-48 w-full">
+        <LineChart accessibilityLayer data={data}>
+          <CartesianGrid vertical={false} />
+          <XAxis
+            dataKey="month"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            // fontSize={12}
+          />
+          <YAxis />
+          <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+          <Line
+            dataKey="predicted"
+            type="monotone"
+            stroke="var(--color-predicted)"
+            strokeWidth={2}
+            dot={true}
+          />
+          <Line
+            dataKey="confidence"
+            type="monotone"
+            stroke="var(--color-confidence)"
+            strokeWidth={2}
+            strokeDasharray="3 3"
+            dot={false}
+          />
+        </LineChart>
+      </ChartContainer>
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -96,39 +146,7 @@ function PredictivePerformanceChart() {
           AI-powered predictions of your future academic performance
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <ChartContainer
-          config={analyticsChartConfig}
-          className="h-[250px] w-full"
-        >
-          <LineChart accessibilityLayer data={analyticsChartData}>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-            />
-            <YAxis />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <Line
-              dataKey="predicted"
-              type="monotone"
-              stroke="var(--color-predicted)"
-              strokeWidth={2}
-              dot={true}
-            />
-            <Line
-              dataKey="confidence"
-              type="monotone"
-              stroke="var(--color-confidence)"
-              strokeWidth={2}
-              strokeDasharray="3 3"
-              dot={true}
-            />
-          </LineChart>
-        </ChartContainer>
-      </CardContent>
+      <CardContent>{renderContent()}</CardContent>
     </Card>
   );
 }

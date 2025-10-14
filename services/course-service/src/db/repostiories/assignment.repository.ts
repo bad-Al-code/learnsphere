@@ -27,6 +27,7 @@ import {
   assignmentSubmissions,
   courses,
   NewAssignmentDraft,
+  ReGradeStatusEnum,
 } from '../schema';
 import { DraftRepository } from './draft.repository';
 
@@ -53,6 +54,19 @@ export class AssignmentRepository {
   public static async findById(id: string): Promise<Assignment | undefined> {
     return db.query.assignments.findFirst({
       where: eq(assignments.id, id),
+    });
+  }
+
+  /**
+   * Finds multiple assignments by their IDs.
+   * @param ids An array of assignment IDs to finds.
+   * @returns An array of found assingments.
+   */
+  public static async findManyByIds(ids: string[]): Promise<Assignment[]> {
+    if (ids.length === 0) return [];
+
+    return db.query.assignments.findMany({
+      where: inArray(assignments.id, ids),
     });
   }
 
@@ -413,5 +427,70 @@ export class AssignmentRepository {
       .orderBy(desc(assignmentSubmissions.submittedAt));
 
     return results;
+  }
+
+  /**
+   * Finds a single submission by its Id, verifying ownership by the student.
+   * @param submissionId The Id of the submission to find.
+   * @param studentId The Id of the student who must own the submission.
+   * @returns The submission content or undefined if not found or not owned by the user.
+   */
+  public static async findSubmissionContentById(
+    submissionId: string,
+    studentId: string
+  ): Promise<{ content: string | null } | undefined> {
+    const [result] = await db
+      .select({ content: assignmentSubmissions.content })
+      .from(assignmentSubmissions)
+      .where(
+        and(
+          eq(assignmentSubmissions.id, submissionId),
+          eq(assignmentSubmissions.studentId, studentId)
+        )
+      )
+      .limit(1);
+
+    return result;
+  }
+
+  /**
+   * Finds a single assignment submission by its ID.
+   * @param  submissionId - The unique ID of the submission to find.
+   * @returns Returns the submission record if found, otherwise undefined.
+   */
+  public static async findSubmissionById(submissionId: string) {
+    return await db.query.assignmentSubmissions.findFirst({
+      where: eq(assignmentSubmissions.id, submissionId),
+      with: {
+        assignment: {
+          with: { course: true },
+        },
+      },
+    });
+  }
+
+  /**
+   * Updates the re-grade status for a specific submission.
+   * @param submissionId The Id of the submission to udpate.
+   * @param studentId The Id of the student who owns the submision.
+   * @param status the new status.
+   * @returns True if the udpate was successful, false otherwise.
+   */
+  public static async updateReGradeStatus(
+    submissionId: string,
+    studentId: string,
+    status: ReGradeStatusEnum
+  ): Promise<boolean> {
+    const result = await db
+      .update(assignmentSubmissions)
+      .set({ reGradeStatus: status })
+      .where(
+        and(
+          eq(assignmentSubmissions.id, submissionId),
+          eq(assignmentSubmissions.studentId, studentId)
+        )
+      );
+
+    return (result.rowCount ?? 0) > 0;
   }
 }

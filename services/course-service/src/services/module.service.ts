@@ -162,9 +162,18 @@ export class ModuleService {
     });
   }
 
-  public static async getModulesByIds(moduleIds: string[]) {
-    const result = await ModuleRepository.findManyByIdsSimple(moduleIds);
-
-    return result;
+  /**
+   * Retrieves multiple modules by their IDs, returning only essential information.
+   * @param  moduleIds - An array of module IDs.
+   * @returns A promise that resolves to a list of simplified module objects.
+   */
+  public static async getModulesByIds(
+    moduleIds: string[]
+  ): Promise<{ id: string; title: string | null }[]> {
+    if (moduleIds.length === 0) {
+      return [];
+    }
+    logger.info(`Fetching details for ${moduleIds.length} modules in bulk`);
+    return ModuleRepository.findManyByIdsSimple(moduleIds);
   }
 }

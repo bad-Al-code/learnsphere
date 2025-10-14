@@ -429,4 +429,40 @@ export class EmailService {
       type: 'reward_unlocked',
     });
   }
+
+  /**
+   * Constructs and sends the week 1 nurture email.
+   * @param data The data needed to build the email.
+   */
+  public async sendNurtureWeek1Email(data: {
+    email: string;
+    userName: string | null;
+  }): Promise<void> {
+    const htmlBody = EmailTemplate.generateNurtureWeek1Email(data.userName);
+    await this.emailClient.send({
+      to: data.email,
+      subject: 'A Sneak Peek into LearnSphere',
+      text: "Here's a sneak peek at what we're building at LearnSphere to revolutionize learning.",
+      html: htmlBody,
+      type: 'nurture_week_1',
+    });
+  }
+
+  /**
+   * Constructs and sends the week 2 nurture email.
+   * @param data The data needed to build the email.
+   */
+  public async sendNurtureWeek2Email(data: {
+    email: string;
+    userName: string | null;
+  }): Promise<void> {
+    const htmlBody = EmailTemplate.generateNurtureWeek2Email(data.userName);
+    await this.emailClient.send({
+      to: data.email,
+      subject: 'Our Mission at LearnSphere',
+      text: 'A quick update on our mission and what drives us to build LearnSphere for you.',
+      html: htmlBody,
+      type: 'nurture_week_2',
+    });
+  }
 }

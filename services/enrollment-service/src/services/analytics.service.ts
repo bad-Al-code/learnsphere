@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { format, subDays } from 'date-fns';
+import { differenceInHours, format, subDays } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { CourseClient } from '../clients/course.client';
 import { UserClient } from '../clients/user.client';
@@ -12,8 +12,12 @@ import {
 } from '../db/repositories';
 import { AnalyticsRepository } from '../db/repositories/analytics.repository';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
-import { ReportGenerationRequestedPublisher } from '../events/publisher';
+import {
+  ReportGenerationRequestedPublisher,
+  StudentGradeRecheckRequestedPublisher,
+} from '../events/publisher';
 import { GeminiClient } from '../features/ai/client/gemini.client';
+import { AIPrompt } from '../features/ai/prompts';
 import { buildRecommendationSystemPrompt } from '../features/ai/prompts/assignmentRecommendation.prompt';
 import { buildInsightSystemPrompt } from '../features/ai/prompts/insight.prompt';
 import {
@@ -23,6 +27,14 @@ import {
 } from '../features/ai/responseSchema/assignmentRecommendationResponse.schema';
 import { feedbackResponseSchema } from '../features/ai/responseSchema/feedbackResponse.schema';
 import {
+  PerformanceHighlights,
+  performanceHighlightsResponseSchema,
+  performanceHighlightsZodSchema,
+  PredictiveChartData,
+  predictiveChartDataSchema,
+  predictiveChartResponseSchema,
+} from '../features/ai/schema';
+import {
   FeedbackResponseSchema,
   feedbackResponseSchemaZod,
 } from '../features/ai/schema/feedback.schema';
@@ -31,8 +43,16 @@ import {
   AssignmentAnalytics,
   assignmentAnalyticsSchema,
   assignmentSchema,
+  GetMyGradesQuery,
+  ReportFormat,
+  ReportType,
 } from '../schema';
-import { StudentPerformance, UserProfileData } from '../types';
+import {
+  Grade,
+  Requester,
+  StudentPerformance,
+  UserProfileData,
+} from '../types';
 
 interface ModuleDetails {
   id: string;
@@ -751,48 +771,82 @@ export class AnalyticsService {
    * @param format Format of the report ('csv' | 'pdf')
    * @returns Promise with job information
    */
-  public static async requestReportGeneration(
-    requesterId: string,
-    reportType: string,
-    format: 'csv' | 'pdf'
-  ): Promise<{ jobId: string; message: string }> {
+  public static async requestReport(
+    requester: Requester,
+    reportType: ReportType,
+    format: ReportFormat,
+    filters?: GetMyGradesQuery
+  ): Promise<
+    | {
+        jobId: string;
+        message: string;
+      }
+    | undefined
+  > {
     logger.info(
-      `Report request received from ${requesterId} for ${reportType} in ${format} format.`
+      `User ${requester.id} requested a '${format}' report of type '${reportType}'.`,
+      { filters }
     );
 
-    let payload: StudentPerformance[];
-    if (reportType === 'student_performance') {
-      payload =
-        await AnalyticsRepository.getStudentPerformanceOverview(requesterId);
+    let payload: Grade[] | StudentPerformance[];
+
+    if (reportType === 'student_grades') {
+      const { results } = await this.getMyGrades(requester.id, {
+        ...filters,
+        page: 1,
+        limit: 10000,
+      });
+      if (results.length === 0) {
+        throw new BadRequestError(
+          'No data available to generate a report for the selected filters.'
+        );
+      }
+      payload = results;
+    } else if (reportType === 'student_performance') {
+      payload = await AnalyticsRepository.getStudentPerformanceOverview(
+        requester.id
+      );
+
+      if (payload.length === 0) {
+        throw new BadRequestError(
+          'No performance data available to generate a report.'
+        );
+      }
     } else {
       throw new BadRequestError('Invalid report type specified.');
     }
 
     const job = await AnalyticsRepository.createReportJob({
-      requesterId,
+      requesterId: requester.id,
       reportType,
       format,
     });
+    const jobId = job.id;
 
     try {
       const publisher = new ReportGenerationRequestedPublisher();
 
       await publisher.publish({
         jobId: job.id,
-        requesterId,
+        requesterId: requester.id,
+        requesterEmail: requester.email,
         reportType,
         format,
         payload,
       });
+
+      logger.info(
+        `Successfully published report generation request with Job ID: ${jobId}`
+      );
+
+      return {
+        jobId,
+        message:
+          'Report generation has started. You will be notified upon completion.',
+      };
     } catch (err) {
       logger.error('Failed to publish report generation event', err);
     }
-
-    return {
-      jobId: job.id,
-      message:
-        'Report generation has started. You will be notified upon completion.',
-    };
   }
 
   /**
@@ -1372,5 +1426,520 @@ export class AnalyticsService {
 
     const change = ((recent - previous) / previous) * 100;
     return `${change > 0 ? '+' : ''}${change.toFixed(1)}%`;
+  }
+
+  /**
+   * Retrieves a student's grades, enriched with module name.
+   * @param studentId The ID of the student.
+   * @param options The query options for filtering and pagination.
+   * @returns A paginated result of the student's grades.
+   */
+  public static async getMyGrades(
+    studentId: string,
+    options: GetMyGradesQuery
+  ) {
+    const { totalResults, results: rawGrades } =
+      await AnalyticsRepository.findMyGrades(studentId, options);
+
+    if (rawGrades.length === 0) {
+      return {
+        results: [],
+        pagination: {
+          currentPage: options.page,
+          totalPages: 0,
+          totalResults: 0,
+        },
+      };
+    }
+
+    const courseIds = [...new Set(rawGrades.map((g) => g.courseId))];
+    const moduleIds = [
+      ...new Set(rawGrades.map((g) => g.moduleId).filter(Boolean) as string[]),
+    ];
+    const assignmentIds = [...new Set(rawGrades.map((g) => g.assignmentId))];
+
+    const [courseMap, moduleMap, assignmentMap] = await Promise.all([
+      CourseClient.getCoursesByIds(courseIds),
+      CourseClient.getModulesByIds(moduleIds),
+      CourseClient.getAssignmentsByIds(assignmentIds),
+    ]);
+
+    let enrichedResults = rawGrades.map((grade) => ({
+      id: grade.submissionId,
+      course: courseMap.get(grade.courseId)?.title || 'Unknown Course',
+      assignment:
+        assignmentMap.get(grade.assignmentId)?.title || 'Unknown Assignment',
+      module: grade.moduleId ? moduleMap.get(grade.moduleId) || 'N/A' : 'N/A',
+      grade: grade.grade,
+      status: (grade.grade !== null ? 'Graded' : 'Pending') as
+        | 'Graded'
+        | 'Pending',
+      submitted: grade.gradedAt,
+    }));
+
+    if (options.q) {
+      enrichedResults = enrichedResults.filter((result) =>
+        result.assignment.toLowerCase().includes(options.q!.toLowerCase())
+      );
+    }
+
+    return {
+      results: enrichedResults,
+      pagination: {
+        currentPage: options.page,
+        totalPages: Math.ceil(totalResults / options.limit),
+        totalResults,
+      },
+    };
+  }
+
+  /**
+   * Retrieves the details for a single submission, verifying ownership.
+   * @param submissionId The ID of the submission.
+   * @param requesterId The ID of the user making the request.
+   * @param cookie The raw cookie header for service-to-service auth.
+   * @returns The full submission details.
+   */
+  public static async getSubmissionDetails(
+    submissionId: string,
+    requesterId: string,
+    cookie: string
+  ) {
+    const submission =
+      await AnalyticsRepository.findSubmissionById(submissionId);
+    if (!submission) {
+      throw new NotFoundError('Submission');
+    }
+
+    if (submission.studentId !== requesterId) {
+      throw new ForbiddenError(
+        'You do not have permission to view this submission.'
+      );
+    }
+
+    const submissionContent = await CourseClient.getSubmissionContent(
+      submissionId,
+      cookie
+    );
+
+    return { ...submission, content: submissionContent };
+  }
+
+  /**
+   * Initiates a re-grade request for a submission.
+   * Orchestrates a call to the course-service and publishes an event upon success.
+   * @param submissionId The ID of the submission.
+   * @param requester The user making the request.
+   * @param cookie The raw cookie for authenticating the service-to-service call.
+   */
+  public static async requestReGrade(
+    submissionId: string,
+    requester: Requester,
+    cookie: string
+  ): Promise<void> {
+    logger.info(
+      `Processing re-grade request from user ${requester.id} for submission ${submissionId}`
+    );
+
+    const submission =
+      await AnalyticsRepository.findSubmissionById(submissionId);
+    if (!submission || submission.studentId !== requester.id) {
+      throw new ForbiddenError(
+        'You do not have permission to request a re-grade for this submission.'
+      );
+    }
+
+    await CourseClient.requestReGrade(submissionId, cookie);
+
+    try {
+      const publisher = new StudentGradeRecheckRequestedPublisher();
+      await publisher.publish({
+        submissionId: submission.id!,
+        studentId: submission.studentId,
+        courseId: submission.courseId,
+        requestedAt: new Date(),
+      });
+    } catch (error) {
+      logger.error(
+        `Failed to publish student.grade.recheck.requested event for submission ${submissionId}: %o`,
+        { error }
+      );
+    }
+  }
+
+  /**
+   * Retrieves analytics for comparing a student's performance against class averages.
+   * @param courseId The primary course for comparison.
+   * @param studentId The ID of the student.
+   * @returns A comprehensive analytics object for the comparison tab.
+   */
+  public static async getStudentComparisonAnalytics(
+    courseId: string,
+    studentId: string
+  ) {
+    return this.getComparisonAnalyticsData(courseId, studentId);
+  }
+
+  /**
+   * Helper to get a student's average grade for multiple courses.
+   * @param studentId The ID of the student.
+   * @param courseIds An array of course IDs.
+   * @returns A Map where the key is courseId and the value is the student's average grade.
+   */
+  private static async getStudentAverageGrades(
+    studentId: string,
+    courseIds: string[]
+  ): Promise<Map<string, number>> {
+    const gradesMap = new Map<string, number>();
+    if (courseIds.length === 0) return gradesMap;
+
+    const results = await AnalyticsRepository.getAverageGradesByCourses(
+      studentId,
+      courseIds
+    );
+    results.forEach((row) => {
+      gradesMap.set(row.courseId, parseFloat(row.avgGrade || '0'));
+    });
+
+    return gradesMap;
+  }
+
+  /**
+   * Generates personalized performance highlights using an AI model.
+   * @param analyticsData The aggregated analytics data for the student.
+   * @returns A promise that resolves to an array of AI-generated insights. Returns a default set on failure.
+   */
+  private static async _generatePerformanceHighlights(analyticsData: {
+    performanceChart: {
+      subject: string;
+      yourScore: number;
+      classAverage: number;
+    }[];
+    classRanking: { rank: number | null; totalStudents: number };
+  }): Promise<PerformanceHighlights> {
+    try {
+      if (analyticsData.performanceChart.length === 0) {
+        throw new Error('Not enough data to generate highlights.');
+      }
+
+      const totalYourScore = analyticsData.performanceChart.reduce(
+        (sum, item) => sum + item.yourScore,
+        0
+      );
+      const totalClassAverage = analyticsData.performanceChart.reduce(
+        (sum, item) => sum + item.classAverage,
+        0
+      );
+      const averagePerformance =
+        totalClassAverage > 0 ? totalYourScore / totalClassAverage : 1;
+
+      const bestCourse = analyticsData.performanceChart.reduce(
+        (best, current) => {
+          return current.yourScore > best.yourScore ? current : best;
+        },
+        analyticsData.performanceChart[0]
+      );
+
+      const context = {
+        rank: analyticsData.classRanking.rank,
+        totalStudents: analyticsData.classRanking.totalStudents,
+        bestCourse: bestCourse
+          ? { subject: bestCourse.subject, yourScore: bestCourse.yourScore }
+          : null,
+        averagePerformance,
+      };
+
+      const systemInstruction =
+        AIPrompt.buildPerformanceHighlightsPrompt(context);
+
+      const response = await this.ai.models.generateContent({
+        model: this.model,
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Generate the performance highlights now.' }],
+          },
+        ],
+        config: {
+          responseMimeType: 'application/json',
+          systemInstruction,
+          responseSchema: performanceHighlightsResponseSchema,
+        },
+      });
+
+      const text = response.text;
+      if (!text) {
+        throw new Error('No response text from AI provider.');
+      }
+
+      const parsed = JSON.parse(text);
+      const validated = performanceHighlightsZodSchema.parse(parsed);
+
+      return validated.highlights;
+    } catch (error) {
+      logger.error(
+        'Failed to generate AI performance highlights. Returning default. %o',
+        { error }
+      );
+
+      return [
+        {
+          title: 'Great Effort!',
+          text: "You're actively participating and completing your assignments. Keep up the great work!",
+        },
+        {
+          title: 'Keep Growing',
+          text: 'Every assignment is an opportunity to learn. Continue to review your feedback to improve.',
+        },
+        {
+          title: 'Well Done',
+          text: 'Consistency is key in learning, and you are on the right track.',
+        },
+      ];
+    }
+  }
+
+  /**
+   * Generates or retrieves cached AI performance highlights for a student.
+   * @param courseId The course context for the analytics.
+   * @param studentId The ID of the student.
+   * @returns A promise that resolves to an array of AI-generated insights.
+   */
+  public static async getPerformanceHighlights(
+    courseId: string,
+    studentId: string
+  ): Promise<FeedbackResponseSchema> {
+    logger.debug(
+      `Checking for cached performance highlights for user ${studentId}.`
+    );
+    const cachedInsights =
+      await AnalyticsRepository.getLatestInsights(studentId);
+
+    if (
+      cachedInsights &&
+      differenceInHours(new Date(), cachedInsights.generatedAt) < 24
+    ) {
+      logger.info(
+        `Returning cached performance highlights for user ${studentId}.`
+      );
+      return cachedInsights.insights;
+    }
+
+    logger.info(`Generating new performance highlights for user ${studentId}.`);
+    const { performanceChart, classRanking } =
+      await this.getComparisonAnalyticsData(courseId, studentId);
+
+    try {
+      if (performanceChart.length === 0) {
+        throw new Error('Not enough data to generate highlights.');
+      }
+
+      const totalYourScore = performanceChart.reduce(
+        (sum, item) => sum + item.yourScore,
+        0
+      );
+      const totalClassAverage = performanceChart.reduce(
+        (sum, item) => sum + item.classAverage,
+        0
+      );
+      const averagePerformance =
+        totalClassAverage > 0 ? totalYourScore / totalClassAverage : 1;
+      const bestCourse = performanceChart.reduce((best, current) =>
+        current.yourScore > best.yourScore ? current : best
+      );
+
+      const context = {
+        rank: classRanking.rank,
+        totalStudents: classRanking.totalStudents,
+        bestCourse: bestCourse
+          ? { subject: bestCourse.subject, yourScore: bestCourse.yourScore }
+          : null,
+        averagePerformance,
+      };
+
+      const systemInstruction =
+        AIPrompt.buildPerformanceHighlightsPrompt(context);
+      const response = await this.ai.models.generateContent({
+        model: this.model,
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Generate the performance highlights now.' }],
+          },
+        ],
+        config: {
+          responseMimeType: 'application/json',
+          systemInstruction,
+          responseSchema: feedbackResponseSchema,
+        },
+      });
+
+      const text = response.text;
+      if (!text) throw new Error('No response text from AI provider.');
+
+      const parsed = JSON.parse(text);
+      const validated = feedbackResponseSchemaZod.parse(parsed);
+
+      await AnalyticsRepository.upsertInsights(studentId, validated);
+      logger.info(
+        `Saved new AI performance highlights to cache for user ${studentId}`
+      );
+
+      return validated;
+    } catch (error) {
+      logger.error(
+        'Failed to generate AI performance highlights. Returning default. %o',
+        { error }
+      );
+      return [
+        {
+          title: 'Great Effort!',
+          description:
+            "You're actively participating and completing your assignments. Keep up the great work!",
+          level: 'medium',
+          actionButtonText: 'View Grades',
+        },
+        {
+          title: 'Keep Growing',
+          description:
+            'Every assignment is an opportunity to learn. Continue to review your feedback to improve.',
+          level: 'low',
+          actionButtonText: 'Review Feedback',
+        },
+        {
+          title: 'Stay Consistent',
+          description:
+            'Consistency is key in learning, and you are on the right track. Keep the momentum going!',
+          level: 'low',
+          actionButtonText: 'View Schedule',
+        },
+        {
+          title: 'Explore New Topics',
+          description:
+            'Challenge yourself by exploring a new course or topic to broaden your knowledge.',
+          level: 'low',
+          actionButtonText: 'Browse Courses',
+        },
+      ];
+    }
+  }
+
+  /**
+   * Refactored private method to fetch only the numerical data for comparison.
+   */
+  private static async getComparisonAnalyticsData(
+    courseId: string,
+    studentId: string
+  ) {
+    const enrolledCourses =
+      await EnrollRepository.findActiveAndCompletedByUserId(studentId);
+    if (enrolledCourses.length === 0) {
+      throw new NotFoundError('No enrollments found for this student.');
+    }
+    const courseIds = enrolledCourses.map((e) => e.courseId);
+
+    const [courseAverages, studentGradesMap, classRanking, topStudents] =
+      await Promise.all([
+        AnalyticsRepository.getCourseAverages(courseIds),
+        this.getStudentAverageGrades(studentId, courseIds),
+        AnalyticsRepository.getStudentRankInCourse(courseId, studentId),
+        AnalyticsRepository.getTopStudentsInCourse(courseId, 5),
+      ]);
+
+    const courseDetails = await CourseClient.getCoursesByIds(courseIds);
+
+    const performanceChart = courseIds
+      .map((id) => ({
+        subject: courseDetails.get(id)?.title || 'Unknown Course',
+        yourScore: studentGradesMap.get(id) || 0,
+        classAverage: courseAverages.get(id) || 0,
+      }))
+      .filter((c) => c.yourScore > 0 || c.classAverage > 0);
+
+    const topStudentIds = topStudents.map((s) => s.studentId);
+    const userProfiles = await UserClient.getPublicProfiles(topStudentIds);
+
+    const enrichedTopStudents = topStudents.map((student) => ({
+      rank: student.rank,
+      name: userProfiles.get(student.studentId)?.firstName || 'Anonymous',
+      score: student.score,
+    }));
+
+    return {
+      performanceChart,
+      classRanking: {
+        rank: classRanking.rank,
+        totalStudents: classRanking.totalStudents,
+        topStudents: enrichedTopStudents,
+      },
+    };
+  }
+
+  /**
+   * Retrieves or generates AI-powered predictive performance analytics for a student.
+   * @param studentId The ID of the student.
+   * @returns A promise that resolves to the predictive chart data.
+   */
+  public static async getPredictiveChartData(
+    studentId: string
+  ): Promise<PredictiveChartData> {
+    logger.debug(
+      `Checking for cached predictive chart data for user ${studentId}.`
+    );
+    const cachedData =
+      await AnalyticsRepository.getLatestLearningPath(studentId);
+
+    if (
+      cachedData &&
+      differenceInHours(new Date(), cachedData.generatedAt) < 24
+    ) {
+      logger.info(
+        `Returning cached predictive chart data for user ${studentId}.`
+      );
+      return cachedData.pathData;
+    }
+
+    logger.info(`Generating new predictive chart data for user ${studentId}.`);
+    try {
+      const gradeHistory = await AnalyticsRepository.getRecentGrades(studentId);
+      if (gradeHistory.length < 2) {
+        logger.warn(
+          `Not enough grade history for user ${studentId} to generate prediction.`
+        );
+        return []; // Return empty array if not enough data
+      }
+
+      const systemInstruction =
+        AIPrompt.buildPredictiveChartPrompt(gradeHistory);
+
+      const response = await this.ai.models.generateContent({
+        model: this.model,
+        contents: [
+          { role: 'user', parts: [{ text: 'Generate the predictions now.' }] },
+        ],
+        config: {
+          responseMimeType: 'application/json',
+          systemInstruction,
+          responseSchema: predictiveChartResponseSchema,
+        },
+      });
+
+      const text = response.text;
+      if (!text) throw new Error('No response text from AI provider.');
+
+      const parsed = JSON.parse(text);
+      const validated = predictiveChartDataSchema.parse(parsed.predictions);
+
+      await AnalyticsRepository.upsertLearningPath(studentId, validated);
+      logger.info(`Saved new chart predictions to cache for user ${studentId}`);
+
+      return validated;
+    } catch (error) {
+      logger.error(
+        'Failed to generate predictive chart data. Returning empty array.',
+        { error }
+      );
+      return [];
+    }
   }
 }

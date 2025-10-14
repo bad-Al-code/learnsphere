@@ -1,16 +1,116 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { AssignmentController } from '../controllers/assignment.controller';
-import { requireAuth } from '../middlewares/require-auth';
+import {
+  requireAuth,
+  requireAuthOrInternal,
+} from '../middlewares/require-auth';
 import { requireRole } from '../middlewares/require-role';
 import { validateRequest } from '../middlewares/validate-request';
 import {
   assignmentParamsSchema,
   assignmentSchema,
+  bulkAssignmentsSchema,
+  requestReGradeParamsSchema,
+  submissionIdParamsSchema,
   updateAssignmentSchema,
 } from '../schemas';
 
 const router = Router();
+
+/**
+ * @openapi
+ * /api/assignments/bulk:
+ *   post:
+ *     summary: Get multiple assignments by their IDs
+ *     tags: [Assignments]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               assignmentIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uuid
+ *     responses:
+ *       '200':
+ *         description: An array of assignment objects.
+ */
+router.post(
+  '/assignments/bulk',
+  requireAuthOrInternal,
+  validateRequest(bulkAssignmentsSchema),
+  AssignmentController.getBulk
+);
+
+/**
+ * @openapi
+ * /api/assignments/submissions/{submissionId}/content:
+ *   get:
+ *     summary: "[Student] Get the content of a single submission"
+ *     tags: [Assignments]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: submissionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       '200':
+ *         description: The content of the submission.
+ *       '401':
+ *         description: Unauthorized.
+ *       '403':
+ *         description: Forbidden. User does not own this submission.
+ *       '404':
+ *         description: Submission not found.
+ */
+router.get(
+  '/assignments/submissions/:submissionId/content',
+  requireAuthOrInternal,
+  validateRequest(submissionIdParamsSchema),
+  AssignmentController.getSubmissionContent
+);
+
+/**
+ * @openapi
+ * /api/assignments/submissions/{submissionId}/request-re-grade:
+ *   post:
+ *     summary: "[Student] Request an AI re-grade for a submission"
+ *     tags: [Assignments]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: submissionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       '200':
+ *         description: Re-grade request has been accepted for processing.
+ *       '401':
+ *         description: Unauthorized.
+ *       '403':
+ *         description: Forbidden. User does not own this submission.
+ *       '404':
+ *         description: Submission not found.
+ */
+router.post(
+  '/assignments/submissions/:submissionId/request-re-grade',
+  requireAuthOrInternal,
+  validateRequest(requestReGradeParamsSchema),
+  AssignmentController.requestReGrade
+);
+
 router.use(requireAuth, requireRole(['instructor', 'admin']));
 
 /**
@@ -48,6 +148,34 @@ router.post(
   '/modules/:moduleId/assignments',
   validateRequest(z.object({ body: assignmentSchema })),
   AssignmentController.create
+);
+
+/**
+ * @openapi
+ * /api/assignments/bulk:
+ *   post:
+ *     summary: Get multiple assignments by their IDs
+ *     tags: [Assignments]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               assignmentIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uuid
+ *     responses:
+ *       '200':
+ *         description: An array of assignment objects.
+ */
+router.post(
+  '/assignments/bulk',
+  validateRequest(bulkAssignmentsSchema),
+  AssignmentController.getBulk
 );
 
 /**

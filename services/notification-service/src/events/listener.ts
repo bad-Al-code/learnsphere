@@ -6,6 +6,7 @@ import { UserRepository } from '../db/user.respository';
 import { EmailService } from '../services/email-service';
 import { NotificationService } from '../services/notification.service';
 import { rabbitMQConnection } from './connection';
+import { WaitlistNurtureWeek2Publisher } from './publisher';
 
 interface Event {
   topic: string;
@@ -1071,6 +1072,139 @@ export class UserRewardUnlockedListener extends Listener<UserRewardUnlockedEvent
         error: error.message,
         stack: error.stack,
         name: error.name,
+      });
+    }
+  }
+}
+
+interface WaitlistNurtureWeek1Event {
+  topic: 'waitlist.nurture.week1';
+  data: {
+    email: string;
+    joinedAt: string;
+  };
+}
+
+export class WaitlistNurtureWeek1Listener extends Listener<WaitlistNurtureWeek1Event> {
+  readonly topic = 'waitlist.nurture.week1' as const;
+  queueGroupName = 'notification-service-nurture-week1';
+  protected exchange: string = 'delay.exchange';
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
+
+  async onMessage(
+    data: WaitlistNurtureWeek1Event['data'],
+    _msg: ConsumeMessage
+  ): Promise<void> {
+    try {
+      logger.info(`Nurture week 1 event received for: ${data.email}`);
+      const user = await UserRepository.findByEmail(data.email);
+
+      await this.emailService.sendNurtureWeek1Email({
+        email: data.email,
+        userName: user?.name || null,
+      });
+
+      const nurture2Publisher = new WaitlistNurtureWeek2Publisher();
+      const sevenDaysInMillis = 7 * 24 * 60 * 60 * 1000;
+      await nurture2Publisher.publish(
+        { email: data.email, joinedAt: new Date(data.joinedAt) },
+        { expiration: sevenDaysInMillis.toString() }
+      );
+    } catch (err) {
+      const error = err as Error;
+      logger.error('Error handling waitlist.nurture.week1 event: %o', {
+        error,
+      });
+    }
+  }
+}
+
+interface WaitlistNurtureWeek2Event {
+  topic: 'waitlist.nurture.week2';
+  data: {
+    email: string;
+    joinedAt: string;
+  };
+}
+
+export class WaitlistNurtureWeek2Listener extends Listener<WaitlistNurtureWeek2Event> {
+  readonly topic = 'waitlist.nurture.week2' as const;
+  queueGroupName = 'notification-service-nurture-week2';
+  private emailService: EmailService;
+
+  constructor(emailService: EmailService) {
+    super();
+    this.emailService = emailService;
+  }
+
+  async onMessage(
+    data: WaitlistNurtureWeek2Event['data'],
+    _msg: ConsumeMessage
+  ): Promise<void> {
+    try {
+      logger.info(`Nurture week 2 event received for: ${data.email}`);
+      const user = await UserRepository.findByEmail(data.email);
+
+      await this.emailService.sendNurtureWeek2Email({
+        email: data.email,
+        userName: user?.name || null,
+      });
+    } catch (err) {
+      const error = err as Error;
+      logger.error('Error handling waitlist.nurture.week2 event: %o', {
+        error,
+      });
+    }
+  }
+}
+
+interface StudentGradeRecheckRequestedEvent {
+  topic: 'student.grade.recheck.requested';
+  data: {
+    submissionId: string;
+    studentId: string;
+    courseId: string;
+    requestedAt: string;
+  };
+}
+
+export class StudentGradeRecheckRequestedListener extends Listener<StudentGradeRecheckRequestedEvent> {
+  readonly topic = 'student.grade.recheck.requested' as const;
+  queueGroupName = 'notification-service-recheck-requested';
+
+  async onMessage(
+    data: StudentGradeRecheckRequestedEvent['data'],
+    _msg: ConsumeMessage
+  ): Promise<void> {
+    try {
+      logger.info(
+        `Grade recheck requested event received for submission: ${data.submissionId}`
+      );
+
+      await NotificationService.createNotification({
+        recipientId: data.studentId,
+        type: 'GRADE_RECHECK_SUBMITTED',
+        content:
+          'Your request for an AI re-grade has been submitted. We will notify you once it is complete.',
+        linkUrl: `/student/assignments?tab=grades&submission=${data.submissionId}`,
+        metadata: { submissionId: data.submissionId },
+      });
+
+      logger.info(
+        `Successfully created 'recheck submitted' notification for user ${data.studentId}`
+      );
+    } catch (err) {
+      const error = err as Error;
+
+      logger.error('Error handling student.grade.recheck.requested event: %o', {
+        submissionId: data.submissionId,
+        error: error.message,
+        stack: error.stack,
       });
     }
   }

@@ -7,16 +7,21 @@ import {
   eq,
   gte,
   inArray,
+  isNotNull,
+  isNull,
   lt,
+  lte,
   sql,
   sum,
 } from 'drizzle-orm';
 import { db } from '..';
 import { BadRequestError } from '../../errors';
 import { AssignmentResponse } from '../../features/ai/responseSchema/assignmentRecommendationResponse.schema';
+import { PredictiveChartData } from '../../features/ai/schema';
 import { FeedbackResponseSchema } from '../../features/ai/schema/feedback.schema';
 import {
   Assignment,
+  GetMyGradesQuery,
   GradeDistributionItem,
   gradeDistributionItemSchema,
   gradeRowSchema,
@@ -30,6 +35,8 @@ import { GradeRow } from '../../types';
 import {
   AIInsight,
   aiInsights,
+  AILearningPath,
+  aiLearningPaths,
   AIStudyRecommendation,
   aiStudyRecommendations,
   courseActivityLogs,
@@ -41,6 +48,7 @@ import {
   NewLessonSession,
   NewReportJob,
   reportJobs,
+  StudentGrade,
   studentGrades,
 } from '../schema';
 
@@ -1548,5 +1556,275 @@ Saves or updates the AI-generated insights for a user.
         `Failed to fetch grade distribution: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
+  }
+
+  /**
+   * Fetches a paginated, filtered, and searched list of a student's grades.
+   * This method only queries local tables.
+   * @param studentId The ID of the student.
+   * @param options The query options for filtering, searching, and pagination.
+   * @returns An object containing the list of raw grade/submission data and the total count.
+   */
+  public static async findMyGrades(
+    studentId: string,
+    options: GetMyGradesQuery
+  ) {
+    const { courseId, grade, status, page, limit } = options;
+    const offset = (page - 1) * limit;
+
+    const conditions = [eq(studentGrades.studentId, studentId)];
+
+    if (courseId) {
+      conditions.push(eq(studentGrades.courseId, courseId));
+    }
+    if (status === 'Graded') {
+      conditions.push(isNotNull(studentGrades.grade));
+    }
+    if (status === 'Pending') {
+      conditions.push(isNull(studentGrades.grade));
+    }
+    if (grade) {
+      const [min, max] = grade.split('-').map(Number);
+      conditions.push(gte(studentGrades.grade, min));
+      if (max) {
+        conditions.push(lte(studentGrades.grade, max));
+      }
+    }
+
+    const whereClause = and(...conditions);
+
+    const totalQuery = db
+      .select({ value: count() })
+      .from(studentGrades)
+      .where(whereClause);
+
+    const resultsQuery = db
+      .select()
+      .from(studentGrades)
+      .where(whereClause)
+      .orderBy(desc(studentGrades.gradedAt))
+      .limit(limit)
+      .offset(offset);
+
+    const [[{ value: totalResults }], results] = await Promise.all([
+      totalQuery,
+      resultsQuery,
+    ]);
+
+    return { totalResults, results };
+  }
+
+  /**
+   * Finds a single submission by its ID.
+   * @param submissionId The ID of the submission.
+   * @returns The submission object or undefined if not found.
+   */
+  public static async findSubmissionById(
+    submissionId: string
+  ): Promise<StudentGrade | undefined> {
+    return db.query.studentGrades.findFirst({
+      where: eq(studentGrades.submissionId, submissionId),
+    });
+  }
+
+  /**
+   * Calculates the average grade for all students across a list of courses.
+   * @param courseIds An array of course IDs.
+   * @returns A Map where the key is courseId and the value is the average grade.
+   */
+  public static async getCourseAverages(
+    courseIds: string[]
+  ): Promise<Map<string, number>> {
+    if (courseIds.length === 0) {
+      return new Map();
+    }
+
+    const result = await db
+      .select({
+        courseId: studentGrades.courseId,
+        averageGrade: avg(studentGrades.grade),
+      })
+      .from(studentGrades)
+      .where(inArray(studentGrades.courseId, courseIds))
+      .groupBy(studentGrades.courseId);
+
+    return new Map(
+      result.map((row) => [row.courseId, parseFloat(row.averageGrade || '0')])
+    );
+  }
+
+  /**
+   * Calculates a student's grade rank within a specific course.
+   * @param courseId The ID of the course.
+   * @param studentId The ID of the student.
+   * @returns The student's rank and the total number of students with grades in that course.
+   */
+  public static async getStudentRankInCourse(
+    courseId: string,
+    studentId: string
+  ): Promise<{ rank: number | null; totalStudents: number }> {
+    const rankingSubquery = db
+      .select({
+        studentId: studentGrades.studentId,
+        rank: sql<number>`RANK() OVER (ORDER BY AVG(${studentGrades.grade}) DESC)`.as(
+          'rank'
+        ),
+      })
+      .from(studentGrades)
+      .where(eq(studentGrades.courseId, courseId))
+      .groupBy(studentGrades.studentId)
+      .as('ranking');
+
+    const [studentRank] = await db
+      .select({ rank: rankingSubquery.rank })
+      .from(rankingSubquery)
+      .where(eq(rankingSubquery.studentId, studentId));
+
+    const [total] = await db
+      .select({ count: countDistinct(studentGrades.studentId) })
+      .from(studentGrades)
+      .where(eq(studentGrades.courseId, courseId));
+
+    return {
+      rank: studentRank ? Number(studentRank.rank) : null,
+      totalStudents: total.count || 0,
+    };
+  }
+
+  /**
+   * Retrieves the top N students for a course based on average grade.
+   * @param courseId The ID of the course.
+   * @param limit The number of top students to return.
+   * @returns A list of top students with their rank, ID, and average score.
+   */
+  public static async getTopStudentsInCourse(
+    courseId: string,
+    limit: number
+  ): Promise<{ rank: number; studentId: string; score: number }[]> {
+    const result = await db.execute(sql`
+      WITH StudentAverages AS (
+        SELECT
+          student_id,
+          AVG(grade) as avg_grade
+        FROM ${studentGrades}
+        WHERE ${studentGrades.courseId} = ${courseId}
+        GROUP BY student_id
+      ),
+      RankedStudents AS (
+        SELECT
+          student_id,
+          avg_grade,
+          RANK() OVER (ORDER BY avg_grade DESC) as rank
+        FROM StudentAverages
+      )
+      SELECT rank::int, student_id, avg_grade::numeric(5, 2) as score
+      FROM RankedStudents
+      WHERE rank <= ${limit}
+      ORDER BY rank;
+    `);
+
+    return (
+      result.rows as { rank: number; student_id: string; score: string }[]
+    ).map((row) => ({
+      rank: row.rank,
+      studentId: row.student_id,
+      score: parseFloat(row.score),
+    }));
+  }
+
+  /**
+   * Retrieves the average grade for each course for a given student.
+   * @param studentId The ID of the student.
+   * @param courseIds The list of course IDs to include.
+   * @returns An array of objects containing the course ID and its average grade.
+   */
+  public static async getAverageGradesByCourses(
+    studentId: string,
+    courseIds: string[]
+  ): Promise<
+    {
+      courseId: string;
+      avgGrade: string | null;
+    }[]
+  > {
+    const results = await db
+      .select({
+        courseId: studentGrades.courseId,
+        avgGrade: avg(studentGrades.grade),
+      })
+      .from(studentGrades)
+      .where(
+        and(
+          eq(studentGrades.studentId, studentId),
+          inArray(studentGrades.courseId, courseIds)
+        )
+      )
+      .groupBy(studentGrades.courseId);
+
+    return results;
+  }
+
+  /**
+   * Fetches the average grade for a student for each of the last 6 months.
+   * @param studentId The ID of the student.
+   * @returns An array of objects with month and average grade.
+   */
+  public static async getRecentGrades(
+    studentId: string
+  ): Promise<{ month: string; averageGrade: number }[]> {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const result = await db
+      .select({
+        month: sql<string>`TO_CHAR(date_trunc('month', ${studentGrades.gradedAt}), 'Mon')`,
+        averageGrade: avg(studentGrades.grade),
+      })
+      .from(studentGrades)
+      .where(
+        and(
+          eq(studentGrades.studentId, studentId),
+          gte(studentGrades.gradedAt, sixMonthsAgo)
+        )
+      )
+      .groupBy(sql`date_trunc('month', ${studentGrades.gradedAt})`)
+      .orderBy(sql`date_trunc('month', ${studentGrades.gradedAt})`);
+
+    return result.map((row) => ({
+      month: row.month,
+      averageGrade: parseFloat(row.averageGrade || '0'),
+    }));
+  }
+
+  /**
+   * Fetches the most recent AI-generated learning path for a user.
+   * @param userId The ID of the user.
+   * @returns The latest learning path record, or undefined if none exists.
+   */
+  public static async getLatestLearningPath(
+    userId: string
+  ): Promise<AILearningPath | undefined> {
+    return db.query.aiLearningPaths.findFirst({
+      where: eq(aiLearningPaths.userId, userId),
+      orderBy: [desc(aiLearningPaths.generatedAt)],
+    });
+  }
+
+  /**
+   * Saves or updates the AI-generated learning path for a user.
+   * @param userId The ID of the user.
+   * @param pathData The array of path data objects to save.
+   */
+  public static async upsertLearningPath(
+    userId: string,
+    pathData: PredictiveChartData
+  ): Promise<void> {
+    await db
+      .insert(aiLearningPaths)
+      .values({ userId, pathData, generatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: aiLearningPaths.userId,
+        set: { pathData, generatedAt: new Date() },
+      });
   }
 }
