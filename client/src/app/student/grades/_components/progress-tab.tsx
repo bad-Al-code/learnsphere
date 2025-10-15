@@ -48,6 +48,7 @@ import {
   useStudyTimeTrend,
 } from '../hooks';
 import { StudyTimeTrend as StudyTimeTrendSchema } from '../schema';
+import { StudyHabitsTab, StudyHabitsTabSkeleton } from './student-habit-tab';
 
 const trendConfig = {
   studyHours: { label: 'Study Hours', color: 'var(--chart-1)' },
@@ -503,6 +504,8 @@ export function ProgressTab() {
         <AIProgressInsights />
       </div>
       <LearningMilestones />
+
+      <StudyHabitsTab />
     </div>
   );
 }
@@ -516,6 +519,8 @@ export function ProgressTabSkeleton() {
         <AIProgressInsightsSkeleton />
       </div>
       <LearningMilestonesSkeleton />
+
+      <StudyHabitsTabSkeleton />
     </div>
   );
 }

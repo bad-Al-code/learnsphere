@@ -2187,4 +2187,39 @@ Saves or updates the AI-generated insights for a user.
       .innerJoin(courses, eq(enrollments.courseId, courses.id))
       .where(eq(enrollments.userId, studentId));
   }
+
+  /**
+   * Fetches a student's total study duration in minutes for each of the last 7 days.
+   * @param studentId The ID of the student.
+   * @returns An array of objects, each containing the day of the week and total minutes studied.
+   */
+  public static async getDailyStudyHabits(
+    studentId: string
+  ): Promise<{ day: string; totalMinutes: number }[]> {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const result = await db
+      .select({
+        day: sql<string>`TO_CHAR(${lessonSessions.startedAt}, 'Day')`,
+        totalMinutes: sum(lessonSessions.durationMinutes),
+      })
+      .from(lessonSessions)
+      .where(
+        and(
+          eq(lessonSessions.userId, studentId),
+          gte(lessonSessions.startedAt, sevenDaysAgo)
+        )
+      )
+      .groupBy(
+        sql`TO_CHAR(${lessonSessions.startedAt}, 'Day'), DATE_TRUNC('day', ${lessonSessions.startedAt})`
+      )
+      .orderBy(sql`DATE_TRUNC('day', ${lessonSessions.startedAt})`);
+
+    return result.map((row) => ({
+      day: row.day.trim(),
+      totalMinutes: parseFloat(row.totalMinutes || '0'),
+    }));
+  }
 }

@@ -1197,4 +1197,38 @@ router.get(
   AnalyticsController.getLearningMilestones
 );
 
+/**
+ * @openapi
+ * /api/analytics/student/study-habits:
+ *   get:
+ *     summary: "[Student] Get daily study habits analysis"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     description: Retrieves the student's study efficiency and focus time for the last 7 days.
+ *     responses:
+ *       '200':
+ *         description: An array of daily study habit data points.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   day:
+ *                     type: string
+ *                   efficiency:
+ *                     type: number
+ *                   focus:
+ *                     type: number
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.get(
+  '/student/study-habits',
+  requireAuth,
+  AnalyticsController.getStudyHabits
+);
+
 export { router as analyticsRouter };

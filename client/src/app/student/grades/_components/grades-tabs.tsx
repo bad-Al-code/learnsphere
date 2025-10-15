@@ -9,13 +9,12 @@ import React, { useState, useTransition } from 'react';
 import { GoalsTab, GoalsTabSkeleton } from './goals-tab';
 import { GradesTab, GradesTabSkeleton } from './grade-tab';
 import { ProgressTab, ProgressTabSkeleton } from './progress-tab';
-import { StudyHabitsTab, StudyHabitsTabSkeleton } from './student-habit-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
   grades: <GradesTabSkeleton />,
   progress: <ProgressTabSkeleton />,
   // comparison: <ComparisonTabSkeleton />,
-  'study-habits': <StudyHabitsTabSkeleton />,
+  // 'study-habits': <StudyHabitsTabSkeleton />,
   // 'ai-insights': <AiInsightsTabSkeleton />,
   // reports: <ReportsTabSkeleton />,
   goals: <GoalsTabSkeleton />,
@@ -28,7 +27,7 @@ const contentMap: Record<
   grades: (props) => <GradesTab {...props} />,
   progress: (props) => <ProgressTab />,
   // comparison: <ComparisonTab />,
-  'study-habits': (props) => <StudyHabitsTab />,
+  // 'study-habits': (props) => <StudyHabitsTab />,
   // 'ai-insights': (props) => <AiInsightsTab />,
   // reports: (props) => <ReportsTab />,
   goals: (props) => <GoalsTab />,

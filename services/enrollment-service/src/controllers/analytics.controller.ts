@@ -927,4 +927,22 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getStudyHabits(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const habitsData = await AnalyticsService.getStudyHabits(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(habitsData);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

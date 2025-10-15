@@ -10,6 +10,7 @@ import {
   PerformanceHighlight,
   PerformancePrediction,
   PredictiveChartData,
+  StudyHabit,
   StudyTimeTrend,
 } from '../schema';
 
@@ -205,5 +206,22 @@ export const getLearningMilestones = async (): Promise<Milestone[]> => {
   } catch (error) {
     console.error('Failed to fetch learning milestones:', error);
     throw new Error('Could not load your learning milestones.');
+  }
+};
+
+/**
+ * Fetches the student's daily study habits for the last 7 days.
+ * @returns A promise that resolves to an array of study habit data points.
+ */
+export const getStudyHabits = async (): Promise<StudyHabit[]> => {
+  try {
+    const response = await enrollmentService.getTyped<StudyHabit[]>(
+      `/api/analytics/student/study-habits`
+    );
+
+    return response;
+  } catch (error) {
+    console.error('Failed to fetch study habits:', error);
+    throw new Error('Could not load your study habits analysis.');
   }
 };

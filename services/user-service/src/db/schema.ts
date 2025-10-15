@@ -508,7 +508,7 @@ export const studyGoals = pgTable('study_goals', {
   targetValue: integer('target_value').notNull(),
   currentValue: integer('current_value').default(0).notNull(),
   startDate: date('start_date').defaultNow().notNull(),
-  targetDate: date('target_date').notNull(),
+  targetDate: timestamp('target_date').notNull(),
   isCompleted: boolean('is_completed').default(false).notNull(),
   relatedCourseId: uuid('related_course_id'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -517,7 +517,9 @@ export const studyGoals = pgTable('study_goals', {
 
 export type StudyGoal = typeof studyGoals.$inferSelect;
 export type NewStudyGoal = typeof studyGoals.$inferInsert;
-export type UpdateStudyGoal = typeof studyGoals.$inferSelect;
+export type UpdateStudyGoal = Partial<
+  Omit<NewStudyGoal, 'id' | 'userId' | 'createdAt' | 'updatedAt'>
+>;
 
 /** Waitlist */
 export const waitlistRoleEnum = pgEnum('waitlist_role', [

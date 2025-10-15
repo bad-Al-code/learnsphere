@@ -8,6 +8,7 @@ import {
   getPerformanceHighlights,
   getPerformancePredictions,
   getPredictiveChart,
+  getStudyHabits,
   getStudyTimeTrend,
 } from '../api/analytics.api.client';
 import { GradesFilters } from '../schema';
@@ -124,7 +125,6 @@ export const getAIProgressInsightsAction = async () => {
   try {
     const data = await getAIProgressInsights();
 
-    console.log(data);
     return { data };
   } catch (error) {
     return {
@@ -137,6 +137,19 @@ export const getAIProgressInsightsAction = async () => {
 export const getLearningMilestonesAction = async () => {
   try {
     const data = await getLearningMilestones();
+
+    return { data };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : 'An unexpected error occurred',
+    };
+  }
+};
+
+export const getStudyHabitsAction = async () => {
+  try {
+    const data = await getStudyHabits();
 
     console.log(data);
     return { data };

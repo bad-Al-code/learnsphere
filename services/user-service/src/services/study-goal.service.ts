@@ -1,7 +1,9 @@
 import logger from '../config/logger';
 import { StudyGoalRepository } from '../db/repositories';
-import { StudyGoalTypeEnum } from '../db/schema';
-import { NotFoundError } from '../errors';
+import { StudyGoalTypeEnum, UpdateStudyGoal } from '../db/schema';
+import { ConflictError, ForbiddenError, NotFoundError } from '../errors';
+import { CreateStudyGoalInput, UpdateStudyGoalInput } from '../schemas';
+import { Requester } from '../types';
 
 export class StudyGoalService {
   /**
@@ -54,6 +56,129 @@ export class StudyGoalService {
       );
 
       throw new Error('Could not retrieve study goal by type.');
+    }
+  }
+
+  /**
+   * Creates a new study goal for a user.
+   * @param data The data for the new goal.
+   * @param requester The user creating the goal.
+   * @returns The newly created study goal.
+   * @throws {ConflictError} if an active goal of the same type already exists.
+   */
+  public static async createGoal(
+    data: CreateStudyGoalInput,
+    requester: Requester
+  ) {
+    logger.info(`User ${requester.id} attempting to create a new study goal.`);
+
+    // const existingGoals = await StudyGoalRepository.findByUserId(requester.id);
+    // const hasActiveDuplicate = existingGoals.some(
+    //   (goal) => goal.type === data.type && !goal.isCompleted
+    // );
+
+    // if (hasActiveDuplicate) {
+    //   throw new ConflictError(
+    //     `You already have an active goal of type "${data.type}". Please complete or delete it first.`
+    //   );
+    // }
+
+    try {
+      const newGoal = await StudyGoalRepository.create({
+        ...data,
+        userId: requester.id,
+        targetDate: new Date(data.targetDate),
+      });
+
+      logger.info(
+        `Successfully created new study goal ${newGoal.id} for user ${requester.id}`
+      );
+
+      return newGoal;
+    } catch (error) {
+      logger.error(`Error creating study goal for user ${requester.id}: %o`, {
+        error,
+      });
+
+      throw new Error('Could not create study goal.');
+    }
+  }
+
+  /**
+   * Updates a study goal after verifying ownership.
+   * @param goalId The ID of the goal to update.
+   * @param data The data to update.
+   * @param requester The user making the request.
+   * @returns The updated study goal.
+   */
+  public static async updateGoal(
+    goalId: string,
+    data: UpdateStudyGoalInput,
+    requester: Requester
+  ) {
+    logger.info(`User ${requester.id} attempting to update goal ${goalId}`);
+
+    const goal = await StudyGoalRepository.findById(goalId);
+    if (!goal) {
+      throw new NotFoundError('Study goal');
+    }
+
+    if (goal.userId !== requester.id) {
+      throw new ForbiddenError(
+        'You do not have permission to update this goal.'
+      );
+    }
+
+    try {
+      const updatePayload: UpdateStudyGoal = {
+        ...data,
+        targetDate: data.targetDate ? new Date(data.targetDate) : undefined,
+      };
+
+      const updatedGoal = await StudyGoalRepository.update(
+        goalId,
+        updatePayload
+      );
+      logger.info(`Successfully updated goal ${goalId}`);
+
+      return updatedGoal;
+    } catch (error) {
+      logger.error(`Error updating study goal ${goalId}: %o`, { error });
+      throw new Error('Could not update study goal.');
+    }
+  }
+
+  /**
+   * Deletes a study goal after verifying ownership.
+   * @param goalId The ID of the goal to delete.
+   * @param requester The user making the request.
+   * @throws {NotFoundError} if the goal is not found.
+   * @throws {ForbiddenError} if the requester does not own the goal.
+   */
+  public static async deleteGoal(goalId: string, requester: Requester) {
+    logger.info(`User ${requester.id} attempting to delete goal ${goalId}`);
+
+    const goal = await StudyGoalRepository.findById(goalId);
+    if (!goal) {
+      logger.warn(`Attempted to delete goal ${goalId} which was not found.`);
+
+      return;
+    }
+
+    if (goal.userId !== requester.id) {
+      throw new ForbiddenError(
+        'You do not have permission to delete this goal.'
+      );
+    }
+
+    try {
+      await StudyGoalRepository.delete(goalId);
+
+      logger.info(`Successfully deleted goal ${goalId}`);
+    } catch (error) {
+      logger.error(`Error deleting study goal ${goalId}: %o`, { error });
+
+      throw new Error('Could not delete study goal.');
     }
   }
 }

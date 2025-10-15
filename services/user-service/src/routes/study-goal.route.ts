@@ -6,7 +6,12 @@ import {
   requireAuth,
   requireAuthOrInternal,
 } from '../middlewares/require-auth';
-import { studyGoalQuerySchema } from '../schemas/study-goal.schema';
+import {
+  createStudyGoalSchema,
+  goalIdParamsSchema,
+  studyGoalQuerySchema,
+  updateStudyGoalSchema,
+} from '../schemas';
 
 const router = Router();
 
@@ -51,5 +56,108 @@ router.get(
  *         description: An array of the user's study goals.
  */
 router.get('/me/study-goals', requireAuth, StudyGoalController.getMyGoals);
+
+/**
+ * @openapi
+ * /api/users/me/study-goals:
+ *   post:
+ *     summary: "[Student] Create a new study goal"
+ *     tags: [Study Goals]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateStudyGoalPayload'
+ *     responses:
+ *       '201':
+ *         description: Successfully created the new study goal.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/StudyGoal'
+ *       '400':
+ *         description: Bad Request - Invalid input data.
+ *       '401':
+ *         description: Unauthorized.
+ *       '409':
+ *         description: Conflict - An active goal of this type already exists.
+ */
+router.post(
+  '/me/study-goals',
+  requireAuth,
+  validateRequest(createStudyGoalSchema),
+  StudyGoalController.create
+);
+
+/**
+ * @openapi
+ * /api/users/me/study-goals/{goalId}:
+ *   put:
+ *     summary: "[Student] Update a study goal"
+ *     tags: [Study Goals]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: goalId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateStudyGoalPayload'
+ *     responses:
+ *       '200':
+ *         description: Successfully updated the goal.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/StudyGoal'
+ *       '403':
+ *         description: Forbidden - User does not own this goal.
+ *       '404':
+ *         description: Not Found - Goal not found.
+ */
+router.put(
+  '/me/study-goals/:goalId',
+  requireAuth,
+  validateRequest(goalIdParamsSchema.merge(updateStudyGoalSchema)),
+  StudyGoalController.update
+);
+
+/**
+ * @openapi
+ * /api/users/me/study-goals/{goalId}:
+ *   delete:
+ *     summary: "[Student] Delete a study goal"
+ *     tags: [Study Goals]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: goalId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       '204':
+ *         description: Successfully deleted the goal.
+ *       '403':
+ *         description: Forbidden - User does not own this goal.
+ */
+router.delete(
+  '/me/study-goals/:goalId',
+  requireAuth,
+  validateRequest(goalIdParamsSchema),
+  StudyGoalController.delete
+);
 
 export { router as studyGoalRouter };

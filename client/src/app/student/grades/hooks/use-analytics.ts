@@ -7,6 +7,7 @@ import {
   getLearningRecommendationsAction,
   getModuleCompletionAction,
   getPredictiveChartAction,
+  getStudyHabitsAction,
   getStudyTimeTrendAction,
 } from '../actions/analytics.action';
 
@@ -98,6 +99,22 @@ export const useLearningMilestones = () => {
 
     queryFn: async () => {
       const res = await getLearningMilestonesAction();
+      if (res.error) {
+        throw new Error(res.error);
+      }
+
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const useStudyHabits = () => {
+  return useQuery({
+    queryKey: ['analytics', 'study-habits'],
+
+    queryFn: async () => {
+      const res = await getStudyHabitsAction();
       if (res.error) {
         throw new Error(res.error);
       }

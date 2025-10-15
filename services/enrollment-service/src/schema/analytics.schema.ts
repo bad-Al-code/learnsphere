@@ -217,3 +217,11 @@ export const moduleCompletionSchema = z.object({
 
 export const moduleCompletionArraySchema = z.array(moduleCompletionSchema);
 export type ModuleCompletionData = z.infer<typeof moduleCompletionArraySchema>;
+
+export const studyHabitSchema = z.object({
+  day: z.string(),
+  efficiency: z.number(),
+  focus: z.number(),
+});
+
+export type StudyHabit = z.infer<typeof studyHabitSchema>;

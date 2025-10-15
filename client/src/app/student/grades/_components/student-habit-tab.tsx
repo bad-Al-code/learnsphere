@@ -27,18 +27,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { ErrorState } from '@/components/ui/error-state';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const habitsChartData = [
-  { day: 'Monday', efficiency: 88, focus: 82 },
-  { day: 'Tuesday', efficiency: 90, focus: 85 },
-  { day: 'Wednesday', efficiency: 82, focus: 78 },
-  { day: 'Thursday', efficiency: 85, focus: 80 },
-  { day: 'Friday', efficiency: 80, focus: 75 },
-  { day: 'Saturday', efficiency: 88, focus: 82 },
-  { day: 'Sunday', efficiency: 86, focus: 80 },
-];
+import { useStudyHabits } from '../hooks';
 
 const habitsChartConfig = {
   efficiency: { label: 'Efficiency %', color: 'hsl(160 70% 40%)' },
@@ -66,6 +58,83 @@ const timeManagementData = [
 ];
 
 function StudyHabitsAnalysisChart() {
+  const { data, isLoading, isError, error, refetch } = useStudyHabits();
+
+  const renderContent = () => {
+    if (isLoading) {
+      return <Skeleton className="h-48 w-full" />;
+    }
+
+    if (isError) {
+      return <ErrorState message={error.message} onRetry={refetch} />;
+    }
+
+    if (!data || data.length === 0) {
+      return (
+        <div className="text-muted-foreground flex h-48 w-full flex-col items-center justify-center text-center text-sm">
+          <Clock className="mb-4 h-10 w-10 opacity-50" />
+          <p className="font-semibold">No Study Habits Data</p>
+          <p>Start and end some lesson sessions to analyze your habits.</p>
+        </div>
+      );
+    }
+
+    return (
+      <ChartContainer config={habitsChartConfig} className="h-64 w-full">
+        <AreaChart accessibilityLayer data={data}>
+          <CartesianGrid vertical={false} />
+          <XAxis
+            dataKey="day"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            fontSize={12}
+          />
+          <YAxis domain={[0, 100]} />
+          <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+          <defs>
+            <linearGradient id="fillEfficiency" x1="0" y1="0" x2="0" y2="1">
+              <stop
+                offset="5%"
+                stopColor="var(--color-efficiency)"
+                stopOpacity={0.8}
+              />
+              <stop
+                offset="95%"
+                stopColor="var(--color-efficiency)"
+                stopOpacity={0.1}
+              />
+            </linearGradient>
+            <linearGradient id="fillFocus" x1="0" y1="0" x2="0" y2="1">
+              <stop
+                offset="5%"
+                stopColor="var(--color-focus)"
+                stopOpacity={0.8}
+              />
+              <stop
+                offset="95%"
+                stopColor="var(--color-focus)"
+                stopOpacity={0.1}
+              />
+            </linearGradient>
+          </defs>
+          <Area
+            dataKey="efficiency"
+            type="natural"
+            fill="url(#fillEfficiency)"
+            stroke="var(--color-efficiency)"
+          />
+          <Area
+            dataKey="focus"
+            type="natural"
+            fill="url(#fillFocus)"
+            stroke="var(--color-focus)"
+          />
+        </AreaChart>
+      </ChartContainer>
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -77,59 +146,7 @@ function StudyHabitsAnalysisChart() {
           Detailed analysis of your study patterns and efficiency
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={habitsChartConfig} className="h-[250px] w-full">
-          <AreaChart accessibilityLayer data={habitsChartData}>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="day"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-            />
-            <YAxis />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <defs>
-              <linearGradient id="fillEfficiency" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-efficiency)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-efficiency)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-              <linearGradient id="fillFocus" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-focus)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-focus)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-            </defs>
-            <Area
-              dataKey="efficiency"
-              type="natural"
-              fill="url(#fillEfficiency)"
-              stroke="var(--color-efficiency)"
-            />
-            <Area
-              dataKey="focus"
-              type="natural"
-              fill="url(#fillFocus)"
-              stroke="var(--color-focus)"
-            />
-          </AreaChart>
-        </ChartContainer>
-      </CardContent>
+      <CardContent>{renderContent()}</CardContent>
     </Card>
   );
 }
@@ -210,6 +227,32 @@ function TimeManagement() {
   );
 }
 
+export function StudyHabitsTab() {
+  return (
+    <>
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+        <div className="lg:col-span-2">
+          <StudyHabitsAnalysisChart />
+        </div>
+        <LearningEfficiencyChart />
+        <TimeManagement />
+      </div>
+    </>
+  );
+}
+
+export function StudyHabitsTabSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+      <div className="lg:col-span-2">
+        <StudyHabitsAnalysisChartSkeleton />
+      </div>
+      <LearningEfficiencyChartSkeleton />
+      <TimeManagementSkeleton />
+    </div>
+  );
+}
+
 function StudyHabitsAnalysisChartSkeleton() {
   return (
     <Card>
@@ -258,29 +301,5 @@ function TimeManagementSkeleton() {
         ))}
       </CardContent>
     </Card>
-  );
-}
-
-export function StudyHabitsTab() {
-  return (
-    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-      <div className="lg:col-span-2">
-        <StudyHabitsAnalysisChart />
-      </div>
-      <LearningEfficiencyChart />
-      <TimeManagement />
-    </div>
-  );
-}
-
-export function StudyHabitsTabSkeleton() {
-  return (
-    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-      <div className="lg:col-span-2">
-        <StudyHabitsAnalysisChartSkeleton />
-      </div>
-      <LearningEfficiencyChartSkeleton />
-      <TimeManagementSkeleton />
-    </div>
   );
 }

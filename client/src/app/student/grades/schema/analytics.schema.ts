@@ -66,3 +66,11 @@ export const milestoneSchema = z.object({
 });
 
 export type Milestone = z.infer<typeof milestoneSchema>;
+
+export const studyHabitSchema = z.object({
+  day: z.string(),
+  efficiency: z.number(),
+  focus: z.number(),
+});
+
+export type StudyHabit = z.infer<typeof studyHabitSchema>;
