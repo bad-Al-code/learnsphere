@@ -419,4 +419,19 @@ export class AssignmentService {
 
     return AssignmentRepository.findManyByCourseIds(courseIds);
   }
+
+  /**
+   * Retrieves all upcoming assignments for a given list of course IDs.
+   * @param courseIds - An array of course IDs.
+   * @returns A list of assignment objects.
+   */
+  public static async getUpcomingAssignmentsForCourses(
+    courseIds: string[]
+  ): Promise<Assignment[]> {
+    logger.info(
+      `Fetching upcoming assignments for ${courseIds.length} courses`
+    );
+
+    return AssignmentRepository.findUpcomingByCourseIds(courseIds);
+  }
 }

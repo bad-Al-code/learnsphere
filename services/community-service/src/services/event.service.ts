@@ -471,4 +471,28 @@ export class EventService {
       maxAttendees: event.maxAttendees,
     };
   }
+
+  /**
+   * Retrieves all upcoming events that the requester is registered for.
+   * @param requester - The authenticated user making the request.
+   * @returns A promise that resolves to a list of upcoming event objects.
+   */
+  public static async getUpcomingEventsForUser(requester: Requester) {
+    logger.info(`Fetching upcoming events for user ${requester.id}`);
+
+    try {
+      const upcomingEvents = await EventRepository.findUpcomingForUser(
+        requester.id
+      );
+
+      return upcomingEvents;
+    } catch (error) {
+      logger.error(
+        `Failed to retrieve upcoming events for user ${requester.id}: %o`,
+        { error }
+      );
+
+      throw new Error('Could not retrieve upcoming events.');
+    }
+  }
 }

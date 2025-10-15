@@ -24,58 +24,10 @@ import {
   usePredictiveChart,
 } from '../hooks';
 
-type TPrediction = {
-  title: string;
-  description: string;
-  highlighted?: boolean;
-};
-
-type TRecommendation = {
-  title: string;
-  description: string;
-};
-
 const analyticsChartConfig = {
   predicted: { label: 'Predicted Performance', color: 'hsl(38 90% 50%)' },
   confidence: { label: 'Confidence Level', color: 'hsl(140 70% 40%)' },
 } satisfies ChartConfig;
-
-const performancePredictionsData: TPrediction[] = [
-  {
-    title: 'Grade Trajectory',
-    description:
-      'Based on current trends, you’re likely to achieve a 92% average by March with 88% confidence.',
-    highlighted: true,
-  },
-  {
-    title: 'Risk Assessment',
-    description:
-      'Low risk of falling behind. Your consistent study habits indicate strong performance ahead.',
-  },
-  {
-    title: 'Optimization Opportunity',
-    description:
-      'Increasing Python practice by 2 hours weekly could boost your grade by 5-7 points.',
-  },
-];
-
-const learningRecommendationsData: TRecommendation[] = [
-  {
-    title: 'Optimal Study Time',
-    description:
-      'Your peak performance occurs between 2-4 PM. Schedule challenging topics during this window.',
-  },
-  {
-    title: 'Subject Rotation',
-    description:
-      'Alternating between React and Database topics improves retention by 15%.',
-  },
-  {
-    title: 'Break Optimization',
-    description:
-      'Taking 10-minute breaks every 45 minutes could increase your focus time by 12%.',
-  },
-];
 
 function PredictivePerformanceChart() {
   const { data, isLoading, isError, error, refetch } = usePredictiveChart();
@@ -183,18 +135,13 @@ function PerformancePredictions() {
     return (
       <div className="space-y-2">
         {data.map((prediction) => (
-          <Card
-            key={prediction.title}
-            className={
-              prediction.highlighted
-                ? 'bg-muted/50 rounded-md p-3'
-                : 'hover:bg-muted/30 p-3'
-            }
-          >
-            <h4 className="font-semibold">{prediction.title}</h4>
-            <p className="text-muted-foreground text-sm">
-              {prediction.description}
-            </p>
+          <Card key={prediction.title}>
+            <CardContent>
+              <h4 className="font-semibold">{prediction.title}</h4>
+              <p className="text-muted-foreground text-sm">
+                {prediction.description}
+              </p>
+            </CardContent>
           </Card>
         ))}
       </div>

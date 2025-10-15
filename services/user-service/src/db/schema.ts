@@ -489,6 +489,7 @@ export const studyGoalTypeEnum = pgEnum('study_goal_type', [
   'assignment_completion',
   'weekly_study_hours',
 ]);
+export type StudyGoalTypeEnum = (typeof studyGoalTypeEnum.enumValues)[number];
 
 export const studyGoalPriorityEnum = pgEnum('study_goal_priority', [
   'low',
@@ -513,6 +514,10 @@ export const studyGoals = pgTable('study_goals', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+export type StudyGoal = typeof studyGoals.$inferSelect;
+export type NewStudyGoal = typeof studyGoals.$inferInsert;
+export type UpdateStudyGoal = typeof studyGoals.$inferSelect;
 
 /** Waitlist */
 export const waitlistRoleEnum = pgEnum('waitlist_role', [

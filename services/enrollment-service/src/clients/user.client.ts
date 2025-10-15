@@ -33,4 +33,41 @@ export class UserClient {
 
     return userMap;
   }
+
+  /**
+   * Fetches the weekly study hours target for a user from the user-service.
+   * @param userId The ID of the user.
+   * @returns The target number of hours, or 0 if not set or on error.
+   */
+  public static async getWeeklyStudyGoal(userId: string): Promise<number> {
+    try {
+      const response = await axios.get<{ targetValue: number }>(
+        `${this.userServiceUrl}/api/users/internal/study-goal`,
+        {
+          params: {
+            userId,
+            type: 'weekly_study_hours',
+          },
+          headers: {
+            'x-internal-api-key': env.INTERNAL_API_KEY,
+          },
+        }
+      );
+
+      return response.data.targetValue || 0;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        logger.debug(`No weekly study goal found for user ${userId}.`);
+
+        return 0;
+      }
+
+      logger.error(
+        `Failed to fetch weekly study goal for user ${userId} from user-service: %o`,
+        { error }
+      );
+
+      return 0;
+    }
+  }
 }

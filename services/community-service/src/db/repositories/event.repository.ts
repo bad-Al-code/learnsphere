@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, not, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, not, sql } from 'drizzle-orm';
 
 import { DatabaseError } from 'pg';
 import { db } from '..';
@@ -486,5 +486,21 @@ export class EventRepository {
           eq(eventAttendees.userId, userId)
         )
       );
+  }
+
+  /**
+   * Finds all upcoming events a specific user is registered for.
+   * @param userId - The ID of the user.
+   * @returns An array of upcoming events the user is attending.
+   */
+  public static async findUpcomingForUser(userId: string) {
+    return db
+      .select()
+      .from(events)
+      .innerJoin(eventAttendees, eq(events.id, eventAttendees.eventId))
+      .where(
+        and(eq(eventAttendees.userId, userId), gte(events.date, new Date()))
+      )
+      .orderBy(asc(events.date));
   }
 }

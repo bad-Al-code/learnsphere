@@ -79,6 +79,35 @@ router.post(
 
 /**
  * @openapi
+ * /api/assignments/upcoming-for-courses:
+ *   post:
+ *     summary: "[Internal] Get all upcoming assignments for a set of courses"
+ *     tags: [Assignments]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               courseIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uuid
+ *     responses:
+ *       '200':
+ *         description: An array of upcoming assignment objects.
+ */
+router.post(
+  '/assignments/upcoming-for-courses',
+  requireAuthOrInternal,
+  validateRequest(bulkAssignmentsByCoursesSchema),
+  AssignmentController.getUpcomingForCourses
+);
+
+/**
+ * @openapi
  * /api/assignments/submissions/{submissionId}/content:
  *   get:
  *     summary: "[Student] Get the content of a single submission"

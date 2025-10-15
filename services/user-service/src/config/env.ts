@@ -17,6 +17,9 @@ const envSchema = z.object({
   ENCRYPTION_KEY: z
     .string()
     .length(64, 'ENCRYPTION_KEY must be a 64-character hex string (32 bytes).'),
+  INTERNAL_API_KEY: z
+    .string()
+    .min(32, 'INTERNAL_API_KEY must be at least 32 characters long'),
 
   GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
   GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID is required'),

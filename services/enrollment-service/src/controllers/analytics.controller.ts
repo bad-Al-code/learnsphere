@@ -850,4 +850,81 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getWeeklyStudyTimeTrend(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const trendData = await AnalyticsService.getWeeklyStudyTimeTrend(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(trendData);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getModuleCompletion(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const stats = await AnalyticsService.getModuleCompletionStats(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(stats);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getAIProgressInsights(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const insights = await AnalyticsService.getAIProgressInsights(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(insights);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getLearningMilestones(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const cookie = req.headers.cookie;
+      if (!cookie)
+        throw new BadRequestError('Cookie is required for this operation.');
+
+      const milestones = await AnalyticsService.getLearningMilestones(
+        req.currentUser.id,
+        cookie
+      );
+
+      res.status(StatusCodes.OK).json(milestones);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

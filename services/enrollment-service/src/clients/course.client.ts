@@ -274,4 +274,38 @@ export class CourseClient {
     }
     return moduleMap;
   }
+
+  /**
+   * Fetches all upcoming, published assignments for a list of courses.
+   * @param courseIds An array of course IDs.
+   * @returns An array of assignment objects.
+   */
+  public static async getUpcomingAssignmentsForCourses(
+    courseIds: string[]
+  ): Promise<{ id: string; title: string; dueDate: string | null }[]> {
+    if (courseIds.length === 0) {
+      return [];
+    }
+
+    try {
+      const response = await axios.post<
+        { id: string; title: string; dueDate: string | null }[]
+      >(
+        `${this.courseServiceUrl}/api/assignments/upcoming-for-courses`,
+        {
+          courseIds,
+        },
+        {
+          headers: {
+            'x-internal-api-key': env.INTERNAL_API_KEY,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      logger.error('Failed to bulk fetch upcoming assignments: %o', { error });
+      return [];
+    }
+  }
 }

@@ -220,6 +220,28 @@ export const draftStatusesSchema = z.object({
     .nonempty('assignmentIds cannot be empty'),
 });
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     BulkAssignmentsRequest:
+ *       type: object
+ *       properties:
+ *         body:
+ *           type: object
+ *           properties:
+ *             assignmentIds:
+ *               type: array
+ *               items:
+ *                 type: string
+ *                 format: uuid
+ *               description: Array of assignment IDs to process in bulk
+ *           required:
+ *             - assignmentIds
+ *       required:
+ *         - body
+ *       additionalProperties: false
+ */
 export const bulkAssignmentsSchema = z.object({
   body: z.object({
     assignmentIds: z
@@ -228,6 +250,28 @@ export const bulkAssignmentsSchema = z.object({
   }),
 });
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     BulkAssignmentsByCoursesRequest:
+ *       type: object
+ *       properties:
+ *         body:
+ *           type: object
+ *           properties:
+ *             courseIds:
+ *               type: array
+ *               items:
+ *                 type: string
+ *                 format: uuid
+ *               description: Array of course IDs to process assignments for
+ *           required:
+ *             - courseIds
+ *       required:
+ *         - body
+ *       additionalProperties: false
+ */
 export const bulkAssignmentsByCoursesSchema = z.object({
   body: z.object({
     courseIds: z
@@ -236,12 +280,52 @@ export const bulkAssignmentsByCoursesSchema = z.object({
   }),
 });
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     SubmissionIdParams:
+ *       type: object
+ *       properties:
+ *         params:
+ *           type: object
+ *           properties:
+ *             submissionId:
+ *               type: string
+ *               format: uuid
+ *               description: The unique ID of the submission
+ *           required:
+ *             - submissionId
+ *       required:
+ *         - params
+ *       additionalProperties: false
+ */
 export const submissionIdParamsSchema = z.object({
   params: z.object({
     submissionId: z.string().uuid('Invalid submission ID format'),
   }),
 });
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     RequestReGradeParams:
+ *       type: object
+ *       properties:
+ *         params:
+ *           type: object
+ *           properties:
+ *             submissionId:
+ *               type: string
+ *               format: uuid
+ *               description: The unique ID of the submission to re-grade
+ *           required:
+ *             - submissionId
+ *       required:
+ *         - params
+ *       additionalProperties: false
+ */
 export const requestReGradeParamsSchema = z.object({
   params: z.object({
     submissionId: z.string().uuid('Invalid submission ID format'),

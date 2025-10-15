@@ -15,6 +15,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { AssignmentResponse } from '../features/ai/responseSchema/assignmentRecommendationResponse.schema';
 import {
+  AIProgressInsight,
   LearningRecommendation,
   PerformancePrediction,
   PredictiveChartData,
@@ -275,3 +276,13 @@ export const aiLearningRecommendations = pgTable(
 
 export type AILearningRecommendation =
   typeof aiLearningRecommendations.$inferSelect;
+
+/** AI Progress Insights */
+export const aiProgressInsights = pgTable('ai_progress_insights', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().unique(),
+  insights: jsonb('insights').$type<AIProgressInsight[]>().notNull(),
+  generatedAt: timestamp('generated_at').defaultNow().notNull(),
+});
+
+export type AIProgressInsightEntry = typeof aiProgressInsights.$inferSelect;

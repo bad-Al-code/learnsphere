@@ -124,3 +124,31 @@ export const learningRecommendationResponseSchema = {
 export type LearningRecommendation = z.infer<
   typeof learningRecommendationItemSchema
 >;
+
+export const aiProgressInsightSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  highlighted: z.boolean().optional(),
+});
+
+export const aiProgressInsightsResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    insights: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          title: { type: Type.STRING },
+          description: { type: Type.STRING },
+          highlighted: { type: Type.BOOLEAN },
+        },
+        required: ['title', 'description'],
+      },
+    },
+  },
+  required: ['insights'],
+};
+
+export const aiProgressInsightArraySchema = z.array(aiProgressInsightSchema);
+export type AIProgressInsight = z.infer<typeof aiProgressInsightSchema>;

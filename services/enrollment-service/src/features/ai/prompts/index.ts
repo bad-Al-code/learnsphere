@@ -25,6 +25,18 @@ interface RecommendationContext {
   peakStudyHours: string[];
 }
 
+interface ProgressInsightContext {
+  completion: {
+    completed: number;
+    inProgress: number;
+    notStarted: number;
+  };
+  studyTrend: {
+    averageHours: number;
+    isConsistent: boolean;
+  };
+}
+
 export class AIPrompt {
   /**
    * Generates the system instruction for the AI to create performance highlights.
@@ -163,5 +175,37 @@ Generate the predictions now.`;
       - Most Active Study Hours: ${hourString}
 
       Generate the three recommendations now in the specified JSON format.`;
+  }
+
+  /**
+   * Generates the system instruction for the AI to create progress insights.
+   * @param context The student's progress and trend data.
+   * @returns A string containing the system prompt for the Gemini model.
+   */
+  public static buildProgressInsightsPrompt(
+    context: ProgressInsightContext
+  ): string {
+    const completionString = `Completion Status: ${context.completion.completed}% completed, ${context.completion.inProgress}% in progress.`;
+    const trendString = `Study Trend: Averaging ${context.studyTrend.averageHours.toFixed(
+      1
+    )} hours/week. Consistency is ${context.studyTrend.isConsistent ? 'good' : 'irregular'}.`;
+
+    return `
+      You are an AI academic advisor named "InsightBot". Your task is to provide exactly 3 personalized insights based on a student's learning progress.
+
+      Rules:
+      1. The tone must be encouraging and forward-looking.
+      2. Each insight must have a 'title' and a 'description'.
+      3. One insight MUST be titled "Study Pace Analysis".
+      4. One insight MUST be titled "Performance Trend".
+      5. One insight MUST be titled "Focus Recommendation".
+      6. The "Study Pace Analysis" insight MUST be marked as 'highlighted: true'.
+      7. Base your insights strictly on the data provided.
+
+      Student's Data:
+      - ${completionString}
+      - ${trendString}
+
+      Generate the three insights now in the specified JSON format.`;
   }
 }

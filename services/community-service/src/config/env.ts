@@ -14,6 +14,9 @@ const envSchema = z.object({
 
   JWT_SECRET: z.string().min(1, 'JWT_SECRET is required'),
   COOKIE_PARSER_SECRET: z.string().min(1, 'COOKIE_PARSER_SECRET is required'),
+  INTERNAL_API_KEY: z
+    .string()
+    .min(32, 'INTERNAL_API_KEY must be at least 32 characters long'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

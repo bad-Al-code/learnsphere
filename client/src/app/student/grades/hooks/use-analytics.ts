@@ -2,8 +2,12 @@
 
 import { useQuery } from '@tanstack/react-query';
 import {
+  getAIProgressInsightsAction,
+  getLearningMilestonesAction,
   getLearningRecommendationsAction,
+  getModuleCompletionAction,
   getPredictiveChartAction,
+  getStudyTimeTrendAction,
 } from '../actions/analytics.action';
 
 export const usePredictiveChart = () => {
@@ -36,5 +40,70 @@ export const useLearningRecommendations = () => {
     },
     staleTime: 1000 * 60 * 60,
     retry: 1,
+  });
+};
+
+export const useStudyTimeTrend = () => {
+  return useQuery({
+    queryKey: ['analytics', 'study-time-trend'],
+
+    queryFn: async () => {
+      const res = await getStudyTimeTrendAction();
+      if (res.error) {
+        throw new Error(res.error);
+      }
+
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const useModuleCompletion = () => {
+  return useQuery({
+    queryKey: ['analytics', 'module-completion'],
+
+    queryFn: async () => {
+      const res = await getModuleCompletionAction();
+      if (res.error) {
+        throw new Error(res.error);
+      }
+
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const useAIProgressInsights = () => {
+  return useQuery({
+    queryKey: ['analytics', 'ai-progress-insights'],
+
+    queryFn: async () => {
+      const res = await getAIProgressInsightsAction();
+      if (res.error) {
+        throw new Error(res.error);
+      }
+
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 60,
+    retry: 1,
+  });
+};
+
+export const useLearningMilestones = () => {
+  return useQuery({
+    queryKey: ['analytics', 'learning-milestones'],
+
+    queryFn: async () => {
+      const res = await getLearningMilestonesAction();
+      if (res.error) {
+        throw new Error(res.error);
+      }
+
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 5,
   });
 };

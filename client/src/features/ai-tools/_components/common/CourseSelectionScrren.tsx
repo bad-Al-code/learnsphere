@@ -1,18 +1,22 @@
+'use client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 import {
   AlertCircle,
   BookOpen,
   Bot,
   GraduationCap,
+  Loader,
   RefreshCw,
   Sparkles,
 } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
 import { useGetEnrolledCourses } from '../../hooks/useAiConversations';
 
 export function ErrorState({
@@ -22,18 +26,34 @@ export function ErrorState({
   message: string;
   onRetry?: () => void;
 }) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleRetry = async () => {
+    if (!onRetry) return;
+    setIsLoading(true);
+    try {
+      await onRetry();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Card>
       <CardContent className="flex flex-col items-center justify-center gap-4 p-8 text-center">
         <AlertCircle className="text-destructive h-12 w-12" />
         <p className="text-lg font-semibold">An Error Occurred</p>
-        <Alert variant="destructive">
-          <AlertDescription>{message}</AlertDescription>
+        <Alert variant="destructive" className="mx-auto max-w-sm">
+          <AlertDescription className="mx-auto">{message}</AlertDescription>
         </Alert>
         {onRetry && (
-          <Button variant="outline" onClick={onRetry}>
-            <RefreshCw className="h-4 w-4" />
-            Retry
+          <Button variant="outline" onClick={handleRetry} disabled={isLoading}>
+            {isLoading ? (
+              <Loader className={cn('h-4 w-4 animate-spin')} />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            {isLoading ? 'Retrying...' : 'Retry'}
           </Button>
         )}
       </CardContent>

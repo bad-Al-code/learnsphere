@@ -371,4 +371,26 @@ export class AssignmentController {
       next(error);
     }
   }
+
+  public static async getUpcomingForCourses(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseIds } = bulkAssignmentsByCoursesSchema.parse({
+        body: req.body,
+      })['body'];
+      if (!Array.isArray(courseIds)) {
+        throw new BadRequestError('courseIds must be an array.');
+      }
+
+      const assignments =
+        await AssignmentService.getUpcomingAssignmentsForCourses(courseIds);
+
+      res.status(StatusCodes.OK).json(assignments);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

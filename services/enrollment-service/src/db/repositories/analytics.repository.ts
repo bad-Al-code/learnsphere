@@ -19,6 +19,7 @@ import logger from '../../config/logger';
 import { BadRequestError } from '../../errors';
 import { AssignmentResponse } from '../../features/ai/responseSchema/assignmentRecommendationResponse.schema';
 import {
+  AIProgressInsight,
   LearningRecommendation,
   PerformancePrediction,
   PredictiveChartData,
@@ -46,6 +47,8 @@ import {
   aiLearningRecommendations,
   AIPerformancePrediction,
   aiPerformancePredictions,
+  AIProgressInsightEntry,
+  aiProgressInsights,
   AIStudyRecommendation,
   aiStudyRecommendations,
   courseActivityLogs,
@@ -2049,5 +2052,139 @@ Saves or updates the AI-generated insights for a user.
         target: aiLearningRecommendations.userId,
         set: { recommendations, generatedAt: new Date() },
       });
+  }
+
+  /**
+   * Fetches a student's total study duration in hours, grouped by week, for the last 8 weeks.
+   * @param studentId The ID of the student.
+   * @returns An array of objects, each containing the week number and total study hours.
+   */
+  public static async getWeeklyStudyTrend(
+    studentId: string
+  ): Promise<{ week: string; studyHours: number }[]> {
+    const eightWeeksAgo = new Date();
+    eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56);
+
+    const result = await db.execute(sql`
+      SELECT
+        'Week ' || TO_CHAR(${lessonSessions.startedAt}, 'W') AS week,
+        SUM(${lessonSessions.durationMinutes}) / 60.0 AS study_hours
+      FROM ${lessonSessions}
+      WHERE ${lessonSessions.userId} = ${studentId}
+        AND ${lessonSessions.startedAt} >= ${eightWeeksAgo}
+      GROUP BY TO_CHAR(${lessonSessions.startedAt}, 'W'), DATE_TRUNC('week', ${lessonSessions.startedAt})
+      ORDER BY DATE_TRUNC('week', ${lessonSessions.startedAt}) ASC;
+    `);
+
+    return (result.rows as { week: string; study_hours: string }[]).map(
+      (row) => ({
+        week: row.week.trim(),
+        studyHours: parseFloat(row.study_hours),
+      })
+    );
+  }
+
+  /**
+   * Aggregates module completion statuses across all of a student's enrollments.
+   * @param studentId The ID of the student.
+   * @returns An object with counts for completed, in-progress, and not-started modules.
+   */
+  public static async getOverallModuleCompletion(studentId: string): Promise<{
+    completed: number;
+    inProgress: number;
+    notStarted: number;
+    total: number;
+  }> {
+    const query = sql`
+      WITH ModuleProgress AS (
+        SELECT
+          (module ->> 'id')::uuid as module_id,
+          jsonb_array_length(module -> 'lessonIds') as total_lessons,
+          (
+            SELECT COUNT(*)
+            FROM jsonb_array_elements_text(e.progress -> 'completedLessons') AS completed_lesson
+            WHERE completed_lesson.value IN (SELECT jsonb_array_elements_text(module -> 'lessonIds'))
+          ) as completed_lessons
+        FROM enrollments e,
+             jsonb_array_elements(e.course_structure -> 'modules') as module
+        WHERE e.user_id = ${studentId}
+      )
+
+      SELECT
+        SUM(CASE WHEN completed_lessons = total_lessons AND total_lessons > 0 THEN 1 ELSE 0 END)::int AS completed,
+        SUM(CASE WHEN completed_lessons > 0 AND completed_lessons < total_lessons THEN 1 ELSE 0 END)::int AS "inProgress",
+        SUM(CASE WHEN completed_lessons = 0 THEN 1 ELSE 0 END)::int AS "notStarted",
+        COUNT(*)::int AS total
+      FROM ModuleProgress;
+    `;
+
+    const result = await db.execute(query);
+
+    if (result.rows.length === 0)
+      return { completed: 0, inProgress: 0, notStarted: 0, total: 0 };
+
+    const row = result.rows[0] as {
+      completed: string;
+      inProgress: string;
+      notStarted: string;
+      total: string;
+    };
+
+    return {
+      completed: parseInt(row.completed, 10),
+      inProgress: parseInt(row.inProgress, 10),
+      notStarted: parseInt(row.notStarted, 10),
+      total: parseInt(row.total, 10),
+    };
+  }
+
+  /**
+   * Fetches the most recent AI-generated progress insights for a user.
+   * @param userId The ID of the user.
+   * @returns The latest insight record, or undefined if none exists.
+   */
+  public static async getLatestProgressInsights(
+    userId: string
+  ): Promise<AIProgressInsightEntry | undefined> {
+    return db.query.aiProgressInsights.findFirst({
+      where: eq(aiProgressInsights.userId, userId),
+      orderBy: [desc(aiProgressInsights.generatedAt)],
+    });
+  }
+
+  /**
+   * Saves or updates the AI-generated progress insights for a user.
+   * @param userId The ID of the user.
+   * @param insights The array of insight objects to save.
+   */
+  public static async upsertProgressInsights(
+    userId: string,
+    insights: AIProgressInsight[]
+  ): Promise<void> {
+    await db
+      .insert(aiProgressInsights)
+      .values({ userId, insights, generatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: aiProgressInsights.userId,
+        set: { insights, generatedAt: new Date() },
+      });
+  }
+
+  /**
+   * Fetches all enrollments to determine course-related milestones.
+   * @param studentId The ID of the student.
+   * @returns An array of enrollment objects with course titles.
+   */
+  public static async findCourseProgressMilestones(studentId: string) {
+    return db
+      .select({
+        courseId: enrollments.courseId,
+        status: enrollments.status,
+        date: sql<string>`CASE WHEN ${enrollments.status} = 'completed' THEN ${enrollments.updatedAt} ELSE ${enrollments.enrolledAt} END`,
+        courseTitle: courses.title,
+      })
+      .from(enrollments)
+      .innerJoin(courses, eq(enrollments.courseId, courses.id))
+      .where(eq(enrollments.userId, studentId));
   }
 }

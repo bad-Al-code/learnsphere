@@ -12,6 +12,7 @@ const envSchema = z.object({
 
   USER_SERVICE_URL: z.string().min(1, 'USER_SERVICE_URL is requied'),
   COURSE_SERVICE_URL: z.string().min(1, 'COURSE_SERVICE_URL is requied'),
+  COMMUNITY_SERVICE_URL: z.string().min(1, 'COMMUNITY_SERVICE_URL is requied'),
 
   JWT_SECRET: z
     .string()

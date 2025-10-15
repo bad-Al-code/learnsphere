@@ -508,4 +508,24 @@ export class AssignmentRepository {
       where: inArray(assignments.courseId, courseIds),
     });
   }
+
+  /**
+   * Finds all published assignments with a future due date for a given list of course Ids.
+   * @param courseIds An array of courseIds.
+   * @returns A promise that resoles to an array of upcoming assingments.
+   */
+  public static async findUpcomingByCourseIds(
+    courseIds: string[]
+  ): Promise<Assignment[]> {
+    if (courseIds.length === 0) return [];
+
+    return db.query.assignments.findMany({
+      where: and(
+        inArray(assignments.courseId, courseIds),
+        eq(assignments.status, 'published'),
+        isNotNull(assignments.dueDate),
+        gte(assignments.dueDate, new Date())
+      ),
+    });
+  }
 }

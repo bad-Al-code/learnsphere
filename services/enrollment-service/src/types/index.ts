@@ -123,3 +123,10 @@ export interface Grade {
   status: 'Graded' | 'Pending';
   submitted: Date | null;
 }
+
+export type Milestone = {
+  title: string;
+  date: string;
+  status: 'completed' | 'in-progress' | 'upcoming';
+  type: 'course' | 'assignment' | 'event';
+};

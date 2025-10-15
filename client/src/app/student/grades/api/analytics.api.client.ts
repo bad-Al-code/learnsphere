@@ -1,12 +1,16 @@
 import { enrollmentService } from '@/lib/api/client';
 import {
+  AIProgressInsight,
   ComparisonAnalyticsData,
   GetMyGradesResponse,
   GradesFilters,
   LearningRecommendation,
+  Milestone,
+  ModuleCompletionData,
   PerformanceHighlight,
   PerformancePrediction,
   PredictiveChartData,
+  StudyTimeTrend,
 } from '../schema';
 
 /**
@@ -132,5 +136,74 @@ export const getLearningRecommendations = async (): Promise<
   } catch (error) {
     console.error('Failed to fetch learning recommendations:', error);
     throw new Error('Could not load AI learning recommendations.');
+  }
+};
+
+/**
+ * Fetches the student's weekly study time trend.
+ * @returns A promise that resolves to an array of weekly trend data.
+ */
+export const getStudyTimeTrend = async (): Promise<StudyTimeTrend[]> => {
+  try {
+    const response = await enrollmentService.getTyped<StudyTimeTrend[]>(
+      `/api/analytics/student/study-time-trend`
+    );
+
+    return response;
+  } catch (error) {
+    console.error('Failed to fetch study time trend:', error);
+    throw new Error('Could not load your study time trend.');
+  }
+};
+
+/**
+ * Fetches the student's overall module completion statistics.
+ * @returns A promise that resolves to an array of completion data for the pie chart.
+ */
+export const getModuleCompletion = async (): Promise<ModuleCompletionData> => {
+  try {
+    const response = await enrollmentService.getTyped<ModuleCompletionData>(
+      `/api/analytics/student/module-completion`
+    );
+
+    return response;
+  } catch (error) {
+    console.error('Failed to fetch module completion data:', error);
+
+    throw new Error('Could not load your module completion stats.');
+  }
+};
+
+/**
+ * Fetches the AI-powered progress insights for the current student.
+ * @returns A promise that resolves to an array of insight objects.
+ */
+export const getAIProgressInsights = async (): Promise<AIProgressInsight[]> => {
+  try {
+    const response = await enrollmentService.getTyped<AIProgressInsight[]>(
+      `/api/analytics/student/ai-progress-insights`
+    );
+
+    return response;
+  } catch (error) {
+    console.error('Failed to fetch AI progress insights:', error);
+    throw new Error('Could not load your AI-powered insights.');
+  }
+};
+
+/**
+ * Fetches the student's aggregated learning milestones timeline.
+ * @returns A promise that resolves to an array of milestone objects.
+ */
+export const getLearningMilestones = async (): Promise<Milestone[]> => {
+  try {
+    const response = await enrollmentService.getTyped<Milestone[]>(
+      `/api/analytics/student/learning-milestones`
+    );
+
+    return response;
+  } catch (error) {
+    console.error('Failed to fetch learning milestones:', error);
+    throw new Error('Could not load your learning milestones.');
   }
 };

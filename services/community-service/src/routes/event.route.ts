@@ -1,7 +1,11 @@
 import { Router } from 'express';
 
 import { EventController } from '../controllers';
-import { requireAuth, validateRequest } from '../middlewares';
+import {
+  requireAuth,
+  requireAuthOrInternal,
+  validateRequest,
+} from '../middlewares';
 import {
   createEventSchema,
   eventParamsSchema,
@@ -360,6 +364,27 @@ router.get(
   '/:eventId/attendees',
   validateRequest(eventParamsSchema),
   EventController.getEventAttendees
+);
+
+/**
+ * @openapi
+ * /api/community/events/my-upcoming:
+ *   get:
+ *     summary: "[Student] Get my upcoming registered events"
+ *     tags: [Events]
+ *     security:
+ *       - cookieAuth: []
+ *     description: Retrieves a list of all future events that the currently authenticated user is registered for.
+ *     responses:
+ *       '200':
+ *         description: An array of upcoming event objects.
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.get(
+  '/my-upcoming',
+  requireAuthOrInternal,
+  EventController.getMyUpcomingEvents
 );
 
 export { router as eventRouter };

@@ -220,4 +220,22 @@ export class EventController {
       next(error);
     }
   }
+
+  public static async getMyUpcomingEvents(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const events = await EventService.getUpcomingEventsForUser(
+        req.currentUser
+      );
+
+      res.status(StatusCodes.OK).json(events);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

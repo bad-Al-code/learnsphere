@@ -141,6 +141,13 @@
       "when": 1760505473410,
       "tag": "0021_modern_robin_chapel",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1760523209138,
+      "tag": "0022_lethal_wendell_vaughn",
+      "breakpoints": true
     }
   ]
 }

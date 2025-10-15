@@ -1,10 +1,14 @@
 import {
+  getAIProgressInsights,
   getComparisonAnalytics,
+  getLearningMilestones,
   getLearningRecommendations,
+  getModuleCompletion,
   getMyGrades,
   getPerformanceHighlights,
   getPerformancePredictions,
   getPredictiveChart,
+  getStudyTimeTrend,
 } from '../api/analytics.api.client';
 import { GradesFilters } from '../schema';
 
@@ -81,6 +85,60 @@ export const getPerformancePredictionsAction = async () => {
 export const getLearningRecommendationsAction = async () => {
   try {
     const data = await getLearningRecommendations();
+    return { data };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : 'An unexpected error occurred',
+    };
+  }
+};
+
+export const getStudyTimeTrendAction = async () => {
+  try {
+    const data = await getStudyTimeTrend();
+
+    return { data };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : 'An unexpected error occurred',
+    };
+  }
+};
+
+export const getModuleCompletionAction = async () => {
+  try {
+    const data = await getModuleCompletion();
+
+    return { data };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : 'An unexpected error occurred',
+    };
+  }
+};
+
+export const getAIProgressInsightsAction = async () => {
+  try {
+    const data = await getAIProgressInsights();
+
+    console.log(data);
+    return { data };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : 'An unexpected error occurred',
+    };
+  }
+};
+
+export const getLearningMilestonesAction = async () => {
+  try {
+    const data = await getLearningMilestones();
+
+    console.log(data);
     return { data };
   } catch (error) {
     return {

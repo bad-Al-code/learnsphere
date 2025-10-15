@@ -1056,4 +1056,145 @@ router.get(
   AnalyticsController.getLearningRecommendations
 );
 
+/**
+ * @openapi
+ * /api/analytics/student/study-time-trend:
+ *   get:
+ *     summary: "[Student] Get weekly study time trend"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     description: Retrieves the student's study hours per week for the last 8 weeks.
+ *     responses:
+ *       '200':
+ *         description: An array of weekly trend data points.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   week:
+ *                     type: string
+ *                   studyHours:
+ *                     type: number
+ *                   target:
+ *                     type: number
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.get(
+  '/student/study-time-trend',
+  requireAuth,
+  AnalyticsController.getWeeklyStudyTimeTrend
+);
+
+/**
+ * @openapi
+ * /api/analytics/student/module-completion:
+ *   get:
+ *     summary: "[Student] Get overall module completion stats"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     description: Retrieves the student's overall progress across all modules in all enrolled courses.
+ *     responses:
+ *       '200':
+ *         description: An array of status objects for the pie chart.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   status:
+ *                     type: string
+ *                   value:
+ *                     type: number
+ *                   fill:
+ *                     type: string
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.get(
+  '/student/module-completion',
+  requireAuth,
+  AnalyticsController.getModuleCompletion
+);
+
+/**
+ * @openapi
+ * /api/analytics/student/ai-progress-insights:
+ *   get:
+ *     summary: "[Student] Get AI-generated progress insights"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     description: Retrieves personalized, AI-generated insights about a student's study pace and overall progress. Results are cached for 24 hours.
+ *     responses:
+ *       '200':
+ *         description: An array of AI-generated insight objects.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   title:
+ *                     type: string
+ *                   description:
+ *                     type: string
+ *                   highlighted:
+ *                     type: boolean
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.get(
+  '/student/ai-progress-insights',
+  requireAuth,
+  AnalyticsController.getAIProgressInsights
+);
+
+/**
+ * @openapi
+ * /api/analytics/student/learning-milestones:
+ *   get:
+ *     summary: "[Student] Get a timeline of learning milestones"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     description: Retrieves a sorted timeline of past, present, and future learning activities, including course progress, upcoming assignments, and registered events.
+ *     responses:
+ *       '200':
+ *         description: An array of milestone objects.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   title:
+ *                     type: string
+ *                   date:
+ *                     type: string
+ *                     format: date-time
+ *                   status:
+ *                     type: string
+ *                     enum: [completed, in-progress, upcoming]
+ *                   type:
+ *                     type: string
+ *                     enum: [course, assignment, event]
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.get(
+  '/student/learning-milestones',
+  requireAuth,
+  AnalyticsController.getLearningMilestones
+);
+
 export { router as analyticsRouter };

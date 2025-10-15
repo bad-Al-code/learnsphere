@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { differenceInHours, format, subDays } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
+
+import { CommunityClient } from '../clients';
 import { CourseClient } from '../clients/course.client';
 import { UserClient } from '../clients/user.client';
 import { env } from '../config/env';
@@ -27,6 +29,9 @@ import {
 } from '../features/ai/responseSchema/assignmentRecommendationResponse.schema';
 import { feedbackResponseSchema } from '../features/ai/responseSchema/feedbackResponse.schema';
 import {
+  AIProgressInsight,
+  aiProgressInsightArraySchema,
+  aiProgressInsightsResponseSchema,
   LearningRecommendation,
   learningRecommendationResponseSchema,
   learningRecommendationSchema,
@@ -50,11 +55,14 @@ import {
   assignmentAnalyticsSchema,
   assignmentSchema,
   GetMyGradesQuery,
+  ModuleCompletionData,
   ReportFormat,
   ReportType,
+  StudyTimeTrend,
 } from '../schema';
 import {
   Grade,
+  Milestone,
   Requester,
   StudentPerformance,
   UserProfileData,
@@ -982,6 +990,38 @@ export class AnalyticsService {
       day: dayInfo.day,
       hours: trendMap.get(dayInfo.date) || 0,
     }));
+  }
+
+  /**
+   * Retrieves the weekly study time trend for a student.
+   * @param studentId The ID of the student.
+   * @returns An array of weekly study data, including a placeholder for target hours.
+   */
+  public static async getWeeklyStudyTimeTrend(
+    studentId: string
+  ): Promise<StudyTimeTrend[]> {
+    logger.info(`Fetching study time trend for student ${studentId}`);
+
+    try {
+      const [weeklyData, targetHours] = await Promise.all([
+        AnalyticsRepository.getWeeklyStudyTrend(studentId),
+        UserClient.getWeeklyStudyGoal(studentId),
+      ]);
+
+      return weeklyData.map((week) => ({
+        ...week,
+        target: targetHours,
+      }));
+    } catch (error) {
+      logger.error(
+        `Failed to get study time trend for student ${studentId}: %o`,
+        {
+          error,
+        }
+      );
+
+      return [];
+    }
   }
 
   /**
@@ -2161,6 +2201,245 @@ export class AnalyticsService {
             'Join a study group or discussion forum to deepen your understanding.',
         },
       ];
+    }
+  }
+
+  /**
+   * Retrieves and calculates the overall module completion statistics for a student.
+   * @param studentId The ID of the student.
+   * @returns An array of objects formatted for the module completion pie chart.
+   */
+  public static async getModuleCompletionStats(
+    studentId: string
+  ): Promise<ModuleCompletionData> {
+    logger.info(`Fetching module completion stats for student ${studentId}`);
+
+    try {
+      const { completed, inProgress, notStarted, total } =
+        await AnalyticsRepository.getOverallModuleCompletion(studentId);
+
+      if (total === 0) {
+        return [];
+      }
+
+      return [
+        {
+          status: 'Completed' as const,
+          value: Math.round((completed / total) * 100),
+          fill: 'var(--chart-1)',
+        },
+        {
+          status: 'In Progress' as const,
+          value: Math.round((inProgress / total) * 100),
+          fill: 'var(--chart-2)',
+        },
+        {
+          status: 'Not Started' as const,
+          value: Math.round((notStarted / total) * 100),
+          fill: 'var(--chart-4)',
+        },
+      ].filter((item) => item.value > 0);
+    } catch (error) {
+      logger.error(
+        `Failed to get module completion stats for student ${studentId} : %o`,
+        { error }
+      );
+
+      return [];
+    }
+  }
+
+  /**
+   * Retrieves or generates AI-powered progress insights for a student.
+   * @param studentId The ID of the student.
+   * @returns A promise that resolves to an array of insight objects.
+   */
+  public static async getAIProgressInsights(
+    studentId: string
+  ): Promise<AIProgressInsight[]> {
+    logger.debug(
+      `Checking for cached progress insights for user ${studentId}.`
+    );
+
+    const cachedData =
+      await AnalyticsRepository.getLatestProgressInsights(studentId);
+
+    if (
+      cachedData &&
+      differenceInHours(new Date(), cachedData.generatedAt) < 24
+    ) {
+      logger.info(`Returning cached progress insights for user ${studentId}.`);
+
+      return cachedData.insights;
+    }
+
+    logger.info(`Generating new progress insights for user ${studentId}.`);
+
+    try {
+      const [moduleCompletion, studyTrend] = await Promise.all([
+        AnalyticsRepository.getOverallModuleCompletion(studentId),
+        AnalyticsRepository.getWeeklyStudyTrend(studentId),
+      ]);
+
+      if (moduleCompletion.total === 0 || studyTrend.length < 2) {
+        throw new Error('Not enough data to generate insights.');
+      }
+
+      const totalHours = studyTrend.reduce(
+        (sum, week) => sum + week.studyHours,
+        0
+      );
+      const averageHours = totalHours / studyTrend.length;
+      const variance =
+        studyTrend
+          .map((w) => Math.pow(w.studyHours - averageHours, 2))
+          .reduce((sum, v) => sum + v, 0) / studyTrend.length;
+      const stdDev = Math.sqrt(variance);
+
+      const context = {
+        completion: {
+          completed: Math.round(
+            (moduleCompletion.completed / moduleCompletion.total) * 100
+          ),
+          inProgress: Math.round(
+            (moduleCompletion.inProgress / moduleCompletion.total) * 100
+          ),
+          notStarted: Math.round(
+            (moduleCompletion.notStarted / moduleCompletion.total) * 100
+          ),
+        },
+        studyTrend: {
+          averageHours: averageHours,
+          isConsistent: stdDev < averageHours / 2,
+        },
+      };
+
+      const systemInstruction = AIPrompt.buildProgressInsightsPrompt(context);
+
+      const response = await this.ai.models.generateContent({
+        model: this.model,
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Generate the progress insights now.' }],
+          },
+        ],
+        config: {
+          responseMimeType: 'application/json',
+          systemInstruction,
+          responseSchema: aiProgressInsightsResponseSchema,
+        },
+      });
+
+      const text = response.text;
+      if (!text) throw new Error('No response text from AI provider.');
+
+      const parsed = JSON.parse(text);
+      const validated = aiProgressInsightArraySchema.parse(parsed.insights);
+
+      await AnalyticsRepository.upsertProgressInsights(studentId, validated);
+
+      logger.info(`Saved new progress insights to cache for user ${studentId}`);
+
+      return validated;
+    } catch (error) {
+      logger.error(
+        'Failed to generate AI progress insights. Returning default. %o',
+        { error }
+      );
+
+      return [
+        {
+          title: 'Start Your Journey',
+          description:
+            'Complete a few lessons and assignments to unlock personalized AI insights about your progress.',
+          highlighted: true,
+        },
+        {
+          title: 'Track Your Time',
+          description:
+            'As you study, we will analyze your patterns to help you find your most effective learning times.',
+        },
+        {
+          title: 'Build Momentum',
+          description:
+            'Consistency is key. Try to complete at least one lesson each day to build a strong study habit.',
+        },
+      ];
+    }
+  }
+
+  /**
+   * Aggregates data from multiple services to build a chronological learning timeline.
+   * @param studentId The ID of the student.
+   * @param cookie The auth cookie to pass to other services.
+   * @returns A sorted array of learning milestones.
+   */
+  public static async getLearningMilestones(
+    studentId: string,
+    cookie: string
+  ): Promise<Milestone[]> {
+    logger.info(`Fetching learning milestones for student ${studentId}`);
+
+    try {
+      const courseProgress =
+        await AnalyticsRepository.findCourseProgressMilestones(studentId);
+      const enrolledCourseIds = courseProgress.map((p) => p.courseId);
+
+      const [upcomingAssignments, upcomingEvents] = await Promise.all([
+        CourseClient.getUpcomingAssignmentsForCourses(enrolledCourseIds),
+        CommunityClient.getMyUpcomingEvents(cookie),
+      ]);
+
+      const courseMilestones: Milestone[] = courseProgress
+        .filter((p) => p.status === 'completed' || p.status === 'active')
+        .map((p) => ({
+          title: p.courseTitle,
+          date: new Date(p.date).toISOString(),
+          status: p.status === 'completed' ? 'completed' : 'in-progress',
+          type: 'course',
+        }));
+
+      const assignmentMilestones: Milestone[] = upcomingAssignments
+        .filter(
+          (a): a is { id: string; title: string; dueDate: string } =>
+            !!a.dueDate
+        )
+        .map((a) => ({
+          title: a.title,
+          date: new Date(a.dueDate).toISOString(),
+          status: 'upcoming',
+          type: 'assignment',
+        }));
+
+      const eventMilestones: Milestone[] = upcomingEvents
+        .filter(
+          (e): e is { id: string; title: string; date: string } => !!e.date
+        )
+        .map((e) => ({
+          title: e.title,
+          date: new Date(e.date).toISOString(),
+          status: 'upcoming',
+          type: 'event',
+        }));
+
+      const allMilestones = [
+        ...courseMilestones,
+        ...assignmentMilestones,
+        ...eventMilestones,
+      ];
+
+      allMilestones.sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+
+      return allMilestones;
+    } catch (error) {
+      logger.error(
+        `Failed to get learning milestones for student ${studentId}`,
+        { error }
+      );
+      return [];
     }
   }
 }

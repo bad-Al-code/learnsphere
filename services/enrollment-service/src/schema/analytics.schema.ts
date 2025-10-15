@@ -193,3 +193,27 @@ export const comparisonAnalyticsResponseSchema = z.object({
 export type ComparisonAnalyticsResponse = z.infer<
   typeof comparisonAnalyticsResponseSchema
 >;
+
+export const studyTimeTrendSchema = z.object({
+  week: z.string(),
+  studyHours: z.number(),
+  target: z.number(),
+});
+
+export type StudyTimeTrend = z.infer<typeof studyTimeTrendSchema>;
+
+export const ModuleStatusEnum = z.enum([
+  'Completed',
+  'In Progress',
+  'Not Started',
+]);
+export type ModuleStatus = z.infer<typeof ModuleStatusEnum>;
+
+export const moduleCompletionSchema = z.object({
+  status: ModuleStatusEnum,
+  value: z.number(),
+  fill: z.string(),
+});
+
+export const moduleCompletionArraySchema = z.array(moduleCompletionSchema);
+export type ModuleCompletionData = z.infer<typeof moduleCompletionArraySchema>;
