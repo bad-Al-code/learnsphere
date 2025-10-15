@@ -18,7 +18,11 @@ import {
 } from '@/components/ui/chart';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ErrorState } from '@/features/ai-tools/_components/common/CourseSelectionScrren';
-import { usePredictiveChart } from '../hooks';
+import {
+  useLearningRecommendations,
+  usePerformancePredictions,
+  usePredictiveChart,
+} from '../hooks';
 
 type TPrediction = {
   title: string;
@@ -152,6 +156,51 @@ function PredictivePerformanceChart() {
 }
 
 function PerformancePredictions() {
+  const { data, isLoading, isError, error, refetch } =
+    usePerformancePredictions();
+
+  const renderContent = () => {
+    if (isLoading) {
+      return <PerformancePredictionsSkeleton />;
+    }
+
+    if (isError) {
+      return (
+        <div className="h-48">
+          <ErrorState message={error.message} onRetry={refetch} />
+        </div>
+      );
+    }
+
+    if (!data || data.length === 0) {
+      return (
+        <div className="text-muted-foreground flex h-48 w-full items-center justify-center text-center text-sm">
+          <p>No performance predictions available at this time.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-2">
+        {data.map((prediction) => (
+          <Card
+            key={prediction.title}
+            className={
+              prediction.highlighted
+                ? 'bg-muted/50 rounded-md p-3'
+                : 'hover:bg-muted/30 p-3'
+            }
+          >
+            <h4 className="font-semibold">{prediction.title}</h4>
+            <p className="text-muted-foreground text-sm">
+              {prediction.description}
+            </p>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -163,24 +212,49 @@ function PerformancePredictions() {
           AI-generated insights about your academic trajectory
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {performancePredictionsData.map((prediction) => (
-          <div
-            key={prediction.title}
-            className={prediction.highlighted ? 'bg-muted rounded-md p-3' : ''}
-          >
-            <h4 className="font-semibold">{prediction.title}</h4>
-            <p className="text-muted-foreground text-sm">
-              {prediction.description}
-            </p>
-          </div>
-        ))}
-      </CardContent>
+      <CardContent>{renderContent()}</CardContent>
     </Card>
   );
 }
 
 function LearningRecommendations() {
+  const { data, isLoading, isError, error, refetch } =
+    useLearningRecommendations();
+
+  const renderContent = () => {
+    if (isLoading) {
+      return <LearningRecommendationsSkeleton />;
+    }
+
+    if (isError) {
+      return (
+        <div className="h-48">
+          <ErrorState message={error.message} onRetry={refetch} />
+        </div>
+      );
+    }
+
+    if (!data || data.length === 0) {
+      return (
+        <div className="text-muted-foreground flex h-48 w-full items-center justify-center text-center text-sm">
+          <p>No learning recommendations available at this time.</p>
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-2">
+        {data.map((rec) => (
+          <Card key={rec.title}>
+            <CardContent>
+              <h4 className="font-semibold">{rec.title}</h4>
+              <p className="text-muted-foreground text-sm">{rec.description}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -192,15 +266,32 @@ function LearningRecommendations() {
           Personalized suggestions to optimize your learning
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {learningRecommendationsData.map((rec) => (
-          <div key={rec.title}>
-            <h4 className="font-semibold">{rec.title}</h4>
-            <p className="text-muted-foreground text-sm">{rec.description}</p>
-          </div>
-        ))}
-      </CardContent>
+      <CardContent>{renderContent()}</CardContent>
     </Card>
+  );
+}
+
+export function AiInsightsTab() {
+  return (
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+      <div className="lg:col-span-2">
+        <PredictivePerformanceChart />
+      </div>
+      <PerformancePredictions />
+      <LearningRecommendations />
+    </div>
+  );
+}
+
+export function AiInsightsTabSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+      <div className="lg:col-span-2">
+        <PredictivePerformanceChartSkeleton />
+      </div>
+      <PerformancePredictionsSkeleton />
+      <LearningRecommendationsSkeleton />
+    </div>
   );
 }
 
@@ -253,29 +344,5 @@ function LearningRecommendationsSkeleton() {
         ))}
       </CardContent>
     </Card>
-  );
-}
-
-export function AiInsightsTab() {
-  return (
-    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-      <div className="lg:col-span-2">
-        <PredictivePerformanceChart />
-      </div>
-      <PerformancePredictions />
-      <LearningRecommendations />
-    </div>
-  );
-}
-
-export function AiInsightsTabSkeleton() {
-  return (
-    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-      <div className="lg:col-span-2">
-        <PredictivePerformanceChartSkeleton />
-      </div>
-      <PerformancePredictionsSkeleton />
-      <LearningRecommendationsSkeleton />
-    </div>
   );
 }

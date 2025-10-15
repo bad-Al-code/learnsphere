@@ -10,6 +10,7 @@ import { validateRequest } from '../middlewares/validate-request';
 import {
   assignmentParamsSchema,
   assignmentSchema,
+  bulkAssignmentsByCoursesSchema,
   bulkAssignmentsSchema,
   requestReGradeParamsSchema,
   submissionIdParamsSchema,
@@ -45,6 +46,35 @@ router.post(
   requireAuthOrInternal,
   validateRequest(bulkAssignmentsSchema),
   AssignmentController.getBulk
+);
+
+/**
+ * @openapi
+ * /api/courses/assignments/bulk:
+ *   post:
+ *     summary: Get all assignments for multiple courses by their IDs
+ *     tags: [Assignments]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               courseIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uuid
+ *     responses:
+ *       '200':
+ *         description: An array of all assignment objects for the given courses.
+ */
+router.post(
+  '/courses/assignments/bulk',
+  requireAuthOrInternal,
+  validateRequest(bulkAssignmentsByCoursesSchema),
+  AssignmentController.getBulkByCourses
 );
 
 /**

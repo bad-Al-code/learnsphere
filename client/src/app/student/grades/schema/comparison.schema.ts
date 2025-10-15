@@ -25,10 +25,19 @@ export const performanceHighlightSchema = z.object({
   actionButtonText: z.string(),
 });
 
+export type PerformanceHighlight = z.infer<typeof performanceHighlightSchema>;
+
 export const comparisonAnalyticsSchema = z.object({
   performanceChart: z.array(performanceChartItemSchema),
   classRanking: classRankingSchema,
 });
 
 export type ComparisonAnalyticsData = z.infer<typeof comparisonAnalyticsSchema>;
-export type PerformanceHighlight = z.infer<typeof performanceHighlightSchema>;
+
+export const performancePredictionSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  highlighted: z.boolean().optional(),
+});
+
+export type PerformancePrediction = z.infer<typeof performancePredictionSchema>;

@@ -814,4 +814,40 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getPerformancePredictions(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const predictions = await AnalyticsService.getPerformancePredictions(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(predictions);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getLearningRecommendations(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const recommendations = await AnalyticsService.getLearningRecommendations(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(recommendations);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

@@ -13,6 +13,18 @@ interface GradeHistoryItem {
   averageGrade: number;
 }
 
+interface PredictionContext {
+  averageGrade: number;
+  onTimeRate: number;
+  totalSubmissions: number;
+}
+
+interface RecommendationContext {
+  gradeDistribution: { grade: string; count: number }[];
+  peakStudyDays: string[];
+  peakStudyHours: string[];
+}
+
 export class AIPrompt {
   /**
    * Generates the system instruction for the AI to create performance highlights.
@@ -91,5 +103,65 @@ ${historyString}
 ---
 
 Generate the predictions now.`;
+  }
+
+  /**
+   * Generates the system instruction for the AI to create performance predictions.
+   * @param context The student's summary performance data.
+   * @returns A string containing the system prompt for the Gemini model.
+   */
+  public static buildPerformancePredictionPrompt(
+    context: PredictionContext
+  ): string {
+    return `
+      You are an AI academic advisor with expertise in data analysis.
+      Your task is to analyze a student's summary performance data and generate exactly 3 insightful predictions about their future academic trajectory.
+
+      Rules:
+      1. The tone should be objective and data-driven, yet encouraging.
+      2. Each prediction must have a 'title' and a 'description'.
+      3. The first prediction's title MUST be "Grade Trajectory" and it MUST have 'highlighted' set to true.
+      4. The second prediction's title MUST be "Risk Assessment".
+      5. The third prediction's title MUST be "Optimization Opportunity".
+      6. Base your predictions strictly on the data provided. Do not invent unrelated facts.
+
+      Here is the student's data:
+      - Overall Average Grade: ${context.averageGrade.toFixed(1)}%
+      - On-Time Submission Rate: ${(context.onTimeRate * 100).toFixed(0)}%
+      - Total Assignments Submitted: ${context.totalSubmissions}
+
+      Generate the three predictions now in the specified JSON format.`;
+  }
+
+  /**
+   * Generates the system instruction for the AI to create learning recommendations.
+   * @param context The student's learning patterns data.
+   * @returns A string containing the system prompt for the Gemini model.
+   */
+  public static buildLearningRecommendationPrompt(
+    context: RecommendationContext
+  ): string {
+    const gradeString = context.gradeDistribution
+      .map((g) => `${g.grade}: ${g.count} assignments`)
+      .join(', ');
+    const dayString = context.peakStudyDays.join(', ');
+    const hourString = context.peakStudyHours.join(', ');
+
+    return `
+      You are an AI academic advisor named "LearnBot". Your task is to provide exactly 3 personalized and actionable learning recommendations based on the student's study patterns and grade distribution.
+
+      Rules:
+      1. The tone should be encouraging and specific.
+      2. Each recommendation must have a 'title' and a 'description'.
+      3. One recommendation should be about WHEN to study, using the peak study time data.
+      4. One recommendation should be about WHAT to study, using the grade distribution data to suggest focusing on weaker areas.
+      5. The third recommendation should be a more general, effective study habit.
+
+      Here is the student's data:
+      - Overall Grade Distribution: ${gradeString}
+      - Most Active Study Days: ${dayString}
+      - Most Active Study Hours: ${hourString}
+
+      Generate the three recommendations now in the specified JSON format.`;
   }
 }

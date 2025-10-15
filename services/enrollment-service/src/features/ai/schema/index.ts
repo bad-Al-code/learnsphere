@@ -60,3 +60,67 @@ export const predictiveChartResponseSchema = {
 };
 
 export type PredictiveChartData = z.infer<typeof predictiveChartDataSchema>;
+
+export const performancePredictionItemSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  highlighted: z.boolean().optional(),
+});
+
+export const performancePredictionSchema = z.array(
+  performancePredictionItemSchema
+);
+
+export const performancePredictionResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    predictions: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          title: { type: Type.STRING },
+          description: { type: Type.STRING },
+          highlighted: { type: Type.BOOLEAN },
+        },
+        required: ['title', 'description'],
+      },
+    },
+  },
+  required: ['predictions'],
+};
+
+export type PerformancePrediction = z.infer<
+  typeof performancePredictionItemSchema
+>;
+
+export const learningRecommendationItemSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+});
+
+export const learningRecommendationSchema = z.array(
+  learningRecommendationItemSchema
+);
+
+export const learningRecommendationResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    recommendations: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          title: { type: Type.STRING },
+          description: { type: Type.STRING },
+        },
+        required: ['title', 'description'],
+      },
+    },
+  },
+  required: ['recommendations'],
+};
+
+export type LearningRecommendation = z.infer<
+  typeof learningRecommendationItemSchema
+>;

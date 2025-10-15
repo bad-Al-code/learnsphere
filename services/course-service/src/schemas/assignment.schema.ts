@@ -228,6 +228,14 @@ export const bulkAssignmentsSchema = z.object({
   }),
 });
 
+export const bulkAssignmentsByCoursesSchema = z.object({
+  body: z.object({
+    courseIds: z
+      .array(z.string().uuid())
+      .nonempty('At least one course ID is required'),
+  }),
+});
+
 export const submissionIdParamsSchema = z.object({
   params: z.object({
     submissionId: z.string().uuid('Invalid submission ID format'),

@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import { AssignmentRepository } from '../db/repostiories';
 import { BadRequestError, NotAuthorizedError } from '../errors';
 import {
+  bulkAssignmentsByCoursesSchema,
   bulkAssignmentsSchema,
   draftStatusesSchema,
   findAssignmentsSchema,
@@ -341,6 +342,31 @@ export class AssignmentController {
       res
         .status(StatusCodes.OK)
         .json({ message: 'Re-grade request accepted.' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * @description Controller to get multiple assignments for multiple courses by their IDs.
+   */
+  public static async getBulkByCourses(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { courseIds } = bulkAssignmentsByCoursesSchema.parse({
+        body: req.body,
+      })['body'];
+      if (!Array.isArray(courseIds)) {
+        throw new BadRequestError('courseIds must be an array.');
+      }
+
+      const assignments =
+        await AssignmentService.getAssignmentsByCourseIds(courseIds);
+
+      res.status(StatusCodes.OK).json(assignments);
     } catch (error) {
       next(error);
     }

@@ -15,9 +15,14 @@ import {
   sum,
 } from 'drizzle-orm';
 import { db } from '..';
+import logger from '../../config/logger';
 import { BadRequestError } from '../../errors';
 import { AssignmentResponse } from '../../features/ai/responseSchema/assignmentRecommendationResponse.schema';
-import { PredictiveChartData } from '../../features/ai/schema';
+import {
+  LearningRecommendation,
+  PerformancePrediction,
+  PredictiveChartData,
+} from '../../features/ai/schema';
 import { FeedbackResponseSchema } from '../../features/ai/schema/feedback.schema';
 import {
   Assignment,
@@ -37,6 +42,10 @@ import {
   aiInsights,
   AILearningPath,
   aiLearningPaths,
+  AILearningRecommendation,
+  aiLearningRecommendations,
+  AIPerformancePrediction,
+  aiPerformancePredictions,
   AIStudyRecommendation,
   aiStudyRecommendations,
   courseActivityLogs,
@@ -1369,6 +1378,62 @@ Saves or updates the AI-generated insights for a user.
   }
 
   /**
+   * Fetches overall raw analytics data for a student across all their courses.
+   * @param studentId The ID of the student.
+   * @param assignments An array of all assignment details for the student's enrolled courses.
+   * @returns A promise that resolves with the raw analytics data.
+   */
+  public static async getOverallStudentAnalytics(
+    studentId: string,
+    assignments: { id: string; dueDate: Date | null }[]
+  ): Promise<{
+    totalSubmissions: number;
+    averageGrade: number;
+    onTimeRate: number;
+  }> {
+    try {
+      const submissions = await db
+        .select({
+          assignmentId: studentGrades.assignmentId,
+          submittedAt: studentGrades.gradedAt,
+          grade: studentGrades.grade,
+        })
+        .from(studentGrades)
+        .where(eq(studentGrades.studentId, studentId));
+
+      if (submissions.length === 0) {
+        return { totalSubmissions: 0, averageGrade: 0, onTimeRate: 0 };
+      }
+
+      const assignmentMap = new Map(assignments.map((a) => [a.id, a.dueDate]));
+      let onTimeCount = 0;
+      let totalGrade = 0;
+
+      submissions.forEach((sub) => {
+        const dueDate = assignmentMap.get(sub.assignmentId);
+        if (dueDate && sub.submittedAt && sub.submittedAt <= dueDate) {
+          onTimeCount++;
+        }
+
+        totalGrade += sub.grade || 0;
+      });
+
+      return {
+        totalSubmissions: submissions.length,
+        averageGrade: totalGrade / submissions.length,
+        onTimeRate: onTimeCount / submissions.length,
+      };
+    } catch (error) {
+      logger.error('Error fetching overall student analytics: %o', {
+        studentId,
+        error,
+      });
+
+      throw new Error('Failed to calculate overall student analytics.');
+    }
+  }
+
+  /**
    * Calculates the on-time submission rate for a student in a specific course.
    * @param courseId The ID of the course.
    * @param studentId The ID of the student.
@@ -1825,6 +1890,164 @@ Saves or updates the AI-generated insights for a user.
       .onConflictDoUpdate({
         target: aiLearningPaths.userId,
         set: { pathData, generatedAt: new Date() },
+      });
+  }
+
+  /**
+   * Fetches the most recent AI-generated performance predictions for a user.
+   * @param userId The Id of the user.
+   * @returns The latest prediction record, or undefined if none exists.
+   */
+  public static getLatestPredictions(
+    userId: string
+  ): Promise<AIPerformancePrediction | undefined> {
+    return db.query.aiPerformancePredictions.findFirst({
+      where: eq(aiPerformancePredictions.userId, userId),
+      orderBy: [desc(aiPerformancePredictions.generatedAt)],
+    });
+  }
+
+  /**
+   * Saves or updates the AI-generated performance predictions for a user.
+   * @param userId The Id of the user.
+   * @param predictions The array of prediction objects to save.
+   */
+  public static async upsertPredictions(
+    userId: string,
+    predictions: PerformancePrediction[]
+  ): Promise<void> {
+    await db
+      .insert(aiPerformancePredictions)
+      .values({
+        userId,
+        predictions,
+        generatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: aiPerformancePredictions.userId,
+        set: { predictions, generatedAt: new Date() },
+      });
+  }
+
+  /**
+   * Calculates the overall grade distribution for a student across all courses.
+   * @param studentId The ID of the student.
+   * @returns An array of objects with grade brackets and counts.
+   */
+  public static async getOverallGradeDistribution(
+    studentId: string
+  ): Promise<{ grade: string; count: number }[]> {
+    const query = sql`
+      SELECT
+        CASE
+          WHEN grade >= 90 THEN 'A'
+          WHEN grade >= 80 THEN 'B'
+          WHEN grade >= 70 THEN 'C'
+          WHEN grade >= 60 THEN 'D'
+          ELSE 'F'
+        END AS grade_bracket,
+        COUNT(*) AS student_count
+      FROM ${studentGrades}
+      WHERE ${studentGrades.studentId} = ${studentId}
+      GROUP BY grade_bracket
+      ORDER BY MIN(grade) DESC;
+    `;
+    const result = await db.execute<GradeRow>(query);
+    return result.rows.map((row) => ({
+      grade: row.grade_bracket,
+      count: parseInt(row.student_count, 10),
+    }));
+  }
+
+  /**
+   * Analyzes a student's lesson sessions to find their peak study times.
+   * @param studentId The ID of the student.
+   * @returns An object containing the most active days and hours.
+   */
+  public static async getStudyTimeAnalytics(
+    studentId: string
+  ): Promise<{ peakDays: string[]; peakHours: string[] }> {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const daysQuery = db
+      .select({
+        day: sql<string>`TO_CHAR(${lessonSessions.startedAt}, 'Day')`,
+        count: count(lessonSessions.sessionId),
+      })
+      .from(lessonSessions)
+      .where(
+        and(
+          eq(lessonSessions.userId, studentId),
+          gte(lessonSessions.startedAt, sevenDaysAgo)
+        )
+      )
+      .groupBy(sql`TO_CHAR(${lessonSessions.startedAt}, 'Day')`)
+      .orderBy(desc(count(lessonSessions.sessionId)))
+      .limit(3);
+
+    const hoursQuery = db
+      .select({
+        hour: sql<number>`EXTRACT(hour FROM ${lessonSessions.startedAt})`,
+        count: count(lessonSessions.sessionId),
+      })
+      .from(lessonSessions)
+      .where(
+        and(
+          eq(lessonSessions.userId, studentId),
+          gte(lessonSessions.startedAt, sevenDaysAgo)
+        )
+      )
+      .groupBy(sql`EXTRACT(hour FROM ${lessonSessions.startedAt})`)
+      .orderBy(desc(count(lessonSessions.sessionId)))
+      .limit(3);
+
+    const [dayResults, hourResults] = await Promise.all([
+      daysQuery,
+      hoursQuery,
+    ]);
+
+    const formatHour = (hour: number) => {
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const h = hour % 12 || 12;
+      return `${h} ${ampm}`;
+    };
+
+    return {
+      peakDays: dayResults.map((r) => r.day.trim()),
+      peakHours: hourResults.map((r) => formatHour(Number(r.hour))),
+    };
+  }
+
+  /**
+   * Fetches the most recent AI-generated learning recommendations for a user.
+   * @param userId The ID of the user.
+   * @returns The latest recommendation record, or undefined if none exists.
+   */
+  public static async getLearningLatestRecommendations(
+    userId: string
+  ): Promise<AILearningRecommendation | undefined> {
+    return db.query.aiLearningRecommendations.findFirst({
+      where: eq(aiLearningRecommendations.userId, userId),
+      orderBy: [desc(aiLearningRecommendations.generatedAt)],
+    });
+  }
+
+  /**
+   * Saves or updates the AI-generated learning recommendations for a user.
+   * @param userId The ID of the user.
+   * @param recommendations The array of recommendation objects to save.
+   */
+  public static async upsertLearningRecommendations(
+    userId: string,
+    recommendations: LearningRecommendation[]
+  ): Promise<void> {
+    await db
+      .insert(aiLearningRecommendations)
+      .values({ userId, recommendations, generatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: aiLearningRecommendations.userId,
+        set: { recommendations, generatedAt: new Date() },
       });
   }
 }

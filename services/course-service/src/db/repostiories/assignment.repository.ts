@@ -493,4 +493,19 @@ export class AssignmentRepository {
 
     return (result.rowCount ?? 0) > 0;
   }
+
+  /**
+   * Finds all assignments for a given list of course Ids.
+   * @param courseIds An array of courseIds.
+   * @returns A promise that resolves to an array of Assignments.
+   */
+  public static async findManyByCourseIds(
+    courseIds: string[]
+  ): Promise<Assignment[]> {
+    if (courseIds.length === 0) return [];
+
+    return db.query.assignments.findMany({
+      where: inArray(assignments.courseId, courseIds),
+    });
+  }
 }

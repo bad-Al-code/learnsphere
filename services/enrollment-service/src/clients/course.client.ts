@@ -140,6 +140,42 @@ export class CourseClient {
   }
 
   /**
+   * Fetches all assignments for a list of courses from the course-service.
+   * @param courseIds An array of course IDs.
+   * @returns An array of assignment objects with at least id and dueDate.
+   */
+  public static async getAssignmentsForCourses(
+    courseIds: string[]
+  ): Promise<{ id: string; dueDate: Date | null }[]> {
+    if (courseIds.length === 0) {
+      return [];
+    }
+    try {
+      const response = await axios.post<
+        { id: string; dueDate: string | null }[]
+      >(
+        `${this.courseServiceUrl}/api/courses/assignments/bulk`,
+        { courseIds },
+        {
+          headers: {
+            'x-internal-api-key': env.INTERNAL_API_KEY,
+          },
+        }
+      );
+
+      return response.data.map((a) => ({
+        ...a,
+        dueDate: a.dueDate ? new Date(a.dueDate) : null,
+      }));
+    } catch (error) {
+      logger.error('Failed to bulk fetch assignments from course-service', {
+        error,
+      });
+      return [];
+    }
+  }
+
+  /**
    * Fetches the content of a single assignment submission from the course-service.
    * @param submissionId The ID of the submission.
    * @param cookie The authentication cookie of the user making the request.

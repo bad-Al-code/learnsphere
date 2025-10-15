@@ -3,7 +3,9 @@ import {
   ComparisonAnalyticsData,
   GetMyGradesResponse,
   GradesFilters,
+  LearningRecommendation,
   PerformanceHighlight,
+  PerformancePrediction,
   PredictiveChartData,
 } from '../schema';
 
@@ -91,5 +93,44 @@ export const getPredictiveChart = async (): Promise<PredictiveChartData> => {
   } catch (error) {
     console.error('Failed to fetch predictive chart data:', error);
     throw new Error('Could not load your performance prediction.');
+  }
+};
+
+/**
+ * Fetches the AI-generated performance predictions for the current student.
+ * @returns A promise that resolves to an array of prediction objects.
+ */
+export const getPerformancePredictions = async (): Promise<
+  PerformancePrediction[]
+> => {
+  try {
+    const response = await enrollmentService.getTyped<PerformancePrediction[]>(
+      `/api/analytics/student/performance-predictions`
+    );
+
+    return response;
+  } catch (error) {
+    console.error('Failed to fetch performance predictions:', error);
+
+    throw new Error('Could not load AI performance predictions.');
+  }
+};
+
+/**
+ * Fetches the AI-powered learning recommendations for the current student.
+ * @returns A promise that resolves to an array of recommendation objects.
+ */
+export const getLearningRecommendations = async (): Promise<
+  LearningRecommendation[]
+> => {
+  try {
+    const response = await enrollmentService.getTyped<LearningRecommendation[]>(
+      `/api/analytics/student/learning-recommendations`
+    );
+
+    return response;
+  } catch (error) {
+    console.error('Failed to fetch learning recommendations:', error);
+    throw new Error('Could not load AI learning recommendations.');
   }
 };

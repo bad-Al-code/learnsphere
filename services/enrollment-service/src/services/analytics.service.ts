@@ -27,9 +27,15 @@ import {
 } from '../features/ai/responseSchema/assignmentRecommendationResponse.schema';
 import { feedbackResponseSchema } from '../features/ai/responseSchema/feedbackResponse.schema';
 import {
+  LearningRecommendation,
+  learningRecommendationResponseSchema,
+  learningRecommendationSchema,
   PerformanceHighlights,
   performanceHighlightsResponseSchema,
   performanceHighlightsZodSchema,
+  PerformancePrediction,
+  performancePredictionResponseSchema,
+  performancePredictionSchema,
   PredictiveChartData,
   predictiveChartDataSchema,
   predictiveChartResponseSchema,
@@ -1940,6 +1946,221 @@ export class AnalyticsService {
         { error }
       );
       return [];
+    }
+  }
+
+  /**
+   * Retrieves or generates AI-powered performance predictions for a student.
+   * @param studentId The ID of the student.
+   * @returns A promise that resolves to an array of prediction objects.
+   */
+  public static async getPerformancePredictions(
+    studentId: string
+  ): Promise<PerformancePrediction[]> {
+    logger.debug(
+      `Checking for cached performance predictions for user ${studentId}.`
+    );
+
+    const cachedData =
+      await AnalyticsRepository.getLatestPredictions(studentId);
+    if (
+      cachedData &&
+      differenceInHours(new Date(), cachedData.generatedAt) < 24
+    ) {
+      logger.info(
+        `Returning cached performance predictions for user ${studentId}.`
+      );
+
+      return cachedData.predictions;
+    }
+
+    logger.info(
+      `Generating new performance predictions for user ${studentId}.`
+    );
+
+    try {
+      const enrolledCourses =
+        await EnrollRepository.findActiveAndCompletedByUserId(studentId);
+      if (enrolledCourses.length === 0) {
+        throw new Error('User is not enrolled in any courses.');
+      }
+
+      const courseIds = enrolledCourses.map((e) => e.courseId);
+      const assignments =
+        await CourseClient.getAssignmentsForCourses(courseIds);
+
+      const { totalSubmissions, averageGrade, onTimeRate } =
+        await AnalyticsRepository.getOverallStudentAnalytics(
+          studentId,
+          assignments
+        );
+
+      if (totalSubmissions < 3) {
+        throw new Error('Not enough data to generate predictions.');
+      }
+
+      const context = { totalSubmissions, averageGrade, onTimeRate };
+      const systemInstruction =
+        AIPrompt.buildPerformancePredictionPrompt(context);
+
+      const response = await this.ai.models.generateContent({
+        model: this.model,
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Generate the performance predictions now.' }],
+          },
+        ],
+        config: {
+          responseMimeType: 'application/json',
+          systemInstruction,
+          responseSchema: performancePredictionResponseSchema,
+        },
+      });
+
+      const text = response.text;
+      if (!text) throw new Error('No response text from AI provider.');
+
+      const parsed = JSON.parse(text);
+      const validated = performancePredictionSchema.parse(parsed.predictions);
+
+      await AnalyticsRepository.upsertPredictions(studentId, validated);
+      logger.info(
+        `Saved new performance predictions to cache for user ${studentId}`
+      );
+
+      return validated;
+    } catch (error) {
+      logger.error(
+        'Failed to generate performance predictions. Returning default. %o',
+        { error }
+      );
+
+      return [
+        {
+          title: 'Grade Trajectory',
+          description:
+            'Analysis requires more data. Complete a few more assignments to unlock your grade prediction.',
+          highlighted: true,
+        },
+        {
+          title: 'Risk Assessment',
+          description:
+            'Keep up with your coursework to stay on the path to success.',
+        },
+        {
+          title: 'Optimization Opportunity',
+          description:
+            'Reviewing feedback on past assignments is a great way to improve.',
+        },
+      ];
+    }
+  }
+
+  /**
+   * Retrieves or generates AI-powered learning recommendations for a student.
+   * @param studentId The ID of the student.
+   * @returns A promise that resolves to an array of recommendation objects.
+   */
+  public static async getLearningRecommendations(
+    studentId: string
+  ): Promise<LearningRecommendation[]> {
+    logger.debug(
+      `Checking for cached learning recommendations for user ${studentId}.`
+    );
+    const cachedData =
+      await AnalyticsRepository.getLearningLatestRecommendations(studentId);
+
+    if (
+      cachedData &&
+      differenceInHours(new Date(), cachedData.generatedAt) < 24
+    ) {
+      logger.info(
+        `Returning cached learning recommendations for user ${studentId}.`
+      );
+
+      return cachedData.recommendations;
+    }
+
+    logger.info(
+      `Generating new learning recommendations for user ${studentId}.`
+    );
+
+    try {
+      const [gradeDistribution, studyTime] = await Promise.all([
+        AnalyticsRepository.getOverallGradeDistribution(studentId),
+        AnalyticsRepository.getStudyTimeAnalytics(studentId),
+      ]);
+
+      if (gradeDistribution.length === 0) {
+        throw new Error('Not enough grade data to generate recommendations.');
+      }
+
+      const context = {
+        gradeDistribution,
+        peakStudyDays: studyTime.peakDays,
+        peakStudyHours: studyTime.peakHours,
+      };
+
+      const systemInstruction =
+        AIPrompt.buildLearningRecommendationPrompt(context);
+
+      const response = await this.ai.models.generateContent({
+        model: this.model,
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Generate the learning recommendations now.' }],
+          },
+        ],
+        config: {
+          responseMimeType: 'application/json',
+          systemInstruction,
+          responseSchema: learningRecommendationResponseSchema,
+        },
+      });
+
+      const text = response.text;
+      if (!text) throw new Error('No response text from AI provider.');
+
+      const parsed = JSON.parse(text);
+      const validated = learningRecommendationSchema.parse(
+        parsed.recommendations
+      );
+
+      await AnalyticsRepository.upsertLearningRecommendations(
+        studentId,
+        validated
+      );
+
+      logger.info(
+        `Saved new learning recommendations to cache for user ${studentId}`
+      );
+
+      return validated;
+    } catch (error) {
+      logger.error(
+        'Failed to generate learning recommendations. Returning default: %o',
+        { error }
+      );
+
+      return [
+        {
+          title: 'Review Weaker Subjects',
+          description:
+            'Focus on topics where your grades are lowest to see the biggest improvement.',
+        },
+        {
+          title: 'Establish a Routine',
+          description:
+            'Studying at the same time each day can help build a strong habit.',
+        },
+        {
+          title: 'Engage with Peers',
+          description:
+            'Join a study group or discussion forum to deepen your understanding.',
+        },
+      ];
     }
   }
 }

@@ -1,7 +1,9 @@
 import {
   getComparisonAnalytics,
+  getLearningRecommendations,
   getMyGrades,
   getPerformanceHighlights,
+  getPerformancePredictions,
   getPredictiveChart,
 } from '../api/analytics.api.client';
 import { GradesFilters } from '../schema';
@@ -54,6 +56,31 @@ export const getPredictiveChartAction = async () => {
   try {
     const data = await getPredictiveChart();
 
+    return { data };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : 'An unexpected error occurred',
+    };
+  }
+};
+
+export const getPerformancePredictionsAction = async () => {
+  try {
+    const data = await getPerformancePredictions();
+
+    return { data };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : 'An unexpected error occurred',
+    };
+  }
+};
+
+export const getLearningRecommendationsAction = async () => {
+  try {
+    const data = await getLearningRecommendations();
     return { data };
   } catch (error) {
     return {

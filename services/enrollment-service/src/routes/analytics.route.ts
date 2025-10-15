@@ -990,4 +990,70 @@ router.get(
   AnalyticsController.getPredictiveChart
 );
 
+/**
+ * @openapi
+ * /api/analytics/student/performance-predictions:
+ *   get:
+ *     summary: "[Student] Get AI-generated performance predictions"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     description: Retrieves personalized, AI-generated predictions about a student's future academic trajectory. Results are cached for 24 hours.
+ *     responses:
+ *       '200':
+ *         description: An array of AI-generated prediction objects.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   title:
+ *                     type: string
+ *                   description:
+ *                     type: string
+ *                   highlighted:
+ *                     type: boolean
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.get(
+  '/student/performance-predictions',
+  requireAuth,
+  AnalyticsController.getPerformancePredictions
+);
+
+/**
+ * @openapi
+ * /api/analytics/student/learning-recommendations:
+ *   get:
+ *     summary: "[Student] Get AI-generated learning recommendations"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     description: Retrieves personalized, AI-generated recommendations on how and when to study. Results are cached for 24 hours.
+ *     responses:
+ *       '200':
+ *         description: An array of AI-generated recommendation objects.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   title:
+ *                     type: string
+ *                   description:
+ *                     type: string
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.get(
+  '/student/learning-recommendations',
+  requireAuth,
+  AnalyticsController.getLearningRecommendations
+);
+
 export { router as analyticsRouter };

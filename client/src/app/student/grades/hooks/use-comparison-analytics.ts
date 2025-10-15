@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   getComparisonAnalyticsAction,
   getPerformanceHighlightsAction,
+  getPerformancePredictionsAction,
 } from '../actions/analytics.action';
 
 export const useComparisonAnalytics = (courseId: string) => {
@@ -36,6 +37,23 @@ export const usePerformanceHighlights = (courseId: string) => {
       return res.data;
     },
     enabled: !!courseId,
+    staleTime: 1000 * 60 * 60,
+    retry: 1,
+  });
+};
+
+export const usePerformancePredictions = () => {
+  return useQuery({
+    queryKey: ['analytics', 'performance-predictions'],
+
+    queryFn: async () => {
+      const res = await getPerformancePredictionsAction();
+      if (res.error) {
+        throw new Error(res.error);
+      }
+
+      return res.data;
+    },
     staleTime: 1000 * 60 * 60,
     retry: 1,
   });

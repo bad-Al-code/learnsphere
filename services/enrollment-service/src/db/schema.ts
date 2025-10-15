@@ -14,7 +14,11 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { AssignmentResponse } from '../features/ai/responseSchema/assignmentRecommendationResponse.schema';
-import { PredictiveChartData } from '../features/ai/schema';
+import {
+  LearningRecommendation,
+  PerformancePrediction,
+  PredictiveChartData,
+} from '../features/ai/schema';
 import { FeedbackResponseSchema } from '../features/ai/schema/feedback.schema';
 
 type ModuleSnapshot = {
@@ -235,6 +239,7 @@ export const aiStudyRecommendations = pgTable('ai_study_recommendations', {
 });
 export type AIStudyRecommendation = typeof aiStudyRecommendations.$inferSelect;
 
+/** AI Learnrning Paths */
 export const aiLearningPaths = pgTable('ai_learning_paths', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().unique(),
@@ -243,3 +248,30 @@ export const aiLearningPaths = pgTable('ai_learning_paths', {
 });
 
 export type AILearningPath = typeof aiLearningPaths.$inferSelect;
+
+/** AI Performance Predictions */
+export const aiPerformancePredictions = pgTable('ai_performance_predictions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().unique(),
+  predictions: jsonb('predictions').$type<PerformancePrediction[]>().notNull(),
+  generatedAt: timestamp('generated_at').defaultNow().notNull(),
+});
+
+export type AIPerformancePrediction =
+  typeof aiPerformancePredictions.$inferSelect;
+
+/** AI Learning Recommendataions */
+export const aiLearningRecommendations = pgTable(
+  'ai_learning_recommendations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull().unique(),
+    recommendations: jsonb('recommendations')
+      .$type<LearningRecommendation[]>()
+      .notNull(),
+    generatedAt: timestamp('generated_at').defaultNow().notNull(),
+  }
+);
+
+export type AILearningRecommendation =
+  typeof aiLearningRecommendations.$inferSelect;

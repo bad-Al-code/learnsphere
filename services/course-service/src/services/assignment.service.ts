@@ -404,4 +404,19 @@ export class AssignmentService {
       );
     }
   }
+
+  /**
+   * Retrieves all assignments for a given list of course IDs.
+   * @param courseIds - An array of course IDs.
+   * @returns A list of assignment objects.
+   */
+  public static async getAssignmentsByCourseIds(
+    courseIds: string[]
+  ): Promise<Assignment[]> {
+    logger.info(
+      `Fetching all assignments for ${courseIds.length} courses in bulk`
+    );
+
+    return AssignmentRepository.findManyByCourseIds(courseIds);
+  }
 }
