@@ -183,4 +183,23 @@ export class DraftService {
       throw new ForbiddenError();
     }
   }
+
+  /**
+   * Logs time spent on a draft, verifying ownership.
+   * @param draftId - ID of the draft
+   * @param minutes - Minutes to log
+   * @param requester - The user making the request
+   */
+  public static async logTime(
+    draftId: string,
+    minutes: number,
+    requester: Requester
+  ): Promise<void> {
+    const draft = await DraftRepository.findById(draftId);
+    if (!draft || draft.studentId !== requester.id) {
+      throw new ForbiddenError();
+    }
+
+    await DraftRepository.logTime(draftId, minutes);
+  }
 }

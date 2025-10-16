@@ -551,15 +551,11 @@ export function GoalsTab() {
       </CardHeader>
       <CardContent className="space-y-2">
         <AddNewGoal />
-        <Card className="">
-          <CardContent>
-            <ScrollArea className="">
-              <div className="mr-3 max-h-[75vh]">
-                <GoalList />
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+        <ScrollArea className="">
+          <div className="mr-3 max-h-[75vh]">
+            <GoalList />
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );

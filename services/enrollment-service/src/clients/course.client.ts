@@ -6,7 +6,12 @@ import logger from '../config/logger';
 interface CourseInfo {
   id: string;
   title: string;
+  category: {
+    id: string;
+    name: string;
+  } | null;
 }
+
 export class CourseClient {
   private static courseServiceUrl = env.COURSE_SERVICE_URL;
   /**
@@ -21,14 +26,14 @@ export class CourseClient {
     if (courseIds.length === 0) return courseMap;
 
     try {
-      const response = await axios.post<{ id: string; title: string }[]>(
+      const response = await axios.post<CourseInfo[]>(
         `${this.courseServiceUrl}/api/courses/bulk`,
         { courseIds }
       );
 
       response.data.forEach((course) => courseMap.set(course.id, course));
     } catch (error) {
-      logger.error('Failed to bulk fetch course details', { error });
+      logger.error('Failed to bulk fetch course details: %o', { error });
     }
 
     return courseMap;
@@ -306,6 +311,42 @@ export class CourseClient {
     } catch (error) {
       logger.error('Failed to bulk fetch upcoming assignments: %o', { error });
       return [];
+    }
+  }
+
+  /**
+   * Fetches the total time a student has spent on assignments across specific courses.
+   * @param studentId The ID of the student.
+   * @param courseIds An array of course IDs.
+   * @returns The total hours spent on assignments.
+   */
+  public static async getTimeManagementSummary(
+    studentId: string,
+    courseIds: string[]
+  ): Promise<{ activity: string; totalHours: number }> {
+    if (courseIds.length === 0) {
+      return { activity: 'Assignments', totalHours: 0 };
+    }
+
+    try {
+      const response = await axios.get<{
+        activity: string;
+        totalHours: number;
+      }>(`${this.courseServiceUrl}/api/assignments/drafts/time-summary`, {
+        params: {
+          studentId,
+          courseIds: courseIds.join(','),
+        },
+        headers: {
+          'x-internal-api-key': env.INTERNAL_API_KEY,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      logger.error('Failed to fetch time management summary: %o', { error });
+
+      return { activity: 'Assignments', totalHours: 0 };
     }
   }
 }

@@ -148,6 +148,20 @@
       "when": 1760523209138,
       "tag": "0022_lethal_wendell_vaughn",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1760586929484,
+      "tag": "0023_pale_cable",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1760589190444,
+      "tag": "0024_sloppy_wallop",
+      "breakpoints": true
     }
   ]
 }

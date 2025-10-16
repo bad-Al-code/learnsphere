@@ -16,11 +16,13 @@ import {
 import { AssignmentResponse } from '../features/ai/responseSchema/assignmentRecommendationResponse.schema';
 import {
   AIProgressInsight,
+  LearningEfficiency,
   LearningRecommendation,
   PerformancePrediction,
   PredictiveChartData,
 } from '../features/ai/schema';
 import { FeedbackResponseSchema } from '../features/ai/schema/feedback.schema';
+import { StudyHabit } from '../schema';
 
 type ModuleSnapshot = {
   id: string;
@@ -286,3 +288,25 @@ export const aiProgressInsights = pgTable('ai_progress_insights', {
 });
 
 export type AIProgressInsightEntry = typeof aiProgressInsights.$inferSelect;
+
+/** AI Learning Efficiency */
+export const aiLearningEfficiency = pgTable('ai_learning_efficiency', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().unique(),
+  efficiencyData: jsonb('efficiency_data')
+    .$type<LearningEfficiency[]>()
+    .notNull(),
+  generatedAt: timestamp('generated_at').defaultNow().notNull(),
+});
+
+export type AILearningEfficiency = typeof aiLearningEfficiency.$inferSelect;
+
+/** AI Study Habits */
+export const aiStudyHabits = pgTable('ai_study_habits', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().unique(),
+  habitsData: jsonb('habits_data').$type<StudyHabit[]>().notNull(),
+  generatedAt: timestamp('generated_at').defaultNow().notNull(),
+});
+
+export type AIStudyHabitEntry = typeof aiStudyHabits.$inferSelect;

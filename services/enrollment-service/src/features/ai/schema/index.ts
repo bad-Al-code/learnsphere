@@ -152,3 +152,61 @@ export const aiProgressInsightsResponseSchema = {
 
 export const aiProgressInsightArraySchema = z.array(aiProgressInsightSchema);
 export type AIProgressInsight = z.infer<typeof aiProgressInsightSchema>;
+
+export const learningEfficiencyItemSchema = z.object({
+  subject: z.string(),
+  comprehension: z.number().int().min(0).max(100),
+  retention: z.number().int().min(0).max(100),
+  application: z.number().int().min(0).max(100),
+});
+
+export const learningEfficiencySchema = z.array(learningEfficiencyItemSchema);
+
+export const learningEfficiencyResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    efficiency: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          subject: { type: Type.STRING },
+          comprehension: { type: Type.NUMBER },
+          retention: { type: Type.NUMBER },
+          application: { type: Type.NUMBER },
+        },
+        required: ['subject', 'comprehension', 'retention', 'application'],
+      },
+    },
+  },
+  required: ['efficiency'],
+};
+
+export type LearningEfficiency = z.infer<typeof learningEfficiencyItemSchema>;
+
+export const studyHabitItemSchema = z.object({
+  day: z.string(),
+  efficiency: z.number().int().min(0).max(100),
+  focus: z.number().int().min(0).max(100),
+});
+
+export const studyHabitsSchema = z.array(studyHabitItemSchema);
+
+export const studyHabitsResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    habits: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          day: { type: Type.STRING },
+          efficiency: { type: Type.NUMBER },
+          focus: { type: Type.NUMBER },
+        },
+        required: ['day', 'efficiency', 'focus'],
+      },
+    },
+  },
+  required: ['habits'],
+};

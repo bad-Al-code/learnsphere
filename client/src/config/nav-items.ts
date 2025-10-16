@@ -413,13 +413,13 @@ export const studentCertificatesTabs: NavItem[] = [
   { href: '#', label: 'Certificates', value: 'certificates', icon: 'Award' },
   { href: '#', label: 'In Progress', value: 'in-progress', icon: 'Loader' },
   { href: '#', label: 'Achievements', value: 'achievements', icon: 'Trophy' },
-  {
-    href: '#',
-    label: 'Digital Badges',
-    value: 'digital-badges',
-    icon: 'Badge',
-  },
-  { href: '#', label: 'Portfolio', value: 'portfolio', icon: 'Briefcase' },
+  // {
+  //   href: '#',
+  //   label: 'Digital Badges',
+  //   value: 'digital-badges',
+  //   icon: 'Badge',
+  // },
+  // { href: '#', label: 'Portfolio', value: 'portfolio', icon: 'Briefcase' },
 ];
 
 export const studentAiToolsTabs: NavItem[] = [

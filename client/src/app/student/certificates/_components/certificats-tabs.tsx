@@ -7,27 +7,22 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
 import { AchievementsTab, AchievementsTabSkeleton } from './achievements-tab';
 import { CertificatesTab, CertificatesTabSkeleton } from './certificates-tab';
-import {
-  DigitalBadgesTab,
-  DigitalBadgesTabSkeleton,
-} from './digital-badges-tab';
 import { InProgressTab, InProgressTabSkeleton } from './in-progress-tab';
-import { PortfolioTab, PortfolioTabSkeleton } from './portfolio-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
   certificates: <CertificatesTabSkeleton />,
   'in-progress': <InProgressTabSkeleton />,
   achievements: <AchievementsTabSkeleton />,
-  'digital-badges': <DigitalBadgesTabSkeleton />,
-  portfolio: <PortfolioTabSkeleton />,
+  // 'digital-badges': <DigitalBadgesTabSkeleton />,
+  // portfolio: <PortfolioTabSkeleton />,
 };
 
 const contentMap: Record<string, React.ReactNode> = {
   certificates: <CertificatesTab />,
   'in-progress': <InProgressTab />,
   achievements: <AchievementsTab />,
-  'digital-badges': <DigitalBadgesTab />,
-  portfolio: <PortfolioTab />,
+  // 'digital-badges': <DigitalBadgesTab />,
+  // portfolio: <PortfolioTab />,
 };
 
 export function CertificatesTabs() {

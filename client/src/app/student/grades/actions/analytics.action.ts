@@ -1,6 +1,7 @@
 import {
   getAIProgressInsights,
   getComparisonAnalytics,
+  getLearningEfficiency,
   getLearningMilestones,
   getLearningRecommendations,
   getModuleCompletion,
@@ -10,6 +11,7 @@ import {
   getPredictiveChart,
   getStudyHabits,
   getStudyTimeTrend,
+  getTimeManagement,
 } from '../api/analytics.api.client';
 import { GradesFilters } from '../schema';
 
@@ -151,7 +153,32 @@ export const getStudyHabitsAction = async () => {
   try {
     const data = await getStudyHabits();
 
-    console.log(data);
+    return { data };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : 'An unexpected error occurred',
+    };
+  }
+};
+
+export const getLearningEfficiencyAction = async () => {
+  try {
+    const data = await getLearningEfficiency();
+
+    return { data };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : 'An unexpected error occurred',
+    };
+  }
+};
+
+export const getTimeManagementAction = async () => {
+  try {
+    const data = await getTimeManagement();
+
     return { data };
   } catch (error) {
     return {

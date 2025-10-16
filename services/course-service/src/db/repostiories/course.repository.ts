@@ -528,4 +528,27 @@ export class CourseRepository {
       },
     });
   }
+
+  /**
+   * Finds multiple courses by an array of IDs, including their category.
+   * @param courseIds - An array of course IDs.
+   * @returns An array of course objects with category details.
+   */
+  public static async findManyIdsWithCategory(
+    courseIds: string[]
+  ): Promise<(Course & { category: { id: string; name: string } | null })[]> {
+    if (courseIds.length === 0) return [];
+
+    return db.query.courses.findMany({
+      where: inArray(courses.id, courseIds),
+      with: {
+        category: {
+          columns: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+  }
 }

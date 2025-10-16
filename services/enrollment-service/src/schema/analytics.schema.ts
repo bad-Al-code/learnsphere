@@ -225,3 +225,12 @@ export const studyHabitSchema = z.object({
 });
 
 export type StudyHabit = z.infer<typeof studyHabitSchema>;
+
+export const timeManagementSchema = z.object({
+  activity: z.string(),
+  planned: z.number(),
+  actual: z.number(),
+  progress: z.number(),
+});
+
+export type TimeManagementData = z.infer<typeof timeManagementSchema>[];

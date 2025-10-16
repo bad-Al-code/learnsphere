@@ -3,12 +3,14 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   getAIProgressInsightsAction,
+  getLearningEfficiencyAction,
   getLearningMilestonesAction,
   getLearningRecommendationsAction,
   getModuleCompletionAction,
   getPredictiveChartAction,
   getStudyHabitsAction,
   getStudyTimeTrendAction,
+  getTimeManagementAction,
 } from '../actions/analytics.action';
 
 export const usePredictiveChart = () => {
@@ -115,6 +117,38 @@ export const useStudyHabits = () => {
 
     queryFn: async () => {
       const res = await getStudyHabitsAction();
+      if (res.error) {
+        throw new Error(res.error);
+      }
+
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const useLearningEfficiency = () => {
+  return useQuery({
+    queryKey: ['analytics', 'learning-efficiency'],
+
+    queryFn: async () => {
+      const res = await getLearningEfficiencyAction();
+      if (res.error) {
+        throw new Error(res.error);
+      }
+
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 60,
+  });
+};
+
+export const useTimeManagement = () => {
+  return useQuery({
+    queryKey: ['analytics', 'time-management'],
+
+    queryFn: async () => {
+      const res = await getTimeManagementAction();
       if (res.error) {
         throw new Error(res.error);
       }

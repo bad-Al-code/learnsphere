@@ -154,6 +154,7 @@ export const assignmentDrafts = pgTable(
     priority: draftPriorityEnum('priority').default('medium').notNull(),
     category: varchar('category', { length: 100 }),
     wordCount: integer('word_count').default(0).notNull(),
+    timeSpent: integer('time_spent').default(0).notNull(),
     lastSaved: timestamp('last_saved').defaultNow().notNull(),
     collaborators: jsonb('collaborators').$type<string[]>(),
     createdAt: timestamp('created_at').defaultNow().notNull(),

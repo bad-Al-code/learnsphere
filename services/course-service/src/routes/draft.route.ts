@@ -1,13 +1,18 @@
 import { Router } from 'express';
 
 import { DraftController } from '../controllers/draft.controller';
-import { requireAuth } from '../middlewares/require-auth';
+import {
+  requireAuth,
+  requireAuthOrInternal,
+} from '../middlewares/require-auth';
 import { validateRequest } from '../middlewares/validate-request';
 import {
   addCollaboratorSchema,
   createDraftSchema,
   draftIdParamSchema,
+  logTimeSchema,
   shareTokenParamsSchema,
+  timeSummaryQuerySchema,
   updateDraftSchema,
 } from '../schemas';
 
@@ -245,6 +250,39 @@ router.post(
   '/:id/share',
   validateRequest(draftIdParamSchema),
   DraftController.share
+);
+
+/**
+ * @openapi
+ * /api/assignments/drafts/time-summary:
+ *   get:
+ *     summary: "[Internal] Get total time spent on assignments"
+ *     tags: [Assignment Drafts]
+ *     parameters:
+ *       - in: query
+ *         name: studentId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *       - in: query
+ *         name: courseIds
+ *         required: true
+ *         schema: { type: array, items: { type: string, format: uuid } }
+ *     responses:
+ *       '200':
+ *         description: Total time spent on assignments in hours.
+ */
+router.get(
+  '/time-summary',
+  requireAuthOrInternal,
+  validateRequest(timeSummaryQuerySchema),
+  DraftController.getTimeSummary
+);
+
+router.put(
+  '/:id/log-time',
+  requireAuth,
+  validateRequest(logTimeSchema),
+  DraftController.logTime
 );
 
 export { router as draftRouter };

@@ -1,0 +1,1 @@
+ALTER TABLE "assignment_drafts" ADD COLUMN "time_spent" integer DEFAULT 0 NOT NULL;

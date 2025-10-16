@@ -479,7 +479,7 @@ function LearningMilestones() {
 
   return (
     <Card className="">
-      <CardHeader>
+      <CardHeader className="border-b">
         <div className="flex items-center gap-2">
           <Map className="h-5 w-5" />
           <CardTitle>Learning Milestones</CardTitle>

@@ -30,39 +30,23 @@ import {
 import { ErrorState } from '@/components/ui/error-state';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useStudyHabits } from '../hooks';
+import {
+  useLearningEfficiency,
+  useStudyHabits,
+  useTimeManagement,
+} from '../hooks';
 
 const habitsChartConfig = {
   efficiency: { label: 'Efficiency %', color: 'hsl(160 70% 40%)' },
   focus: { label: 'Focus Time %', color: 'hsl(160 50% 55%)' },
 } satisfies ChartConfig;
 
-const efficiencyChartData = [
-  { subject: 'React', application: 90, comprehension: 25, retention: 62 },
-  { subject: 'Python', application: 58, comprehension: 45, retention: 90 },
-  { subject: 'UI/UX', application: 25, comprehension: 90, retention: 55 },
-];
-
-const efficiencyChartConfig = {
-  application: { label: 'Application', color: 'hsl(40 90% 60%)' },
-  comprehension: { label: 'Comprehension', color: 'hsl(210 90% 60%)' },
-  retention: { label: 'Retention', color: 'hsl(160 70% 40%)' },
-} satisfies ChartConfig;
-
-const timeManagementData = [
-  { activity: 'Lectures', planned: 20, actual: 18, progress: 90 },
-  { activity: 'Assignments', planned: 15, actual: 22, progress: 68 },
-  { activity: 'Study Groups', planned: 8, actual: 6, progress: 75 },
-  { activity: 'Practice', planned: 12, actual: 14, progress: 117 },
-  { activity: 'Review', planned: 5, actual: 3, progress: 60 },
-];
-
 function StudyHabitsAnalysisChart() {
   const { data, isLoading, isError, error, refetch } = useStudyHabits();
 
   const renderContent = () => {
     if (isLoading) {
-      return <Skeleton className="h-48 w-full" />;
+      return <StudyHabitsAnalysisChartSkeleton />;
     }
 
     if (isError) {
@@ -152,6 +136,70 @@ function StudyHabitsAnalysisChart() {
 }
 
 function LearningEfficiencyChart() {
+  const { data, isLoading, isError, error, refetch } = useLearningEfficiency();
+
+  const chartConfig = {
+    application: { label: 'Application', color: 'hsl(40 90% 60%)' },
+    comprehension: { label: 'Comprehension', color: 'hsl(210 90% 60%)' },
+    retention: { label: 'Retention', color: 'hsl(160 70% 40%)' },
+  } satisfies ChartConfig;
+
+  const renderContent = () => {
+    if (isLoading) {
+      return <LearningEfficiencyChartSkeleton />;
+    }
+
+    if (isError) {
+      return <ErrorState message={error.message} onRetry={refetch} />;
+    }
+
+    if (!data || data.length === 0) {
+      return (
+        <div className="text-muted-foreground flex h-48 w-full flex-col items-center justify-center text-center text-sm">
+          <Zap className="mb-4 h-10 w-10 opacity-50" />
+          <p className="font-semibold">Not Enough Data for Analysis</p>
+          <p>
+            Complete assignments in different subjects to see your efficiency.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <ChartContainer
+        config={chartConfig}
+        className="mx-auto aspect-square h-64"
+      >
+        <RadarChart data={data}>
+          <ChartTooltip
+            cursor={false}
+            content={<ChartTooltipContent indicator="dot" />}
+          />
+          <PolarAngleAxis dataKey="subject" />
+          <PolarGrid />
+          <Radar
+            dataKey="application"
+            fill="var(--color-application)"
+            fillOpacity={0.6}
+            stroke="var(--color-application)"
+          />
+          <Radar
+            dataKey="comprehension"
+            fill="var(--color-comprehension)"
+            fillOpacity={0.6}
+            stroke="var(--color-comprehension)"
+          />
+          <Radar
+            dataKey="retention"
+            fill="var(--color-retention)"
+            fillOpacity={0.6}
+            stroke="var(--color-retention)"
+          />
+        </RadarChart>
+      </ChartContainer>
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -163,41 +211,54 @@ function LearningEfficiencyChart() {
           Comprehension, retention, and application by subject
         </CardDescription>
       </CardHeader>
-      <CardContent className="pb-0">
-        <ChartContainer
-          config={efficiencyChartConfig}
-          className="mx-auto aspect-square h-[250px]"
-        >
-          <RadarChart data={efficiencyChartData}>
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent indicator="dot" />}
-            />
-            <PolarAngleAxis dataKey="subject" />
-            <PolarGrid />
-            <Radar
-              dataKey="application"
-              fill="var(--color-application)"
-              fillOpacity={0.6}
-            />
-            <Radar
-              dataKey="comprehension"
-              fill="var(--color-comprehension)"
-              fillOpacity={0.6}
-            />
-            <Radar
-              dataKey="retention"
-              fill="var(--color-retention)"
-              fillOpacity={0.6}
-            />
-          </RadarChart>
-        </ChartContainer>
-      </CardContent>
+      <CardContent className="pb-0">{renderContent()}</CardContent>
     </Card>
   );
 }
 
 function TimeManagement() {
+  const { data, isLoading, isError, error, refetch } = useTimeManagement();
+
+  const renderContent = () => {
+    if (isLoading) {
+      return <TimeManagementSkeleton />;
+    }
+
+    if (isError) {
+      return <ErrorState message={error.message} onRetry={refetch} />;
+    }
+
+    if (!data || data.length === 0) {
+      return (
+        <div className="text-muted-foreground flex h-48 w-full items-center justify-center text-center text-sm">
+          <p>
+            Set study goals and log study sessions to see your time management
+            stats.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {data.map((item) => (
+          <div key={item.activity}>
+            <div className="mb-1 flex items-center justify-between">
+              <p className="font-semibold">{item.activity}</p>
+              <Badge variant={item.progress < 70 ? 'destructive' : 'secondary'}>
+                {item.progress}%
+              </Badge>
+            </div>
+            <p className="text-muted-foreground mb-1 text-xs">
+              Planned: {item.planned}h • Actual: {item.actual.toFixed(1)}h
+            </p>
+            <Progress value={item.progress} />
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -207,22 +268,7 @@ function TimeManagement() {
         </div>
         <CardDescription>Planned vs actual time allocation</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {timeManagementData.map((item) => (
-          <div key={item.activity}>
-            <div className="mb-1 flex items-center justify-between">
-              <p className="font-semibold">{item.activity}</p>
-              <Badge variant={item.progress < 70 ? 'destructive' : 'secondary'}>
-                {item.progress}%
-              </Badge>
-            </div>
-            <p className="text-muted-foreground mb-1 text-xs">
-              Planned: {item.planned}h • Actual: {item.actual}h
-            </p>
-            <Progress value={item.progress} />
-          </div>
-        ))}
-      </CardContent>
+      <CardContent>{renderContent()}</CardContent>
     </Card>
   );
 }
@@ -255,51 +301,33 @@ export function StudyHabitsTabSkeleton() {
 
 function StudyHabitsAnalysisChartSkeleton() {
   return (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-6 w-1/2" />
-        <Skeleton className="mt-2 h-4 w-3/4" />
-      </CardHeader>
-      <CardContent>
-        <Skeleton className="h-[250px] w-full" />
-      </CardContent>
-    </Card>
+    <CardContent>
+      <Skeleton className="h-48 w-full" />
+    </CardContent>
   );
 }
 
 function LearningEfficiencyChartSkeleton() {
   return (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-6 w-1/3" />
-        <Skeleton className="mt-2 h-4 w-1/2" />
-      </CardHeader>
-      <CardContent>
-        <Skeleton className="mx-auto aspect-square h-[250px] rounded-full" />
-      </CardContent>
-    </Card>
+    <CardContent>
+      <Skeleton className="mx-auto aspect-square h-48 rounded-full" />
+    </CardContent>
   );
 }
 
 function TimeManagementSkeleton() {
   return (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-6 w-1/3" />
-        <Skeleton className="mt-2 h-4 w-1/2" />
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <div key={index} className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-5 w-1/4" />
-              <Skeleton className="h-6 w-12" />
-            </div>
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-2 w-full" />
+    <CardContent className="space-y-4">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div key={index} className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-5 w-1/4" />
+            <Skeleton className="h-6 w-12" />
           </div>
-        ))}
-      </CardContent>
-    </Card>
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-2 w-full" />
+        </div>
+      ))}
+    </CardContent>
   );
 }

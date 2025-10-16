@@ -6,6 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import {
+  DigitalBadgesTab,
+  DigitalBadgesTabSkeleton,
+} from './digital-badges-tab';
 
 type TAchievement = {
   id: string;
@@ -110,20 +114,35 @@ function AchievementCardSkeleton() {
 
 export function AchievementsTab() {
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-      {achievementsData.map((ach) => (
-        <AchievementCard key={ach.id} achievement={ach} />
-      ))}
+    <div className="space-y-2">
+      <Card>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {achievementsData.map((ach) => (
+              <AchievementCard key={ach.id} achievement={ach} />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+      <DigitalBadgesTab />
     </div>
   );
 }
 
 export function AchievementsTabSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <AchievementCardSkeleton key={i} />
-      ))}
+    <div className="space-y-2">
+      <Card>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <AchievementCardSkeleton key={i} />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <DigitalBadgesTabSkeleton />
     </div>
   );
 }

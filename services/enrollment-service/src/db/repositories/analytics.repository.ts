@@ -20,6 +20,7 @@ import { BadRequestError } from '../../errors';
 import { AssignmentResponse } from '../../features/ai/responseSchema/assignmentRecommendationResponse.schema';
 import {
   AIProgressInsight,
+  LearningEfficiency,
   LearningRecommendation,
   PerformancePrediction,
   PredictiveChartData,
@@ -36,11 +37,14 @@ import {
   OnTimeSubmissionData,
   onTimeSubmissionDataSchema,
   rawAnalyticsDataSchema,
+  StudyHabit,
 } from '../../schema';
 import { GradeRow } from '../../types';
 import {
   AIInsight,
   aiInsights,
+  aiLearningEfficiency,
+  AILearningEfficiency,
   AILearningPath,
   aiLearningPaths,
   AILearningRecommendation,
@@ -49,6 +53,8 @@ import {
   aiPerformancePredictions,
   AIProgressInsightEntry,
   aiProgressInsights,
+  AIStudyHabitEntry,
+  aiStudyHabits,
   AIStudyRecommendation,
   aiStudyRecommendations,
   courseActivityLogs,
@@ -2220,6 +2226,140 @@ Saves or updates the AI-generated insights for a user.
     return result.map((row) => ({
       day: row.day.trim(),
       totalMinutes: parseFloat(row.totalMinutes || '0'),
+    }));
+  }
+
+  /**
+   * Calculates the average grade for a student, grouped by the course's instructor ID (as a proxy for category).
+   * @param studentId The ID of the student.
+   * @returns An array of objects, each with a category (instructorId) and the average grade.
+   */
+  public static async getAverageGradesByCourseCategory(
+    studentId: string
+  ): Promise<{ category: string; averageGrade: number }[]> {
+    const result = await db
+      .select({
+        category: courses.instructorId,
+        averageGrade: avg(studentGrades.grade),
+      })
+      .from(studentGrades)
+      .innerJoin(courses, eq(studentGrades.courseId, courses.id))
+      .where(eq(studentGrades.studentId, studentId))
+      .groupBy(courses.instructorId);
+
+    return result.map((row) => ({
+      category: row.category,
+      averageGrade: parseFloat(row.averageGrade || '0'),
+    }));
+  }
+
+  /**
+   * Fetches the most recent AI-generated learning efficiency data for a user.
+   * @param userId The ID of the user.
+   * @returns The latest efficiency record, or undefined if none exists.
+   */
+  public static async getLatestLearningEfficiency(
+    userId: string
+  ): Promise<AILearningEfficiency | undefined> {
+    return db.query.aiLearningEfficiency.findFirst({
+      where: eq(aiLearningEfficiency.userId, userId),
+      orderBy: [desc(aiLearningEfficiency.generatedAt)],
+    });
+  }
+
+  /**
+   * Saves or updates the AI-generated learning efficiency data for a user.
+   * @param userId The ID of the user.
+   * @param efficiencyData The array of efficiency data objects to save.
+   */
+  public static async upsertLearningEfficiency(
+    userId: string,
+    efficiencyData: LearningEfficiency[]
+  ): Promise<void> {
+    await db
+      .insert(aiLearningEfficiency)
+      .values({ userId, efficiencyData, generatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: aiLearningEfficiency.userId,
+        set: { efficiencyData, generatedAt: new Date() },
+      });
+  }
+
+  /**
+   * Aggregates the total study time in hours for a student, grouped by course.
+   * @param studentId The ID of the student.
+   * @returns An array of objects, each containing a courseId and the total hours studied.
+   */
+  public static async getTimeSpentPerCourse(
+    studentId: string
+  ): Promise<{ courseId: string; totalHours: number }[]> {
+    const result = await db
+      .select({
+        courseId: lessonSessions.courseId,
+        totalMinutes: sum(lessonSessions.durationMinutes),
+      })
+      .from(lessonSessions)
+      .where(eq(lessonSessions.userId, studentId))
+      .groupBy(lessonSessions.courseId);
+
+    return result.map((row) => ({
+      courseId: row.courseId,
+      totalHours: parseFloat(row.totalMinutes || '0') / 60,
+    }));
+  }
+
+  /**
+   * Fetches the most recent AI-generated study habits for a user.
+   * @param userId The ID of the user.
+   * @returns The latest habits record, or undefined if none exists.
+   */
+  public static async getLatestStudyHabits(
+    userId: string
+  ): Promise<AIStudyHabitEntry | undefined> {
+    return db.query.aiStudyHabits.findFirst({
+      where: eq(aiStudyHabits.userId, userId),
+      orderBy: [desc(aiStudyHabits.generatedAt)],
+    });
+  }
+
+  /**
+   * Saves or updates the AI-generated study habits for a user.
+   * @param userId The ID of the user.
+   * @param habitsData The array of habit data objects to save.
+   */
+  public static async upsertStudyHabits(
+    userId: string,
+    habitsData: StudyHabit[]
+  ): Promise<void> {
+    await db
+      .insert(aiStudyHabits)
+      .values({ userId, habitsData, generatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: aiStudyHabits.userId,
+        set: { habitsData, generatedAt: new Date() },
+      });
+  }
+
+  /**
+   * Calculates the average grade for a student, grouped by courseId.
+   * @param studentId The ID of the student.
+   * @returns An array of objects, each with a courseId and the average grade.
+   */
+  public static async getAverageGradesByCourse(
+    studentId: string
+  ): Promise<{ courseId: string; averageGrade: number }[]> {
+    const result = await db
+      .select({
+        courseId: studentGrades.courseId,
+        averageGrade: avg(studentGrades.grade),
+      })
+      .from(studentGrades)
+      .where(eq(studentGrades.studentId, studentId))
+      .groupBy(studentGrades.courseId);
+
+    return result.map((row) => ({
+      courseId: row.courseId,
+      averageGrade: parseFloat(row.averageGrade || '0'),
     }));
   }
 }

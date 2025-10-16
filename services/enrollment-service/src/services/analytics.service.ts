@@ -1,4 +1,3 @@
-import { faker } from '@faker-js/faker';
 import axios from 'axios';
 import { differenceInHours, format, subDays } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
@@ -33,6 +32,9 @@ import {
   AIProgressInsight,
   aiProgressInsightArraySchema,
   aiProgressInsightsResponseSchema,
+  LearningEfficiency,
+  learningEfficiencyResponseSchema,
+  learningEfficiencySchema,
   LearningRecommendation,
   learningRecommendationResponseSchema,
   learningRecommendationSchema,
@@ -45,6 +47,8 @@ import {
   PredictiveChartData,
   predictiveChartDataSchema,
   predictiveChartResponseSchema,
+  studyHabitsResponseSchema,
+  studyHabitsSchema,
 } from '../features/ai/schema';
 import {
   FeedbackResponseSchema,
@@ -61,6 +65,7 @@ import {
   ReportType,
   StudyHabit,
   StudyTimeTrend,
+  TimeManagementData,
 } from '../schema';
 import {
   Grade,
@@ -2451,33 +2456,293 @@ export class AnalyticsService {
    * @returns An array of daily habit data for the chart.
    */
   public static async getStudyHabits(studentId: string): Promise<StudyHabit[]> {
-    logger.info(`Fetching study habits for student ${studentId}`);
+    logger.debug(`Checking for cached study habits for user ${studentId}.`);
+
+    const cachedData =
+      await AnalyticsRepository.getLatestStudyHabits(studentId);
+
+    if (
+      cachedData &&
+      differenceInHours(new Date(), cachedData.generatedAt) < 24
+    ) {
+      logger.info(`Returning cached study habits for user ${studentId}.`);
+
+      return cachedData.habitsData;
+    }
+
+    logger.info(`Generating new study habits analysis for user ${studentId}.`);
+
     try {
       const dailyData =
         await AnalyticsRepository.getDailyStudyHabits(studentId);
+      if (dailyData.length === 0) {
+        const weekDays = [
+          'Sunday',
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+        ];
 
-      const formattedData = dailyData.map((item) => {
-        const maxMinutes = 4 * 60;
-        const efficiency = Math.min(
-          Math.round((item.totalMinutes / maxMinutes) * 100),
-          100
-        );
-        const focus = Math.max(
-          0,
-          efficiency - faker.number.int({ min: 5, max: 15 })
-        );
-        return {
-          day: item.day,
-          efficiency,
-          focus,
-        };
+        return weekDays.map((day) => ({ day, efficiency: 0, focus: 0 }));
+      }
+
+      const systemInstruction = AIPrompt.buildStudyHabitsPrompt(dailyData);
+
+      const response = await this.ai.models.generateContent({
+        model: this.model,
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Generate the 7-day study habit analysis now.' }],
+          },
+        ],
+        config: {
+          responseMimeType: 'application/json',
+          systemInstruction,
+          responseSchema: studyHabitsResponseSchema,
+        },
       });
 
-      return formattedData;
+      const text = response.text;
+      if (!text) throw new Error('No response text from AI provider.');
+
+      const parsed = JSON.parse(text);
+      const validated = studyHabitsSchema.parse(parsed.habits);
+
+      const dayMap = new Map(validated.map((v) => [v.day.trim(), v]));
+      const weekDays = [
+        'Sunday',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+      ];
+      const fullWeekData = weekDays.map(
+        (day) => dayMap.get(day) || { day, efficiency: 0, focus: 0 }
+      );
+
+      await AnalyticsRepository.upsertStudyHabits(studentId, fullWeekData);
+
+      logger.info(`Saved new study habits to cache for user ${studentId}`);
+
+      return fullWeekData;
     } catch (error) {
-      logger.error(`Failed to get study habits for student ${studentId}: %o`, {
-        error,
+      logger.error(
+        'Failed to generate study habits. Returning empty array: %o',
+        { error }
+      );
+
+      return [];
+    }
+  }
+
+  /**
+   * Retrieves or generates AI-powered learning efficiency analytics for a student.
+   * @param studentId The ID of the student.
+   * @returns A promise that resolves to an array of learning efficiency objects.
+   */
+  public static async getLearningEfficiency(
+    studentId: string
+  ): Promise<LearningEfficiency[]> {
+    logger.debug(
+      `Checking for cached learning efficiency data for user ${studentId}.`
+    );
+
+    const cachedData =
+      await AnalyticsRepository.getLatestLearningEfficiency(studentId);
+
+    if (
+      cachedData &&
+      differenceInHours(new Date(), cachedData.generatedAt) < 24
+    ) {
+      logger.info(
+        `Returning cached learning efficiency data for user ${studentId}.`
+      );
+
+      return cachedData.efficiencyData;
+    }
+
+    logger.info(
+      `Generating new learning efficiency data for user ${studentId}.`
+    );
+
+    try {
+      const gradesByCourse =
+        await AnalyticsRepository.getAverageGradesByCourse(studentId);
+      if (gradesByCourse.length === 0) {
+        throw new Error(
+          'Not enough grade data to generate efficiency analysis.'
+        );
+      }
+
+      const courseIds = gradesByCourse.map((g) => g.courseId);
+      const courseDetailsMap = await CourseClient.getCoursesByIds(courseIds);
+
+      const gradesByCategory = new Map<
+        string,
+        { totalGrade: number; count: number }
+      >();
+      gradesByCourse.forEach((gradeInfo) => {
+        const course = courseDetailsMap.get(gradeInfo.courseId);
+        const categoryName = course?.category?.name || 'General Studies';
+
+        const existing = gradesByCategory.get(categoryName) || {
+          totalGrade: 0,
+          count: 0,
+        };
+        gradesByCategory.set(categoryName, {
+          totalGrade: existing.totalGrade + gradeInfo.averageGrade,
+          count: existing.count + 1,
+        });
       });
+
+      const contextForAI = Array.from(gradesByCategory.entries()).map(
+        ([category, data]) => ({
+          category,
+          averageGrade: data.totalGrade / data.count,
+        })
+      );
+
+      if (contextForAI.length === 0) {
+        throw new Error(
+          'Could not determine course categories for grade data.'
+        );
+      }
+
+      logger.debug(
+        'Context being sent to AI for learning efficiency: %o',
+        contextForAI
+      );
+
+      const systemInstruction =
+        AIPrompt.buildLearningEfficiencyPrompt(contextForAI);
+
+      const response = await this.ai.models.generateContent({
+        model: this.model,
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Generate the learning efficiency analysis now.' }],
+          },
+        ],
+        config: {
+          responseMimeType: 'application/json',
+          systemInstruction,
+          responseSchema: learningEfficiencyResponseSchema,
+        },
+      });
+
+      const text = response.text;
+      if (!text) throw new Error('No response text from AI provider.');
+
+      const parsed = JSON.parse(text);
+      const validated = learningEfficiencySchema.parse(parsed.efficiency);
+
+      await AnalyticsRepository.upsertLearningEfficiency(studentId, validated);
+
+      logger.info(
+        `Saved new learning efficiency data to cache for user ${studentId}`
+      );
+
+      return validated;
+    } catch (error) {
+      logger.error(
+        'Failed to generate learning efficiency data. Returning default: %o',
+        { error }
+      );
+
+      return [];
+    }
+  }
+
+  /**
+   * Retrieves and formats data for the Time Management component.
+   * @param studentId The ID of the student.
+   * @returns An array of time management statistics.
+   */
+  public static async getTimeManagement(
+    studentId: string
+  ): Promise<TimeManagementData> {
+    logger.info(`Fetching time management data for student ${studentId}`);
+
+    try {
+      const enrolledCourses =
+        await EnrollRepository.findActiveAndCompletedByUserId(studentId);
+      const courseIds = enrolledCourses.map((e) => e.courseId);
+
+      const [timeSpentOnLectures, weeklyGoal, timeSpentOnAssignments] =
+        await Promise.all([
+          AnalyticsRepository.getTimeSpentPerCourse(studentId),
+          UserClient.getWeeklyStudyGoal(studentId),
+          CourseClient.getTimeManagementSummary(studentId, courseIds),
+        ]);
+
+      const totalLectureHours = timeSpentOnLectures.reduce(
+        (sum, item) => sum + item.totalHours,
+        0
+      );
+
+      const weeklyAverageLectures = totalLectureHours / 4;
+      const weeklyAverageAssignments = timeSpentOnAssignments.totalHours / 4;
+
+      const result: TimeManagementData = [
+        {
+          activity: 'Weekly Study Target',
+          planned: weeklyGoal,
+          actual: weeklyAverageLectures + weeklyAverageAssignments,
+          progress:
+            weeklyGoal > 0
+              ? Math.min(
+                  Math.round(
+                    ((weeklyAverageLectures + weeklyAverageAssignments) /
+                      weeklyGoal) *
+                      100
+                  ),
+                  100
+                )
+              : 0,
+        },
+        {
+          activity: 'Lectures',
+          planned: weeklyGoal * 0.6,
+          actual: weeklyAverageLectures,
+          progress:
+            weeklyGoal * 0.6 > 0
+              ? Math.min(
+                  Math.round(
+                    (weeklyAverageLectures / (weeklyGoal * 0.6)) * 100
+                  ),
+                  100
+                )
+              : 0,
+        },
+        {
+          activity: 'Assignments',
+          planned: weeklyGoal * 0.4,
+          actual: weeklyAverageAssignments,
+          progress:
+            weeklyGoal * 0.4 > 0
+              ? Math.min(
+                  Math.round(
+                    (weeklyAverageAssignments / (weeklyGoal * 0.4)) * 100
+                  ),
+                  100
+                )
+              : 0,
+        },
+      ];
+
+      return result;
+    } catch (error) {
+      logger.error(
+        `Failed to get time management data for student ${studentId}: %o`,
+        { error }
+      );
 
       return [];
     }

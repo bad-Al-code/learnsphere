@@ -1,8 +1,9 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql, sum } from 'drizzle-orm';
 import { db } from '..';
 import {
   AssignmentDraft,
   assignmentDrafts,
+  assignments,
   NewAssignmentDraft,
 } from '../schema';
 
@@ -150,5 +151,43 @@ export class DraftRepository {
 
     const collaborators = draft[0].collaborators || [];
     return collaborators.includes(userId);
+  }
+
+  /**
+   * Increments the time spent on a specific draft.
+   * @param draftId - The ID of the draft.
+   * @param minutes - The number of minutes to add.
+   */
+  public static async logTime(draftId: string, minutes: number): Promise<void> {
+    await db
+      .update(assignmentDrafts)
+      .set({ timeSpent: sql`${assignmentDrafts.timeSpent} + ${minutes}` })
+      .where(eq(assignmentDrafts.id, draftId));
+  }
+
+  /**
+   * Aggregates total time spent on assignment drafts for a user across specified courses.
+   * @param studentId The ID of the student.
+   * @param courseIds The array of course IDs to filter by.
+   * @returns The total time spent in hours.
+   */
+  public static async getTotalAssignmentTime(
+    studentId: string,
+    courseIds: string[]
+  ): Promise<number> {
+    if (courseIds.length === 0) return 0;
+
+    const [result] = await db
+      .select({ totalMinutes: sum(assignmentDrafts.timeSpent) })
+      .from(assignmentDrafts)
+      .innerJoin(assignments, eq(assignmentDrafts.assignmentId, assignments.id))
+      .where(
+        and(
+          eq(assignmentDrafts.studentId, studentId),
+          inArray(assignments.courseId, courseIds)
+        )
+      );
+
+    return parseFloat(result?.totalMinutes || '0') / 60;
   }
 }

@@ -945,4 +945,39 @@ export class AnalyticsController {
       next(error);
     }
   }
+  public static async getLearningEfficiency(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const efficiencyData = await AnalyticsService.getLearningEfficiency(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(efficiencyData);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getTimeManagement(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const timeManagementData = await AnalyticsService.getTimeManagement(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(timeManagementData);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

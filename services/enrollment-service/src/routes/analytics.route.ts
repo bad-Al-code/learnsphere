@@ -1231,4 +1231,76 @@ router.get(
   AnalyticsController.getStudyHabits
 );
 
+/**
+ * @openapi
+ * /api/analytics/student/learning-efficiency:
+ *   get:
+ *     summary: "[Student] Get AI-powered learning efficiency analysis"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     description: Retrieves an AI-generated breakdown of a student's learning efficiency by subject. Results are cached for 24 hours.
+ *     responses:
+ *       '200':
+ *         description: An array of learning efficiency data points for the radar chart.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   subject:
+ *                     type: string
+ *                   comprehension:
+ *                     type: number
+ *                   retention:
+ *                     type: number
+ *                   application:
+ *                     type: number
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.get(
+  '/student/learning-efficiency',
+  requireAuth,
+  AnalyticsController.getLearningEfficiency
+);
+
+/**
+ * @openapi
+ * /api/analytics/student/time-management:
+ *   get:
+ *     summary: "[Student] Get time management analysis"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     description: Retrieves a breakdown of a student's planned vs. actual time spent on learning activities.
+ *     responses:
+ *       '200':
+ *         description: An array of time management data points.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   activity:
+ *                     type: string
+ *                   planned:
+ *                     type: number
+ *                   actual:
+ *                     type: number
+ *                   progress:
+ *                     type: number
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.get(
+  '/student/time-management',
+  requireAuth,
+  AnalyticsController.getTimeManagement
+);
+
 export { router as analyticsRouter };

@@ -202,3 +202,70 @@ export const addCollaboratorSchema = z.object({
 export const shareTokenParamsSchema = z.object({
   params: z.object({ token: z.string() }),
 });
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     LogTimeSchema:
+ *       type: object
+ *       required:
+ *         - body
+ *       properties:
+ *         body:
+ *           type: object
+ *           required:
+ *             - minutes
+ *           properties:
+ *             minutes:
+ *               type: integer
+ *               minimum: 1
+ *               description: Number of minutes logged. Must be a positive integer.
+ */
+export const logTimeSchema = z.object({
+  body: z.object({
+    minutes: z.number().int().positive('Minutes must be a positive integer.'),
+  }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     TimeSummaryQuerySchema:
+ *       type: object
+ *       required:
+ *         - query
+ *       properties:
+ *         query:
+ *           type: object
+ *           required:
+ *             - studentId
+ *             - courseIds
+ *           properties:
+ *             studentId:
+ *               type: string
+ *               format: uuid
+ *               description: Unique identifier of the student.
+ *             courseIds:
+ *               type: array
+ *               items:
+ *                 type: string
+ *                 format: uuid
+ *               description: List of course IDs (comma-separated string or array).
+ */
+export const timeSummaryQuerySchema = z.object({
+  query: z.object({
+    studentId: z.string().uuid(),
+    courseIds: z.preprocess(
+      (val) => (typeof val === 'string' ? val.split(',') : val),
+      z.array(z.string().uuid())
+    ),
+  }),
+});
+
+export const logTimeParamSchema = z.object({
+  params: z.object({
+    id: z.string().uuid(),
+  }),
+});

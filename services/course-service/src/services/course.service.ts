@@ -185,7 +185,8 @@ export class CourseService {
    */
   public static async getCoursesByIds(courseIds: string[]) {
     logger.info(`Fetching details for ${courseIds.length} courses in bulk`);
-    const courseList = await CourseRepository.findManyIds(courseIds);
+    const courseList =
+      await CourseRepository.findManyIdsWithCategory(courseIds);
 
     return this._enrichCourseWithInstructors(courseList);
   }

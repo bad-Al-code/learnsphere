@@ -169,6 +169,13 @@
       "when": 1760448858835,
       "tag": "0023_first_joshua_kane",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1760590578563,
+      "tag": "0024_chubby_the_watchers",
+      "breakpoints": true
     }
   ]
 }

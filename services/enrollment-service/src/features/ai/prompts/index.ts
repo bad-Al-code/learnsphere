@@ -37,6 +37,16 @@ interface ProgressInsightContext {
   };
 }
 
+interface GradeByCategory {
+  category: string;
+  averageGrade: number;
+}
+
+interface DailyHabit {
+  day: string;
+  totalMinutes: number;
+}
+
 export class AIPrompt {
   /**
    * Generates the system instruction for the AI to create performance highlights.
@@ -207,5 +217,61 @@ Generate the predictions now.`;
       - ${trendString}
 
       Generate the three insights now in the specified JSON format.`;
+  }
+
+  /**
+   * Generates the system instruction for the AI to analyze learning efficiency.
+   * @param gradesByCategory A list of the student's average grades grouped by category.
+   * @returns A string containing the system prompt for the Gemini model.
+   */
+  public static buildLearningEfficiencyPrompt(
+    gradesByCategory: GradeByCategory[]
+  ): string {
+    const gradeString = gradesByCategory
+      .map((g) => `- ${g.category}: ${g.averageGrade.toFixed(1)}% Avg. Grade`)
+      .join('\n');
+
+    return `
+        You are an AI learning analyst. Your task is to interpret a student's average grades across different course subjects and estimate their learning efficiency in three key areas: 'comprehension', 'retention', and 'application'.
+
+        Rules:
+        1. For each subject provided, generate integer scores from 0 to 100 for the three efficiency areas.
+        2. 'Comprehension': How well the student understands the core concepts. Higher grades strongly imply higher comprehension.
+        3. 'Retention': How well the student remembers information. Infer this from consistency; if all grades are high, retention is high. If grades are mixed, retention might be lower.
+        4. 'Application': How well the student can apply knowledge. Infer this by assuming subjects with higher average grades indicate better application.
+        5. The output must be a JSON object containing an 'efficiency' array.
+
+        Here is the student's performance data:
+        ---
+        ${gradeString}
+        ---
+
+        Generate the learning efficiency analysis now.`;
+  }
+
+  /**
+   * Generates the system instruction for the AI to analyze study habits.
+   * @param dailyData The student's study minutes for the last 7 days.
+   * @returns A string containing the system prompt for the Gemini model.
+   */
+  public static buildStudyHabitsPrompt(dailyData: DailyHabit[]): string {
+    const habitsString = dailyData
+      .map((d) => `- ${d.day}: ${d.totalMinutes} minutes`)
+      .join('\n');
+
+    return `
+      You are an AI learning coach. Your task is to analyze a student's daily study minutes for the past week and generate 'efficiency' and 'focus' scores (0-100) for each day.
+
+      Rules:
+      1. 'Efficiency' reflects how well study time is distributed. Lower scores for cramming (very high minutes on one day, low on others). Higher scores for consistent, moderate daily study.
+      2. 'Focus' reflects consistency. If a user studies every day, even for a short time, their focus score should be high. Missed days should lower the score.
+      3. The output must be a JSON object containing a 'habits' array, with an entry for each of the 7 days of the week, even if study minutes were 0.
+
+      Here is the student's raw study data:
+      ---
+      ${habitsString}
+      ---
+
+      Generate the 7-day study habit analysis now.`;
   }
 }

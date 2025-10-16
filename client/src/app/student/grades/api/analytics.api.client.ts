@@ -4,6 +4,7 @@ import {
   ComparisonAnalyticsData,
   GetMyGradesResponse,
   GradesFilters,
+  LearningEfficiency,
   LearningRecommendation,
   Milestone,
   ModuleCompletionData,
@@ -12,6 +13,7 @@ import {
   PredictiveChartData,
   StudyHabit,
   StudyTimeTrend,
+  TimeManagementData,
 } from '../schema';
 
 /**
@@ -223,5 +225,41 @@ export const getStudyHabits = async (): Promise<StudyHabit[]> => {
   } catch (error) {
     console.error('Failed to fetch study habits:', error);
     throw new Error('Could not load your study habits analysis.');
+  }
+};
+
+/**
+ * Fetches the AI-powered learning efficiency data for the current student.
+ * @returns A promise that resolves to an array of efficiency data for the radar chart.
+ */
+export const getLearningEfficiency = async (): Promise<
+  LearningEfficiency[]
+> => {
+  try {
+    const response = await enrollmentService.getTyped<LearningEfficiency[]>(
+      `/api/analytics/student/learning-efficiency`
+    );
+
+    return response;
+  } catch (error) {
+    console.error('Failed to fetch learning efficiency data:', error);
+    throw new Error('Could not load your learning efficiency analysis.');
+  }
+};
+
+/**
+ * Fetches the student's time management statistics.
+ * @returns A promise that resolves to an array of time management data points.
+ */
+export const getTimeManagement = async (): Promise<TimeManagementData[]> => {
+  try {
+    const response = await enrollmentService.getTyped<TimeManagementData[]>(
+      `/api/analytics/student/time-management`
+    );
+
+    return response;
+  } catch (error) {
+    console.error('Failed to fetch time management data:', error);
+    throw new Error('Could not load your time management analysis.');
   }
 };

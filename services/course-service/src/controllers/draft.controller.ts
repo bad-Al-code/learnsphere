@@ -1,7 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
+import { DraftRepository } from '../db/repostiories';
 import { NotAuthorizedError } from '../errors';
+import {
+  logTimeParamSchema,
+  logTimeSchema,
+  timeSummaryQuerySchema,
+} from '../schemas';
 import { DraftService } from '../services/draft.service';
 
 export class DraftController {
@@ -126,6 +132,40 @@ export class DraftController {
       res.status(StatusCodes.OK).json(draft);
     } catch (error) {
       next(error);
+    }
+  }
+
+  public static async logTime(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+      const { id } = logTimeParamSchema.parse({ params: req.params })['params'];
+      const { minutes } = logTimeSchema.parse({ body: req.body })['body'];
+
+      await DraftService.logTime(id, minutes, req.currentUser);
+
+      res.status(StatusCodes.OK).json({ message: 'Time logged successfully.' });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  public static async getTimeSummary(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { studentId, courseIds } = timeSummaryQuerySchema.parse({
+        query: req.query,
+      })['query'];
+
+      const totalHours = await DraftRepository.getTotalAssignmentTime(
+        studentId,
+        courseIds
+      );
+      res.status(StatusCodes.OK).json({ activity: 'Assignments', totalHours });
+    } catch (e) {
+      next(e);
     }
   }
 }

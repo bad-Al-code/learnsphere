@@ -1,8 +1,9 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, avg, eq, inArray } from 'drizzle-orm';
 
 import { db } from '..';
+import logger from '../../config/logger';
 import { Enrollment, NewEnrollment, UpdateEnrollment } from '../../types';
-import { enrollments } from '../schema';
+import { enrollments, studentGrades } from '../schema';
 
 export class EnrollRepository {
   /**
@@ -103,5 +104,38 @@ export class EnrollRepository {
       .where(eq(enrollments.id, enrollmentId))
       .returning();
     return updatedEnrollment;
+  }
+
+  /**
+   * Calculates the average grade for a student, grouped by courseId.
+   * This is the most granular, accurate data this service has locally.
+   * @param studentId The ID of the student.
+   * @returns An array of objects, each with a courseId and the average grade.
+   */
+  public static async getAverageGradesByCourse(
+    studentId: string
+  ): Promise<{ courseId: string; averageGrade: number }[]> {
+    try {
+      const result = await db
+        .select({
+          courseId: studentGrades.courseId,
+          averageGrade: avg(studentGrades.grade),
+        })
+        .from(studentGrades)
+        .where(eq(studentGrades.studentId, studentId))
+        .groupBy(studentGrades.courseId);
+
+      return result.map((row) => ({
+        courseId: row.courseId,
+        averageGrade: parseFloat(row.averageGrade || '0'),
+      }));
+    } catch (error) {
+      logger.error(
+        `Error fetching average grades by course for student ${studentId}: %o`,
+        { error }
+      );
+
+      throw new Error('Database query for grades by course failed.');
+    }
   }
 }
