@@ -1,5 +1,6 @@
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
+  boolean,
   date,
   decimal,
   integer,
@@ -77,6 +78,17 @@ export const enrollments = pgTable(
       .default('0.00'),
     enrolledAt: timestamp('enrolled_at').defaultNow().notNull(),
     lastAccessedAt: timestamp('last_accessed_at').defaultNow().notNull(),
+
+    certificateId: varchar('certificate_id', { length: 20 }).unique(),
+    certificateUrl: text('certificate_url'),
+    tags: text('tags')
+      .array()
+      .default(sql`'{}'::text[]`)
+      .notNull(),
+    isFavorite: boolean('is_favorite').default(false).notNull(),
+    isArchived: boolean('is_archived').default(false).notNull(),
+    notes: text('notes'),
+
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => {

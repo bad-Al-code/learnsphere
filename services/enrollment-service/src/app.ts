@@ -5,15 +5,20 @@ import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 
 import { swaggerSpec } from './config/swagger';
-import { correlationIdMiddleware } from './middlewares/correlation-id.middleware';
-import { currentUser } from './middlewares/current-user';
-import { errorHandler } from './middlewares/error-handler';
-import { httpLogger } from './middlewares/http-logger';
-import { metricsMiddleware } from './middlewares/metrics.middleware';
-import { analyticsRouter } from './routes/analytics.route';
-import { enrollmentRouter } from './routes/enrollment.routes';
-import { healthRouter } from './routes/health';
-import { metricsService } from './services/metrics.service';
+import {
+  correlationIdMiddleware,
+  currentUser,
+  errorHandler,
+  httpLogger,
+  metricsMiddleware,
+} from './middlewares';
+import {
+  analyticsRouter,
+  certificateRouter,
+  enrollmentRouter,
+  healthRouter,
+} from './routes';
+import { metricsService } from './services';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -41,6 +46,7 @@ app.use(currentUser);
 app.use('/api/enrollments', healthRouter);
 app.use('/api/enrollments', enrollmentRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/enrollments/my-certificates', certificateRouter);
 
 app.use(errorHandler);
 
