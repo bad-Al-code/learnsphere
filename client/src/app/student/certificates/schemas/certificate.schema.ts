@@ -58,7 +58,7 @@ export const certificateFiltersSchema = z.object({
 export type CertificateFilters = z.infer<typeof certificateFiltersSchema>;
 
 export const certificateParamsSchema = z.object({
-  enrollmentId: z.string().uuid('Invalid enrollment ID format.'),
+  enrollmentId: z.uuid('Invalid enrollment ID format.'),
 });
 
 export const updateNotesSchema = z.object({
@@ -66,7 +66,7 @@ export const updateNotesSchema = z.object({
 });
 
 export const bulkOperationSchema = z.object({
-  enrollmentIds: z.array(z.string().uuid()),
+  enrollmentIds: z.array(z.uuid()),
 });
 
 export type ViewMode = 'grid' | 'list';

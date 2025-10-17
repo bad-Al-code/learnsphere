@@ -1,9 +1,10 @@
-import { and, avg, eq, inArray } from 'drizzle-orm';
+import { and, asc, avg, count, desc, eq, ilike, inArray } from 'drizzle-orm';
 
 import { db } from '..';
 import logger from '../../config/logger';
+import { GetMyCoursesQuery } from '../../schema';
 import { Enrollment, NewEnrollment, UpdateEnrollment } from '../../types';
-import { enrollments, studentGrades } from '../schema';
+import { courses, enrollments, studentGrades } from '../schema';
 
 export class EnrollRepository {
   /**
@@ -137,5 +138,61 @@ export class EnrollRepository {
 
       throw new Error('Database query for grades by course failed.');
     }
+  }
+
+  /**
+   * Finds all enrollments for a user with advanced filtering, sorting, and pagination.
+   * @param userId - The ID of the user.
+   * @param options - The query options for filtering, sorting, and pagination.
+   * @returns An object containing the paginated list of enrollments and the total count.
+   */
+  public static async findMyEnrollments(
+    userId: string,
+    options: GetMyCoursesQuery
+  ) {
+    const { q, sortBy, page, limit } = options;
+    const offset = (page - 1) * limit;
+
+    const conditions = [eq(enrollments.userId, userId)];
+
+    if (q) conditions.push(ilike(courses.title, `%${q}%`));
+
+    const whereClause = and(...conditions);
+
+    let orderByClause;
+    switch (sortBy) {
+      case 'Progress %':
+        orderByClause = [desc(enrollments.progressPercentage)];
+        break;
+      case 'Alphabetical':
+        orderByClause = [asc(courses.title)];
+        break;
+      case 'Recently Accessed':
+      default:
+        orderByClause = [desc(enrollments.lastAccessedAt)];
+        break;
+    }
+
+    const totalQuery = db
+      .select({ value: count() })
+      .from(enrollments)
+      .leftJoin(courses, eq(enrollments.courseId, courses.id))
+      .where(whereClause);
+
+    const resultsQuery = db
+      .select({ enrollment: enrollments, course: courses })
+      .from(enrollments)
+      .innerJoin(courses, eq(enrollments.courseId, courses.id))
+      .where(whereClause)
+      .orderBy(...orderByClause)
+      .limit(limit)
+      .offset(offset);
+
+    const [[{ value: totalResults }], results] = await Promise.all([
+      totalQuery,
+      resultsQuery,
+    ]);
+
+    return { totalResults, results };
   }
 }

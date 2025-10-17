@@ -1,6 +1,7 @@
 import axios, { isAxiosError } from 'axios';
 import { count, eq } from 'drizzle-orm';
 
+import { UserClient } from '../clients';
 import logger from '../config/logger';
 import { db } from '../db';
 import {
@@ -18,6 +19,7 @@ import {
   UserEnrollmentReactivatedPublisher,
   UserEnrollmentSuspendedPublisher,
 } from '../events/publisher';
+import { GetMyCoursesQuery } from '../schema';
 import {
   ChangeEnrollmentStatus,
   CourseStructureSnapshotDetails,
@@ -746,5 +748,51 @@ export class EnrollmentService {
     await this.invalidateUserEnrollmentCache(requesterId);
 
     return updatedEnrollments;
+  }
+
+  /**
+   * Retrieves a paginated and filtered list of a user's enrolled courses.
+   * @param userId The ID of the user.
+   * @param options The query options for filtering, sorting, and pagination.
+   * @returns A paginated result of enriched enrollment objects.
+   */
+  public static async getMyCourses(userId: string, options: GetMyCoursesQuery) {
+    logger.debug(
+      `Fetching enrolled courses for user ${userId} with options:`,
+      options
+    );
+
+    const { totalResults, results } = await EnrollRepository.findMyEnrollments(
+      userId,
+      options
+    );
+
+    const instructorIds = [
+      ...new Set(results.map((r) => r.course.instructorId)),
+    ];
+    const instructorMap = await UserClient.getPublicProfiles(instructorIds);
+
+    const enrichedResults = results.map(({ enrollment, course }) => {
+      const instructor = instructorMap.get(course.instructorId);
+      return {
+        ...enrollment,
+        course: {
+          ...course,
+          instructor: {
+            firstName: instructor?.firstName,
+            lastName: instructor?.lastName,
+          },
+        },
+      };
+    });
+
+    return {
+      results: enrichedResults,
+      pagination: {
+        currentPage: options.page,
+        totalPages: Math.ceil(totalResults / options.limit),
+        totalResults,
+      },
+    };
   }
 }

@@ -62,11 +62,11 @@ export const AchievementSchema = z.object({
   points: z.number(),
   progress: z.number().min(0).max(100).default(0),
   requirements: z.array(RequirementSchema).optional(),
-  earnedAt: z.string().datetime().nullable().optional(),
+  earnedAt: z.iso.datetime().nullable().optional(),
   unlockedBy: z.number().optional(),
   collectionId: z.string().nullable().optional(),
   seriesNumber: z.number().nullable().optional(),
-  estimatedCompletion: z.string().datetime().nullable().optional(),
+  estimatedCompletion: z.iso.datetime().nullable().optional(),
 });
 
 export type TAchievement = z.infer<typeof AchievementSchema>;

@@ -3,7 +3,10 @@ import { StatusCodes } from 'http-status-codes';
 
 import { EnrollRepository } from '../db/repositories';
 import { NotAuthorizedError } from '../errors';
-import { getEnrollmentsSchema } from '../schema/enrollment.schema';
+import {
+  getEnrollmentsSchema,
+  getMyCoursesQuerySchema,
+} from '../schema/enrollment.schema';
 import { AnalyticsService } from '../services/analytics.service';
 import { EnrollmentService } from '../services/enrollment.service';
 import { ManualEnrollmentData } from '../types';
@@ -48,8 +51,15 @@ export class EnrollmentController {
   }
 
   public static async getMyCourses(req: Request, res: Response) {
-    const userId = req.currentUser!.id;
-    const enrollments = await EnrollmentService.getEnrollmentsByUserId(userId);
+    if (!req.currentUser) {
+      throw new NotAuthorizedError();
+    }
+    const query = getMyCoursesQuerySchema.parse({ query: req.query }).query;
+
+    const enrollments = await EnrollmentService.getMyCourses(
+      req.currentUser.id,
+      query
+    );
 
     res.status(StatusCodes.OK).json(enrollments);
   }
