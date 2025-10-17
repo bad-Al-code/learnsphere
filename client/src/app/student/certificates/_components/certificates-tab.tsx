@@ -1,6 +1,5 @@
 'use client';
 
-import { faker } from '@faker-js/faker';
 import {
   AlertCircle,
   Archive,
@@ -22,8 +21,10 @@ import {
   Linkedin,
   Link as LinkIcon,
   List,
+  Loader,
   Mail,
   MoreVertical,
+  RefreshCw,
   Search,
   Share2,
   Star,
@@ -33,6 +34,8 @@ import {
   ZoomIn,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { useDebounce } from 'use-debounce';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
@@ -74,6 +77,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Tooltip,
   TooltipContent,
@@ -81,8 +85,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
-import { useDebounce } from 'use-debounce';
+
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   useBulkArchive,
   useBulkDelete,
@@ -92,54 +96,13 @@ import {
   useToggleFavorite,
   useUpdateNotes,
 } from '../hooks';
-import { Certificate } from '../schemas';
+import type {
+  Certificate,
+  GridColumns,
+  SortOption,
+  ViewMode,
+} from '../schemas/certificate.schema';
 import { useCertificatesStore } from '../store/certificate.store';
-
-type ViewMode = 'grid' | 'list';
-type SortOption = 'date-desc' | 'date-asc' | 'title-asc' | 'title-desc';
-type GridColumns = 2 | 3 | 4;
-
-const createCertificate = (index: number): Certificate => {
-  const issueDate = faker.date.past({ years: 2 });
-  const hasExpiry = faker.datatype.boolean();
-  const expiryDate = hasExpiry
-    ? faker.date.future({ years: 1, refDate: issueDate })
-    : null;
-
-  return {
-    id: faker.string.uuid(),
-    title: faker.lorem
-      .words({ min: 2, max: 4 })
-      .replace(/\b\w/g, (l) => l.toUpperCase()),
-    issuer: faker.company.name(),
-    issueDate: issueDate.toLocaleDateString('en-US'),
-    expiryDate: expiryDate ? expiryDate.toLocaleDateString('en-US') : null,
-    tags: faker.helpers.arrayElements(
-      [
-        'JavaScript',
-        'ES6',
-        'DOM Manipulation',
-        'HTML5',
-        'CSS3',
-        'Responsive Design',
-        'SQL',
-        'Database Design',
-        'Query Optimization',
-        'React',
-        'Node.js',
-        'TypeScript',
-      ],
-      { min: 2, max: 4 }
-    ),
-    credentialId: `${faker.string.alphanumeric(4).toUpperCase()}-2024-${faker.string.numeric(3)}`,
-    imageUrl: `https://picsum.photos/400/225?random=${index}`,
-    description: faker.lorem.paragraph(),
-    verificationUrl: faker.internet.url(),
-    isFavorite: faker.datatype.boolean(),
-    isArchived: false,
-    notes: '',
-  };
-};
 
 const isExpiringSoon = (expiryDate: string | null): boolean => {
   if (!expiryDate) return false;
@@ -148,39 +111,41 @@ const isExpiringSoon = (expiryDate: string | null): boolean => {
   const daysUntilExpiry = Math.floor(
     (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
   );
+
   return daysUntilExpiry <= 30 && daysUntilExpiry >= 0;
 };
 
 const isExpired = (expiryDate: string | null): boolean => {
   if (!expiryDate) return false;
+
   return new Date(expiryDate) < new Date();
 };
 
-function CertificatesSearchBar({
-  searchQuery,
-  onSearchChange,
-  selectedTag,
-  onTagChange,
-  sortOption,
-  onSortChange,
-  allTags,
-}: {
-  searchQuery: string;
-  onSearchChange: (value: string) => void;
-  selectedTag: string | null;
-  onTagChange: (value: string | null) => void;
-  sortOption: SortOption;
-  onSortChange: (value: SortOption) => void;
-  allTags: string[];
-}) {
+function CertificatesSearchBar({ allTags }: { allTags: string[] }) {
+  const {
+    searchQuery,
+    setSearchQuery,
+    selectedTag,
+    setSelectedTag,
+    sortOption,
+    setSortOption,
+  } = useCertificatesStore();
+
+  const [localSearch, setLocalSearch] = useState(searchQuery);
+  const [debouncedSearch] = useDebounce(localSearch, 500);
+
+  useEffect(() => {
+    setSearchQuery(debouncedSearch);
+  }, [debouncedSearch, setSearchQuery]);
+
   return (
     <div className="flex flex-col gap-2 sm:flex-row">
       <div className="relative flex-1">
         <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <Input
           placeholder="Search certificates..."
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
           className="pl-9"
         />
       </div>
@@ -188,7 +153,7 @@ function CertificatesSearchBar({
       <div className="flex gap-2">
         <Select
           value={selectedTag || 'all'}
-          onValueChange={(val) => onTagChange(val === 'all' ? null : val)}
+          onValueChange={(val) => setSelectedTag(val === 'all' ? null : val)}
         >
           <SelectTrigger className="">
             <Filter className="h-4 w-4" />
@@ -206,7 +171,7 @@ function CertificatesSearchBar({
 
         <Select
           value={sortOption}
-          onValueChange={(val) => onSortChange(val as SortOption)}
+          onValueChange={(val) => setSortOption(val as SortOption)}
         >
           <SelectTrigger className="">
             <SelectValue placeholder="Sort by" />
@@ -224,48 +189,44 @@ function CertificatesSearchBar({
 }
 
 function CertificatesViewControls({
-  viewMode,
-  onViewModeChange,
-  gridColumns,
-  onGridColumnsChange,
-  showFavoritesOnly,
-  onFavoritesToggle,
-  showArchivedOnly,
-  onArchivedToggle,
-  selectedCount,
-  onBulkDownload,
   onBulkArchive,
   onBulkDelete,
-  onClearSelection,
 }: {
-  viewMode: ViewMode;
-  onViewModeChange: (mode: ViewMode) => void;
-  gridColumns: GridColumns;
-  onGridColumnsChange: (cols: GridColumns) => void;
-  showFavoritesOnly: boolean;
-  onFavoritesToggle: () => void;
-  showArchivedOnly: boolean;
-  onArchivedToggle: () => void;
-  selectedCount: number;
-  onBulkDownload: () => void;
   onBulkArchive: () => void;
   onBulkDelete: () => void;
-  onClearSelection: () => void;
 }) {
+  const {
+    viewMode,
+    setViewMode,
+    gridColumns,
+    setGridColumns,
+    showFavoritesOnly,
+    toggleFavoritesOnly,
+    showArchivedOnly,
+    toggleArchivedOnly,
+    selectedIds,
+    clearSelection,
+  } = useCertificatesStore();
+
+  const selectedCount = selectedIds.size;
+
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <div className="flex gap-1">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex gap-1 rounded-md border p-1">
         <Button
-          variant={viewMode === 'grid' ? 'default' : 'outline'}
-          size="icon"
-          onClick={() => onViewModeChange('grid')}
+          variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+          size="sm"
+          onClick={() => setViewMode('grid')}
+          className="h-7 px-3"
         >
           <Grid3x3 className="h-4 w-4" />
         </Button>
+
         <Button
-          variant={viewMode === 'list' ? 'default' : 'outline'}
-          size="icon"
-          onClick={() => onViewModeChange('list')}
+          variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+          size="sm"
+          onClick={() => setViewMode('list')}
+          className="h-7 px-3"
         >
           <List className="h-4 w-4" />
         </Button>
@@ -274,11 +235,9 @@ function CertificatesViewControls({
       {viewMode === 'grid' && (
         <Select
           value={String(gridColumns)}
-          onValueChange={(val) =>
-            onGridColumnsChange(Number(val) as GridColumns)
-          }
+          onValueChange={(val) => setGridColumns(Number(val) as GridColumns)}
         >
-          <SelectTrigger className="w-[120px]">
+          <SelectTrigger className="">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -292,7 +251,7 @@ function CertificatesViewControls({
       <Button
         variant={showFavoritesOnly ? 'default' : 'outline'}
         size="sm"
-        onClick={onFavoritesToggle}
+        onClick={toggleFavoritesOnly}
       >
         <Star className="h-4 w-4" />
         Favorites
@@ -301,10 +260,10 @@ function CertificatesViewControls({
       <Button
         variant={showArchivedOnly ? 'default' : 'outline'}
         size="sm"
-        onClick={onArchivedToggle}
+        onClick={toggleArchivedOnly}
       >
         <Archive className="h-4 w-4" />
-        Archived
+        {showArchivedOnly ? 'Exit Archive' : 'Archived'}
       </Button>
 
       <div className="flex-1" />
@@ -314,309 +273,88 @@ function CertificatesViewControls({
           <span className="text-muted-foreground text-sm">
             {selectedCount} selected
           </span>
-          <Button variant="outline" size="sm" onClick={onBulkDownload}>
-            <Download className="h-4 w-4" />
-            Download
-          </Button>
           <Button variant="outline" size="sm" onClick={onBulkArchive}>
             <Archive className="h-4 w-4" />
             Archive
           </Button>
+
           <Button variant="outline" size="sm" onClick={onBulkDelete}>
             <Trash2 className="h-4 w-4" />
             Delete
           </Button>
-          <Button variant="ghost" size="icon" onClick={onClearSelection}>
-            <X className="h-4 w-4" />
-          </Button>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={clearSelection}>
+                <X className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Clear</TooltipContent>
+          </Tooltip>
         </div>
       )}
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={() => toast.info('Exporting as CSV...')}>
+            <FileSpreadsheet className="h-4 w-4" />
+            Export as CSV
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => toast.info('Exporting as PDF...')}>
+            <FileText className="h-4 w-4" />
+            Export as PDF
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
 
 function CertificatesSelectAll({
-  isAllSelected,
-  onToggleAll,
-  currentCount,
+  currentCertificateIds,
 }: {
-  isAllSelected: boolean;
-  onToggleAll: () => void;
-  currentCount: number;
+  currentCertificateIds: string[];
 }) {
+  const { selectedIds, selectAll } = useCertificatesStore();
+  const isAllSelected =
+    currentCertificateIds.length > 0 &&
+    currentCertificateIds.every((id) => selectedIds.has(id));
+
   return (
     <div className="flex items-center gap-2">
-      <Checkbox checked={isAllSelected} onCheckedChange={onToggleAll} />
+      <Checkbox
+        checked={isAllSelected}
+        onCheckedChange={() => selectAll(currentCertificateIds)}
+      />
       <span className="text-muted-foreground text-sm">
-        Select All on Page ({currentCount})
+        Select All on Page ({currentCertificateIds.length})
       </span>
-    </div>
-  );
-}
-
-// function CertificatesHeader({
-//   searchQuery,
-//   onSearchChange,
-//   selectedTag,
-//   onTagChange,
-//   sortOption,
-//   onSortChange,
-//   allTags,
-//   viewMode,
-//   onViewModeChange,
-//   gridColumns,
-//   onGridColumnsChange,
-//   showFavoritesOnly,
-//   onFavoritesToggle,
-//   showArchivedOnly,
-//   onArchivedToggle,
-//   selectedCount,
-//   onBulkDownload,
-//   onBulkArchive,
-//   onBulkDelete,
-//   onClearSelection,
-//   isAllSelected,
-//   onToggleAll,
-//   currentCount,
-// }: {
-//   searchQuery: string;
-//   onSearchChange: (value: string) => void;
-//   selectedTag: string | null;
-//   onTagChange: (value: string | null) => void;
-//   sortOption: SortOption;
-//   onSortChange: (value: SortOption) => void;
-//   allTags: string[];
-//   viewMode: ViewMode;
-//   onViewModeChange: (mode: ViewMode) => void;
-//   gridColumns: GridColumns;
-//   onGridColumnsChange: (cols: GridColumns) => void;
-//   showFavoritesOnly: boolean;
-//   onFavoritesToggle: () => void;
-//   showArchivedOnly: boolean;
-//   onArchivedToggle: () => void;
-//   selectedCount: number;
-//   onBulkDownload: () => void;
-//   onBulkArchive: () => void;
-//   onBulkDelete: () => void;
-//   onClearSelection: () => void;
-//   isAllSelected: boolean;
-//   onToggleAll: () => void;
-//   currentCount: number;
-// }) {
-//   return (
-//     <div className="flex flex-col gap-2">
-//       <CertificatesSearchBar
-//         searchQuery={searchQuery}
-//         onSearchChange={onSearchChange}
-//         selectedTag={selectedTag}
-//         onTagChange={onTagChange}
-//         sortOption={sortOption}
-//         onSortChange={onSortChange}
-//         allTags={allTags}
-//       />
-//       <CertificatesViewControls
-//         viewMode={viewMode}
-//         onViewModeChange={onViewModeChange}
-//         gridColumns={gridColumns}
-//         onGridColumnsChange={onGridColumnsChange}
-//         showFavoritesOnly={showFavoritesOnly}
-//         onFavoritesToggle={onFavoritesToggle}
-//         showArchivedOnly={showArchivedOnly}
-//         onArchivedToggle={onArchivedToggle}
-//         selectedCount={selectedCount}
-//         onBulkDownload={onBulkDownload}
-//         onBulkArchive={onBulkArchive}
-//         onBulkDelete={onBulkDelete}
-//         onClearSelection={onClearSelection}
-//       />
-//       {currentCount > 0 && (
-//         <CertificatesSelectAll
-//           isAllSelected={isAllSelected}
-//           onToggleAll={onToggleAll}
-//           currentCount={currentCount}
-//         />
-//       )}
-//     </div>
-//   );
-// }
-
-function CertificatesHeader({
-  allTags,
-  selectedCount,
-  onBulkArchive,
-  onBulkDelete,
-  onClearSelection,
-  isAllSelected,
-  onToggleAll,
-  currentCount,
-}: {
-  allTags: string[];
-  selectedCount: number;
-  onBulkArchive: () => void;
-  onBulkDelete: () => void;
-  onClearSelection: () => void;
-  isAllSelected: boolean;
-  onToggleAll: () => void;
-  currentCount: number;
-}) {
-  const {
-    searchQuery,
-    setSearchQuery,
-    selectedTag,
-    setSelectedTag,
-    sortOption,
-    setSortOption,
-    viewMode,
-    setViewMode,
-    gridColumns,
-    setGridColumns,
-    showFavoritesOnly,
-    toggleFavoritesOnly,
-    showArchivedOnly,
-    toggleArchivedOnly,
-  } = useCertificatesStore();
-
-  const [localSearch, setLocalSearch] = useState(searchQuery);
-  const [debouncedSearch] = useDebounce(localSearch, 500);
-
-  useEffect(() => {
-    setSearchQuery(debouncedSearch);
-  }, [debouncedSearch, setSearchQuery]);
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <div className="relative flex-1">
-          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-          <Input
-            placeholder="Search certificates..."
-            value={localSearch}
-            onChange={(e) => setLocalSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <div className="flex gap-2">
-          <Select
-            value={selectedTag || 'all'}
-            onValueChange={(val) => setSelectedTag(val === 'all' ? null : val)}
-          >
-            <SelectTrigger className="">
-              <Filter className="h-4 w-4" />
-              <SelectValue placeholder="Filter by tag" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Tags</SelectItem>
-              {allTags.map((tag) => (
-                <SelectItem key={tag} value={tag}>
-                  {tag}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={sortOption}
-            onValueChange={(val) => setSortOption(val as SortOption)}
-          >
-            <SelectTrigger className="">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="date-desc">Newest First</SelectItem>
-              <SelectItem value="date-asc">Oldest First</SelectItem>
-              <SelectItem value="title-asc">Title A-Z</SelectItem>
-              <SelectItem value="title-desc">Title Z-A</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex gap-1 rounded-md border p-1">
-          <Button
-            variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('grid')}
-            className="h-7 px-3"
-          >
-            <Grid3x3 className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('list')}
-            className="h-7 px-3"
-          >
-            <List className="h-4 w-4" />
-          </Button>
-        </div>
-        {viewMode === 'grid' && (
-          <Select
-            value={String(gridColumns)}
-            onValueChange={(val) => setGridColumns(Number(val) as GridColumns)}
-          >
-            <SelectTrigger className="h-9 w-[120px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="2">2 Columns</SelectItem>
-              <SelectItem value="3">3 Columns</SelectItem>
-              <SelectItem value="4">4 Columns</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
-        <Button
-          variant={showFavoritesOnly ? 'default' : 'outline'}
-          size="sm"
-          onClick={toggleFavoritesOnly}
-        >
-          <Star className="h-4 w-4" />
-          Favorites
-        </Button>
-        <Button
-          variant={showArchivedOnly ? 'default' : 'outline'}
-          size="sm"
-          onClick={toggleArchivedOnly}
-        >
-          <Archive className="h-4 w-4" />
-          {showArchivedOnly ? 'Exit Archive' : 'Archived'}
-        </Button>
-        <div className="flex-1" />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              <Download className="h-4 w-4" />
-              Export
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => toast.info('Exporting as CSV...')}>
-              <FileSpreadsheet className="h-4 w-4" />
-              Export as CSV
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => toast.info('Exporting as PDF...')}>
-              <FileText className="h-4 w-4" />
-              Export as PDF
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
     </div>
   );
 }
 
 function CertificatesPagination({
   currentPage,
-  pageSize,
+  totalPages,
   totalItems,
+  pageSize,
   onPageChange,
   onPageSizeChange,
 }: {
   currentPage: number;
-  pageSize: number;
+  totalPages: number;
   totalItems: number;
+  pageSize: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
 }) {
-  const totalPages = Math.ceil(totalItems / pageSize);
   const startItem = (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalItems);
 
@@ -625,6 +363,7 @@ function CertificatesPagination({
       <div className="text-muted-foreground hidden flex-1 text-sm sm:inline">
         Showing {startItem}-{endItem} of {totalItems} certificate(s)
       </div>
+
       <div className="flex items-center space-x-6 lg:space-x-8">
         <div className="flex items-center space-x-2">
           <p className="text-sm font-medium">Rows per page</p>
@@ -635,7 +374,7 @@ function CertificatesPagination({
               onPageChange(1);
             }}
           >
-            <SelectTrigger className="h-8 w-[70px]">
+            <SelectTrigger className="">
               <SelectValue placeholder={pageSize} />
             </SelectTrigger>
             <SelectContent side="top">
@@ -647,6 +386,7 @@ function CertificatesPagination({
             </SelectContent>
           </Select>
         </div>
+
         <div className="flex w-[100px] items-center justify-center text-sm font-medium">
           Page {currentPage} of {totalPages}
         </div>
@@ -666,6 +406,7 @@ function CertificatesPagination({
               <TooltipContent>First Page</TooltipContent>
             </Tooltip>
           </TooltipProvider>
+
           <Button
             variant="outline"
             className="h-8 w-8 p-0"
@@ -674,6 +415,7 @@ function CertificatesPagination({
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
+
           <Button
             variant="outline"
             className="h-8 w-8 p-0"
@@ -682,21 +424,20 @@ function CertificatesPagination({
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="hidden h-8 w-8 p-0 lg:flex"
-                  onClick={() => onPageChange(totalPages)}
-                  disabled={currentPage >= totalPages}
-                >
-                  <ChevronsRight className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Last Page</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                className="hidden h-8 w-8 p-0 lg:flex"
+                onClick={() => onPageChange(totalPages)}
+                disabled={currentPage >= totalPages}
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Last Page</TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </div>
@@ -711,16 +452,21 @@ function CertificateDetailsDialog({
   onShare,
   onVerify,
 }: {
-  certificate: Certificate;
+  certificate: Certificate | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDownload: (cert: Certificate) => void;
   onShare: (cert: Certificate) => void;
   onVerify: (cert: Certificate) => void;
 }) {
+  if (!certificate) return null;
+
+  const expired = isExpired(certificate.expiryDate);
+  const expiringSoon = isExpiringSoon(certificate.expiryDate);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+      <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
@@ -741,7 +487,7 @@ function CertificateDetailsDialog({
 
           <div className="grid gap-4">
             <div className="flex items-start gap-2">
-              <FileText className="text-muted-foreground mt-1 h-4 w-4" />
+              <FileText className="text-muted-foreground mt-1 h-4 w-4 flex-shrink-0" />
               <div>
                 <p className="font-semibold">Issuer</p>
                 <p className="text-muted-foreground text-sm">
@@ -751,7 +497,7 @@ function CertificateDetailsDialog({
             </div>
 
             <div className="flex items-start gap-2">
-              <Calendar className="text-muted-foreground mt-1 h-4 w-4" />
+              <Calendar className="text-muted-foreground mt-1 h-4 w-4 flex-shrink-0" />
               <div>
                 <p className="font-semibold">Issue Date</p>
                 <p className="text-muted-foreground text-sm">
@@ -762,22 +508,24 @@ function CertificateDetailsDialog({
 
             {certificate.expiryDate && (
               <div className="flex items-start gap-2">
-                <AlertCircle className="text-muted-foreground mt-1 h-4 w-4" />
-                <div>
+                <AlertCircle className="text-muted-foreground mt-1 h-4 w-4 flex-shrink-0" />
+                <div className="flex-1">
                   <p className="font-semibold">Expiry Date</p>
-                  <p className="text-muted-foreground text-sm">
-                    {certificate.expiryDate}
-                    {isExpired(certificate.expiryDate) && (
-                      <Badge variant="destructive" className="ml-2">
+                  <div className="flex items-center gap-2">
+                    <p className="text-muted-foreground text-sm">
+                      {certificate.expiryDate}
+                    </p>
+                    {expired && (
+                      <Badge variant="destructive" className="text-xs">
                         Expired
                       </Badge>
                     )}
-                    {isExpiringSoon(certificate.expiryDate) && (
-                      <Badge variant="outline" className="ml-2">
+                    {expiringSoon && !expired && (
+                      <Badge variant="outline" className="text-xs">
                         Expiring Soon
                       </Badge>
                     )}
-                  </p>
+                  </div>
                 </div>
               </div>
             )}
@@ -793,12 +541,21 @@ function CertificateDetailsDialog({
               </div>
             </div>
 
-            <div>
-              <p className="mb-1 font-semibold">Credential ID</p>
-              <code className="bg-muted rounded px-2 py-1 text-sm">
-                {certificate.credentialId}
-              </code>
-            </div>
+            {certificate.notes && (
+              <div className="text-muted-foreground flex items-center gap-1 text-xs">
+                <Edit className="h-3 w-3" />
+                <span>Has notes</span>
+              </div>
+            )}
+
+            {certificate.credentialId && (
+              <div>
+                <p className="mb-1 font-semibold">Credential ID</p>
+                <code className="bg-muted block rounded px-2 py-1 text-sm">
+                  {certificate.credentialId}
+                </code>
+              </div>
+            )}
 
             <div>
               <p className="mb-1 font-semibold">Description</p>
@@ -806,26 +563,27 @@ function CertificateDetailsDialog({
                 {certificate.description}
               </p>
             </div>
+
+            {certificate.notes && (
+              <div>
+                <p className="mb-1 font-semibold">Notes</p>
+                <p className="text-muted-foreground text-sm">
+                  {certificate.notes}
+                </p>
+              </div>
+            )}
           </div>
         </div>
         <DialogFooter className="flex flex-row items-end justify-end gap-2">
-          <Button onClick={() => onDownload(certificate)} className="">
+          <Button onClick={() => onDownload(certificate)}>
             <Download className="h-4 w-4" />
             Download
           </Button>
-          <Button
-            onClick={() => onShare(certificate)}
-            variant="secondary"
-            className=""
-          >
+          <Button onClick={() => onShare(certificate)} variant="secondary">
             <Share2 className="h-4 w-4" />
             Share
           </Button>
-          <Button
-            onClick={() => onVerify(certificate)}
-            variant="outline"
-            className=""
-          >
+          <Button onClick={() => onVerify(certificate)} variant="outline">
             <ExternalLink className="h-4 w-4" />
             Verify
           </Button>
@@ -847,9 +605,13 @@ function ShareDialog({
   const [copied, setCopied] = useState(false);
 
   const handleCopyLink = () => {
-    const link = `https://certificates.app/verify/${certificate?.credentialId}`;
+    if (!certificate) return;
+    const link = `https://certificates.app/verify/${certificate.credentialId}`;
+
     navigator.clipboard.writeText(link);
     setCopied(true);
+    toast.success('Link copied to clipboard');
+
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -864,6 +626,7 @@ function ShareDialog({
             Share your certificate with others
           </DialogDescription>
         </DialogHeader>
+
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Input
@@ -881,19 +644,35 @@ function ShareDialog({
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="outline" className="w-full">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => toast.info('Opening email client...')}
+            >
               <Mail className="h-4 w-4" />
               Email
             </Button>
-            <Button variant="outline" className="w-full">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => toast.info('Sharing to LinkedIn...')}
+            >
               <Linkedin className="h-4 w-4" />
               LinkedIn
             </Button>
-            <Button variant="outline" className="w-full">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => toast.info('Sharing to Twitter...')}
+            >
               <Twitter className="h-4 w-4" />
               Twitter
             </Button>
-            <Button variant="outline" className="w-full">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleCopyLink}
+            >
               <LinkIcon className="h-4 w-4" />
               Copy Link
             </Button>
@@ -904,57 +683,29 @@ function ShareDialog({
   );
 }
 
-function DeleteConfirmDialog({
-  open,
-  onOpenChange,
-  onConfirm,
-  title,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-  title: string;
-}) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Confirm Deletion</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete "{title}"? This action cannot be
-            undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={onConfirm}>
-            <Trash2 className="h-4 w-4" />
-            Delete
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 function EditNotesDialog({
   certificate,
   open,
   onOpenChange,
   onSave,
+  isPending,
 }: {
   certificate: Certificate | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (notes: string) => void;
+  isPending: boolean;
 }) {
   const [notes, setNotes] = useState(certificate?.notes || '');
 
+  useEffect(() => {
+    if (certificate) {
+      setNotes(certificate.notes || '');
+    }
+  }, [certificate]);
+
   const handleSave = () => {
     onSave(notes);
-    onOpenChange(false);
   };
 
   if (!certificate) return null;
@@ -968,25 +719,89 @@ function EditNotesDialog({
             Add notes or description for {certificate.title}
           </DialogDescription>
         </DialogHeader>
-        <div>
-          <textarea
+        <ScrollArea className="mr-3">
+          <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="min-h-[120px] w-full resize-none rounded-md border p-3"
+            className="max-h-[30vh] min-h-[120px] resize-none"
             placeholder="Add your notes here..."
+            disabled={isPending}
           />
-        </div>
+        </ScrollArea>
+
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isPending}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave}>
-            <Check className="h-4 w-4" />
-            Save Notes
+          <Button onClick={handleSave} disabled={isPending}>
+            {isPending ? (
+              <>
+                <Loader className="h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Check className="h-4 w-4" />
+                Save Notes
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function DeleteConfirmDialog({
+  open,
+  onOpenChange,
+  onConfirm,
+  title,
+  isPending,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  title: string;
+  isPending: boolean;
+}) {
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete "{title}"? This action cannot be
+            undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirm}
+            className="bg-destructive hover:bg-destructive/90"
+            disabled={isPending}
+          >
+            {isPending ? (
+              <>
+                <Loader className="h-4 w-4 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </>
+            )}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 
@@ -1003,6 +818,8 @@ function CertificateCard({
   onDelete,
   onEditNotes,
   viewMode,
+  isPendingFavorite,
+  isPendingArchive,
 }: {
   certificate: Certificate;
   isSelected: boolean;
@@ -1016,6 +833,8 @@ function CertificateCard({
   onDelete: (id: string) => void;
   onEditNotes: (cert: Certificate) => void;
   viewMode: ViewMode;
+  isPendingFavorite: boolean;
+  isPendingArchive: boolean;
 }) {
   const expired = isExpired(certificate.expiryDate);
   const expiringSoon = isExpiringSoon(certificate.expiryDate);
@@ -1023,8 +842,8 @@ function CertificateCard({
 
   if (viewMode === 'list') {
     return (
-      <Card className="overflow-hidden">
-        <CardContent className="flex gap-4">
+      <Card className="overflow-hidden transition-shadow hover:shadow-md">
+        <CardContent className="flex gap-4 p-4">
           <Checkbox
             checked={isSelected}
             onCheckedChange={() => onSelect(certificate.id)}
@@ -1040,6 +859,7 @@ function CertificateCard({
               className="h-full w-full object-cover transition-transform hover:scale-105"
             />
           </div>
+
           <div className="min-w-0 flex-1">
             <div className="mb-2 flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
@@ -1048,6 +868,7 @@ function CertificateCard({
                   {certificate.issuer} • {certificate.issueDate}
                 </p>
               </div>
+
               <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
@@ -1056,54 +877,72 @@ function CertificateCard({
                     e.stopPropagation();
                     onToggleFavorite(certificate.id);
                   }}
+                  disabled={isPendingFavorite}
                 >
                   <Star
-                    className={`h-4 w-4 ${
-                      certificate.isFavorite
-                        ? 'fill-yellow-400 text-yellow-400'
-                        : ''
-                    }`}
+                    className={cn(
+                      'h-4 w-4',
+                      certificate.isFavorite &&
+                        'fill-yellow-400 text-yellow-400'
+                    )}
                   />
                 </Button>
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
+
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => onEditNotes(certificate)}>
                       <Edit className="h-4 w-4" />
                       Edit Notes
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onArchive(certificate.id)}>
+
+                    <DropdownMenuItem
+                      onClick={() => onArchive(certificate.id)}
+                      disabled={isPendingArchive}
+                    >
                       <Archive className="h-4 w-4" />
                       {showArchivedOnly ? 'Unarchive' : 'Archive'}
                     </DropdownMenuItem>
+
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => onDelete(certificate.id)}
-                      className="text-destructive"
+                      className="text-destructive hover:text-destructive"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="text-destructive hover:text-destructive h-4 w-4" />
                       Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             </div>
+
             <div className="mb-2 flex flex-wrap gap-2">
               {certificate.tags.slice(0, 3).map((tag) => (
                 <Badge key={tag} variant="outline" className="text-xs">
                   {tag}
                 </Badge>
               ))}
+
               {certificate.tags.length > 3 && (
                 <Badge variant="outline" className="text-xs">
                   +{certificate.tags.length - 3}
                 </Badge>
               )}
             </div>
+
+            {certificate.notes && (
+              <p className="text-muted-foreground flex items-center gap-1 text-xs">
+                <Edit className="h-3 w-3" />
+                Has notes
+              </p>
+            )}
+
             {(expired || expiringSoon) && (
               <Alert
                 variant={expired ? 'destructive' : 'default'}
@@ -1116,27 +955,39 @@ function CertificateCard({
                 </AlertDescription>
               </Alert>
             )}
+
             <div className="mt-2 flex gap-2">
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => onDownload(certificate)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDownload(certificate);
+                }}
               >
                 <Download className="h-3 w-3" />
                 Download
               </Button>
+
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onShare(certificate)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onShare(certificate);
+                }}
               >
                 <Share2 className="h-3 w-3" />
                 Share
               </Button>
+
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onVerify(certificate)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onVerify(certificate);
+                }}
               >
                 <ExternalLink className="h-3 w-3" />
                 Verify
@@ -1149,53 +1000,64 @@ function CertificateCard({
   }
 
   return (
-    <Card className="group relative overflow-hidden pt-0">
+    <Card className="group relative overflow-hidden pt-0 transition-shadow hover:shadow-md">
       <div className="absolute top-2 left-2 z-10">
         <Checkbox
           checked={isSelected}
           onCheckedChange={() => onSelect(certificate.id)}
           className={cn(
-            'transition-opacity',
+            'bg-background transition-opacity',
             isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
           )}
         />
       </div>
+
       <div className="absolute top-2 right-2 z-10 flex gap-1">
         <Button
-          variant="ghost"
+          variant="secondary"
           size="icon"
           className="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
           onClick={(e) => {
             e.stopPropagation();
             onToggleFavorite(certificate.id);
           }}
+          disabled={isPendingFavorite}
         >
           <Star
-            className={`h-4 w-4 ${
-              certificate.isFavorite ? 'fill-yellow-400 text-yellow-400' : ''
-            }`}
+            className={cn(
+              'h-4 w-4',
+              certificate.isFavorite && 'fill-yellow-400 text-yellow-400'
+            )}
           />
         </Button>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="secondary"
               size="icon"
-              className="bg-muted/20 h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
+              className="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
             >
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
+
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onEditNotes(certificate)}>
               <Edit className="h-4 w-4" />
               Edit Notes
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onArchive(certificate.id)}>
+
+            <DropdownMenuItem
+              onClick={() => onArchive(certificate.id)}
+              disabled={isPendingArchive}
+            >
               <Archive className="h-4 w-4" />
               {showArchivedOnly ? 'Unarchive' : 'Archive'}
             </DropdownMenuItem>
+
             <DropdownMenuSeparator />
+
             <DropdownMenuItem
               onClick={() => onDelete(certificate.id)}
               className="text-destructive"
@@ -1206,26 +1068,30 @@ function CertificateCard({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
       <div
         className="relative aspect-video w-full cursor-pointer overflow-hidden"
         onClick={() => onCardClick(certificate)}
       >
         <img
-          src={decodeURIComponent(certificate.imageUrl!)}
+          src={certificate.imageUrl!}
           alt={certificate.title}
           className="h-full w-full object-cover transition-transform group-hover:scale-105"
         />
+
         <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
           <ZoomIn className="h-8 w-8 text-white" />
         </div>
       </div>
-      <CardContent className="flex-1 space-y-2">
+
+      <CardContent className="flex-1 space-y-2 p-4">
         <div>
-          <h3 className="font-semibold">{certificate.title}</h3>
+          <h3 className="line-clamp-2 font-semibold">{certificate.title}</h3>
           <p className="text-muted-foreground text-xs">
-            Issued by {certificate.issuer} • {certificate.issueDate}
+            {certificate.issuer} • {certificate.issueDate}
           </p>
         </div>
+
         {(expired || expiringSoon) && (
           <Alert variant={expired ? 'destructive' : 'default'} className="py-1">
             <AlertCircle className="h-3 w-3" />
@@ -1234,21 +1100,39 @@ function CertificateCard({
             </AlertDescription>
           </Alert>
         )}
+
         <div className="flex flex-wrap gap-2">
-          {certificate.tags.map((tag) => (
-            <Badge key={tag} variant="outline">
+          {certificate.tags.slice(0, 3).map((tag) => (
+            <Badge key={tag} variant="outline" className="text-xs">
               {tag}
             </Badge>
           ))}
+          {certificate.tags.length > 3 && (
+            <Badge variant="outline" className="text-xs">
+              +{certificate.tags.length - 3}
+            </Badge>
+          )}
         </div>
-        <p className="text-muted-foreground text-xs">
-          Credential ID: {certificate.credentialId}
-        </p>
+
+        {certificate.notes && (
+          <p className="text-muted-foreground flex items-center gap-1 text-xs">
+            <Edit className="h-3 w-3" />
+            Has notes
+          </p>
+        )}
+
+        {certificate.credentialId && (
+          <p className="text-muted-foreground truncate text-xs">
+            ID: {certificate.credentialId}
+          </p>
+        )}
       </CardContent>
+
       <CardFooter className="gap-2 p-4 pt-0">
         <Button
           variant="secondary"
           className="flex-1"
+          size="sm"
           onClick={(e) => {
             e.stopPropagation();
             onDownload(certificate);
@@ -1257,6 +1141,7 @@ function CertificateCard({
           <Download className="h-4 w-4" />
           Download
         </Button>
+
         <Button
           variant="outline"
           size="icon"
@@ -1267,6 +1152,7 @@ function CertificateCard({
         >
           <Share2 className="h-4 w-4" />
         </Button>
+
         <Button
           variant="outline"
           size="icon"
@@ -1284,8 +1170,8 @@ function CertificateCard({
 
 function CertificatesGrid({
   certificates,
-  selectedIds,
-  onSelect,
+  viewMode,
+  gridColumns,
   onCardClick,
   onToggleFavorite,
   onDownload,
@@ -1294,12 +1180,12 @@ function CertificatesGrid({
   onArchive,
   onDelete,
   onEditNotes,
-  viewMode,
-  gridColumns,
+  pendingFavoriteId,
+  pendingArchiveId,
 }: {
   certificates: Certificate[];
-  selectedIds: Set<string>;
-  onSelect: (id: string) => void;
+  viewMode: ViewMode;
+  gridColumns: GridColumns;
   onCardClick: (cert: Certificate) => void;
   onToggleFavorite: (id: string) => void;
   onDownload: (cert: Certificate) => void;
@@ -1308,9 +1194,11 @@ function CertificatesGrid({
   onArchive: (id: string) => void;
   onDelete: (id: string) => void;
   onEditNotes: (cert: Certificate) => void;
-  viewMode: ViewMode;
-  gridColumns: GridColumns;
+  pendingFavoriteId: string | null;
+  pendingArchiveId: string | null;
 }) {
+  const { selectedIds, toggleSelectId } = useCertificatesStore();
+
   const gridColsClass = {
     2: 'md:grid-cols-2',
     3: 'md:grid-cols-2 lg:grid-cols-3',
@@ -1319,16 +1207,17 @@ function CertificatesGrid({
 
   return (
     <div
-      className={`grid grid-cols-1 gap-2 ${
-        viewMode === 'grid' ? gridColsClass : ''
-      }`}
+      className={cn(
+        'grid grid-cols-1 gap-2',
+        viewMode === 'grid' && gridColsClass
+      )}
     >
       {certificates.map((cert) => (
         <CertificateCard
           key={cert.id}
           certificate={cert}
           isSelected={selectedIds.has(cert.id)}
-          onSelect={onSelect}
+          onSelect={toggleSelectId}
           onCardClick={onCardClick}
           onToggleFavorite={onToggleFavorite}
           onDownload={onDownload}
@@ -1338,6 +1227,8 @@ function CertificatesGrid({
           onDelete={onDelete}
           onEditNotes={onEditNotes}
           viewMode={viewMode}
+          isPendingFavorite={pendingFavoriteId === cert.id}
+          isPendingArchive={pendingArchiveId === cert.id}
         />
       ))}
     </div>
@@ -1345,35 +1236,67 @@ function CertificatesGrid({
 }
 
 function CertificatesEmptyState() {
+  const {
+    searchQuery,
+    selectedTag,
+    showFavoritesOnly,
+    showArchivedOnly,
+    resetFilters,
+  } = useCertificatesStore();
+
+  const hasFilters =
+    searchQuery || selectedTag || showFavoritesOnly || showArchivedOnly;
+
   return (
-    <div className="py-12 text-center">
-      <p className="text-muted-foreground">No certificates found</p>
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <Award className="text-muted-foreground mb-4 h-12 w-12" />
+      <h3 className="mb-2 text-lg font-semibold">No certificates found</h3>
+      <p className="text-muted-foreground mb-4 text-sm">
+        {hasFilters
+          ? 'Try adjusting your filters or search criteria'
+          : 'You have no certificates yet'}
+      </p>
+      {hasFilters && (
+        <Button onClick={resetFilters} variant="outline">
+          Clear Filters
+        </Button>
+      )}
     </div>
   );
 }
 
 export function CertificatesTab() {
-  const { data, isLoading, isError, error, refetch } = useCertificates();
-  const { mutate: toggleFavorite } = useToggleFavorite();
-  const { mutate: toggleArchive } = useToggleArchive();
-  const { mutate: updateNotes } = useUpdateNotes();
-  const { mutate: deleteCertificate } = useDeleteCertificate();
-  const { mutate: bulkArchive } = useBulkArchive();
-  const { mutate: bulkDelete } = useBulkDelete();
+  const { data, isLoading, isError, error, refetch, isFetching } =
+    useCertificates();
+  const {
+    mutate: toggleFavorite,
+    isPending: isPendingFavorite,
+    variables: favoriteVariables,
+  } = useToggleFavorite();
+  const {
+    mutate: toggleArchive,
+    isPending: isPendingArchive,
+    variables: archiveVariables,
+  } = useToggleArchive();
+  const { mutate: updateNotes, isPending: isPendingNotes } = useUpdateNotes();
+  const { mutate: deleteCertificate, isPending: isPendingDelete } =
+    useDeleteCertificate();
+  const { mutate: bulkArchive, isPending: isPendingBulkArchive } =
+    useBulkArchive();
+  const { mutate: bulkDelete, isPending: isPendingBulkDelete } =
+    useBulkDelete();
 
   const {
-    searchQuery,
-    selectedTag,
-    sortOption,
     viewMode,
     gridColumns,
-    showFavoritesOnly,
-    showArchivedOnly,
     page,
     limit,
+    setPage,
+    setLimit,
+    selectedIds,
+    clearSelection,
   } = useCertificatesStore();
 
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [detailsDialog, setDetailsDialog] = useState<Certificate | null>(null);
   const [shareDialog, setShareDialog] = useState<Certificate | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<Certificate | null>(null);
@@ -1384,39 +1307,17 @@ export function CertificatesTab() {
 
   const certificates = data?.results || [];
   const pagination = data?.pagination;
+
   const allTags = useMemo(() => {
     const tags = new Set<string>();
     certificates.forEach((cert) => cert.tags.forEach((tag) => tags.add(tag)));
-
     return Array.from(tags).sort();
   }, [certificates]);
 
-  const filteredAndSortedCertificates = useMemo(() => {
-    if (!data?.results) return [];
-
-    let sorted = [...certificates];
-
-    sorted.sort((a, b) => {
-      switch (sortOption) {
-        case 'date-desc':
-          return (
-            new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime()
-          );
-        case 'date-asc':
-          return (
-            new Date(a.issueDate).getTime() - new Date(b.issueDate).getTime()
-          );
-        case 'title-asc':
-          return a.title.localeCompare(b.title);
-        case 'title-desc':
-          return b.title.localeCompare(a.title);
-        default:
-          return 0;
-      }
-    });
-
-    return sorted;
-  }, [certificates, sortOption]);
+  const currentCertificateIds = useMemo(
+    () => certificates.map((cert) => cert.id),
+    [certificates]
+  );
 
   const handleToggleFavorite = (id: string) => {
     toggleFavorite(id);
@@ -1430,38 +1331,37 @@ export function CertificatesTab() {
     deleteCertificate(id, {
       onSuccess: () => {
         setDeleteDialog(null);
-        setSelectedIds((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(id);
-          return newSet;
-        });
       },
     });
   };
 
   const handleSaveNotes = (notes: string) => {
     if (!editNotesDialog) return;
-    updateNotes({ enrollmentId: editNotesDialog.id, notes });
-  };
-
-  const handleSelectAll = () => {
-    if (selectedIds.size === data?.results.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(data?.results.map((cert) => cert.id)));
-    }
+    updateNotes(
+      { enrollmentId: editNotesDialog.id, notes },
+      {
+        onSuccess: () => {
+          setEditNotesDialog(null);
+        },
+      }
+    );
   };
 
   const handleBulkArchive = () => {
-    bulkArchive(Array.from(selectedIds), {
-      onSuccess: () => setSelectedIds(new Set()),
-    });
+    if (selectedIds.size === 0) {
+      toast.error('No certificates selected');
+      return;
+    }
+    bulkArchive(Array.from(selectedIds));
   };
 
   const handleBulkDelete = () => {
+    if (selectedIds.size === 0) {
+      toast.error('No certificates selected');
+      return;
+    }
     bulkDelete(Array.from(selectedIds), {
       onSuccess: () => {
-        setSelectedIds(new Set());
         setIsBulkDeleteConfirmOpen(false);
       },
     });
@@ -1472,77 +1372,84 @@ export function CertificatesTab() {
   };
 
   const handleShare = (cert: Certificate) => {
-    toast.info('Saring');
-  };
-
-  const handleBulkDownload = () => {
-    toast.info('Handle bulk Download');
+    setShareDialog(cert);
   };
 
   const handleVerify = (cert: Certificate) => {
-    window.open(cert.verificationUrl, '_blank');
-  };
-
-  const handleSelectCertificate = (id: string) => {
-    toast.info('Handle Select Certificate');
+    window.open(cert.verificationUrl, '_blank', 'noopener,noreferrer');
   };
 
   if (isError) {
-    return <ErrorState message={error.message} onRetry={refetch} />;
+    return (
+      <ErrorState
+        message={error?.message || 'Failed to load certificates'}
+        onRetry={refetch}
+      />
+    );
   }
 
   return (
     <div className="space-y-2">
-      <CertificatesHeader
-        allTags={allTags}
-        selectedCount={selectedIds.size}
+      <CertificatesSearchBar allTags={allTags} />
+
+      <CertificatesViewControls
         onBulkArchive={handleBulkArchive}
         onBulkDelete={() => setIsBulkDeleteConfirmOpen(true)}
-        onClearSelection={() => setSelectedIds(new Set())}
-        isAllSelected={
-          selectedIds.size === certificates.length && certificates.length > 0
-        }
-        onToggleAll={handleSelectAll}
-        currentCount={certificates.length}
       />
 
+      {currentCertificateIds.length > 0 && (
+        <CertificatesSelectAll currentCertificateIds={currentCertificateIds} />
+      )}
+
       {isLoading ? (
-        <CertificatesTabSkeleton viewMode={viewMode} />
-      ) : certificates && certificates.length > 0 ? (
+        <CertificatesGridSkeleton
+          viewMode={viewMode}
+          gridColumns={gridColumns}
+        />
+      ) : certificates.length > 0 ? (
         <>
-          <CertificatesGrid
-            certificates={filteredAndSortedCertificates}
-            viewMode={viewMode}
-            gridColumns={gridColumns}
-            selectedIds={selectedIds}
-            onSelect={(id) => {
-              setSelectedIds((prev) => {
-                const newSet = new Set(prev);
-                if (newSet.has(id)) newSet.delete(id);
-                else newSet.add(id);
-                return newSet;
-              });
-            }}
-            onCardClick={setDetailsDialog}
-            onToggleFavorite={handleToggleFavorite}
-            onDownload={handleDownload}
-            onShare={handleShare}
-            onVerify={handleVerify}
-            onArchive={handleArchive}
-            onDelete={(id) => {
-              const cert = certificates.find((c) => c.id === id);
-              if (cert) setDeleteDialog(cert);
-            }}
-            onEditNotes={setEditNotesDialog}
-          />
+          <div className="relative">
+            {isFetching && !isLoading && (
+              <div className="bg-background/50 absolute inset-0 z-10 flex items-start justify-center pt-4 backdrop-blur-sm">
+                <div className="bg-background flex items-center gap-2 rounded-md border px-4 py-2 shadow-sm">
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <span className="text-sm">Updating...</span>
+                </div>
+              </div>
+            )}
+
+            <CertificatesGrid
+              certificates={certificates}
+              viewMode={viewMode}
+              gridColumns={gridColumns}
+              onCardClick={setDetailsDialog}
+              onToggleFavorite={handleToggleFavorite}
+              onDownload={handleDownload}
+              onShare={handleShare}
+              onVerify={handleVerify}
+              onArchive={handleArchive}
+              onDelete={(id) => {
+                const cert = certificates.find((c) => c.id === id);
+                if (cert) setDeleteDialog(cert);
+              }}
+              onEditNotes={setEditNotesDialog}
+              pendingFavoriteId={
+                isPendingFavorite ? (favoriteVariables as string) : null
+              }
+              pendingArchiveId={
+                isPendingArchive ? (archiveVariables as string) : null
+              }
+            />
+          </div>
 
           {pagination && pagination.totalPages > 1 && (
             <CertificatesPagination
               currentPage={pagination.currentPage}
-              pageSize={useCertificatesStore.getState().limit}
+              totalPages={pagination.totalPages}
               totalItems={pagination.totalResults}
-              onPageChange={useCertificatesStore.getState().setPage}
-              onPageSizeChange={useCertificatesStore.getState().setLimit}
+              pageSize={limit}
+              onPageChange={setPage}
+              onPageSizeChange={setLimit}
             />
           )}
         </>
@@ -1550,30 +1457,27 @@ export function CertificatesTab() {
         <CertificatesEmptyState />
       )}
 
-      {detailsDialog && (
-        <CertificateDetailsDialog
-          certificate={detailsDialog}
-          open={!!detailsDialog}
-          onOpenChange={(open) => !open && setDetailsDialog(null)}
-          onDownload={handleDownload}
-          onShare={handleShare}
-          onVerify={handleVerify}
-        />
-      )}
+      <CertificateDetailsDialog
+        certificate={detailsDialog}
+        open={!!detailsDialog}
+        onOpenChange={(open) => !open && setDetailsDialog(null)}
+        onDownload={handleDownload}
+        onShare={handleShare}
+        onVerify={handleVerify}
+      />
 
-      {/* <ShareDialog
+      <ShareDialog
         certificate={shareDialog}
         open={!!shareDialog}
         onOpenChange={(open) => !open && setShareDialog(null)}
       />
-
-      */}
 
       <DeleteConfirmDialog
         open={!!deleteDialog}
         onOpenChange={(open) => !open && setDeleteDialog(null)}
         onConfirm={() => deleteDialog && handleDelete(deleteDialog.id)}
         title={deleteDialog?.title || ''}
+        isPending={isPendingDelete}
       />
 
       <EditNotesDialog
@@ -1581,6 +1485,7 @@ export function CertificatesTab() {
         open={!!editNotesDialog}
         onOpenChange={(open) => !open && setEditNotesDialog(null)}
         onSave={handleSaveNotes}
+        isPending={isPendingNotes}
       />
 
       <AlertDialog
@@ -1589,19 +1494,32 @@ export function CertificatesTab() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Multiple Certificates</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete {selectedIds.size} certificate(s).
+              Are you sure you want to delete {selectedIds.size} certificate(s)?
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isPendingBulkDelete}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleBulkDelete}
               className="bg-destructive hover:bg-destructive/90"
+              disabled={isPendingBulkDelete}
             >
-              Delete
+              {isPendingBulkDelete ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4" />
+                  Delete {selectedIds.size}
+                </>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1610,85 +1528,15 @@ export function CertificatesTab() {
   );
 }
 
-export function CertificatesTabSkeleton({
-  viewMode = 'grid',
-}: {
-  viewMode?: ViewMode;
-}) {
+export function CertificatesTabSkeleton() {
+  const { viewMode, gridColumns } = useCertificatesStore();
+
   return (
     <div className="space-y-4">
-      <CertificatesGridSkeleton viewMode={viewMode} />
-      <CertificatesPaginationSkeleton />
-    </div>
-  );
-}
-
-function CertificatesGridSkeleton({
-  viewMode = 'grid',
-}: {
-  viewMode?: ViewMode;
-}) {
-  return (
-    <div
-      className={`grid grid-cols-1 gap-2 ${
-        viewMode === 'grid' ? 'md:grid-cols-2 lg:grid-cols-3' : ''
-      }`}
-    >
-      <CertificateCardSkeleton viewMode={viewMode} />
-      <CertificateCardSkeleton viewMode={viewMode} />
-      <CertificateCardSkeleton viewMode={viewMode} />
-    </div>
-  );
-}
-
-function CertificatesHeaderSkeleton() {
-  return (
-    <div className="flex flex-col gap-4">
       <CertificatesSearchBarSkeleton />
       <CertificatesViewControlsSkeleton />
-    </div>
-  );
-}
-
-function CertificatesViewControlsSkeleton() {
-  return (
-    <div className="flex gap-2">
-      <Skeleton className="h-9 w-9" />
-      <Skeleton className="h-9 w-9" />
-      <Skeleton className="h-9 w-[120px]" />
-      <Skeleton className="h-9 w-24" />
-      <Skeleton className="h-9 w-24" />
-    </div>
-  );
-}
-
-function CertificatesSearchBarSkeleton() {
-  return (
-    <div className="flex flex-col gap-2 sm:flex-row">
-      <Skeleton className="h-10 flex-1" />
-      <Skeleton className="h-10 w-full sm:w-[180px]" />
-      <Skeleton className="h-10 w-full sm:w-[180px]" />
-    </div>
-  );
-}
-
-function CertificatesPaginationSkeleton() {
-  return (
-    <div className="flex items-center justify-between px-2 py-4">
-      <Skeleton className="h-5 w-48" />
-      <div className="flex items-center space-x-6">
-        <div className="flex items-center space-x-2">
-          <Skeleton className="h-5 w-24" />
-          <Skeleton className="h-8 w-[70px]" />
-        </div>
-        <Skeleton className="h-5 w-24" />
-        <div className="flex items-center space-x-2">
-          <Skeleton className="h-8 w-8" />
-          <Skeleton className="h-8 w-8" />
-          <Skeleton className="h-8 w-8" />
-          <Skeleton className="h-8 w-8" />
-        </div>
-      </div>
+      <CertificatesGridSkeleton viewMode={viewMode} gridColumns={gridColumns} />
+      <CertificatesPaginationSkeleton />
     </div>
   );
 }
@@ -1696,8 +1544,8 @@ function CertificatesPaginationSkeleton() {
 function CertificateCardSkeleton({ viewMode }: { viewMode: ViewMode }) {
   if (viewMode === 'list') {
     return (
-      <Card className="overflow-hidden pt-0">
-        <div className="flex gap-2 p-4">
+      <Card className="overflow-hidden">
+        <div className="flex gap-4 p-4">
           <Skeleton className="h-5 w-5 rounded" />
           <Skeleton className="h-28 w-48 rounded-md" />
           <div className="flex-1 space-y-3">
@@ -1723,7 +1571,7 @@ function CertificateCardSkeleton({ viewMode }: { viewMode: ViewMode }) {
   return (
     <Card className="flex flex-col overflow-hidden pt-0">
       <Skeleton className="aspect-video w-full" />
-      <CardContent className="flex-1 space-y-2">
+      <CardContent className="flex-1 space-y-2 p-4">
         <div className="space-y-2">
           <Skeleton className="h-6 w-3/4" />
           <Skeleton className="h-4 w-1/2" />
@@ -1740,5 +1588,76 @@ function CertificateCardSkeleton({ viewMode }: { viewMode: ViewMode }) {
         <Skeleton className="h-10 w-10" />
       </CardFooter>
     </Card>
+  );
+}
+
+function CertificatesGridSkeleton({
+  viewMode,
+  gridColumns,
+}: {
+  viewMode: ViewMode;
+  gridColumns: GridColumns;
+}) {
+  const gridColsClass = {
+    2: 'md:grid-cols-2',
+    3: 'md:grid-cols-2 lg:grid-cols-3',
+    4: 'md:grid-cols-2 lg:grid-cols-4',
+  }[gridColumns];
+
+  return (
+    <div
+      className={cn(
+        'grid grid-cols-1 gap-2',
+        viewMode === 'grid' && gridColsClass
+      )}
+    >
+      {Array.from({ length: 6 }).map((_, i) => (
+        <CertificateCardSkeleton key={i} viewMode={viewMode} />
+      ))}
+    </div>
+  );
+}
+
+function CertificatesSearchBarSkeleton() {
+  return (
+    <div className="flex flex-col gap-2 sm:flex-row">
+      <Skeleton className="h-10 flex-1" />
+      <Skeleton className="h-10 w-full sm:w-[180px]" />
+      <Skeleton className="h-10 w-full sm:w-[180px]" />
+    </div>
+  );
+}
+
+function CertificatesViewControlsSkeleton() {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Skeleton className="h-9 w-20" />
+      <Skeleton className="h-9 w-[120px]" />
+      <Skeleton className="h-9 w-24" />
+      <Skeleton className="h-9 w-24" />
+      <div className="flex-1" />
+      <Skeleton className="h-9 w-24" />
+    </div>
+  );
+}
+
+function CertificatesPaginationSkeleton() {
+  return (
+    <div className="flex items-center justify-between px-2 py-4">
+      <Skeleton className="h-5 w-48" />
+      <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-2">
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="h-8 w-[70px]" />
+        </div>
+        <Skeleton className="h-5 w-24" />
+        <div className="flex items-center space-x-2">
+          <Skeleton className="h-8 w-8" />
+          <Skeleton className="h-8 w-8" />
+          <Skeleton className="h-8 w-8" />
+          <Skeleton className="h-8 w-8" />
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,8 +1,6 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
-
 import { toast } from 'sonner';
 import {
   bulkArchiveAction,
@@ -13,8 +11,13 @@ import {
   toggleFavoriteAction,
   updateNotesAction,
 } from '../action/certificate.action';
-import { GetCertificatesResponse } from '../schemas';
+import type {
+  Certificate,
+  GetCertificatesResponse,
+} from '../schemas/certificate.schema';
 import { useCertificatesStore } from '../store/certificate.store';
+
+const CERTIFICATES_QUERY_KEY = 'certificates';
 
 export const useCertificates = () => {
   const {
@@ -27,9 +30,9 @@ export const useCertificates = () => {
     limit,
   } = useCertificatesStore();
 
-  const queryResult = useQuery({
+  return useQuery({
     queryKey: [
-      'certificates',
+      CERTIFICATES_QUERY_KEY,
       {
         q: searchQuery,
         tag: selectedTag,
@@ -43,8 +46,8 @@ export const useCertificates = () => {
         limit,
       },
     ],
-    queryFn: () =>
-      getMyCertificatesAction({
+    queryFn: async () => {
+      const result = await getMyCertificatesAction({
         q: searchQuery,
         tag: selectedTag || undefined,
         sortBy: sortOption,
@@ -55,38 +58,39 @@ export const useCertificates = () => {
             : undefined,
         page,
         limit,
-      }),
+      });
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      return result.data!;
+    },
     placeholderData: (previousData) => previousData,
-
-    retry: 1,
+    staleTime: 1000 * 60,
+    retry: 2,
   });
-
-  useEffect(() => {
-    if (queryResult.data?.error) {
-      throw new Error(queryResult.data.error);
-    }
-  }, [queryResult.data]);
-
-  return {
-    ...queryResult,
-    data: queryResult.data?.data,
-  };
 };
 
 export const useToggleFavorite = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (enrollmentId: string) => toggleFavoriteAction(enrollmentId),
-    onMutate: async (enrollmentId: string) => {
-      await queryClient.cancelQueries({ queryKey: ['certificates'] });
+    mutationFn: async (enrollmentId: string) => {
+      const result = await toggleFavoriteAction(enrollmentId);
+      if (result.error) throw new Error(result.error);
+      return result.data!;
+    },
 
-      const previousData = queryClient.getQueryData<GetCertificatesResponse>([
-        'certificates',
-      ]);
+    onMutate: async (enrollmentId) => {
+      await queryClient.cancelQueries({ queryKey: [CERTIFICATES_QUERY_KEY] });
 
-      queryClient.setQueryData<GetCertificatesResponse>(
-        ['certificates'],
+      const previousData = queryClient.getQueriesData<GetCertificatesResponse>({
+        queryKey: [CERTIFICATES_QUERY_KEY],
+      });
+
+      queryClient.setQueriesData<GetCertificatesResponse>(
+        { queryKey: [CERTIFICATES_QUERY_KEY] },
         (oldData) => {
           if (!oldData) return oldData;
           return {
@@ -104,15 +108,20 @@ export const useToggleFavorite = () => {
     },
 
     onError: (err, variables, context) => {
-      toast.error('Failed to update favorite.');
-
+      toast.error('Failed to update favorite status.');
       if (context?.previousData) {
-        queryClient.setQueryData(['certificates'], context.previousData);
+        context.previousData.forEach(([key, data]) => {
+          queryClient.setQueryData(key, data);
+        });
       }
     },
 
+    onSuccess: () => {
+      toast.success('Favorite status updated.');
+    },
+
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['certificates'] });
+      queryClient.invalidateQueries({ queryKey: [CERTIFICATES_QUERY_KEY] });
     },
   });
 };
@@ -121,28 +130,30 @@ export const useToggleArchive = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (enrollmentId: string) => toggleArchiveAction(enrollmentId),
-    onMutate: async (enrollmentId: string) => {
-      await queryClient.cancelQueries({ queryKey: ['certificates'] });
+    mutationFn: async (enrollmentId: string) => {
+      const result = await toggleArchiveAction(enrollmentId);
+      if (result.error) throw new Error(result.error);
+      return result.data! as Certificate;
+    },
 
-      const previousData = queryClient.getQueryData<GetCertificatesResponse>([
-        'certificates',
-      ]);
+    onMutate: async (enrollmentId) => {
+      await queryClient.cancelQueries({ queryKey: [CERTIFICATES_QUERY_KEY] });
 
-      queryClient.setQueryData<GetCertificatesResponse>(
-        ['certificates'],
+      const previousData = queryClient.getQueriesData<GetCertificatesResponse>({
+        queryKey: [CERTIFICATES_QUERY_KEY],
+      });
+
+      queryClient.setQueriesData<GetCertificatesResponse>(
+        { queryKey: [CERTIFICATES_QUERY_KEY] },
         (oldData) => {
           if (!oldData) return oldData;
+
           return {
             ...oldData,
-            results: oldData.results.map((cert) =>
-              cert.id === enrollmentId
-                ? { ...cert, isArchived: !cert.isArchived, isFavorite: false }
-                : cert
-            ),
+            results: oldData.results.filter((cert) => cert.id !== enrollmentId),
             pagination: {
               ...oldData.pagination,
-              totalResults: oldData.pagination.totalResults - 1,
+              totalResults: Math.max(0, oldData.pagination.totalResults - 1),
             },
           };
         }
@@ -151,19 +162,23 @@ export const useToggleArchive = () => {
       return { previousData };
     },
 
-    onSuccess: () => {
-      toast.success('Certificate status updated.');
+    onSuccess: (data: Certificate) => {
+      toast.success(
+        data.isArchived ? 'Certificate archived.' : 'Certificate unarchived.'
+      );
     },
 
     onError: (err, variables, context) => {
       toast.error('Failed to update archive status.');
-
       if (context?.previousData) {
-        queryClient.setQueryData(['certificates'], context.previousData);
+        context.previousData.forEach(([key, data]) => {
+          queryClient.setQueryData(key, data);
+        });
       }
     },
+
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['certificates'] });
+      queryClient.invalidateQueries({ queryKey: [CERTIFICATES_QUERY_KEY] });
     },
   });
 };
@@ -172,22 +187,27 @@ export const useUpdateNotes = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       enrollmentId,
       notes,
     }: {
       enrollmentId: string;
       notes: string;
-    }) => updateNotesAction(enrollmentId, notes),
+    }) => {
+      const result = await updateNotesAction(enrollmentId, notes);
+      if (result.error) throw new Error(result.error);
+      return result.data!;
+    },
+
     onMutate: async ({ enrollmentId, notes }) => {
-      await queryClient.cancelQueries({ queryKey: ['certificates'] });
+      await queryClient.cancelQueries({ queryKey: [CERTIFICATES_QUERY_KEY] });
 
-      const previousData = queryClient.getQueryData<GetCertificatesResponse>([
-        'certificates',
-      ]);
+      const previousData = queryClient.getQueriesData<GetCertificatesResponse>({
+        queryKey: [CERTIFICATES_QUERY_KEY],
+      });
 
-      queryClient.setQueryData<GetCertificatesResponse>(
-        ['certificates'],
+      queryClient.setQueriesData<GetCertificatesResponse>(
+        { queryKey: [CERTIFICATES_QUERY_KEY] },
         (oldData) => {
           if (!oldData) return oldData;
           return {
@@ -208,14 +228,15 @@ export const useUpdateNotes = () => {
 
     onError: (err, variables, context) => {
       toast.error('Failed to save notes.');
-
       if (context?.previousData) {
-        queryClient.setQueryData(['certificates'], context.previousData);
+        context.previousData.forEach(([key, data]) => {
+          queryClient.setQueryData(key, data);
+        });
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['certificates'] });
+      queryClient.invalidateQueries({ queryKey: [CERTIFICATES_QUERY_KEY] });
     },
   });
 };
@@ -224,17 +245,21 @@ export const useDeleteCertificate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (enrollmentId: string) => deleteCertificateAction(enrollmentId),
+    mutationFn: async (enrollmentId: string) => {
+      const result = await deleteCertificateAction(enrollmentId);
+      if (result.error) throw new Error(result.error);
+      return result.data!;
+    },
 
-    onMutate: async (enrollmentId: string) => {
-      await queryClient.cancelQueries({ queryKey: ['certificates'] });
+    onMutate: async (enrollmentId) => {
+      await queryClient.cancelQueries({ queryKey: [CERTIFICATES_QUERY_KEY] });
 
-      const previousData = queryClient.getQueryData<GetCertificatesResponse>([
-        'certificates',
-      ]);
+      const previousData = queryClient.getQueriesData<GetCertificatesResponse>({
+        queryKey: [CERTIFICATES_QUERY_KEY],
+      });
 
-      queryClient.setQueryData<GetCertificatesResponse>(
-        ['certificates'],
+      queryClient.setQueriesData<GetCertificatesResponse>(
+        { queryKey: [CERTIFICATES_QUERY_KEY] },
         (oldData) => {
           if (!oldData) return oldData;
           return {
@@ -257,36 +282,44 @@ export const useDeleteCertificate = () => {
 
     onError: (err, variables, context) => {
       toast.error('Failed to delete certificate.');
-
       if (context?.previousData) {
-        queryClient.setQueryData(['certificates'], context.previousData);
+        context.previousData.forEach(([key, data]) => {
+          queryClient.setQueryData(key, data);
+        });
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['certificates'] });
+      queryClient.invalidateQueries({ queryKey: [CERTIFICATES_QUERY_KEY] });
     },
   });
 };
 
 export const useBulkArchive = () => {
   const queryClient = useQueryClient();
+  const clearSelection = useCertificatesStore((state) => state.clearSelection);
 
   return useMutation({
-    mutationFn: (enrollmentIds: string[]) => bulkArchiveAction(enrollmentIds),
+    mutationFn: async (enrollmentIds: string[]) => {
+      const result = await bulkArchiveAction(enrollmentIds);
+      if (result.error) throw new Error(result.error);
+      return result.data!;
+    },
 
-    onMutate: async (enrollmentIds: string[]) => {
-      await queryClient.cancelQueries({ queryKey: ['certificates'] });
-      const previousData = queryClient.getQueryData<GetCertificatesResponse>([
-        'certificates',
-      ]);
+    onMutate: async (enrollmentIds) => {
+      await queryClient.cancelQueries({ queryKey: [CERTIFICATES_QUERY_KEY] });
 
-      queryClient.setQueryData<GetCertificatesResponse>(
-        ['certificates'],
+      const previousData = queryClient.getQueriesData<GetCertificatesResponse>({
+        queryKey: [CERTIFICATES_QUERY_KEY],
+      });
+
+      const idSet = new Set(enrollmentIds);
+
+      queryClient.setQueriesData<GetCertificatesResponse>(
+        { queryKey: [CERTIFICATES_QUERY_KEY] },
         (oldData) => {
           if (!oldData) return oldData;
 
-          const idSet = new Set(enrollmentIds);
           return {
             ...oldData,
             results: oldData.results.filter((cert) => !idSet.has(cert.id)),
@@ -302,41 +335,51 @@ export const useBulkArchive = () => {
       return { previousData };
     },
 
-    onSuccess: () => {
-      toast.success('Certificates archived.');
+    onSuccess: (data, variables) => {
+      toast.success(`${variables.length} certificate(s) archived.`);
+      clearSelection();
     },
 
-    onError: (err, ids, context) => {
+    onError: (err, variables, context) => {
       toast.error('Failed to archive certificates.');
       if (context?.previousData) {
-        queryClient.setQueryData(['certificates'], context.previousData);
+        context.previousData.forEach(([key, data]) => {
+          queryClient.setQueryData(key, data);
+        });
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['certificates'] });
+      queryClient.invalidateQueries({ queryKey: [CERTIFICATES_QUERY_KEY] });
     },
   });
 };
 
 export const useBulkDelete = () => {
   const queryClient = useQueryClient();
+  const clearSelection = useCertificatesStore((state) => state.clearSelection);
 
   return useMutation({
-    mutationFn: (enrollmentIds: string[]) => bulkDeleteAction(enrollmentIds),
+    mutationFn: async (enrollmentIds: string[]) => {
+      const result = await bulkDeleteAction(enrollmentIds);
+      if (result.error) throw new Error(result.error);
+      return result.data!;
+    },
 
-    onMutate: async (enrollmentIds: string[]) => {
-      await queryClient.cancelQueries({ queryKey: ['certificates'] });
-      const previousData = queryClient.getQueryData<GetCertificatesResponse>([
-        'certificates',
-      ]);
+    onMutate: async (enrollmentIds) => {
+      await queryClient.cancelQueries({ queryKey: [CERTIFICATES_QUERY_KEY] });
 
-      queryClient.setQueryData<GetCertificatesResponse>(
-        ['certificates'],
+      const previousData = queryClient.getQueriesData<GetCertificatesResponse>({
+        queryKey: [CERTIFICATES_QUERY_KEY],
+      });
+
+      const idSet = new Set(enrollmentIds);
+
+      queryClient.setQueriesData<GetCertificatesResponse>(
+        { queryKey: [CERTIFICATES_QUERY_KEY] },
         (oldData) => {
           if (!oldData) return oldData;
 
-          const idSet = new Set(enrollmentIds);
           return {
             ...oldData,
             results: oldData.results.filter((cert) => !idSet.has(cert.id)),
@@ -352,20 +395,22 @@ export const useBulkDelete = () => {
       return { previousData };
     },
 
-    onSuccess: () => {
-      toast.success('Certificates deleted.');
+    onSuccess: (data, variables) => {
+      toast.success(`${variables.length} certificate(s) deleted.`);
+      clearSelection();
     },
 
-    onError: (err, ids, context) => {
+    onError: (err, variables, context) => {
       toast.error('Failed to delete certificates.');
-
       if (context?.previousData) {
-        queryClient.setQueryData(['certificates'], context.previousData);
+        context.previousData.forEach(([key, data]) => {
+          queryClient.setQueryData(key, data);
+        });
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['certificates'] });
+      queryClient.invalidateQueries({ queryKey: [CERTIFICATES_QUERY_KEY] });
     },
   });
 };

@@ -1,6 +1,6 @@
 import { enrollmentService } from '@/lib/api/client';
-import { Certificate } from 'crypto';
 import {
+  Certificate,
   CertificateFilters,
   GetCertificatesResponse,
 } from '../schemas/certificate.schema';
