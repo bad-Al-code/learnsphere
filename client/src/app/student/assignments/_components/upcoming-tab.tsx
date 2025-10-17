@@ -337,7 +337,7 @@ function PendingAssignments({ data }: { data: EnrichedPendingAssignment[] }) {
       <CardContent>
         <BulkActionHeader />
 
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="max-h-[50vh] overflow-x-auto rounded-lg border">
           <Table>
             <TableHeader>
               <TableRow>

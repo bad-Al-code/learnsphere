@@ -87,6 +87,7 @@ import {
 import { cn } from '@/lib/utils';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { format } from 'date-fns';
 import {
   useBulkArchive,
   useBulkDelete,
@@ -501,7 +502,11 @@ function CertificateDetailsDialog({
               <div>
                 <p className="font-semibold">Issue Date</p>
                 <p className="text-muted-foreground text-sm">
-                  {certificate.issueDate}
+                  {/* {certificate.issueDate} */}
+                  {format(
+                    new Date(certificate.issueDate),
+                    'MMMM d, yyyy • h:mm a'
+                  )}
                 </p>
               </div>
             </div>

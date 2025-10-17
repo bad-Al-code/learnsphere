@@ -1,5 +1,3 @@
-'use server';
-
 import { achievementApi } from '../api/achievement.api.client';
 import {
   TAchievement,

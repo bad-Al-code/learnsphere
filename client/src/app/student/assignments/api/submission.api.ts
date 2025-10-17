@@ -12,9 +12,7 @@ export const getMySubmittedAssignments = async (): Promise<
 };
 
 export const getMyAIFeedback = async (): Promise<AIFeedback[]> => {
-  const response = await courseService.get<AIFeedback[]>(
-    '/api/ai-feedback/my-feedback'
-  );
+  const response = await courseService.get<AIFeedback[]>('/api/ai/my-feedback');
 
   return response.data;
 };
@@ -23,7 +21,7 @@ export const requestRecheck = async (
   submissionId: string
 ): Promise<{ message: string }> => {
   const response = await courseService.post<{ message: string }>(
-    `/api/ai-feedback/${submissionId}/recheck`,
+    `/api/ai/${submissionId}/recheck`,
     {}
   );
 

@@ -20,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import {
@@ -385,11 +386,13 @@ function AIFeedbackLog() {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-2">
-        {feedbackData.map((item) => (
-          <AIFeedbackItem key={item.id} feedback={item} />
-        ))}
-      </CardContent>
+      <ScrollArea className="mr-1">
+        <CardContent className="max-h-[75vh] space-y-2">
+          {feedbackData.map((item) => (
+            <AIFeedbackItem key={item.id} feedback={item} />
+          ))}
+        </CardContent>
+      </ScrollArea>
     </Card>
   );
 }
@@ -408,11 +411,13 @@ function SubmittedAssignmentsSection() {
         <CardDescription>View your submitted work and grades</CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-2">
-        {submittedData?.map((item) => (
-          <SubmittedAssignmentItem key={item.id} assignment={item} />
-        ))}
-      </CardContent>
+      <ScrollArea className="mr-1">
+        <CardContent className="max-h-[75vh] space-y-2">
+          {submittedData?.map((item) => (
+            <SubmittedAssignmentItem key={item.id} assignment={item} />
+          ))}
+        </CardContent>
+      </ScrollArea>
     </Card>
   );
 }
