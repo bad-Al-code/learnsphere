@@ -6,27 +6,21 @@ import { studentCoursesTabs } from '@/config/nav-items';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
 import { AnalyticsTab, AnalyticsTabSkeleton } from './analytics-tab';
-import { AssignmentsTab, AssignmentsTabSkeleton } from './assignments-tab';
-import { ComparisonTab, ComparisonTabSkeleton } from './comparison-tab';
-import { CompletedTab, CompletedTabSkeleton } from './completed-tab';
 import { EnrolledTab, EnrolledTabSkeleton } from './enrolled-tab';
-import { LearningPathTab, LearningPathTabSkeleton } from './learning-path-tab';
-import { MaterialsTab, MaterialsTabSkeleton } from './materials-tab';
 import { ModulesTab, ModulesTabSkeleton } from './modules-tab';
-import { RecommendedTab, RecommendedTabSkeleton } from './recommended-tab';
 import { StudyGroupTab, StudyGroupTabSkeleton } from './study-groups-tab';
 
 const skeletonMap: Record<string, React.ReactNode> = {
   enrolled: <EnrolledTabSkeleton />,
-  completed: <CompletedTabSkeleton />,
-  recommended: <RecommendedTabSkeleton />,
+  // completed: <CompletedTabSkeleton />,
+  // recommended: <RecommendedTabSkeleton />,
   modules: <ModulesTabSkeleton />,
-  assignments: <AssignmentsTabSkeleton />,
+  // assignments: <AssignmentsTabSkeleton />,
   analytics: <AnalyticsTabSkeleton />,
-  comparison: <ComparisonTabSkeleton />,
-  materials: <MaterialsTabSkeleton />,
+  // comparison: <ComparisonTabSkeleton />,
+  // materials: <MaterialsTabSkeleton />,
   'study-groups': <StudyGroupTabSkeleton />,
-  'learning-path': <LearningPathTabSkeleton />,
+  // 'learning-path': <LearningPathTabSkeleton />,
 };
 
 export function CoursesTabs() {
@@ -62,15 +56,15 @@ export function CoursesTabs() {
         ) : (
           <TabsContent value={currentTabFromUrl}>
             {currentTabFromUrl === 'enrolled' && <EnrolledTab />}
-            {currentTabFromUrl === 'completed' && <CompletedTab />}
-            {currentTabFromUrl === 'recommended' && <RecommendedTab />}
+            {/* {currentTabFromUrl === 'completed' && <CompletedTab />} */}
+            {/* {currentTabFromUrl === 'recommended' && <RecommendedTab />} */}
             {currentTabFromUrl === 'modules' && <ModulesTab />}
-            {currentTabFromUrl === 'assignments' && <AssignmentsTab />}
+            {/* {currentTabFromUrl === 'assignments' && <AssignmentsTab />} */}
             {currentTabFromUrl === 'analytics' && <AnalyticsTab />}
-            {currentTabFromUrl === 'comparison' && <ComparisonTab />}
-            {currentTabFromUrl === 'materials' && <MaterialsTab />}
+            {/* {currentTabFromUrl === 'comparison' && <ComparisonTab />} */}
+            {/* {currentTabFromUrl === 'materials' && <MaterialsTab />} */}
             {currentTabFromUrl === 'study-groups' && <StudyGroupTab />}
-            {currentTabFromUrl === 'learning-path' && <LearningPathTab />}
+            {/* {currentTabFromUrl === 'learning-path' && <LearningPathTab />} */}
           </TabsContent>
         )}
       </div>

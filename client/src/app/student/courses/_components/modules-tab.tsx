@@ -19,6 +19,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AssignmentsTab, AssignmentsTabSkeleton } from './assignments-tab';
+import { MaterialsTab, MaterialsTabSkeleton } from './materials-tab';
 
 type TModule = {
   id: string;
@@ -174,6 +176,8 @@ export function ModulesTab() {
   return (
     <div className="space-y-2">
       <ModulesSection />
+      <AssignmentsTab />
+      <MaterialsTab />
     </div>
   );
 }
@@ -182,6 +186,8 @@ export function ModulesTabSkeleton() {
   return (
     <div className="">
       <ModulesSectionSkeleton />
+      <AssignmentsTabSkeleton />
+      <MaterialsTabSkeleton />
     </div>
   );
 }

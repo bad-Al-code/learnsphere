@@ -355,20 +355,20 @@ export const studentDashboardTabs: NavItem[] = [
 
 export const studentCoursesTabs: NavItem[] = [
   { href: '#', label: 'Enrolled', value: 'enrolled', icon: 'BookOpenCheck' },
-  { href: '#', label: 'Completed', value: 'completed', icon: 'CheckCircle' },
-  { href: '#', label: 'Recommended', value: 'recommended', icon: 'Sparkles' },
+  // { href: '#', label: 'Completed', value: 'completed', icon: 'CheckCircle' },
+  // { href: '#', label: 'Recommended', value: 'recommended', icon: 'Sparkles' },
   { href: '#', label: 'Modules', value: 'modules', icon: 'LayoutTemplate' },
-  { href: '#', label: 'Assignments', value: 'assignments', icon: 'FileText' },
+  // { href: '#', label: 'Assignments', value: 'assignments', icon: 'FileText' },
   { href: '#', label: 'Analytics', value: 'analytics', icon: 'LineChart' },
-  { href: '#', label: 'Comparison', value: 'comparison', icon: 'BarChart2' },
-  { href: '#', label: 'Materials', value: 'materials', icon: 'Folder' },
+  // { href: '#', label: 'Comparison', value: 'comparison', icon: 'BarChart2' },
+  // { href: '#', label: 'Materials', value: 'materials', icon: 'Folder' },
   { href: '#', label: 'Study Groups', value: 'study-groups', icon: 'Users' },
-  {
-    href: '#',
-    label: 'Learning Path',
-    value: 'learning-path',
-    icon: 'Milestone',
-  },
+  // {
+  //   href: '#',
+  //   label: 'Learning Path',
+  //   value: 'learning-path',
+  //   icon: 'Milestone',
+  // },
 ];
 
 export const studentAssignmentsTabs: NavItem[] = [
