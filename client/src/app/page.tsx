@@ -1,4 +1,4 @@
-import LearnSphereLanding from '@/components/landing';
+import HomePage from '@/components/landing';
 import { HomepageClient } from '@/components/shared/homepage-client';
 import { getCurrentUser } from './(auth)/actions';
 
@@ -8,7 +8,7 @@ export default async function Home() {
   return (
     <>
       <main className="container mx-auto space-y-4">
-        <LearnSphereLanding />
+        <HomePage />
       </main>
 
       <HomepageClient user={user} />

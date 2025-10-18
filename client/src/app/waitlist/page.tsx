@@ -558,14 +558,14 @@ export default function WaitlistPage() {
 
       <div className="relative z-10 flex min-h-[90vh] items-center justify-center p-4">
         <div className="w-full max-w-2xl">
-          <div className="mb-12 flex items-center justify-center gap-2">
+          {/* <div className="mb-12 flex items-center justify-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg">
               <Logo variant="icon" />
             </div>
             <span className="text-foreground text-2xl font-bold">
               LearnSphere
             </span>
-          </div>
+          </div> */}
 
           <Card className="border-border shadow-lg">
             <CardContent className="px-8 pt-12 pb-12">
