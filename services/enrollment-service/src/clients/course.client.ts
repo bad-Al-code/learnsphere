@@ -2,6 +2,7 @@ import axios from 'axios';
 
 import { env } from '../config/env';
 import logger from '../config/logger';
+import { CourseLevel } from '../features/ai/schema';
 
 interface CourseInfo {
   id: string;
@@ -347,6 +348,50 @@ export class CourseClient {
       logger.error('Failed to fetch time management summary: %o', { error });
 
       return { activity: 'Assignments', totalHours: 0 };
+    }
+  }
+
+  /**
+   * Fetches all published courses from the course-service.
+   * @returns An array of course objects.
+   */
+  public static async getAllCourses(): Promise<
+    {
+      id: string;
+      title: string;
+      instructorId: string;
+      imageUrl: string | null;
+      rating: number | null;
+      difficulty: CourseLevel;
+      duration: number | null;
+      price: string | null;
+    }[]
+  > {
+    try {
+      const response = await axios.get<{
+        results: {
+          id: string;
+          title: string;
+          instructorId: string;
+          imageUrl: string | null;
+          averageRating: number | null;
+          level: CourseLevel;
+          duration: number | null;
+          price: string | null;
+        }[];
+      }>(`${this.courseServiceUrl}/api/courses?limit=1000`);
+
+      return response.data.results.map((c) => ({
+        ...c,
+        rating: c.averageRating,
+        difficulty:
+          c.level === 'all-levels' ? 'beginner' : (c.level as CourseLevel),
+      }));
+    } catch (error) {
+      logger.error('Failed to fetch all courses from course-service: %o', {
+        error,
+      });
+      return [];
     }
   }
 }

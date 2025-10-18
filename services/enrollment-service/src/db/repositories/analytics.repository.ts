@@ -20,6 +20,7 @@ import { BadRequestError } from '../../errors';
 import { AssignmentResponse } from '../../features/ai/responseSchema/assignmentRecommendationResponse.schema';
 import {
   AIProgressInsight,
+  CourseRecommendation,
   LearningEfficiency,
   LearningRecommendation,
   PerformancePrediction,
@@ -41,6 +42,8 @@ import {
 } from '../../schema';
 import { GradeRow } from '../../types';
 import {
+  AICourseRecommendationEntry,
+  aiCourseRecommendations,
   AIInsight,
   aiInsights,
   aiLearningEfficiency,
@@ -2361,5 +2364,36 @@ Saves or updates the AI-generated insights for a user.
       courseId: row.courseId,
       averageGrade: parseFloat(row.averageGrade || '0'),
     }));
+  }
+  /**
+   * Fetches the most recent AI-generated course recommendations for a user.
+   * @param userId The ID of the user.
+   * @returns The latest recommendation record, or undefined if none exists.
+   */
+  public static async getLatestCourseRecommendations(
+    userId: string
+  ): Promise<AICourseRecommendationEntry | undefined> {
+    return db.query.aiCourseRecommendations.findFirst({
+      where: eq(aiCourseRecommendations.userId, userId),
+      orderBy: [desc(aiCourseRecommendations.generatedAt)],
+    });
+  }
+
+  /**
+   * Saves or updates the AI-generated course recommendations for a user.
+   * @param userId The ID of the user.
+   * @param recommendations The array of recommendation objects to save.
+   */
+  public static async upsertCourseRecommendations(
+    userId: string,
+    recommendations: CourseRecommendation[]
+  ): Promise<void> {
+    await db
+      .insert(aiCourseRecommendations)
+      .values({ userId, recommendations, generatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: aiCourseRecommendations.userId,
+        set: { recommendations, generatedAt: new Date() },
+      });
   }
 }

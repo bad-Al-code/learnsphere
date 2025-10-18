@@ -210,3 +210,43 @@ export const studyHabitsResponseSchema = {
   },
   required: ['habits'],
 };
+
+export const courseRecommendationItemSchema = z.object({
+  title: z.string(),
+  reason: z.string(),
+});
+
+export const courseRecommendationSchema = z.array(
+  courseRecommendationItemSchema
+);
+
+export const courseRecommendationResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    recommendations: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          title: { type: Type.STRING },
+          reason: { type: Type.STRING },
+        },
+        required: ['title', 'reason'],
+      },
+    },
+  },
+  required: ['recommendations'],
+};
+
+export type CourseRecommendation = z.infer<
+  typeof courseRecommendationItemSchema
+>;
+
+export const courseLevelEnum = z.enum([
+  'beginner',
+  'intermediate',
+  'advanced',
+  'all-levels',
+]);
+
+export type CourseLevel = z.infer<typeof courseLevelEnum>;

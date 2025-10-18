@@ -980,4 +980,22 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getCourseRecommendations(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.currentUser) throw new NotAuthorizedError();
+
+      const recommendations = await AnalyticsService.getCourseRecommendations(
+        req.currentUser.id
+      );
+
+      res.status(StatusCodes.OK).json(recommendations);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

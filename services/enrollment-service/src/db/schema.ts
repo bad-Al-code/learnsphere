@@ -17,6 +17,7 @@ import {
 import { AssignmentResponse } from '../features/ai/responseSchema/assignmentRecommendationResponse.schema';
 import {
   AIProgressInsight,
+  CourseRecommendation,
   LearningEfficiency,
   LearningRecommendation,
   PerformancePrediction,
@@ -323,3 +324,16 @@ export const aiStudyHabits = pgTable('ai_study_habits', {
 });
 
 export type AIStudyHabitEntry = typeof aiStudyHabits.$inferSelect;
+
+/** AI Course Recommendations */
+export const aiCourseRecommendations = pgTable('ai_course_recommendations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().unique(),
+  recommendations: jsonb('recommendations')
+    .$type<CourseRecommendation[]>()
+    .notNull(),
+  generatedAt: timestamp('generated_at').defaultNow().notNull(),
+});
+
+export type AICourseRecommendationEntry =
+  typeof aiCourseRecommendations.$inferSelect;

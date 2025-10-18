@@ -32,6 +32,9 @@ import {
   AIProgressInsight,
   aiProgressInsightArraySchema,
   aiProgressInsightsResponseSchema,
+  CourseRecommendation,
+  courseRecommendationResponseSchema,
+  courseRecommendationSchema,
   LearningEfficiency,
   learningEfficiencyResponseSchema,
   learningEfficiencySchema,
@@ -2741,6 +2744,111 @@ export class AnalyticsService {
     } catch (error) {
       logger.error(
         `Failed to get time management data for student ${studentId}: %o`,
+        { error }
+      );
+
+      return [];
+    }
+  }
+
+  /**
+   * Retrieves or generates AI-powered course recommendations for a student.
+   * @param studentId The ID of the student.
+   * @returns A promise that resolves to an array of recommendation objects.
+   */
+  public static async getCourseRecommendations(
+    studentId: string
+  ): Promise<CourseRecommendation[]> {
+    logger.debug(
+      `Checking for cached course recommendations for user ${studentId}.`
+    );
+    const cachedData =
+      await AnalyticsRepository.getLatestCourseRecommendations(studentId);
+
+    if (
+      cachedData &&
+      differenceInHours(new Date(), cachedData.generatedAt) < 24
+    ) {
+      logger.info(
+        `Returning cached course recommendations for user ${studentId}.`
+      );
+      return cachedData.recommendations;
+    }
+
+    logger.info(`Generating new course recommendations for user ${studentId}.`);
+    try {
+      const allCourses = await CourseClient.getAllCourses();
+      const completedEnrollments =
+        await EnrollRepository.findActiveAndCompletedByUserId(studentId);
+      const completedCourseIds = new Set(
+        completedEnrollments.map((e) => e.courseId)
+      );
+
+      const completedCourses = allCourses.filter((c) =>
+        completedCourseIds.has(c.id)
+      );
+      const availableCourses = allCourses.filter(
+        (c) => !completedCourseIds.has(c.id)
+      );
+
+      if (availableCourses.length < 3) {
+        throw new Error(
+          'Not enough available courses to make a recommendation.'
+        );
+      }
+
+      const context = {
+        completedCourses: completedCourses.map((c) => c.title),
+        availableCourses: availableCourses.map((c) => c.title),
+      };
+
+      const systemInstruction =
+        AIPrompt.buildCourseRecommendationPrompt(context);
+
+      const response = await this.ai.models.generateContent({
+        model: this.model,
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Generate the recommendations now.' }],
+          },
+        ],
+        config: {
+          responseMimeType: 'application/json',
+          systemInstruction,
+          responseSchema: courseRecommendationResponseSchema,
+        },
+      });
+
+      const text = response.text;
+      if (!text) throw new Error('No response text from AI provider.');
+
+      const parsed = JSON.parse(text);
+      const validated = courseRecommendationSchema.parse(
+        parsed.recommendations
+      );
+
+      const enrichedRecommendations = validated.map((rec) => {
+        const courseDetails = allCourses.find((c) => c.title === rec.title);
+        return {
+          ...rec,
+          ...courseDetails,
+        };
+      });
+
+      await AnalyticsRepository.upsertCourseRecommendations(
+        studentId,
+        enrichedRecommendations
+      );
+
+      logger.info(
+        `Saved new course recommendations to cache for user ${studentId}`
+      );
+
+      return enrichedRecommendations;
+    } catch (error) {
+      logger.error(
+        'Failed to generate course recommendations. Returning empty array: %o',
         { error }
       );
 

@@ -1303,4 +1303,25 @@ router.get(
   AnalyticsController.getTimeManagement
 );
 
+/**
+ * @openapi
+ * /api/analytics/student/recommendations:
+ *   get:
+ *     summary: "[Student] Get AI-generated course recommendations"
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     description: Retrieves personalized, AI-generated course recommendations based on a student's completion history. Results are cached for 24 hours.
+ *     responses:
+ *       '200':
+ *         description: An array of AI-generated course recommendation objects.
+ *       '401':
+ *         description: Unauthorized.
+ */
+router.get(
+  '/student/recommendations',
+  requireAuth,
+  AnalyticsController.getCourseRecommendations
+);
+
 export { router as analyticsRouter };

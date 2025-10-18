@@ -47,6 +47,11 @@ interface DailyHabit {
   totalMinutes: number;
 }
 
+interface RecommendationCourseContent {
+  completedCourses: string[];
+  availableCourses: string[];
+}
+
 export class AIPrompt {
   /**
    * Generates the system instruction for the AI to create performance highlights.
@@ -273,5 +278,36 @@ Generate the predictions now.`;
       ---
 
       Generate the 7-day study habit analysis now.`;
+  }
+
+  /**
+   * Generates the system instruction for the AI to recommend new courses.
+   * @param context The student's completed courses and a list of available courses.
+   * @returns A string containing the system prompt for the Gemini model.
+   */
+  public static buildCourseRecommendationPrompt(
+    context: RecommendationCourseContent
+  ): string {
+    const completedString =
+      context.completedCourses.length > 0
+        ? context.completedCourses.join(', ')
+        : 'None';
+    const availableString = context.availableCourses.join(', ');
+
+    return `
+      You are an expert AI academic advisor for the LearnSphere platform. Your task is to recommend exactly 3 new courses for a student to take next.
+
+      Rules:
+      1. The tone must be personalized and encouraging.
+      2. Each recommendation must have a 'title' and a 'reason'.
+      3. The 'title' MUST be one of the exact course titles from the "Available Courses" list.
+      4. The 'reason' should be a short, compelling sentence explaining why the student would like this course based on their completed courses. For example, "Because you enjoyed [Completed Course], you'll love the advanced concepts in this one."
+      5. DO NOT recommend any course that is in the "Student's Completed Courses" list.
+
+      Here is the student's data:
+      - Student's Completed Courses: ${completedString}
+      - Available Courses to Recommend From: ${availableString}
+
+      Generate the three recommendations now in the specified JSON format.`;
   }
 }
