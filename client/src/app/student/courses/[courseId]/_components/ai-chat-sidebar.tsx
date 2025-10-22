@@ -26,13 +26,11 @@ export function AIChatSidebar({ lessonId, onClose }: AIChatSidebarProps) {
   const handleSendMessage = () => {
     if (!input.trim()) return;
 
-    // Add user message
     const userMessage = { role: 'user' as const, content: input };
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
-    // Simulate AI response
     setTimeout(() => {
       const responses = [
         "That's a great question! Let me explain that concept in more detail...",
@@ -52,7 +50,6 @@ export function AIChatSidebar({ lessonId, onClose }: AIChatSidebarProps) {
 
   return (
     <div className="bg-card flex h-full flex-col">
-      {/* Header */}
       <div className="border-border flex items-center justify-between border-b p-4">
         <div className="flex items-center gap-2">
           <Sparkles className="text-primary h-5 w-5" />
@@ -63,7 +60,6 @@ export function AIChatSidebar({ lessonId, onClose }: AIChatSidebarProps) {
         </Button>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 space-y-4 overflow-auto p-4">
         {messages.map((message, idx) => (
           <div
@@ -100,7 +96,6 @@ export function AIChatSidebar({ lessonId, onClose }: AIChatSidebarProps) {
         )}
       </div>
 
-      {/* Input */}
       <div className="border-border space-y-2 border-t p-4">
         <div className="flex gap-2">
           <Input

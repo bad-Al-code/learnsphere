@@ -13,22 +13,17 @@ export function CourseDetailPage() {
   return (
     <div className={isDarkMode ? 'dark' : ''}>
       <div className="bg-background text-foreground min-h-screen">
-        {/* <CourseHeader onThemeToggle={() => setIsDarkMode(!isDarkMode)} /> */}
-
         <div className="flex h-[calc(100vh-64px)]">
-          {/* Modules Sidebar */}
           <ModulesSidebar
             selectedLesson={selectedLesson}
             onSelectLesson={setSelectedLesson}
           />
 
-          {/* Main Content */}
           <div className="flex flex-1 overflow-hidden">
             <div className="flex-1 overflow-auto">
               <LessonViewer lessonId={selectedLesson} />
             </div>
 
-            {/* AI Chat Sidebar */}
             {showAIChat && (
               <div className="border-border bg-card w-96 border-l">
                 <AIChatSidebar

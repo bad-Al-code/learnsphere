@@ -187,7 +187,6 @@ export function ModulesSidebar({
 
   return (
     <div className="border-border bg-card flex h-full w-80 flex-col border-r">
-      {/* Header */}
       <div className="border-border border-b p-4">
         <h2 className="mb-3 text-lg font-semibold">Course Content</h2>
         <Input
@@ -198,7 +197,6 @@ export function ModulesSidebar({
         />
       </div>
 
-      {/* Modules List */}
       <div className="flex-1 overflow-auto">
         {filteredModules.map((module) => (
           <div key={module.id} className="border-border border-b">
@@ -260,7 +258,6 @@ export function ModulesSidebar({
         ))}
       </div>
 
-      {/* Progress Footer */}
       <div className="border-border bg-muted/30 border-t p-4">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-medium">Course Progress</span>

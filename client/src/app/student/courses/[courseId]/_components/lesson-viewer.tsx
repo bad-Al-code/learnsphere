@@ -142,7 +142,6 @@ export function LessonViewer({ lessonId }: LessonViewerProps) {
   return (
     <div className="flex-1 overflow-auto">
       <div className="mx-auto max-w-4xl p-6">
-        {/* Video/Content Area */}
         <Card className="mb-6 overflow-hidden">
           {lesson.type === 'video' && (
             <div className="flex aspect-video items-center justify-center bg-black">
@@ -217,12 +216,10 @@ export function LessonViewer({ lessonId }: LessonViewerProps) {
           )}
         </Card>
 
-        {/* Lesson Info */}
         <div className="mb-6">
           <h1 className="mb-2 text-3xl font-bold">{lesson.title}</h1>
           <p className="text-muted-foreground mb-4">{lesson.description}</p>
 
-          {/* Action Buttons */}
           <div className="flex flex-wrap gap-2">
             <Button
               onClick={() => setIsCompleted(!isCompleted)}
@@ -252,7 +249,6 @@ export function LessonViewer({ lessonId }: LessonViewerProps) {
           </div>
         </div>
 
-        {/* Comments Section */}
         <Card className="p-6">
           <button
             onClick={() => setShowComments(!showComments)}

@@ -187,7 +187,7 @@ export function CourseCard({
 
         <div className="flex items-center gap-2">
           <Button className="flex-1">
-            <PlayCircle className="mr-2 h-4 w-4" />
+            <PlayCircle className="h-4 w-4" />
             Continue
           </Button>
           <Tooltip>
