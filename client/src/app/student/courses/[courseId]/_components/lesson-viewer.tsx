@@ -1,276 +1,175 @@
-'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-  Bookmark,
-  CheckCircle2,
-  Download,
-  MessageSquare,
-  Share2,
-} from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Bookmark, CheckCircle2, MessageSquare, Share2 } from 'lucide-react';
 import { useState } from 'react';
+import { Lesson } from '../schema/course-detail.schema';
+import { useCourseDetailStore } from '../store/course-detail.store';
+import { AssignmentLesson } from './assignment-lesson';
+import { AudioLesson } from './audio-lesson';
+import { QuizLesson } from './quiz-lesson';
+import { ResourceLesson } from './resource-lesson';
+import { TextLesson } from './text-lesson';
+import { VideoLesson } from './video-lesson';
 
 interface LessonViewerProps {
-  lessonId: string;
+  lesson: Lesson | undefined;
 }
 
-const LESSON_DATA: Record<string, any> = {
-  'lesson-1': {
-    title: 'Introduction to React',
-    type: 'video',
-    duration: '12:45',
-    completed: true,
-    description:
-      "Learn what React is and why it's used for building modern web applications.",
-    content:
-      'https://placeholder.svg?height=600&width=1000&query=React video player',
-    transcript:
-      "Welcome to React! In this lesson, we'll explore the fundamentals of React...",
-  },
-  'lesson-2': {
-    title: 'JSX Basics',
-    type: 'text',
-    completed: true,
-    description:
-      'Understanding JSX syntax and how to write JSX in React components.',
-    content: `
-      <h3>What is JSX?</h3>
-      <p>JSX is a syntax extension to JavaScript. It produces React "elements".</p>
-      <pre><code>const element = &lt;h1&gt;Hello, world!&lt;/h1&gt;;</code></pre>
-      <p>JSX looks similar to HTML, but it's actually JavaScript.</p>
-    `,
-  },
-  'lesson-3': {
-    title: 'Components & Props',
-    type: 'video',
-    duration: '18:30',
-    completed: false,
-    description:
-      'Learn how to create reusable components and pass data through props.',
-    content:
-      'https://placeholder.svg?height=600&width=1000&query=React components',
-  },
-  'lesson-4': {
-    title: 'Quiz: React Fundamentals',
-    type: 'quiz',
-    completed: false,
-    description: 'Test your knowledge of React fundamentals.',
-    questions: [
-      {
-        id: 1,
-        question: 'What does React stand for?',
-        options: ['A', 'B', 'C'],
-        correct: 0,
-      },
-      { id: 2, question: 'What is JSX?', options: ['A', 'B', 'C'], correct: 1 },
-    ],
-  },
-  'lesson-5': {
-    title: 'Understanding State',
-    type: 'video',
-    duration: '15:20',
-    completed: false,
-    description: 'Learn about React state and how to manage component state.',
-    content: 'https://placeholder.svg?height=600&width=1000&query=React state',
-  },
-  'lesson-6': {
-    title: 'useState Hook',
-    type: 'audio',
-    duration: '8:15',
-    completed: false,
-    description:
-      'Deep dive into the useState hook for managing component state.',
-    content: 'https://placeholder.svg?height=100&width=400&query=audio player',
-  },
-  'lesson-7': {
-    title: 'useEffect Hook',
-    type: 'text',
-    completed: false,
-    description: 'Understanding side effects and the useEffect hook.',
-    content: `
-      <h3>The useEffect Hook</h3>
-      <p>The Effect Hook lets you perform side effects in function components.</p>
-      <pre><code>useEffect(() => { /* effect */ }, [dependencies])</code></pre>
-    `,
-  },
-  'lesson-8': {
-    title: 'Assignment: Build a Counter',
-    type: 'assignment',
-    completed: false,
-    description: 'Build a counter application using React state.',
-    instructions:
-      'Create a counter component that increments and decrements a value.',
-  },
-  'lesson-9': {
-    title: 'Custom Hooks',
-    type: 'video',
-    duration: '22:10',
-    completed: false,
-    description: 'Learn how to create custom hooks for reusable logic.',
-    content: 'https://placeholder.svg?height=600&width=1000&query=Custom hooks',
-  },
-  'lesson-10': {
-    title: 'Context API',
-    type: 'text',
-    completed: false,
-    description: 'Master the Context API for state management.',
-    content: `
-      <h3>Context API</h3>
-      <p>Context provides a way to pass data through the component tree.</p>
-    `,
-  },
-  'lesson-11': {
-    title: 'Resources & Best Practices',
-    type: 'resource',
-    completed: false,
-    description:
-      'Additional resources and best practices for React development.',
-    resources: [
-      { name: 'React Documentation', url: '#' },
-      { name: 'React Patterns Guide', url: '#' },
-    ],
-  },
-};
-
-export function LessonViewer({ lessonId }: LessonViewerProps) {
-  const lesson = LESSON_DATA[lessonId] || LESSON_DATA['lesson-1'];
-  const [isCompleted, setIsCompleted] = useState(lesson.completed);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+export function LessonViewer({ lesson }: LessonViewerProps) {
+  const { markLessonComplete, toggleLessonBookmark } = useCourseDetailStore();
   const [showComments, setShowComments] = useState(false);
+
+  if (!lesson) {
+    return (
+      <div className="flex h-full items-center justify-center p-6">
+        <EmptyState
+          title="No Lesson Selected"
+          description="Select a lesson from the sidebar to begin learning."
+          icon="book"
+        />
+      </div>
+    );
+  }
+
+  const handleMarkComplete = () => {
+    markLessonComplete(lesson.id);
+  };
+
+  const handleToggleBookmark = () => {
+    toggleLessonBookmark(lesson.id);
+  };
+
+  const renderLessonContent = () => {
+    switch (lesson.type) {
+      case 'video':
+        return <VideoLesson lesson={lesson} />;
+      case 'text':
+        return <TextLesson lesson={lesson} />;
+      case 'audio':
+        return <AudioLesson lesson={lesson} />;
+      case 'quiz':
+        return <QuizLesson lessonId={lesson.id} />;
+      case 'assignment':
+        return <AssignmentLesson lessonId={lesson.id} />;
+      case 'resource':
+        return <ResourceLesson lessonId={lesson.id} />;
+      default:
+        return (
+          <EmptyState
+            title="Unsupported Lesson Type"
+            description={`The lesson type "${lesson.type}" is not yet supported.`}
+            icon="file"
+          />
+        );
+    }
+  };
 
   return (
     <div className="flex-1 overflow-auto">
-      <div className="mx-auto max-w-4xl p-6">
-        <Card className="mb-6 overflow-hidden">
-          {lesson.type === 'video' && (
-            <div className="flex aspect-video items-center justify-center bg-black">
-              <img
-                src={lesson.content || '/placeholder.svg'}
-                alt={lesson.title}
-                className="h-full w-full object-cover"
-              />
-            </div>
-          )}
-          {lesson.type === 'audio' && (
-            <div className="bg-muted p-6">
-              <audio controls className="w-full">
-                <source src={lesson.content} type="audio/mpeg" />
-              </audio>
-            </div>
-          )}
-          {lesson.type === 'text' && (
-            <div
-              className="prose prose-sm max-w-none p-6"
-              dangerouslySetInnerHTML={{ __html: lesson.content }}
-            />
-          )}
-          {lesson.type === 'quiz' && (
-            <div className="p-6">
-              <h3 className="mb-4 font-semibold">Quiz Questions</h3>
-              {lesson.questions?.map((q: any) => (
-                <div
-                  key={q.id}
-                  className="border-border mb-4 rounded-lg border p-4"
-                >
-                  <p className="mb-3 font-medium">{q.question}</p>
-                  <div className="space-y-2">
-                    {q.options.map((option: string, idx: number) => (
-                      <Button
-                        key={idx}
-                        variant="outline"
-                        className="w-full justify-start bg-transparent"
-                      >
-                        {option}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          {lesson.type === 'assignment' && (
-            <div className="p-6">
-              <h3 className="mb-4 font-semibold">Assignment Instructions</h3>
-              <p className="text-muted-foreground mb-4">
-                {lesson.instructions}
-              </p>
-              <Button>Submit Assignment</Button>
-            </div>
-          )}
-          {lesson.type === 'resource' && (
-            <div className="p-6">
-              <h3 className="mb-4 font-semibold">Resources</h3>
-              <div className="space-y-2">
-                {lesson.resources?.map((resource: any, idx: number) => (
-                  <Button
-                    key={idx}
-                    variant="outline"
-                    className="w-full justify-start bg-transparent"
-                  >
-                    {resource.name}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-        </Card>
-
-        <div className="mb-6">
-          <h1 className="mb-2 text-3xl font-bold">{lesson.title}</h1>
-          <p className="text-muted-foreground mb-4">{lesson.description}</p>
+      <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <div className="space-y-4">
+          <div>
+            <h1 className="mb-2 text-2xl font-bold sm:text-3xl">
+              {lesson.title}
+            </h1>
+            <p className="text-muted-foreground">{lesson.description}</p>
+          </div>
 
           <div className="flex flex-wrap gap-2">
             <Button
-              onClick={() => setIsCompleted(!isCompleted)}
-              variant={isCompleted ? 'default' : 'outline'}
+              onClick={handleMarkComplete}
+              variant={lesson.completed ? 'default' : 'outline'}
               className="gap-2"
+              size="sm"
             >
               <CheckCircle2 className="h-4 w-4" />
-              {isCompleted ? 'Completed' : 'Mark as Complete'}
+              {lesson.completed ? 'Completed' : 'Mark as Complete'}
             </Button>
-            <Button variant="outline" className="gap-2 bg-transparent">
-              <Download className="h-4 w-4" />
-              Download
-            </Button>
+
             <Button
               variant="outline"
-              onClick={() => setIsBookmarked(!isBookmarked)}
-              className={isBookmarked ? 'bg-yellow-50' : ''}
+              onClick={handleToggleBookmark}
+              className={
+                lesson.bookmarked ? 'bg-yellow-50 dark:bg-yellow-950' : ''
+              }
+              size="sm"
             >
               <Bookmark
-                className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`}
+                className={`h-4 w-4 ${lesson.bookmarked ? 'fill-current text-yellow-500' : ''}`}
               />
             </Button>
-            <Button variant="outline" className="gap-2 bg-transparent">
+
+            <Button variant="outline" className="gap-2" size="sm">
               <Share2 className="h-4 w-4" />
-              Share
+              <span className="hidden sm:inline">Share</span>
             </Button>
           </div>
         </div>
 
-        <Card className="p-6">
+        {renderLessonContent()}
+
+        <Card className="p-4 sm:p-6">
           <button
             onClick={() => setShowComments(!showComments)}
             className="hover:text-primary mb-4 flex items-center gap-2 font-semibold transition-colors"
           >
             <MessageSquare className="h-5 w-5" />
-            Comments ({showComments ? 'Hide' : 'Show'})
+            Discussion ({showComments ? 'Hide' : 'Show'})
           </button>
 
           {showComments && (
             <div className="space-y-4">
-              <div className="bg-muted rounded-lg p-4">
-                <p className="text-sm font-medium">John Doe</p>
-                <p className="text-muted-foreground mt-1 text-sm">
-                  Great explanation! This really helped me understand React.
-                </p>
+              <div className="space-y-3">
+                <div className="bg-muted rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-primary/10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
+                      <span className="text-sm font-medium">JD</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="mb-1 flex items-center gap-2">
+                        <p className="text-sm font-medium">John Doe</p>
+                        <span className="text-muted-foreground text-xs">
+                          2 days ago
+                        </span>
+                      </div>
+                      <p className="text-muted-foreground text-sm">
+                        Great explanation! This really helped me understand the
+                        concepts better.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-muted rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-primary/10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
+                      <span className="text-sm font-medium">JS</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="mb-1 flex items-center gap-2">
+                        <p className="text-sm font-medium">Jane Smith</p>
+                        <span className="text-muted-foreground text-xs">
+                          5 hours ago
+                        </span>
+                      </div>
+                      <p className="text-muted-foreground text-sm">
+                        Can you provide more examples of this in real-world
+                        applications?
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="bg-muted rounded-lg p-4">
-                <p className="text-sm font-medium">Jane Smith</p>
-                <p className="text-muted-foreground mt-1 text-sm">
-                  Can you provide more examples?
-                </p>
+
+              <div className="border-t pt-4">
+                <textarea
+                  className="bg-background focus:ring-ring min-h-[100px] w-full resize-none rounded-md border p-3 focus:ring-2 focus:outline-none"
+                  placeholder="Add your comment..."
+                />
+                <div className="mt-2 flex justify-end">
+                  <Button size="sm">Post Comment</Button>
+                </div>
               </div>
             </div>
           )}
