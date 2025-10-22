@@ -349,7 +349,11 @@ function WaitlistStatus({
   );
 }
 
-export default function WaitlistPage() {
+export default function WaitlistPage({
+  className = '',
+}: {
+  className?: string;
+}) {
   const searchParams = useSearchParams();
   const refCode = searchParams.get('ref');
 
@@ -497,7 +501,7 @@ export default function WaitlistPage() {
                   ].map((feature, index) => (
                     <div
                       key={index}
-                      className="text-muted-foreground flex items-center justify-center gap-2 text-sm md:justify-start"
+                      className="text-muted-foreground flex items-center justify-center gap-2 text-sm md:justify-center"
                     >
                       <div className="bg-primary/10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
                         <span className="text-base">{feature.icon}</span>
@@ -517,7 +521,7 @@ export default function WaitlistPage() {
 
   return (
     <div className="bg-background relative overflow-hidden">
-      <div className="absolute inset-0 overflow-hidden">
+      {/* <div className="absolute inset-0 overflow-hidden">
         <div
           className="bg-primary/10 absolute top-1/4 left-1/4 h-96 w-96 animate-pulse rounded-full blur-3xl"
           style={{ animationDuration: '4s' }}
@@ -554,10 +558,10 @@ export default function WaitlistPage() {
             <rect width="100%" height="100%" fill="url(#wave)" />
           </svg>
         </div>
-      </div>
+      </div> */}
 
-      <div className="relative z-10 flex min-h-[90vh] items-center justify-center p-4">
-        <div className="w-full max-w-2xl">
+      <div className="relative z-10 flex max-h-[90vh] items-center justify-center p-4">
+        <div className="w-full">
           {/* <div className="mb-12 flex items-center justify-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg">
               <Logo variant="icon" />
@@ -567,7 +571,7 @@ export default function WaitlistPage() {
             </span>
           </div> */}
 
-          <Card className="border-border shadow-lg">
+          <Card className="">
             <CardContent className="px-8 pt-12 pb-12">
               {renderContent()}
             </CardContent>

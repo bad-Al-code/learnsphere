@@ -60,7 +60,7 @@ type BasePlayerProps = {
 };
 
 type SingleVideoPlayerProps = BasePlayerProps & {
-  src: string;
+  src?: string;
   playlist?: never;
   currentVideoIndex?: never;
   onVideoChange?: never;
