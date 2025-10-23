@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { UAParser } from 'ua-parser-js';
 import logger from '../config/logger';
-import { BlacklistService } from '../controllers/blacklist-service';
 import { Session, SessionRepository } from '../db/session.repository';
 import { UserSessionCreatedPublisher } from '../events/publisher';
 import { RequestContext } from '../types/service.types';
+import { BlacklistService } from './blacklist-service';
 
 export class SessionService {
   /**

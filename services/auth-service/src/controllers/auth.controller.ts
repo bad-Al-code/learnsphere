@@ -16,11 +16,11 @@ import {
 } from '../events/publisher';
 import { AuditService } from '../services/audit.service';
 import { AuthService } from '../services/auth.service';
+import { BlacklistService } from '../services/blacklist-service';
 import { SessionService } from '../services/session.service';
 import { UserPayload } from '../types/auth.types';
 import { RequestContext } from '../types/service.types';
 import { attachCookiesToResponse, sendTokenResponse } from '../utils/token';
-import { BlacklistService } from './blacklist-service';
 
 export class AuthController {
   public static async signup(req: Request, res: Response, next: NextFunction) {
