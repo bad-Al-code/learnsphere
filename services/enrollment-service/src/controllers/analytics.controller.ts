@@ -13,6 +13,7 @@ import {
   assignmentAnalyticsSchema,
   courseIdParamsSchema,
   getMyGradesQuerySchema,
+  getStudentGradeSchema,
   requestReportSchema,
   submissionIdParamsSchema,
 } from '../schema';
@@ -173,7 +174,9 @@ export class AnalyticsController {
     next: NextFunction
   ) {
     try {
-      const { courseId, studentId } = req.params;
+      const { courseId, studentId } = getStudentGradeSchema.parse({
+        params: req.params,
+      }).params;
       const instructorId = req.currentUser?.id;
       if (!instructorId) throw new NotAuthorizedError();
 
@@ -211,7 +214,9 @@ export class AnalyticsController {
     next: NextFunction
   ) {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamsSchema.parse({
+        params: req.params,
+      }).params;
       const instructorId = req.currentUser?.id;
       if (!instructorId) throw new NotAuthorizedError();
 
@@ -229,7 +234,9 @@ export class AnalyticsController {
     next: NextFunction
   ) {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamsSchema.parse({
+        params: req.params,
+      }).params;
       const instructorId = req.currentUser?.id;
       if (!instructorId) throw new NotAuthorizedError();
 
@@ -247,7 +254,9 @@ export class AnalyticsController {
     next: NextFunction
   ) {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamsSchema.parse({
+        params: req.params,
+      }).params;
       const instructorId = req.currentUser?.id;
       if (!instructorId) throw new NotAuthorizedError();
 
@@ -265,7 +274,9 @@ export class AnalyticsController {
     next: NextFunction
   ) {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamsSchema.parse({
+        params: req.params,
+      }).params;
       const performance = await AnalyticsService.getModulePerformance(courseId);
       res.status(StatusCodes.OK).json(performance);
     } catch (error) {
@@ -279,7 +290,9 @@ export class AnalyticsController {
     next: NextFunction
   ) {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamsSchema.parse({
+        params: req.params,
+      }).params;
 
       const sessionTime =
         await AnalyticsService.getAverageSessionTime(courseId);
@@ -296,7 +309,9 @@ export class AnalyticsController {
     next: NextFunction
   ) {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamsSchema.parse({
+        params: req.params,
+      }).params;
 
       const analytics = await AnalyticsService.getTimeSpentAnalytics(courseId);
 

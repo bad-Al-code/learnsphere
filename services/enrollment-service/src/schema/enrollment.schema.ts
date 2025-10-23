@@ -82,6 +82,12 @@ export const enrollmentIdParamSchema = z.object({
   }),
 });
 
+export const courseIdParamSchema = z.object({
+  params: z.object({
+    courseId: z.string().uuid('Invalid courseId format.'),
+  }),
+});
+
 /**
  * @openapi
  * components:

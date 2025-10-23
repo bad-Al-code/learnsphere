@@ -3,17 +3,25 @@ import { StatusCodes } from 'http-status-codes';
 
 import { EnrollRepository } from '../db/repositories';
 import { NotAuthorizedError } from '../errors';
+import { courseIdParamsSchema } from '../schema';
 import {
+  createEnrollmentSchema,
+  endSessionSchema,
+  enrollmentIdParamSchema,
   getEnrollmentsSchema,
   getMyCoursesQuerySchema,
+  manualEnrollmentSchema,
+  markProgressSchema,
+  startSessionSchema,
 } from '../schema/enrollment.schema';
 import { AnalyticsService } from '../services/analytics.service';
 import { EnrollmentService } from '../services/enrollment.service';
-import { ManualEnrollmentData } from '../types';
 
 export class EnrollmentController {
   public static async enrollUserInCourse(req: Request, res: Response) {
-    const { courseId } = req.body;
+    const { courseId } = createEnrollmentSchema.parse({ body: req.body })[
+      'body'
+    ];
     const userId = req.currentUser!.id;
 
     const enrollment = await EnrollmentService.enrollUserInCourse({
@@ -33,7 +41,9 @@ export class EnrollmentController {
       const requester = req.currentUser;
       if (!requester) throw new NotAuthorizedError();
 
-      const { userId, courseId } = req.body as ManualEnrollmentData;
+      const { userId, courseId } = manualEnrollmentSchema.parse({
+        body: req.body,
+      })['body'];
 
       const enrollment = await EnrollmentService.enrollUserManually({
         userId,
@@ -91,7 +101,9 @@ export class EnrollmentController {
       const requester = req.currentUser;
       if (!requester) throw new NotAuthorizedError();
 
-      const { enrollmentId } = req.params as { enrollmentId: string };
+      const { enrollmentId } = enrollmentIdParamSchema.parse({
+        params: req.params,
+      }).params;
 
       const updatedEnrollment = await EnrollmentService.resetEnrollmentProgress(
         {
@@ -110,7 +122,9 @@ export class EnrollmentController {
   }
 
   public static async markProgress(req: Request, res: Response) {
-    const { courseId, lessonId } = req.body;
+    const { courseId, lessonId } = markProgressSchema.parse({
+      body: req.body,
+    }).body;
     const userId = req.currentUser!.id;
 
     const updatedEnrollment = await EnrollmentService.markLessonAsComplete({
@@ -151,7 +165,9 @@ export class EnrollmentController {
   }
 
   public static async suspendEnrollment(req: Request, res: Response) {
-    const { enrollmentId } = req.params;
+    const { enrollmentId } = enrollmentIdParamSchema.parse({
+      params: req.params,
+    }).params;
     const requester = req.currentUser!;
 
     await EnrollmentService.suspendEnrollment({ enrollmentId, requester });
@@ -162,7 +178,9 @@ export class EnrollmentController {
   }
 
   public static async reinstateEnrollment(req: Request, res: Response) {
-    const { enrollmentId } = req.params;
+    const { enrollmentId } = enrollmentIdParamSchema.parse({
+      params: req.params,
+    }).params;
     const requester = req.currentUser!;
 
     await EnrollmentService.reinstateEnrollment({ enrollmentId, requester });
@@ -173,7 +191,9 @@ export class EnrollmentController {
   }
 
   public static async getEnrollmentsForCourse(req: Request, res: Response) {
-    const { courseId } = req.params;
+    const { courseId } = courseIdParamsSchema.parse({
+      params: req.params,
+    }).params;
     const { page, limit } = getEnrollmentsSchema.shape.query.parse(req.query);
     const requester = req.currentUser!;
 
@@ -193,7 +213,9 @@ export class EnrollmentController {
     next: NextFunction
   ) {
     try {
-      const { courseId, moduleId, lessonId } = req.body;
+      const { courseId, moduleId, lessonId } = startSessionSchema.parse({
+        body: req.body,
+      }).body;
       const userId = req.currentUser!.id;
 
       const result = await AnalyticsService.logSessionStart(
@@ -215,7 +237,7 @@ export class EnrollmentController {
     next: NextFunction
   ) {
     try {
-      const { sessionId } = req.body;
+      const { sessionId } = endSessionSchema.parse({ body: req.body }).body;
 
       await AnalyticsService.logSessionEnd(sessionId);
 

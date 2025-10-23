@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+export const getStudentGradeSchema = z.object({
+  params: z.object({
+    courseId: z.string().uuid('courseId format is invalid.'),
+    studentId: z.string().uuid('courseId format is invalid.'),
+  }),
+});
+
 export const courseIdParamsSchema = z.object({
   params: z.object({
     courseId: z
