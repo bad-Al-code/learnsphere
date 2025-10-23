@@ -1,5 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+
+import {
+  courseIdParamSchema,
+  getResourcesForCourseSchema,
+  getUploadUrlSchema,
+  resourceIdParamSchema,
+} from '../schemas';
 import { ResourceService } from '../services';
 
 export class ResourceController {
@@ -9,10 +16,13 @@ export class ResourceController {
     next: NextFunction
   ) {
     try {
-      const { courseId } = req.params;
+      const { courseId } = getResourcesForCourseSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser!;
-      const page = req.query.page ? parseInt(String(req.query.page), 10) : 1;
-      const limit = 6;
+      const { limit, page } = getResourcesForCourseSchema.parse({
+        query: req.query,
+      }).query;
 
       const resources = await ResourceService.getResourcesForCourse(
         courseId,
@@ -29,7 +39,9 @@ export class ResourceController {
 
   public static async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser!;
       const newResource = await ResourceService.createResource(
         courseId,
@@ -44,7 +56,9 @@ export class ResourceController {
 
   public static async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const { resourceId } = req.params;
+      const { resourceId } = resourceIdParamSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser!;
       const updatedResource = await ResourceService.updateResource(
         resourceId,
@@ -59,7 +73,9 @@ export class ResourceController {
 
   public static async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      const { resourceId } = req.params;
+      const { resourceId } = resourceIdParamSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser!;
       await ResourceService.deleteResource(resourceId, requester);
       res
@@ -76,8 +92,10 @@ export class ResourceController {
     next: NextFunction
   ) {
     try {
-      const { courseId } = req.params;
-      const { filename } = req.body;
+      const { courseId } = getUploadUrlSchema.parse({
+        params: req.params,
+      }).params;
+      const { filename } = getUploadUrlSchema.parse({ body: req.body }).body;
       const requester = req.currentUser!;
 
       const uploadData = await ResourceService.getUploadUrl(
@@ -98,7 +116,9 @@ export class ResourceController {
     next: NextFunction
   ) {
     try {
-      const { resourceId } = req.params;
+      const { resourceId } = resourceIdParamSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser!;
 
       const resource = await ResourceService.getResourceForDownload(

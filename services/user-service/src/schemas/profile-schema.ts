@@ -406,3 +406,23 @@ export const userSearchQuerySchema = z.object({
   body: z.object({}).optional(),
   params: z.object({}).optional(),
 });
+
+/**
+ * @openapi
+ * components:
+ *   parameters:
+ *     userId:
+ *       name: userId
+ *       in: path
+ *       required: true
+ *       description: Unique identifier for the user.
+ *       schema:
+ *         type: string
+ *         format: uuid
+ *         example: "123e4567-e89b-12d3-a456-426614174000"
+ */
+export const userIdParamSchema = z.object({
+  params: z.object({
+    userId: z.string().uuid('User ID format is invalid.'),
+  }),
+});

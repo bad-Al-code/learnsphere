@@ -2,8 +2,24 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { BadRequestError, NotAuthorizedError } from '../errors';
-import { courseDiscussionsParamsSchema } from '../schemas';
-import { conversationIdSchema } from '../schemas/chat.schema';
+import {
+  courseDiscussionsParamsSchema,
+  generateShareLinkSchema,
+  inviteUsersSchema,
+  messageParamsSchema,
+  reactMessageSchema,
+} from '../schemas';
+import {
+  conversationIdSchema,
+  createConversationSchema,
+  createGroupConversationSchema,
+  discussionIdParamSchema,
+  getMessagesSchema,
+  postReplySchema,
+  removeParticipantSchema,
+  roomIdParamSchema,
+  userIdSchema,
+} from '../schemas/chat.schema';
 import { ChatService } from '../services/chat.service';
 
 export class ChatController {
@@ -32,8 +48,10 @@ export class ChatController {
     next: NextFunction
   ) {
     try {
-      const { id } = req.params;
-      const { page, limit } = req.query;
+      const { id } = getMessagesSchema.parse({ params: req.params }).params;
+      const { page, limit } = getMessagesSchema.parse({
+        query: req.query,
+      }).query;
       const userId = req.currentUser!.id;
       if (!userId) {
         throw new NotAuthorizedError();
@@ -58,7 +76,9 @@ export class ChatController {
   ) {
     try {
       const initiatorId = req.currentUser!.id;
-      const { recipientId } = req.body;
+      const { recipientId } = createConversationSchema.parse({
+        body: req.body,
+      }).body;
 
       if (initiatorId === recipientId) {
         throw new BadRequestError(
@@ -101,7 +121,9 @@ export class ChatController {
   ) {
     try {
       const creatorId = req.currentUser!.id;
-      const { name, participantIds } = req.body;
+      const { name, participantIds } = createGroupConversationSchema.parse({
+        body: req.body,
+      }).body;
 
       const conversation = await ChatService.createGroupConversation(
         creatorId,
@@ -121,7 +143,9 @@ export class ChatController {
     next: NextFunction
   ) {
     try {
-      const { id: conversationId } = req.params;
+      const { id: conversationId } = conversationIdSchema.parse({
+        params: req.params,
+      }).params;
       const userId = req.currentUser!.id;
       const participants = await ChatService.getConversationParticipants(
         conversationId,
@@ -139,8 +163,12 @@ export class ChatController {
     next: NextFunction
   ) {
     try {
-      const { id: conversationId } = req.params;
-      const { userId: userIdToAdd } = req.body;
+      const { id: conversationId } = conversationIdSchema.parse({
+        params: req.params,
+      }).params;
+      const { userId: userIdToAdd } = userIdSchema.parse({
+        body: req.body,
+      }).body;
       const requesterId = req.currentUser!.id;
 
       await ChatService.addParticipantToGroup(
@@ -161,7 +189,9 @@ export class ChatController {
     next: NextFunction
   ) {
     try {
-      const { id: conversationId, userId: userIdToRemove } = req.params;
+      const { conversationId, userIdToRemove } = removeParticipantSchema.parse({
+        params: req.params,
+      }).params;
       const requesterId = req.currentUser!.id;
 
       await ChatService.removeParticipantFromGroup(
@@ -256,11 +286,13 @@ export class ChatController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { id } = req.params;
-      const { content } = req.body;
+      const { discussionId } = postReplySchema.parse({
+        params: req.params,
+      }).params;
+      const { content } = postReplySchema.parse({ body: req.body }).body;
 
       const newReply = await ChatService.postReply(
-        id,
+        discussionId,
         content,
         req.currentUser
       );
@@ -278,7 +310,9 @@ export class ChatController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { id } = req.params;
+      const { discussionId: id } = discussionIdParamSchema.parse({
+        params: req.body,
+      }).params;
 
       await ChatService.toggleBookmark(id, req.currentUser);
 
@@ -291,7 +325,9 @@ export class ChatController {
   public static async resolve(req: Request, res: Response, next: NextFunction) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { id } = req.params;
+      const { discussionId: id } = discussionIdParamSchema.parse({
+        params: req.body,
+      }).params;
 
       await ChatService.toggleResolved(id, req.currentUser);
 
@@ -346,7 +382,7 @@ export class ChatController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { roomId } = req.params;
+      const { roomId } = roomIdParamSchema.parse({ params: req.params }).params;
 
       await ChatService.joinStudyRoom(roomId, req.currentUser);
 
@@ -365,7 +401,7 @@ export class ChatController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { roomId } = req.params;
+      const { roomId } = roomIdParamSchema.parse({ params: req.params }).params;
 
       const updatedRoom = await ChatService.updateStudyRoom(
         roomId,
@@ -386,7 +422,8 @@ export class ChatController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { roomId } = req.params;
+
+      const { roomId } = roomIdParamSchema.parse({ params: req.params }).params;
 
       await ChatService.deleteStudyRoom(roomId, req.currentUser);
 
@@ -402,7 +439,8 @@ export class ChatController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { roomId } = req.params;
+      const { roomId } = roomIdParamSchema.parse({ params: req.params }).params;
+
       await ChatService.scheduleReminder(roomId, req.currentUser);
       res
         .status(StatusCodes.ACCEPTED)
@@ -419,8 +457,12 @@ export class ChatController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { roomId } = req.params;
-      const { expiresIn } = req.body;
+      const { roomId } = generateShareLinkSchema.parse({
+        params: req.params,
+      }).params;
+      const { expiresIn } = generateShareLinkSchema.parse({
+        body: req.body,
+      }).body;
 
       const result = await ChatService.generateShareLink(
         roomId,
@@ -441,8 +483,8 @@ export class ChatController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { roomId } = req.params;
-      const { userIds } = req.body;
+      const { roomId } = inviteUsersSchema.parse({ params: req.params }).params;
+      const { userIds } = inviteUsersSchema.parse({ body: req.body }).body;
 
       await ChatService.inviteUsersToRoom(roomId, userIds, req.currentUser);
 
@@ -461,7 +503,9 @@ export class ChatController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { messageId } = req.params;
+      const { messageId } = messageParamsSchema.parse({
+        params: req.params,
+      }).params;
 
       const result = await ChatService.upvoteMessage(
         messageId,
@@ -489,7 +533,9 @@ export class ChatController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { messageId } = req.params;
+      const { messageId } = messageParamsSchema.parse({
+        params: req.params,
+      }).params;
 
       const result = await ChatService.downvoteMessage(
         messageId,
@@ -517,8 +563,10 @@ export class ChatController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { reaction } = req.body;
-      const { messageId } = req.params;
+      const { reaction } = reactMessageSchema.parse({ body: req.body }).body;
+      const { messageId } = reactMessageSchema.parse({
+        params: req.params,
+      }).params;
 
       const result = await ChatService.reactToMessage(
         messageId,

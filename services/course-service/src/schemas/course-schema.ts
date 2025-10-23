@@ -198,10 +198,67 @@ export const updateLessonSchema = z.object({
   body: createLessonSchema.shape.body.partial(),
 });
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ListCoursesQuery:
+ *       type: object
+ *       properties:
+ *         page:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *           description: The page number for pagination (starts at 1).
+ *           example: 1
+ *         limit:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 1000
+ *           default: 12
+ *           description: The number of courses to return per page.
+ *           example: 12
+ *         categoryId:
+ *           type: string
+ *           format: uuid
+ *           nullable: true
+ *           description: Optional category ID to filter courses by.
+ *           example: "550e8400-e29b-41d4-a716-446655440000"
+ *         level:
+ *           type: string
+ *           nullable: true
+ *           description: Optional course difficulty level to filter by.
+ *           enum: ["beginner", "intermediate", "advanced"]
+ *           example: "beginner"
+ */
 export const listCoursesSchema = z.object({
   query: z.object({
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(1000).default(12),
+    categoryId: z.string().uuid('Invalid category ID format').optional(),
+    level: z
+      .enum(['beginner', 'intermediate', 'advanced', 'all-levels'])
+      .optional(),
+  }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     FilenameRequest:
+ *       type: object
+ *       required:
+ *         - filename
+ *       properties:
+ *         filename:
+ *           type: string
+ *           description: Name of the file to be processed.
+ *           example: "document.pdf"
+ */
+export const filenameSchema = z.object({
+  body: z.object({
+    filename: z.string().min(1, 'Filename is required and cannot be empty'),
   }),
 });
 
@@ -316,3 +373,46 @@ export type GetCoursesQuery = z.infer<typeof getCoursesQuerySchema>;
 export type GetCoursesByInstructorOptions = GetCoursesQuery & {
   instructorId: string;
 };
+
+/**
+ * @openapi
+ * components:
+ *   parameters:
+ *     courseId:
+ *       name: courseId
+ *       in: path
+ *       required: true
+ *       description: Unique identifier of the course.
+ *       schema:
+ *         type: string
+ *         format: uuid
+ *         example: "123e4567-e89b-12d3-a456-426614174000"
+ */
+export const courseIdParamSchema = z.object({
+  params: z.object({
+    courseId: z.string().uuid('Course ID is not valid.'),
+  }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     PriceRequest:
+ *       type: object
+ *       required:
+ *         - price
+ *       properties:
+ *         price:
+ *           type: string
+ *           nullable: true
+ *           description: The price of the item. Can be null if not set.
+ *           example: "19.99"
+ */
+export const priceSchema = z.object({
+  body: z.object({
+    price: z
+      .string({ invalid_type_error: 'Price must be a string or null' })
+      .nullable(),
+  }),
+});

@@ -3,6 +3,11 @@ import { StatusCodes } from 'http-status-codes';
 import { EmailClient } from '../clients/email.client';
 import { UserRepository } from '../db/user.respository';
 import { NotAuthorizedError } from '../errors/not-authorized-error';
+import {
+  notificationIdParamSchema,
+  sendBatchInvitesSchema,
+  sendBulkInvitesSchema,
+} from '../schemas';
 import { EmailService } from '../services/email-service';
 import { NotificationService } from '../services/notification.service';
 
@@ -38,7 +43,9 @@ export class NotificationController {
       }
 
       const userId = req.currentUser.id;
-      const { notificationId } = req.params;
+      const { notificationId } = notificationIdParamSchema.parse({
+        params: req.params,
+      }).params;
 
       const updatedNotification =
         await NotificationService.markNotificationAsRead(
@@ -79,7 +86,8 @@ export class NotificationController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { emails, subject, message, linkUrl } = req.body;
+      const { emails, subject, message, linkUrl } =
+        sendBatchInvitesSchema.parse({ body: req.body }).body;
 
       const user = await UserRepository.findById(req.currentUser.id);
       const inviterName = user?.name || 'A fellow student';
@@ -108,7 +116,8 @@ export class NotificationController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { contacts, subject, message, linkUrl } = req.body;
+      const { contacts, subject, message, linkUrl } =
+        sendBulkInvitesSchema.parse({ body: req.body }).body;
 
       const user = await UserRepository.findById(req.currentUser.id);
       const inviterName = user?.name || 'A fellow student';
@@ -121,11 +130,9 @@ export class NotificationController {
         linkUrl,
         inviterName
       );
-      res
-        .status(StatusCodes.OK)
-        .json({
-          message: `Invitations sent to ${contacts.length} recipients.`,
-        });
+      res.status(StatusCodes.OK).json({
+        message: `Invitations sent to ${contacts.length} recipients.`,
+      });
     } catch (error) {
       next(error);
     }

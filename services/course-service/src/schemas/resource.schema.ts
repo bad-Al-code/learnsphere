@@ -88,3 +88,112 @@ export const uploadUrlSchema = z.object({
 export type CreateResourceDto = z.infer<typeof createResourceSchema>;
 export type UpdateResourceDto = z.infer<typeof updateResourceSchema>;
 export type UploadUrlDto = z.infer<typeof uploadUrlSchema>;
+
+/**
+ * @openapi
+ * components:
+ *   parameters:
+ *     courseId:
+ *       name: courseId
+ *       in: path
+ *       required: true
+ *       description: Unique identifier of the course for which to fetch resources.
+ *       schema:
+ *         type: string
+ *         format: uuid
+ *         example: "123e4567-e89b-12d3-a456-426614174000"
+ *     page:
+ *       name: page
+ *       in: query
+ *       required: false
+ *       description: Page number for pagination (default is 1).
+ *       schema:
+ *         type: integer
+ *         minimum: 1
+ *         default: 1
+ *         example: 1
+ *     limit:
+ *       name: limit
+ *       in: query
+ *       required: false
+ *       description: Number of resources per page (fixed at 6).
+ *       schema:
+ *         type: integer
+ *         default: 6
+ *         example: 6
+ */
+export const getResourcesForCourseSchema = z.object({
+  params: z.object({
+    courseId: z
+      .string({ required_error: 'Course ID is required.' })
+      .uuid('Course ID must be a valid UUID.'),
+  }),
+  query: z.object({
+    page: z.coerce
+      .number({ invalid_type_error: 'Page must be a number.' })
+      .int('Page must be an integer.')
+      .min(1, 'Page must be at least 1.')
+      .default(1),
+    limit: z.number().int().min(1).default(6),
+  }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   parameters:
+ *     resourceId:
+ *       name: resourceId
+ *       in: path
+ *       required: true
+ *       description: Unique identifier of the resource.
+ *       schema:
+ *         type: string
+ *         format: uuid
+ *         example: "550e8400-e29b-41d4-a716-446655440000"
+ */
+export const resourceIdParamSchema = z.object({
+  params: z.object({
+    resourceId: z
+      .string({ required_error: 'Resource ID is required.' })
+      .uuid('Resource ID must be a valid UUID.'),
+  }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   parameters:
+ *     courseId:
+ *       name: courseId
+ *       in: path
+ *       required: true
+ *       description: Unique identifier of the course for which the upload URL is requested.
+ *       schema:
+ *         type: string
+ *         format: uuid
+ *         example: "123e4567-e89b-12d3-a456-426614174000"
+ *
+ *   schemas:
+ *     GetUploadUrlRequest:
+ *       type: object
+ *       required:
+ *         - filename
+ *       properties:
+ *         filename:
+ *           type: string
+ *           description: Name of the file to be uploaded.
+ *           example: "lecture1.mp4"
+ */
+export const getUploadUrlSchema = z.object({
+  params: z.object({
+    courseId: z
+      .string({ required_error: 'Course ID is required.' })
+      .uuid('Course ID must be a valid UUID.'),
+  }),
+  body: z.object({
+    filename: z
+      .string({ required_error: 'Filename is required.' })
+      .min(1, 'Filename cannot be empty.'),
+  }),
+});

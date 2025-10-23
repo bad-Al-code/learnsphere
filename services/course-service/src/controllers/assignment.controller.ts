@@ -3,11 +3,15 @@ import { StatusCodes } from 'http-status-codes';
 import { AssignmentRepository } from '../db/repostiories';
 import { BadRequestError, NotAuthorizedError } from '../errors';
 import {
+  assignmentParamsSchema,
   bulkAssignmentsByCoursesSchema,
   bulkAssignmentsSchema,
+  courseIdParamSchema,
   draftStatusesSchema,
   findAssignmentsSchema,
+  moduleIdParamSchema,
   querySchema,
+  reorderAssignmentsSchema,
   requestReGradeParamsSchema,
   submissionIdParamsSchema,
 } from '../schemas';
@@ -19,7 +23,9 @@ export class AssignmentController {
    */
   public static async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const { moduleId } = req.params;
+      const { moduleId } = moduleIdParamSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser;
       if (!requester) throw new NotAuthorizedError();
 
@@ -39,7 +45,9 @@ export class AssignmentController {
    */
   public static async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const { assignmentId } = req.params;
+      const { assignmentId } = assignmentParamsSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser;
       if (!requester) throw new NotAuthorizedError();
 
@@ -59,7 +67,9 @@ export class AssignmentController {
    */
   public static async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      const { assignmentId } = req.params;
+      const { assignmentId } = assignmentParamsSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser;
       if (!requester) throw new NotAuthorizedError();
 
@@ -77,7 +87,9 @@ export class AssignmentController {
    */
   public static async reorder(req: Request, res: Response, next: NextFunction) {
     try {
-      const { moduleId, items } = req.body;
+      const { moduleId, items } = reorderAssignmentsSchema.parse({
+        body: req.body,
+      }).body;
       const requester = req.currentUser;
       if (!requester) throw new NotAuthorizedError();
 
@@ -96,7 +108,9 @@ export class AssignmentController {
     next: NextFunction
   ) {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamSchema.parse({
+        params: req.params,
+      }).params;
 
       const queryParams = findAssignmentsSchema.parse({
         courseId,
@@ -145,7 +159,9 @@ export class AssignmentController {
     next: NextFunction
   ) {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamSchema.parse({
+        params: req.params,
+      }).params;
       const statuses =
         await AssignmentService.getAssignmentStatusForCourse(courseId);
       res.status(StatusCodes.OK).json(statuses);
@@ -230,7 +246,9 @@ export class AssignmentController {
     next: NextFunction
   ) {
     try {
-      const { assignmentId } = req.params;
+      const { assignmentId } = assignmentParamsSchema.parse({
+        params: req.params,
+      }).params;
 
       const requester = req.currentUser;
       if (!requester) throw new NotAuthorizedError();

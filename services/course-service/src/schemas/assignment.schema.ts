@@ -331,3 +331,81 @@ export const requestReGradeParamsSchema = z.object({
     submissionId: z.string().uuid('Invalid submission ID format'),
   }),
 });
+
+/**
+ * @openapi
+ * components:
+ *   parameters:
+ *     moduleId:
+ *       name: moduleId
+ *       in: path
+ *       required: true
+ *       description: Unique identifier of the module.
+ *       schema:
+ *         type: string
+ *         format: uuid
+ *         example: "123e4567-e89b-12d3-a456-426614174000"
+ */
+export const moduleIdParamSchema = z.object({
+  params: z.object({
+    moduleId: z
+      .string({ required_error: 'Module ID is required' })
+      .uuid('Module ID must be a valid UUID'),
+  }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ReorderAssignmentsRequest:
+ *       type: object
+ *       required:
+ *         - moduleId
+ *         - items
+ *       properties:
+ *         moduleId:
+ *           type: string
+ *           format: uuid
+ *           description: Unique identifier of the module containing the assignments.
+ *           example: "123e4567-e89b-12d3-a456-426614174000"
+ *         items:
+ *           type: array
+ *           description: List of assignments with their updated order values.
+ *           items:
+ *             type: object
+ *             required:
+ *               - id
+ *               - order
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 format: uuid
+ *                 description: Unique identifier of the assignment.
+ *                 example: "550e8400-e29b-41d4-a716-446655440000"
+ *               order:
+ *                 type: integer
+ *                 description: New order position of the assignment.
+ *                 minimum: 1
+ *                 example: 2
+ */
+export const reorderAssignmentsSchema = z.object({
+  body: z.object({
+    moduleId: z
+      .string({ required_error: 'Module ID is required' })
+      .uuid('Module ID must be a valid UUID'),
+    items: z
+      .array(
+        z.object({
+          id: z
+            .string({ required_error: 'Assignment ID is required' })
+            .uuid('Assignment ID must be a valid UUID'),
+          order: z
+            .number({ invalid_type_error: 'Order must be a number' })
+            .int('Order must be an integer')
+            .min(1, 'Order must be at least 1'),
+        })
+      )
+      .nonempty('At least one assignment item is required'),
+  }),
+});

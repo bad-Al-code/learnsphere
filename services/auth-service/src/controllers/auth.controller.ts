@@ -14,6 +14,15 @@ import {
   UserRegisteredPublisher,
   UserVerificationRequiredPublisher,
 } from '../events/publisher';
+import {
+  loginSchema,
+  resendVerificationSchema,
+  sessionIdParamSchema,
+  signupSchema,
+  updatePasswordSchema,
+  userIdParamSchema,
+  verifyEmailSchema,
+} from '../schemas/auth-schema';
 import { AuditService } from '../services/audit.service';
 import { AuthService } from '../services/auth.service';
 import { BlacklistService } from '../services/blacklist-service';
@@ -25,7 +34,9 @@ import { attachCookiesToResponse, sendTokenResponse } from '../utils/token';
 export class AuthController {
   public static async signup(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email, password, firstName, lastName } = req.body;
+      const { email, password, firstName, lastName } = signupSchema.parse({
+        body: req.body,
+      }).body;
       const context: RequestContext = {
         ipAddress: req.ip,
         userAgent: req.headers['user-agent'],
@@ -66,7 +77,7 @@ export class AuthController {
 
   public static async login(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email, password } = req.body;
+      const { email, password } = loginSchema.parse({ body: req.body }).body;
       const context: RequestContext = {
         ipAddress: req.ip,
         userAgent: req.headers['user-agent'],
@@ -181,8 +192,14 @@ export class AuthController {
     next: NextFunction
   ) {
     try {
-      const { email, code, token } = req.body;
+      const { email, code, token } = verifyEmailSchema.parse({
+        body: req.body,
+      }).body;
       const codeOrToken = code || token;
+      if (!codeOrToken) {
+        throw new BadRequestError('Either code or token must be provided.');
+      }
+
       const context: RequestContext = {
         ipAddress: req.ip,
         userAgent: req.headers['user-agent'],
@@ -294,7 +311,7 @@ export class AuthController {
     next: NextFunction
   ) {
     try {
-      const { email } = req.body;
+      const { email } = resendVerificationSchema.parse({ body: req.body }).body;
       const context: RequestContext = {
         ipAddress: req.ip,
         userAgent: req.headers['user-agent'],
@@ -326,7 +343,9 @@ export class AuthController {
     next: NextFunction
   ) {
     try {
-      const { currentPassword, newPassword } = req.body;
+      const { currentPassword, newPassword } = updatePasswordSchema.parse({
+        body: req.body,
+      }).body;
       const userId = req.currentUser?.dbUser.id;
       if (!userId) {
         throw new UnauthenticatedError('Authentication required');
@@ -377,7 +396,9 @@ export class AuthController {
     next: NextFunction
   ) {
     try {
-      const { sessionId } = req.params;
+      const { sessionId } = sessionIdParamSchema.parse({
+        params: req.params,
+      }).params;
       await SessionService.terminateSession(sessionId);
       await BlacklistService.addToBlacklist(sessionId, 0);
       res
@@ -477,8 +498,8 @@ export class AuthController {
     next: NextFunction
   ) {
     try {
-      const { id } = req.params;
-      const user = await UserRepository.findById(id);
+      const { userId } = userIdParamSchema.parse({ params: req.params }).params;
+      const user = await UserRepository.findById(userId);
       if (!user) {
         throw new NotFoundError('User');
       }
@@ -489,6 +510,8 @@ export class AuthController {
         role: user.role,
         isVerified: user.isVerified,
       });
-    } catch (error) {}
+    } catch (error) {
+      next(error);
+    }
   }
 }

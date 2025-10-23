@@ -3,9 +3,16 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { MediaClient } from '../clients/media.client';
 import { CourseRepository } from '../db/repostiories';
-import { CourseLevel } from '../db/schema';
 import { NotAuthorizedError } from '../errors';
-import { CreateFullCourseDto, getCoursesQuerySchema } from '../schemas';
+import {
+  bulkCoursesSchema,
+  courseIdParamSchema,
+  CreateFullCourseDto,
+  filenameSchema,
+  getCoursesQuerySchema,
+  listCoursesSchema,
+  priceSchema,
+} from '../schemas';
 import {
   AuthorizationService,
   CourseCacheService,
@@ -61,7 +68,9 @@ export class CourseController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser;
 
       const course = await CourseService.getCourseDetails(courseId, requester);
@@ -78,8 +87,10 @@ export class CourseController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { courseIds } = req.body;
+      const { courseIds } = bulkCoursesSchema.parse({ body: req.body }).body;
+
       const courses = await CourseService.getCoursesByIds(courseIds);
+
       res.status(StatusCodes.OK).json(courses);
     } catch (error) {
       next(error);
@@ -92,8 +103,12 @@ export class CourseController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamSchema.parse({
+        params: req.params,
+      }).params;
+
       const courseModules = await ModuleService.getModulesForCourses(courseId);
+
       res.status(StatusCodes.OK).json(courseModules);
     } catch (error) {
       next(error);
@@ -106,10 +121,9 @@ export class CourseController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const page = parseInt(req.query.page as string, 10) || 1;
-      const limit = parseInt(req.query.limit as string, 10) || 12;
-      const categoryId = req.query.categoryId as string | undefined;
-      const level = req.query.level as CourseLevel | undefined;
+      const { limit, page, categoryId, level } = listCoursesSchema.parse({
+        query: req.query,
+      }).query;
 
       const result = await CourseService.listCourses(
         page,
@@ -130,7 +144,9 @@ export class CourseController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser;
       if (!requester) {
         throw new NotAuthorizedError();
@@ -154,7 +170,9 @@ export class CourseController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser;
       if (!requester) {
         throw new NotAuthorizedError();
@@ -176,7 +194,9 @@ export class CourseController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser;
       if (!requester) {
         throw new NotAuthorizedError();
@@ -196,7 +216,9 @@ export class CourseController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser;
       if (!requester) {
         throw new NotAuthorizedError();
@@ -252,8 +274,10 @@ export class CourseController {
     next: NextFunction
   ) {
     try {
-      const { courseId } = req.params;
-      const { filename } = req.body;
+      const { courseId } = courseIdParamSchema.parse({
+        params: req.params,
+      }).params;
+      const { filename } = filenameSchema.parse({ body: req.body }).body;
       const requester = req.currentUser!;
 
       await AuthorizationService.verifyCourseOwnership(courseId, requester);
@@ -286,9 +310,11 @@ export class CourseController {
     next: NextFunction
   ) {
     try {
-      const { courseId } = req.params;
+      const { courseId } = courseIdParamSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser!;
-      const price = req.body.price;
+      const { price } = priceSchema.parse({ body: req.body }).body;
 
       await AuthorizationService.verifyCourseOwnership(courseId, requester);
 

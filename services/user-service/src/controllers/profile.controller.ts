@@ -5,6 +5,16 @@ import axios, { AxiosError } from 'axios';
 import { env } from '../config/env';
 import logger from '../config/logger';
 import { NotAuthorizedError } from '../errors';
+import {
+  applyForInstructorSchema,
+  avatarUploadUrlSchema,
+  bulkUsersSchema,
+  fcmTokenSchema,
+  getProfileByEmailSchema,
+  searchProfileSchema,
+  userIdParamSchema,
+  userSearchQuerySchema,
+} from '../schemas';
 import { ProfileService } from '../services/profile.service';
 
 export class ProfileController {
@@ -51,16 +61,16 @@ export class ProfileController {
     next: NextFunction
   ) {
     try {
-      const { id } = req.params;
+      const { userId } = userIdParamSchema.parse({ params: req.params }).params;
       const requester = req.currentUser;
 
       if (requester?.role === 'admin') {
-        const profile = await ProfileService.getPrivateProfileById(id);
+        const profile = await ProfileService.getPrivateProfileById(userId);
         res.status(StatusCodes.OK).json(profile);
         return;
       }
 
-      const profile = await ProfileService.getPublicProfileById(id);
+      const profile = await ProfileService.getPublicProfileById(userId);
       res.status(StatusCodes.OK).json(profile);
     } catch (error) {
       next(error);
@@ -73,7 +83,9 @@ export class ProfileController {
     next: NextFunction
   ) {
     try {
-      const { email } = req.params;
+      const { email } = getProfileByEmailSchema.parse({
+        params: req.params,
+      }).params;
 
       const profile = await ProfileService.getProfileIdByEmail(email);
 
@@ -89,8 +101,13 @@ export class ProfileController {
     next: NextFunction
   ) {
     try {
-      const { id } = req.params;
-      const updatedProfile = await ProfileService.updateProfile(id, req.body);
+      const { userId } = userIdParamSchema.parse({ params: req.params }).params;
+
+      const updatedProfile = await ProfileService.updateProfile(
+        userId,
+        req.body
+      );
+
       res.status(StatusCodes.OK).json(updatedProfile);
     } catch (error) {
       next(error);
@@ -103,8 +120,10 @@ export class ProfileController {
     next: NextFunction
   ) {
     try {
-      const { userIds } = req.body;
+      const { userIds } = bulkUsersSchema.parse({ body: req.body }).body;
+
       const users = await ProfileService.getPublicProfilesByIds(userIds);
+
       res.status(StatusCodes.OK).json(users);
     } catch (error) {
       next(error);
@@ -117,7 +136,9 @@ export class ProfileController {
     next: NextFunction
   ) {
     try {
-      const { q, page, limit, status } = req.query;
+      const { q, page, limit, status } = searchProfileSchema.parse({
+        query: req.query,
+      }).query;
 
       const searchQuery = q ? String(q) : '';
       const pageNumber = page ? parseInt(String(page), 10) : 1;
@@ -143,7 +164,7 @@ export class ProfileController {
     next: NextFunction
   ) {
     try {
-      const { filename } = req.body;
+      const { filename } = avatarUploadUrlSchema.parse({ body: req.body }).body;
       const userId = req.currentUser!.id;
 
       const mediaServiceUrl = env.MEDIA_SERVICE_URL || 'http://localhost:8002';
@@ -207,7 +228,9 @@ export class ProfileController {
   ) {
     try {
       const userId = req.currentUser!.id;
-      const applicationData = req.body;
+      const applicationData = applyForInstructorSchema.parse({
+        body: req.body,
+      }).body;
 
       await ProfileService.applyForInstructor(userId, applicationData);
 
@@ -225,8 +248,10 @@ export class ProfileController {
     next: NextFunction
   ) {
     try {
-      const { id } = req.params;
-      const updatedProfile = await ProfileService.approveInstructor(id);
+      const { userId } = userIdParamSchema.parse({ params: req.params }).params;
+
+      const updatedProfile = await ProfileService.approveInstructor(userId);
+
       res.status(StatusCodes.OK).json(updatedProfile);
     } catch (error) {
       next(error);
@@ -239,8 +264,9 @@ export class ProfileController {
     next: NextFunction
   ) {
     try {
-      const { id } = req.params;
-      await ProfileService.declineInstructor(id);
+      const { userId } = userIdParamSchema.parse({ params: req.params }).params;
+
+      await ProfileService.declineInstructor(userId);
       res
         .status(StatusCodes.OK)
         .json({ message: 'Instructor application has been declined.' });
@@ -255,9 +281,9 @@ export class ProfileController {
     next: NextFunction
   ) {
     try {
-      const { id } = req.params;
+      const { userId } = userIdParamSchema.parse({ params: req.params }).params;
 
-      await ProfileService.suspendUser(id);
+      await ProfileService.suspendUser(userId);
 
       res
         .status(StatusCodes.OK)
@@ -273,8 +299,9 @@ export class ProfileController {
     next: NextFunction
   ) {
     try {
-      const { id } = req.params;
-      await ProfileService.reinstateUser(id);
+      const { userId } = userIdParamSchema.parse({ params: req.params }).params;
+
+      await ProfileService.reinstateUser(userId);
       res
         .status(StatusCodes.OK)
         .json({ message: 'User has been reinstated successfully.' });
@@ -290,7 +317,7 @@ export class ProfileController {
   ) {
     try {
       const userId = req.currentUser!.id;
-      const { token } = req.body;
+      const { token } = fcmTokenSchema.parse({ body: req.body }).body;
 
       await ProfileService.addFcmToken(userId, token);
 
@@ -309,7 +336,7 @@ export class ProfileController {
   ) {
     try {
       const userId = req.currentUser!.id;
-      const { token } = req.body;
+      const { token } = fcmTokenSchema.parse({ body: req.body }).body;
 
       await ProfileService.removeFcmToken(userId, token);
 
@@ -327,8 +354,9 @@ export class ProfileController {
     next: NextFunction
   ) {
     try {
-      const { id } = req.params;
-      const profile = await ProfileService.getPrivateProfileById(id);
+      const { userId } = userIdParamSchema.parse({ params: req.params }).params;
+
+      const profile = await ProfileService.getPrivateProfileById(userId);
 
       res.status(StatusCodes.OK).json({ fcmTokens: profile.fcmTokens });
     } catch (error) {
@@ -375,7 +403,9 @@ export class ProfileController {
     next: NextFunction
   ) {
     try {
-      const { q, limit } = req.query;
+      const { q, limit } = userSearchQuerySchema.parse({
+        query: req.query,
+      }).query;
 
       const users = await ProfileService.searchUsers(
         q as string,

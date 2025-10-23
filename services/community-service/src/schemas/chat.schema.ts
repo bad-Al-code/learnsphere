@@ -298,3 +298,130 @@ export const getStudyRoomsSchema = z.object({
     topic: z.string().min(1, 'Topic cannot be empty').optional(),
   }),
 });
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     UserIdRequest:
+ *       type: object
+ *       required:
+ *         - userId
+ *       properties:
+ *         userId:
+ *           type: string
+ *           format: uuid
+ *           description: Unique identifier of the user.
+ *           example: "550e8400-e29b-41d4-a716-446655440000"
+ */
+export const userIdSchema = z.object({
+  body: z.object({
+    userId: z.uuid('User ID must be a valid UUID.'),
+  }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   parameters:
+ *     conversationId:
+ *       name: conversationId
+ *       in: path
+ *       required: true
+ *       description: Unique identifier of the conversation/group.
+ *       schema:
+ *         type: string
+ *         format: uuid
+ *         example: "123e4567-e89b-12d3-a456-426614174000"
+ *     userIdToRemove:
+ *       name: userIdToRemove
+ *       in: path
+ *       required: true
+ *       description: Unique identifier of the user to be removed from the group.
+ *       schema:
+ *         type: string
+ *         format: uuid
+ *         example: "550e8400-e29b-41d4-a716-446655440000"
+ */
+export const removeParticipantSchema = z.object({
+  params: z.object({
+    conversationId: z.uuid('Conversation ID must be a valid UUID.'),
+    userIdToRemove: z.uuid('User ID to remove must be a valid UUID.'),
+  }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   parameters:
+ *     discussionId:
+ *       name: discussionId
+ *       in: path
+ *       required: true
+ *       description: Unique identifier of the discussion to which the reply will be posted.
+ *       schema:
+ *         type: string
+ *         format: uuid
+ *         example: "123e4567-e89b-12d3-a456-426614174000"
+ *
+ *   schemas:
+ *     PostReplyRequest:
+ *       type: object
+ *       required:
+ *         - content
+ *       properties:
+ *         content:
+ *           type: string
+ *           description: Content of the reply.
+ *           example: "I agree with your point!"
+ */
+export const postReplySchema = z.object({
+  params: z.object({
+    discussionId: z.uuid('Discussion ID must be a valid UUID.'),
+  }),
+  body: z.object({
+    content: z
+      .string({ error: 'Content is required.' })
+      .min(1, 'Content cannot be empty.'),
+  }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   parameters:
+ *     discussionId:
+ *       name: discussionId
+ *       in: path
+ *       required: true
+ *       description: Unique identifier of the discussion.
+ *       schema:
+ *         type: string
+ *         format: uuid
+ *         example: "123e4567-e89b-12d3-a456-426614174000"
+ */
+export const discussionIdParamSchema = z.object({
+  params: z.object({
+    discussionId: z.uuid('Discussion ID must be a valid UUID'),
+  }),
+});
+
+/**
+ * @openapi
+ * components:
+ *   parameters:
+ *     roomId:
+ *       name: roomId
+ *       in: path
+ *       required: true
+ *       description: Unique identifier of the chat room.
+ *       schema:
+ *         type: string
+ *         format: uuid
+ *         example: "550e8400-e29b-41d4-a716-446655440000"
+ */
+export const roomIdParamSchema = z.object({
+  params: z.object({
+    roomId: z.uuid('Room ID must be a valid UUID.'),
+  }),
+});

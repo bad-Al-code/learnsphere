@@ -2,6 +2,13 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { NotAuthorizedError } from '../errors';
+import {
+  addLessonToModuleSchema,
+  lessonIdParamSchema,
+  reorderLessonsSchema,
+  updateLessonZodSchema,
+  videoUploadUrlSchema,
+} from '../schemas';
 import { LessonService } from '../services';
 
 export class LessonController {
@@ -11,8 +18,10 @@ export class LessonController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { moduleId } = req.params;
-      const lessonData = req.body;
+      const { moduleId } = addLessonToModuleSchema.parse({
+        params: req.params,
+      }).params;
+      const lessonData = addLessonToModuleSchema.parse({ body: req.body }).body;
       const requester = req.currentUser;
       if (!requester) {
         throw new NotAuthorizedError();
@@ -34,7 +43,9 @@ export class LessonController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { lessonId } = req.params;
+      const { lessonId } = lessonIdParamSchema.parse({
+        params: req.params,
+      }).params;
       const lesson = await LessonService.getLessonDetails(lessonId);
       res.status(StatusCodes.OK).json(lesson);
     } catch (error) {
@@ -48,7 +59,10 @@ export class LessonController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { lessonId } = req.params;
+      const { lessonId } = lessonIdParamSchema.parse({
+        params: req.params,
+      }).params;
+      const data = updateLessonZodSchema.parse({ body: req.body }).body;
       const requester = req.currentUser;
 
       if (!requester) {
@@ -57,7 +71,7 @@ export class LessonController {
 
       const updatedLesson = await LessonService.updateLesson(
         lessonId,
-        req.body,
+        data,
         requester
       );
       res.status(StatusCodes.OK).json(updatedLesson);
@@ -72,7 +86,9 @@ export class LessonController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { lessonId } = req.params;
+      const { lessonId } = lessonIdParamSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser;
       if (!requester) {
         throw new NotAuthorizedError();
@@ -93,7 +109,7 @@ export class LessonController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { ids } = req.body;
+      const { ids } = reorderLessonsSchema.parse({ body: req.body }).body;
       const requester = req.currentUser;
       if (!requester) {
         throw new NotAuthorizedError();
@@ -114,8 +130,10 @@ export class LessonController {
     next: NextFunction
   ) {
     try {
-      const { lessonId } = req.params;
-      const { filename } = req.body;
+      const { lessonId } = videoUploadUrlSchema.parse({
+        params: req.params,
+      }).params;
+      const { filename } = videoUploadUrlSchema.parse({ body: req.body }).body;
       const requester = req.currentUser;
       if (!requester) {
         throw new NotAuthorizedError();

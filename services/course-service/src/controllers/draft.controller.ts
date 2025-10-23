@@ -4,9 +4,14 @@ import { StatusCodes } from 'http-status-codes';
 import { DraftRepository } from '../db/repostiories';
 import { NotAuthorizedError } from '../errors';
 import {
+  addCollaboratorSchema,
+  createDraftSchema,
+  draftIdParamSchema,
   logTimeParamSchema,
   logTimeSchema,
+  shareTokenParamsSchema,
   timeSummaryQuerySchema,
+  updateDraftSchema,
 } from '../schemas';
 import { DraftService } from '../services/draft.service';
 
@@ -34,7 +39,7 @@ export class DraftController {
         priority,
         category,
         wordCount,
-      } = req.body;
+      } = createDraftSchema.parse({ body: req.body }).body;
 
       const newDraft = await DraftService.createDraft(
         {
@@ -58,9 +63,9 @@ export class DraftController {
 
   public static async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
+      const { id } = updateDraftSchema.parse({ params: req.params }).params;
       const { title, content, status, priority, category, wordCount } =
-        req.body;
+        updateDraftSchema.parse({ body: req.body }).body;
 
       const updatedDraft = await DraftService.update(
         id,
@@ -76,7 +81,7 @@ export class DraftController {
 
   public static async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
+      const { id } = draftIdParamSchema.parse({ params: req.params }).params;
 
       await DraftService.delete(id, req.currentUser!);
 
@@ -93,8 +98,8 @@ export class DraftController {
   ) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { id } = req.params;
-      const { email } = req.body;
+      const { id } = addCollaboratorSchema.parse({ params: req.params }).params;
+      const { email } = addCollaboratorSchema.parse({ body: req.body }).body;
 
       await DraftService.addCollaborator(id, email, req.currentUser);
 
@@ -109,7 +114,7 @@ export class DraftController {
   public static async share(req: Request, res: Response, next: NextFunction) {
     try {
       if (!req.currentUser) throw new NotAuthorizedError();
-      const { id } = req.params;
+      const { id } = draftIdParamSchema.parse({ params: req.params }).params;
 
       const result = await DraftService.generateShareLink(id, req.currentUser);
 
@@ -125,7 +130,9 @@ export class DraftController {
     next: NextFunction
   ) {
     try {
-      const { token } = req.params;
+      const { token } = shareTokenParamsSchema.parse({
+        params: req.params,
+      }).params;
 
       const draft = await DraftService.getSharedDraft(token);
 

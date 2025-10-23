@@ -1,7 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+
 import { BadRequestError, NotAuthorizedError } from '../errors';
-import { bulkModulesSchema } from '../schemas';
+import {
+  addModuleToCourseSchema,
+  bulkModulesSchema,
+  moduleIdParamSchema,
+  updateModuleSchema,
+} from '../schemas';
 import { ModuleService } from '../services';
 
 export class ModuleController {
@@ -11,8 +17,10 @@ export class ModuleController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { courseId } = req.params;
-      const moduleData = req.body;
+      const { courseId } = addModuleToCourseSchema.parse({
+        params: req.params,
+      }).params;
+      const moduleData = addModuleToCourseSchema.parse({ body: req.body }).body;
       const requester = req.currentUser;
       if (!requester) {
         throw new NotAuthorizedError();
@@ -35,8 +43,12 @@ export class ModuleController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { moduleId } = req.params;
+      const { moduleId } = moduleIdParamSchema.parse({
+        params: req.params,
+      }).params;
+
       const moduleDetails = await ModuleService.getModuleDetails(moduleId);
+
       res.status(StatusCodes.OK).json(moduleDetails);
     } catch (error) {
       next(error);
@@ -68,8 +80,10 @@ export class ModuleController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { moduleId } = req.params;
-      const updateData = req.body;
+      const { moduleId } = updateModuleSchema.parse({
+        params: req.params,
+      }).params;
+      const updateData = updateModuleSchema.parse({ body: req.body }).body;
       const requester = req.currentUser;
       if (!requester) {
         throw new NotAuthorizedError();
@@ -92,7 +106,9 @@ export class ModuleController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { moduleId } = req.params;
+      const { moduleId } = moduleIdParamSchema.parse({
+        params: req.params,
+      }).params;
       const requester = req.currentUser;
       if (!requester) {
         throw new NotAuthorizedError();
@@ -113,13 +129,13 @@ export class ModuleController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { ids } = req.body;
+      const { moduleIds } = bulkModulesSchema.parse({ body: req.body }).body;
       const requester = req.currentUser;
       if (!requester) {
         throw new NotAuthorizedError();
       }
 
-      await ModuleService.reorderModules(ids, requester);
+      await ModuleService.reorderModules(moduleIds, requester);
       res
         .status(StatusCodes.OK)
         .json({ message: 'Modules reordered successfully' });

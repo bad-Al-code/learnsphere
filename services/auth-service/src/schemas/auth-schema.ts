@@ -260,3 +260,15 @@ export const updatePasswordSchema = z.object({
       .max(50, 'New password must be at most 50 characters long'),
   }),
 });
+
+export const sessionIdParamSchema = z.object({
+  params: z.object({
+    sessionId: z.string().uuid('Session ID format is invalid.'),
+  }),
+});
+
+export const userIdParamSchema = z.object({
+  params: z.object({
+    userId: z.string().uuid('User ID format is invalid.'),
+  }),
+});
