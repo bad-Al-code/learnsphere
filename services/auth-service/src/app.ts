@@ -7,13 +7,13 @@ import swaggerUi from 'swagger-ui-express';
 
 import { env } from './config/env';
 import { swaggerSpec } from './config/swagger';
-import { metricsService } from './controllers/metrics-service';
 import { correlationIdMiddleware } from './middlewares/correlation-id.middleware';
 import { currentUser } from './middlewares/current-user';
 import { errorHandler } from './middlewares/error-handler';
 import { httpLogger } from './middlewares/http-logger';
 import { metricsRecorder } from './middlewares/metrics-recorder';
 import { authRouter, healthRouter } from './routes';
+import { metricsService } from './services/metrics-service';
 
 const app = express();
 
